@@ -23,6 +23,6 @@ public class User {
     public static void main(String[] args) {
         User minh = new User("0001", "minhpham", "12345", Role.ADMIN);
         minh.setNickname("blablabla");
-        System.out.println(minh.getUsername() + "s'role: " + minh.getRole());
+        System.out.println(minh.getUsername() + "'s role: " + minh.getRole());
     }
 }
