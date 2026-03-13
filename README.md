@@ -1,4 +1,4 @@
-# **Aution Project**
+# Aution Project
 
 ## Members:
 - Đỗ Giang Thành Đạt
