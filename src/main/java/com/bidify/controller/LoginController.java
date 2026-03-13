@@ -1,4 +1,4 @@
-package main.controller;
+package com.bidify.controller;
 
 public class LoginController {
     
