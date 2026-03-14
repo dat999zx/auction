@@ -1,0 +1,7 @@
+#fade {
+    -fx-fill: linear-gradient(
+        from 0% 0% to 100% 0%,
+        rgba(255,255,255,0) 0%,
+        rgba(255,255,255,1) 20%
+    );
+}
