@@ -2,21 +2,22 @@ package com.bidify;
 
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+
+import com.bidify.utility.SceneManager;;
 
 public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/login.fxml"));
-        Scene scene = new Scene(loader.load(), 1200, 800);
-        scene.getStylesheets().add(MainApp.class.getResource("/css/login.css").toExternalForm());
+        SceneManager.setStage(stage);
         stage.setTitle("Bidify");
         stage.setMinWidth(1280);
         stage.setMaxWidth(1280);
         stage.setMinHeight(800);
         stage.setMaxHeight(800);
-        stage.setScene(scene);
+        SceneManager.switchScene("login.fxml");
         stage.show();
     }
 

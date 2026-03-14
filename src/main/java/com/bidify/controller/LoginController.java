@@ -11,6 +11,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 
+import com.bidify.utility.SceneManager;
 import com.bidify.MainApp;
 import com.bidify.exception.ValidationException;
 
@@ -45,16 +46,5 @@ public class LoginController {
 
     // đổi sang scene đăng kí
     @FXML
-    private void toRegister(ActionEvent event){
-        try{
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/register.fxml"));
-            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(MainApp.class.getResource("/css/register.css").toExternalForm());
-            stage.setScene(scene);
-        }
-        catch (Exception e){
-            e.printStackTrace();
-        }
-    }
+    private void toRegister(ActionEvent event){ SceneManager.switchScene("register.fxml"); }
 }
