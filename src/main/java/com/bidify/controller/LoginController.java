@@ -1,10 +1,17 @@
 package com.bidify.controller;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.TextField;
+import javafx.stage.Stage;
 import javafx.scene.control.PasswordField;
+import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 
+import com.bidify.MainApp;
 import com.bidify.exception.ValidationException;
 
 public class LoginController {
@@ -22,9 +29,9 @@ public class LoginController {
             String userEmail = email.getText().trim();
             String userPassword = password.getText();
             
-            if (userEmail.isEmpty()) throw new ValidationException("Email should not be empty");
+            if (userEmail.isEmpty()) throw new ValidationException("Email must not be empty");
             if (!userEmail.contains("@")) throw new ValidationException("Invalid email");
-            if (userPassword.length() < 6) throw new ValidationException("Password too short");
+            if (userPassword.length() < 6) throw new ValidationException("Password is too short");
             
             System.out.println(userEmail);
             System.out.println(userPassword);
@@ -33,6 +40,21 @@ public class LoginController {
             messageLabel.setStyle("-fx-text-fill: red;");
             messageLabel.setText(e.getMessage());
             System.out.println("Validation error: " + e.getMessage());
+        }
+    }
+
+    // đổi sang scene đăng kí
+    @FXML
+    private void toRegister(ActionEvent event){
+        try{
+            Parent root = FXMLLoader.load(getClass().getResource("/fxml/register.fxml"));
+            Stage stage = (Stage) ((Node) event.getSource()).getScene().getWindow();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(MainApp.class.getResource("/css/register.css").toExternalForm());
+            stage.setScene(scene);
+        }
+        catch (Exception e){
+            e.printStackTrace();
         }
     }
 }

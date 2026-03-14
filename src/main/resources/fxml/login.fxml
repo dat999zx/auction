@@ -71,7 +71,7 @@
             <Font size="18.0" />
          </font>
       </Text>
-      <Hyperlink fx:id="createacc" layoutX="1010.0" layoutY="557.0" text="Create one" textFill="#00b4ff">
+      <Hyperlink layoutX="1010.0" layoutY="557.0" text="Create one" textFill="#00b4ff" onAction="#toRegister">
          <font>
             <Font size="18.0" />
          </font>
