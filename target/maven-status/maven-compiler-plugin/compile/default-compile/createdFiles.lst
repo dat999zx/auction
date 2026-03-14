@@ -1,2 +1,7 @@
 com\bidify\MainApp.class
+com\bidify\exception\ValidationException.class
+com\bidify\utility\PasswordUtil.class
 com\bidify\controller\LoginController.class
+com\bidify\model\Role.class
+com\bidify\exception\AuthException.class
+com\bidify\model\User.class
