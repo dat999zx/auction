@@ -7,7 +7,13 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.Label;
 
 import com.bidify.utility.SceneManager;
+import com.bidify.utility.SocketClient;
+
+import java.io.IOException;
+
 import com.bidify.exception.ValidationException;
+import com.bidify.model.Request;
+import com.bidify.model.Response;
 
 public class LoginController {
     @FXML

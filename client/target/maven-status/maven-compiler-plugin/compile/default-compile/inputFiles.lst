@@ -3,7 +3,11 @@ D:\coding\auction\client\src\main\java\com\bidify\controller\RegisterController.
 D:\coding\auction\client\src\main\java\com\bidify\exception\AuthException.java
 D:\coding\auction\client\src\main\java\com\bidify\exception\ValidationException.java
 D:\coding\auction\client\src\main\java\com\bidify\MainApp.java
+D:\coding\auction\client\src\main\java\com\bidify\model\Request.java
+D:\coding\auction\client\src\main\java\com\bidify\model\Response.java
 D:\coding\auction\client\src\main\java\com\bidify\model\Role.java
+D:\coding\auction\client\src\main\java\com\bidify\model\TestRequest.java
 D:\coding\auction\client\src\main\java\com\bidify\model\User.java
 D:\coding\auction\client\src\main\java\com\bidify\utility\PasswordUtil.java
 D:\coding\auction\client\src\main\java\com\bidify\utility\SceneManager.java
+D:\coding\auction\client\src\main\java\com\bidify\utility\SocketClient.java
