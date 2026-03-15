@@ -9,6 +9,7 @@ import javafx.scene.control.Label;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.utility.SceneManager;
 import com.bidify.utility.SocketClient;
@@ -45,7 +46,7 @@ public class RegisterController {
 
             SocketClient client = SocketClient.getClient();
             RegisterRequest data = new RegisterRequest(name, email, password);           
-            Request request = new Request("REGISTER", data);
+            Request request = new Request(RequestType.REGISTER, data);
 
             try{
                 Response response = client.send(request);

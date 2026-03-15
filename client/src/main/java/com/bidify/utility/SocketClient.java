@@ -6,7 +6,7 @@ import java.io.*;
 
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.google.gson.Gson;
+import com.bidify.common.util.JsonUtil;
 
 import javafx.application.Platform;
 
@@ -22,7 +22,6 @@ public class SocketClient {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
-    private Gson gson = new Gson();
 
     public void connect(String host, int port) throws IOException{ // kết nối với máy chủ (chỉ gọi MỘT lần ở MainApp)
         try{
@@ -42,10 +41,10 @@ public class SocketClient {
     }
 
     public Response send(Request request) throws IOException{ // gửi Request cho server và nhận về Response
-        String json = gson.toJson(request);
+        String json = JsonUtil.toJson(request);
         out.println(json);
         String responseJson = in.readLine();
-        return gson.fromJson(responseJson, Response.class);
+        return JsonUtil.fromJson(responseJson, Response.class);
     }
 
     public void close() throws IOException{ // ngắt kết nối

@@ -1,8 +1,9 @@
-package com.bidify.server;
+package com.bidify.server.network;
 
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.google.gson.Gson;
+import com.bidify.server.network.RequestDispatcher;
+import com.bidify.common.util.JsonUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -14,7 +15,7 @@ import java.net.SocketException;
 // lắng nghe client
 public class ClientHandler implements Runnable {
     private final Socket socket;
-    private final Gson gson = new Gson();
+    private final RequestDispatcher dispatcher = new RequestDispatcher();
 
     public ClientHandler(Socket socket) { this.socket = socket; }
 
@@ -27,33 +28,10 @@ public class ClientHandler implements Runnable {
             String message;
             while ((message = in.readLine()) != null) { // liên tục đọc dữ liệu nhận từ client
                 System.out.println("Received: " + message);
-
-                Request request;
-                Response response;
-
-                try{ request = gson.fromJson(message, Request.class); }
-                catch (Exception e){
-                    response = new Response("ERROR", "Invalid JSON");
-                    out.println(gson.toJson(response));
-                    continue;
-                }
-
-                if (request == null || request.getType() == null || request.getType().isBlank()){
-                    response = new Response("ERROR", "Invalid request type");
-                    out.println(gson.toJson(response));
-                    continue;
-                }
-
-                switch (request.getType()){
-                    case "REGISTER" -> {
-                        response = new Response("SUCCESS", "register");
-                    }
-                    default -> {
-                        response = new Response("ERROR", "Invalid request type");
-                    }
-                }
-
-                out.println(gson.toJson(response));
+                
+                Request request = JsonUtil.fromJson(message, Request.class);
+                Response response = dispatcher.dispatch(request);
+                out.println(JsonUtil.toJson(response));
             }
         }
         catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }

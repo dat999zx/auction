@@ -2,8 +2,8 @@ package com.bidify.server.model;
 
 import java.time.LocalDateTime; // dùng để theo dõi thời điểm mà account được khởi tạo, đăng nhập -> quản lý account
 
-import com.bidify.server.model.enums.Role;
-import com.bidify.server.model.enums.UserStatus;
+import com.bidify.common.enums.Role;
+import com.bidify.common.enums.UserStatus;
 
 public class User {
     private final String userId;

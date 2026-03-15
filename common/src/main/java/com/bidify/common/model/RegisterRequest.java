@@ -12,5 +12,5 @@ public class RegisterRequest {
 
     public String getUsername(){ return username; }
     public String getEmail(){ return email; }
-    public String password(){ return password; }
+    public String getPassword(){ return password; }
 }

@@ -1,15 +1,16 @@
 package com.bidify.common.model;
+import com.bidify.common.enums.RequestType;
 
 public class Request {
-    private String type;
+    private RequestType type;
     private Object data;
 
     public Request(){}
-    public Request(String type, Object data){
+    public Request(RequestType type, Object data){
         this.type = type;
         this.data = data;
     }
 
-    public String getType(){ return type; }
+    public RequestType getType(){ return type; }
     public Object getData(){ return data; }
 }

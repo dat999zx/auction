@@ -1,4 +1,4 @@
-package com.bidify.server.model.enums;
+package com.bidify.common.enums;
 
 public enum UserStatus {
     ACTIVE,

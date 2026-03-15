@@ -2,6 +2,9 @@ package com.bidify.server;
 
 import java.io.IOException;
 import java.net.Socket;
+
+import com.bidify.server.network.ClientHandler;
+
 import java.net.ServerSocket;
 
 public class ServerApp {

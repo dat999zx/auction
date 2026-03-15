@@ -1,22 +1,23 @@
 package com.bidify.common.model;
+import com.bidify.common.enums.RequestStatus;
 
 public class Response {
-    private String status;
+    private RequestStatus status;
     private String message;
     private Object data;
 
-    public Response() {}
-    public Response(String status, String message) {
+    public Response() { this.status = RequestStatus.NOT_FOUND; }
+    public Response(RequestStatus status, String message) {
         this.status = status;
         this.message = message;
     }
-    public Response(String status, String message, Object data) {
+    public Response(RequestStatus status, String message, Object data) {
         this.status = status;
         this.message = message;
         this.data = data;
     }
 
-    public String getStatus(){ return status; }
+    public RequestStatus getStatus(){ return status; }
     public String getMessage(){ return message; }
     public Object getData(){ return data; }
 }

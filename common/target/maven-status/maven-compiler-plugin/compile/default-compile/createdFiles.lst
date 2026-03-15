@@ -1,5 +1,10 @@
+com\bidify\common\enums\RequestStatus.class
+com\bidify\common\enums\Role.class
+com\bidify\common\util\JsonUtil.class
 com\bidify\common\exception\AuthException.class
 com\bidify\common\model\Request.class
-com\bidify\common\exception\ValidationException.class
+com\bidify\common\enums\UserStatus.class
 com\bidify\common\model\RegisterRequest.class
+com\bidify\common\exception\ValidationException.class
+com\bidify\common\enums\RequestType.class
 com\bidify\common\model\Response.class
