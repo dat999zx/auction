@@ -1,7 +1,7 @@
 package com.bidify.server;
 
-import com.bidify.server.model.Request;
-import com.bidify.server.model.Response;
+import com.bidify.common.Request;
+import com.bidify.common.Response;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;

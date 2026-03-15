@@ -1,5 +1,4 @@
 com\bidify\utility\SceneManager.class
-com\bidify\utility\PasswordUtil.class
 com\bidify\utility\SocketClient.class
 com\bidify\exception\AuthException.class
 com\bidify\model\User.class

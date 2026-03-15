@@ -1,11 +1,14 @@
 package com.bidify.utility;
 
+import java.net.ConnectException;
 import java.net.Socket;
 import java.io.*;
 
-import com.bidify.model.Request;
-import com.bidify.model.Response;
+import com.bidify.common.Request;
+import com.bidify.common.Response;
 import com.google.gson.Gson;
+
+import javafx.application.Platform;
 
 /*
 kết nối client và server
@@ -22,9 +25,15 @@ public class SocketClient {
     private Gson gson = new Gson();
 
     public void connect(String host, int port) throws IOException{ // kết nối với máy chủ (chỉ gọi MỘT lần ở MainApp)
-        socket = new Socket(host, port);
-        in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        out = new PrintWriter(socket.getOutputStream(), true);
+        try{
+            socket = new Socket(host, port);
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+        }
+        catch (ConnectException e){
+            System.out.println("Server has not started");
+            Platform.exit();
+        }
     }
 
     public static SocketClient getClient(){ // lấy client để thực hiện giao tiếp với server
