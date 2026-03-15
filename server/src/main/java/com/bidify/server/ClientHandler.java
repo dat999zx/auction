@@ -1,7 +1,7 @@
 package com.bidify.server;
 
-import com.bidify.common.Request;
-import com.bidify.common.Response;
+import com.bidify.common.model.Request;
+import com.bidify.common.model.Response;
 import com.google.gson.Gson;
 
 import java.io.BufferedReader;
@@ -29,9 +29,9 @@ public class ClientHandler implements Runnable {
                 System.out.println("Received: " + message);
 
                 Request request;
-                Response response = new Response("derp", "idk");
+                Response response;
 
-                try { request = gson.fromJson(message, Request.class); }
+                try{ request = gson.fromJson(message, Request.class); }
                 catch (Exception e){
                     response = new Response("ERROR", "Invalid JSON");
                     out.println(gson.toJson(response));
@@ -44,10 +44,19 @@ public class ClientHandler implements Runnable {
                     continue;
                 }
 
+                switch (request.getType()){
+                    case "REGISTER" -> {
+                        response = new Response("SUCCESS", "register");
+                    }
+                    default -> {
+                        response = new Response("ERROR", "Invalid request type");
+                    }
+                }
+
                 out.println(gson.toJson(response));
             }
         }
-        catch(SocketException e){ System.out.println("Client disconnected"); }
+        catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }
         catch(IOException e){ e.printStackTrace(); }
     }
 }

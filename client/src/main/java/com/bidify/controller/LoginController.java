@@ -8,13 +8,13 @@ import javafx.scene.control.Label;
 
 import com.bidify.utility.SceneManager;
 
-import com.bidify.exception.ValidationException;
+import com.bidify.common.exception.ValidationException;
 
 public class LoginController {
     @FXML
-    private TextField email;
+    private TextField emailField;
     @FXML
-    private PasswordField password;
+    private PasswordField passwordField;
     @FXML
     private Label messageLabel;
     
@@ -22,15 +22,16 @@ public class LoginController {
     @FXML
     private void handleLogin(){
         try{
-            String userEmail = email.getText().trim();
-            String userPassword = password.getText();
+            String email = emailField.getText();
+            String password = passwordField.getText();
             
-            if (userEmail.isEmpty()) throw new ValidationException("Email must not be empty");
-            if (!userEmail.contains("@")) throw new ValidationException("Invalid email");
-            if (userPassword.length() < 6) throw new ValidationException("Password is too short");
+            if (email.isEmpty()) throw new ValidationException("Email must not be empty");
+            if (!email.contains("@") || email.contains(" ")) throw new ValidationException("Invalid email");
+            if (password.contains(" ")) throw new ValidationException("Invalid password");
+            if (password.length() < 6) throw new ValidationException("Password is too short");
             
-            System.out.println(userEmail);
-            System.out.println(userPassword);
+            System.out.println(email);
+            System.out.println(password);
         }
         catch(ValidationException e){
             messageLabel.setStyle("-fx-text-fill: red;");

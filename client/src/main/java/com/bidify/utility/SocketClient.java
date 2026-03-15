@@ -4,8 +4,8 @@ import java.net.ConnectException;
 import java.net.Socket;
 import java.io.*;
 
-import com.bidify.common.Request;
-import com.bidify.common.Response;
+import com.bidify.common.model.Request;
+import com.bidify.common.model.Response;
 import com.google.gson.Gson;
 
 import javafx.application.Platform;

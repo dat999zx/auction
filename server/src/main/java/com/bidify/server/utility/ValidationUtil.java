@@ -1,6 +1,6 @@
 package com.bidify.server.utility;
 
-import com.bidify.server.exceptions.ValidationException;
+import com.bidify.common.exception.ValidationException;
 
 public class ValidationUtil {
 

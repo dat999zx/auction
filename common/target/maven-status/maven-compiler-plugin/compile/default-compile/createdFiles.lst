@@ -1,3 +1,5 @@
-com\bidify\model\Request.class
-com\bidify\model\RegisterRequest.class
-com\bidify\model\Response.class
+com\bidify\common\exception\AuthException.class
+com\bidify\common\model\Request.class
+com\bidify\common\exception\ValidationException.class
+com\bidify\common\model\RegisterRequest.class
+com\bidify\common\model\Response.class

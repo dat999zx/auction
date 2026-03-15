@@ -1,3 +1,5 @@
-D:\coding\auction\common\src\main\java\com\bidify\common\RegisterRequest.java
-D:\coding\auction\common\src\main\java\com\bidify\common\Request.java
-D:\coding\auction\common\src\main\java\com\bidify\common\Response.java
+D:\coding\auction\common\src\main\java\com\bidify\common\exception\AuthException.java
+D:\coding\auction\common\src\main\java\com\bidify\common\exception\ValidationException.java
+D:\coding\auction\common\src\main\java\com\bidify\common\model\RegisterRequest.java
+D:\coding\auction\common\src\main\java\com\bidify\common\model\Request.java
+D:\coding\auction\common\src\main\java\com\bidify\common\model\Response.java

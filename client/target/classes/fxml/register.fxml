@@ -30,12 +30,12 @@
             <Font size="24.0" />
          </font>
       </Text>
-      <TextField fx:id="email" layoutX="786.0" layoutY="343.0" prefHeight="39.0" prefWidth="351.0" promptText="Email">
+      <TextField fx:id="emailField" layoutX="786.0" layoutY="343.0" prefHeight="39.0" prefWidth="351.0" promptText="Email">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <PasswordField fx:id="password" layoutX="786.0" layoutY="398.0" prefHeight="39.0" prefWidth="351.0" promptText="Password">
+      <PasswordField fx:id="passwordField" layoutX="786.0" layoutY="398.0" prefHeight="39.0" prefWidth="351.0" promptText="Password">
          <font>
             <Font size="18.0" />
          </font>
@@ -75,12 +75,12 @@
             <Font size="25.0" />
          </font>
       </Text>
-      <TextField fx:id="name" layoutX="786.0" layoutY="290.0" prefHeight="39.0" prefWidth="351.0" promptText="Name">
+      <TextField fx:id="nameField" layoutX="786.0" layoutY="290.0" prefHeight="39.0" prefWidth="351.0" promptText="Username">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <PasswordField fx:id="confirm" layoutX="785.0" layoutY="451.0" prefHeight="39.0" prefWidth="351.0" promptText="Confirm Password">
+      <PasswordField fx:id="passwordConfirmField" layoutX="785.0" layoutY="451.0" prefHeight="39.0" prefWidth="351.0" promptText="Confirm Password">
          <font>
             <Font size="18.0" />
          </font>

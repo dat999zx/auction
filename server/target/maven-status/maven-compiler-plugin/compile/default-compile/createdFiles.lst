@@ -1,13 +1,9 @@
 com\bidify\server\ClientHandler.class
-com\bidify\server\model\User.class
-com\bidify\server\exceptions\AuthException.class
-com\bidify\server\utility\ValidationUtil.class
 com\bidify\server\model\enums\RequestType.class
+com\bidify\server\model\User.class
 com\bidify\server\ServerApp.class
 com\bidify\server\model\enums\UserStatus.class
-com\bidify\server\model\Request.class
 com\bidify\server\utility\PasswordUtil.class
-com\bidify\server\model\Response.class
-com\bidify\server\exceptions\ValidationException.class
 com\bidify\server\utility\IdGenerator.class
 com\bidify\server\model\enums\Role.class
+com\bidify\server\utility\ValidationUtil.class

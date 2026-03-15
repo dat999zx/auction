@@ -1,7 +1,5 @@
 D:\coding\auction\client\src\main\java\com\bidify\controller\LoginController.java
 D:\coding\auction\client\src\main\java\com\bidify\controller\RegisterController.java
-D:\coding\auction\client\src\main\java\com\bidify\exception\AuthException.java
-D:\coding\auction\client\src\main\java\com\bidify\exception\ValidationException.java
 D:\coding\auction\client\src\main\java\com\bidify\MainApp.java
 D:\coding\auction\client\src\main\java\com\bidify\model\Role.java
 D:\coding\auction\client\src\main\java\com\bidify\model\User.java

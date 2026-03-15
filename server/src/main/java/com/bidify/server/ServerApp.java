@@ -2,7 +2,6 @@ package com.bidify.server;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.ServerSocket;
 
 public class ServerApp {
@@ -20,7 +19,6 @@ public class ServerApp {
                 new Thread(new ClientHandler(socket)).start();
             }
         }
-        catch(SocketException e){ System.out.println("Client disconnected"); }
         catch (IOException e){ e.printStackTrace(); }
     }
 }

@@ -1,11 +1,7 @@
 D:\coding\auction\server\src\main\java\com\bidify\server\ClientHandler.java
-D:\coding\auction\server\src\main\java\com\bidify\server\exceptions\AuthException.java
-D:\coding\auction\server\src\main\java\com\bidify\server\exceptions\ValidationException.java
 D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\RequestType.java
 D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\Role.java
 D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\UserStatus.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\Request.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\Response.java
 D:\coding\auction\server\src\main\java\com\bidify\server\model\User.java
 D:\coding\auction\server\src\main\java\com\bidify\server\ServerApp.java
 D:\coding\auction\server\src\main\java\com\bidify\server\utility\IdGenerator.java
