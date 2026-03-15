@@ -20,47 +20,57 @@
          </image>
       </ImageView>
       <Rectangle id="fade" arcHeight="5.0" arcWidth="5.0" fill="WHITE" height="800.0" layoutX="567.0" stroke="#aeaeae" strokeType="INSIDE" strokeWidth="0.0" width="713.0" />
-      <Text fill="#111111" layoutX="836.0" layoutY="203.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Register" textAlignment="CENTER" wrappingWidth="249.13671875">
+      <Text fill="#111111" layoutX="835.0" layoutY="230.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Register" textAlignment="CENTER" wrappingWidth="249.13671875">
          <font>
             <Font name="System Bold" size="40.0" />
          </font>
       </Text>
-      <Text fill="#656565" layoutX="808.0" layoutY="255.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Please enter your details" textAlignment="CENTER" wrappingWidth="304.13671875">
+      <Text fill="#656565" layoutX="809.0" layoutY="273.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Please enter your details" textAlignment="CENTER" wrappingWidth="304.13671875">
          <font>
             <Font size="24.0" />
          </font>
       </Text>
-      <TextField fx:id="emailField" layoutX="786.0" layoutY="343.0" prefHeight="39.0" prefWidth="351.0" promptText="Email">
+      <TextField fx:id="nameField" layoutX="786.0" layoutY="312.0" prefHeight="39.0" prefWidth="351.0" promptText="Username">
          <font>
             <Font size="18.0" />
          </font>
       </TextField>
-      <PasswordField fx:id="passwordField" layoutX="786.0" layoutY="398.0" prefHeight="39.0" prefWidth="351.0" promptText="Password">
+      <TextField fx:id="emailField" layoutX="786.0" layoutY="365.0" prefHeight="39.0" prefWidth="351.0" promptText="Email">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </TextField>
+      <PasswordField fx:id="passwordField" layoutX="786.0" layoutY="420.0" prefHeight="39.0" prefWidth="351.0" promptText="Password">
          <font>
             <Font size="18.0" />
          </font>
       </PasswordField>
-      <Label fx:id="messageLabel" alignment="CENTER" layoutX="786.0" layoutY="490.0" prefWidth="351.0" textAlignment="CENTER" textFill="#ff5656">
+      <Label fx:id="messageLabel" alignment="CENTER" layoutX="785.0" layoutY="519.0" prefWidth="351.0" textAlignment="CENTER" textFill="#ff5656">
          <font>
             <Font name="System Bold" size="15.0" />
          </font></Label>
-      <ImageView fx:id="showpass" fitHeight="25.0" fitWidth="25.0" layoutX="1102.0" layoutY="405.0">
+      <ImageView fx:id="showpass" fitHeight="25.0" fitWidth="25.0" layoutX="1102.0" layoutY="427.0">
          <image>
             <Image url="@../images/eye-open.png" />
             <Image url="@../images/eye-open.png" />
          </image>
       </ImageView>
-      <Button fx:id="register" layoutX="751.0" layoutY="518.0" mnemonicParsing="false" onAction="#handleRegister" prefHeight="25.0" prefWidth="421.0" style="-fx-background-color: rgb(64, 185, 255);" text="Register" textFill="WHITE">
+      <PasswordField fx:id="passwordConfirmField" layoutX="785.0" layoutY="473.0" prefHeight="39.0" prefWidth="351.0" promptText="Confirm Password">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </PasswordField>
+      <Button fx:id="register" layoutX="749.0" layoutY="540.0" mnemonicParsing="false" onAction="#handleRegister" prefHeight="25.0" prefWidth="421.0" style="-fx-background-color: rgb(64, 185, 255);" text="Register" textFill="WHITE">
          <font>
             <Font name="System Bold" size="18.0" />
          </font>
       </Button>
-      <Text fill="#656565" layoutX="808.0" layoutY="581.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Already have an account?" textAlignment="CENTER" wrappingWidth="249.13671875">
+      <Text fill="#656565" layoutX="806.0" layoutY="603.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Already have an account?" textAlignment="CENTER" wrappingWidth="249.13671875">
          <font>
             <Font size="18.0" />
          </font>
       </Text>
-      <Hyperlink layoutX="1058.0" layoutY="557.0" text="Login" textFill="#00b4ff" onAction="#toLogin">
+      <Hyperlink layoutX="1056.0" layoutY="579.0" onAction="#toLogin" text="Login" textFill="#00b4ff">
          <font>
             <Font size="18.0" />
          </font>
@@ -75,15 +85,5 @@
             <Font size="25.0" />
          </font>
       </Text>
-      <TextField fx:id="nameField" layoutX="786.0" layoutY="290.0" prefHeight="39.0" prefWidth="351.0" promptText="Username">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </TextField>
-      <PasswordField fx:id="passwordConfirmField" layoutX="785.0" layoutY="451.0" prefHeight="39.0" prefWidth="351.0" promptText="Confirm Password">
-         <font>
-            <Font size="18.0" />
-         </font>
-      </PasswordField>
    </children>
 </AnchorPane>

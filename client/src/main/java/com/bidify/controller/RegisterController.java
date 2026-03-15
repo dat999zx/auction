@@ -10,6 +10,7 @@ import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.utility.SceneManager;
 import com.bidify.utility.SocketClient;
@@ -51,6 +52,17 @@ public class RegisterController {
             try{
                 Response response = client.send(request);
                 System.out.println(response.getMessage());
+                switch (response.getStatus()) {
+                    case SUCCESS -> {
+                        messageLabel.setStyle("-fx-text-fill: green;");
+                        messageLabel.setText("Register successfully, please login");
+                    }
+                    default -> throw new AuthException(response.getMessage());
+                }
+            }
+            catch (AuthException e){
+                messageLabel.setStyle("-fx-text-fill: red;");
+                messageLabel.setText("Failed to register: " + e.getMessage());
             }
             catch (IOException e){
                 messageLabel.setStyle("-fx-text-fill: red;");

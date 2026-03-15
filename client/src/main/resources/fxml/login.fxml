@@ -31,7 +31,7 @@
             <Font size="24.0" />
          </font>
       </Text>
-      <TextField fx:id="email" layoutX="786.0" layoutY="336.0" prefHeight="39.0" prefWidth="351.0" promptText="Email">
+      <TextField fx:id="email" layoutX="786.0" layoutY="336.0" prefHeight="39.0" prefWidth="351.0" promptText="Username">
          <font>
             <Font size="18.0" />
          </font>
@@ -71,7 +71,7 @@
             <Font size="18.0" />
          </font>
       </Text>
-      <Hyperlink layoutX="1010.0" layoutY="557.0" text="Create one" textFill="#00b4ff" onAction="#toRegister">
+      <Hyperlink layoutX="1010.0" layoutY="557.0" onAction="#toRegister" text="Create one" textFill="#00b4ff">
          <font>
             <Font size="18.0" />
          </font>
