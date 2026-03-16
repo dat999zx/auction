@@ -18,7 +18,7 @@ public class MainApp extends Application {
         stage.setMaxWidth(1280);
         stage.setMinHeight(800);
         stage.setMaxHeight(800);
-        SceneManager.switchScene("login.fxml");
+        SceneManager.switchScene("hub.fxml");
         stage.show();
     }
 
