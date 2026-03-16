@@ -1,9 +1,12 @@
-D:\coding\auction\server\src\main\java\com\bidify\server\ClientHandler.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\RequestType.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\Role.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\enums\UserStatus.java
+D:\coding\auction\server\src\main\java\com\bidify\server\database\Config.java
+D:\coding\auction\server\src\main\java\com\bidify\server\database\SupabaseClient.java
+D:\coding\auction\server\src\main\java\com\bidify\server\handler\AuthHandler.java
 D:\coding\auction\server\src\main\java\com\bidify\server\model\User.java
+D:\coding\auction\server\src\main\java\com\bidify\server\network\ClientHandler.java
+D:\coding\auction\server\src\main\java\com\bidify\server\network\RequestDispatcher.java
+D:\coding\auction\server\src\main\java\com\bidify\server\repository\UserRepository.java
 D:\coding\auction\server\src\main\java\com\bidify\server\ServerApp.java
+D:\coding\auction\server\src\main\java\com\bidify\server\service\AuthService.java
 D:\coding\auction\server\src\main\java\com\bidify\server\utility\IdGenerator.java
 D:\coding\auction\server\src\main\java\com\bidify\server\utility\PasswordUtil.java
 D:\coding\auction\server\src\main\java\com\bidify\server\utility\ValidationUtil.java

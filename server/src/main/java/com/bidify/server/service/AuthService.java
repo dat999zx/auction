@@ -16,13 +16,13 @@ public class AuthService {
         RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
 
         if (data.getUsername() == null || data.getUsername().isBlank())
-            return new Response(RequestStatus.FAILED, "Username is required", null);
+            return new Response(RequestStatus.FAILED, "Username is required");
 
         if (userRepository.existsByUsername(data.getUsername()))
-            return new Response(RequestStatus.FAILED, "Username already exists", null);
+            return new Response(RequestStatus.FAILED, "Username already exists");
 
-        //User user = new User();
-        //userRepository.save(user);
+        User user = new User("1234", "test", "bru", "testing", "haha@", "912312");
+        userRepository.save(user);
 
         return new Response(RequestStatus.SUCCESS, "Register successful");
     }

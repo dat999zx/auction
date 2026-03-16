@@ -1,6 +1,7 @@
 com\bidify\utility\SceneManager.class
 com\bidify\utility\SocketClient.class
 com\bidify\model\User.class
+com\bidify\controller\RegisterController$1.class
 com\bidify\MainApp.class
 com\bidify\controller\LoginController.class
 com\bidify\controller\RegisterController.class
