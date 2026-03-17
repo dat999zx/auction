@@ -12,20 +12,22 @@ public class User {
     private String nickname, username, password, email, phoneNumber;
     private Role role;
     private UserStatus status;
+    private boolean inSession;
 
     // Đăng kí tài khoản
-    public User(String id, String nickname, String username, String password, String email, String phone){
+    public User(String id, String nickname, String username, String password, String email){
         this.userId = id;
         this.nickname = nickname;
         this.username = username;
         this.password = password;
         this.email = email;
-        this.phoneNumber = phone;
-
+        this.phoneNumber = null;
+        
         this.role = Role.USER;
         this.status = UserStatus.ACTIVE;
         this.createdAt = LocalDateTime.now().toString();
         this.lastLogin = null;
+        this.inSession = false;
     }
 
     // load lại dữ liệu người dùng
@@ -40,6 +42,7 @@ public class User {
         this.status = status;
         this.createdAt = createdAt;
         this.lastLogin = lastLogin;
+        this.inSession = false;
     }
 
     public String getId(){ return userId; }
@@ -64,7 +67,9 @@ public class User {
     public void setRole(Role role){ this.role = role; }
     public void setStatus(UserStatus status){ this.status = status; }
     public void setLastLogin(String lastlogin){ this.lastLogin = lastlogin; }
-
+    public void setInSession(boolean stage){ this.inSession = stage; }
+    
+    public boolean isInSession(){ return inSession; }
     public boolean isAdmin(){ return role == Role.ADMIN; }
     public boolean isActive(){ return status == UserStatus.ACTIVE; }
 

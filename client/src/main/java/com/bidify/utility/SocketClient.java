@@ -24,6 +24,10 @@ public class SocketClient {
     private PrintWriter out;
 
     public void connect(String host, int port) throws IOException{ // kết nối với máy chủ (chỉ gọi MỘT lần ở MainApp)
+        if (socket != null){
+            System.out.println("Server already started");
+            return;
+        }
         try{
             socket = new Socket(host, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));

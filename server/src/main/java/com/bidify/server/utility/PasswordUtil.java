@@ -7,7 +7,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class PasswordUtil {
-    
     public static String hash(String iniPassword){
         if (iniPassword == null) throw new IllegalArgumentException("Password cannot be null");
         try {
@@ -30,10 +29,5 @@ public class PasswordUtil {
     public static boolean matches(String rawPass, String hashedPass){
         if (rawPass == null || hashedPass == null) return false;
         return hash(rawPass).equals(hashedPass);
-    }
-
-    public static void main(String[] args) {
-        String pass = "12345";
-        System.out.println("password after being hashed: " + hash(pass));
     }
 }

@@ -4,7 +4,9 @@ D:\coding\auction\common\src\main\java\com\bidify\common\enums\Role.java
 D:\coding\auction\common\src\main\java\com\bidify\common\enums\UserStatus.java
 D:\coding\auction\common\src\main\java\com\bidify\common\exception\AuthException.java
 D:\coding\auction\common\src\main\java\com\bidify\common\exception\ValidationException.java
+D:\coding\auction\common\src\main\java\com\bidify\common\model\LoginRequest.java
 D:\coding\auction\common\src\main\java\com\bidify\common\model\RegisterRequest.java
 D:\coding\auction\common\src\main\java\com\bidify\common\model\Request.java
 D:\coding\auction\common\src\main\java\com\bidify\common\model\Response.java
 D:\coding\auction\common\src\main\java\com\bidify\common\util\JsonUtil.java
+D:\coding\auction\common\src\main\java\com\bidify\common\util\ValidationUtil.java

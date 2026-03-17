@@ -1,0 +1,14 @@
+com\bidify\server\model\User.class
+com\bidify\server\handler\AuthHandler.class
+com\bidify\server\service\AuthService.class
+com\bidify\server\exception\DatabaseException.class
+com\bidify\server\repository\UserRepository.class
+com\bidify\server\ServerApp.class
+com\bidify\server\utility\PasswordUtil.class
+com\bidify\server\database\Config.class
+com\bidify\server\handler\AuthHandler$1.class
+com\bidify\server\network\ClientHandler.class
+com\bidify\server\network\RequestDispatcher.class
+com\bidify\server\utility\IdGenerator.class
+com\bidify\server\database\SupabaseClient.class
+com\bidify\server\network\RequestDispatcher$1.class

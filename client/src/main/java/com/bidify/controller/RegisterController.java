@@ -14,12 +14,15 @@ import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.utility.SceneManager;
 import com.bidify.utility.SocketClient;
+import com.bidify.common.util.ValidationUtil;
 
 import java.io.IOException;
 
 public class RegisterController {
     @FXML
-    private TextField nameField;
+    private TextField usernameField;
+    @FXML
+    private TextField nicknameField;
     @FXML
     private TextField emailField;
     @FXML
@@ -33,20 +36,20 @@ public class RegisterController {
     @FXML
     private void handleRegister(){
         try{
-            String name = nameField.getText();
+            String username = usernameField.getText();
+            String nickname = nicknameField.getText();
             String email = emailField.getText();
             String password = passwordField.getText();
             String passwordConfirm = passwordConfirmField.getText();
-
-            if (name.length() < 3) throw new ValidationException("Username is too short");
-            if (email.isEmpty()) throw new ValidationException("Email must not be empty");
-            if (!email.contains("@") || email.contains(" ")) throw new ValidationException("Invalid email");
-            if (password.contains(" ")) throw new ValidationException("Invalid password");
-            if (password.length() < 5) throw new ValidationException("Password is too short");
-            if (!passwordConfirm.equals(password)) throw new ValidationException("Password confirmation did not match");
+            
+            ValidationUtil.validateUsername(username);
+            ValidationUtil.validateNickname(nickname);
+            ValidationUtil.validateEmail(email);
+            ValidationUtil.validatePassword(password);
+            if (!passwordConfirm.equals(password)) throw new ValidationException("Password confirmation does not match");
 
             SocketClient client = SocketClient.getClient();
-            RegisterRequest data = new RegisterRequest(name, email, password);           
+            RegisterRequest data = new RegisterRequest(username, nickname, email, password);           
             Request request = new Request(RequestType.REGISTER, data);
 
             try{
@@ -54,26 +57,25 @@ public class RegisterController {
                 System.out.println(response.getMessage());
                 switch (response.getStatus()) {
                     case SUCCESS -> {
-                        messageLabel.setStyle("-fx-text-fill: green;");
+                        messageLabel.setStyle("-fx-text-fill: #2fe957;");
                         messageLabel.setText("Register successfully, please login");
                     }
                     default -> throw new AuthException(response.getMessage());
                 }
             }
             catch (AuthException e){
-                messageLabel.setStyle("-fx-text-fill: red;");
-                messageLabel.setText("Failed to register: " + e.getMessage());
+                messageLabel.setStyle("-fx-text-fill: #ff5656;");
+                messageLabel.setText(e.getMessage());
             }
             catch (IOException e){
-                messageLabel.setStyle("-fx-text-fill: red;");
+                messageLabel.setStyle("-fx-text-fill: #ff5656;");
                 messageLabel.setText("Register failed, please try again");
                 e.printStackTrace();
             }
         }
         catch(ValidationException e){
-            messageLabel.setStyle("-fx-text-fill: red;");
+            messageLabel.setStyle("-fx-text-fill: #ff5656;");
             messageLabel.setText(e.getMessage());
-            System.out.println("Validation error: " + e.getMessage());
         }
     }
 
