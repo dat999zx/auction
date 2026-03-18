@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.database.DatabaseInitializer;
 
 import java.net.ServerSocket;
 
@@ -14,6 +15,7 @@ public class ServerApp {
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)){
             System.out.println("Server running on port: " + PORT);
+            DatabaseInitializer.init();
 
             while (true){
                 Socket socket = serverSocket.accept();

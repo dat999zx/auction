@@ -1,4 +1,6 @@
 D:\coding\auction\server\src\main\java\com\bidify\server\database\Config.java
+D:\coding\auction\server\src\main\java\com\bidify\server\database\DatabaseInitializer.java
+D:\coding\auction\server\src\main\java\com\bidify\server\database\SQLiteConnection.java
 D:\coding\auction\server\src\main\java\com\bidify\server\database\SupabaseClient.java
 D:\coding\auction\server\src\main\java\com\bidify\server\exception\DatabaseException.java
 D:\coding\auction\server\src\main\java\com\bidify\server\handler\AuthHandler.java
