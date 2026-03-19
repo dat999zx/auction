@@ -19,6 +19,8 @@ public class Bid {
         this.placeAt = LocalDateTime.now();
     }
 
+    public String getId() { return id; }
+
     public AuctionItem getItem() { return item; }
     public void setItem(AuctionItem item) { this.item = item; }
 
