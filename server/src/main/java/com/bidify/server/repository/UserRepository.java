@@ -10,7 +10,7 @@ public class UserRepository {
     public boolean existsByUsername(String username){ // xét tồn tại username trong database
         try{
             return DatabaseManager.query(
-                "SELECT userId FROM Users WHERE username = ?",
+                "SELECT username FROM Users WHERE username = ?",
                 rs -> rs != null && rs.next(),
                 username
             );
@@ -28,7 +28,6 @@ public class UserRepository {
                 rs -> {
                     if (rs != null && rs.next())
                         return new User(
-                            rs.getString("userId"),
                             rs.getString("nickname"),
                             rs.getString("username"),
                             rs.getString("password"),
@@ -48,8 +47,8 @@ public class UserRepository {
     public boolean save(User user){ // lưu user vào database
         try{
             if (!DatabaseManager.update(
-                "INSERT INTO Users(userId, username, nickname, password) VALUES (?, ?, ?, ?)",
-                user.getId(), user.getUsername(), user.getNickname(), user.getPassword())) return false;
+                "INSERT INTO Users(username, nickname, password) VALUES (?, ?, ?)",
+                user.getUsername(), user.getNickname(), user.getPassword())) return false;
 
             return true;
         }
@@ -57,5 +56,23 @@ public class UserRepository {
             e.printStackTrace();
             return false;
         }
+    }
+
+    // cập nhật phiên hoạt động của tài khoản
+    public boolean updateInSession(String username, boolean newState){
+        return DatabaseManager.update(
+            "UPDATE Users SET inSession = ? WHERE username = ?",
+            newState ? 1 : 0,
+            username
+        );
+    }
+
+    // cập nhật lần login gần nhất
+    public boolean updateLastLogin(String username, String lastLogin){
+        return DatabaseManager.update(
+            "UPDATE Users SET lastLogin = ? WHERE username = ?",
+            lastLogin,
+            username
+        );
     }
 }

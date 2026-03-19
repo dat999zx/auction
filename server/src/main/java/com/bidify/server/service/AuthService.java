@@ -3,6 +3,7 @@ package com.bidify.server.service;
 import javax.security.auth.login.LoginContext;
 
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
@@ -10,7 +11,6 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.util.JsonUtil;
 import com.bidify.common.util.ValidationUtil;
-import com.bidify.server.utility.IdGenerator;
 import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.exception.DatabaseException;
 
@@ -21,6 +21,7 @@ import com.bidify.server.repository.UserRepository;
 public class AuthService {
     private final UserRepository userRepository = new UserRepository();
 
+    // đăng kí
     public Response register(Request request) {
         RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
 
@@ -41,7 +42,7 @@ public class AuthService {
         }
 
         try{
-            User user = new User(IdGenerator.genUserId(), nickname, username, PasswordUtil.hash(password), email);;
+            User user = new User(nickname, username, PasswordUtil.hash(password), email);;
             if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
@@ -51,22 +52,31 @@ public class AuthService {
         return new Response(RequestStatus.SUCCESS, "Register successfully");
     }
 
+    // đăng nhập
     public Response login(Request request){
         LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
 
         String username = data.getUsername();
         String password = data.getPassword();
-        System.out.println(username);
-        System.out.println(password);
 
         if (!userRepository.existsByUsername(username))
             return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
         User user = userRepository.findByUsername(username);
-        if (user == null) return new Response(RequestStatus.FAILED, "Failed to get user data");
-        
+        if (user == null)
+            return new Response(RequestStatus.FAILED, "Failed to get user data");
+
         if (!PasswordUtil.matches(password, user.getPassword()))
             return new Response(RequestStatus.FAILED, "Username or password is incorrect");
+        
+        if (user.getStatus() == UserStatus.BANNED)
+            return new Response(RequestStatus.FAILED, "You have been banned");
+
+        if (user.isInSession())
+            return new Response(RequestStatus.FAILED, "Another session is active");
+
+        userRepository.updateInSession(username, true);
+        user.setInSession(true);
         
         return new Response(RequestStatus.SUCCESS, "Login successfully", user);
     }

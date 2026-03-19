@@ -3,6 +3,7 @@ package com.bidify.server.network;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.network.RequestDispatcher;
+import com.bidify.server.repository.UserRepository;
 import com.bidify.common.util.JsonUtil;
 
 import java.io.BufferedReader;
@@ -16,8 +17,9 @@ import java.net.SocketException;
 public class ClientHandler implements Runnable {
     private final Socket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
+    private String currentUsername;
 
-    public ClientHandler(Socket socket) { this.socket = socket; }
+    public ClientHandler(Socket socket){ this.socket = socket; }
 
     @Override
     public void run(){ // chạy liên tục để nhận mọi request từ client (mỗi client là 1 thread)
@@ -36,5 +38,18 @@ public class ClientHandler implements Runnable {
         }
         catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }
         catch(IOException e){ e.printStackTrace(); }
+        finally{
+            handleDisconnect();
+        }
+    }
+
+    public void setCurrentUsername(String username){ currentUsername = username; }
+    public String getCurrentUsername(){ return currentUsername; }
+
+    private void handleDisconnect(){
+        if (currentUsername == null) return;
+        // TODO: save user data
+        new UserRepository().updateInSession(currentUsername, false);
+        System.out.println("Saved " + currentUsername + "'s data");
     }
 }

@@ -6,7 +6,6 @@ import com.bidify.common.enums.Role;
 import com.bidify.common.enums.UserStatus;
 
 public class User {
-    private final String userId;
     private final String createdAt;
     private String lastLogin;
     private String nickname, username, password, email, phoneNumber;
@@ -15,8 +14,7 @@ public class User {
     private boolean inSession;
 
     // Đăng kí tài khoản
-    public User(String id, String nickname, String username, String password, String email){
-        this.userId = id;
+    public User(String nickname, String username, String password, String email){
         this.nickname = nickname;
         this.username = username;
         this.password = password;
@@ -31,8 +29,7 @@ public class User {
     }
 
     // load lại dữ liệu người dùng
-    public User(String id, String nickname, String username, String password, String email, String phone, Role role, UserStatus status, String createdAt, String lastLogin){
-        this.userId = id;
+    public User(String nickname, String username, String password, String email, String phone, Role role, UserStatus status, String createdAt, String lastLogin){
         this.nickname = nickname;
         this.username = username;
         this.password = password;
@@ -45,7 +42,6 @@ public class User {
         this.inSession = false;
     }
 
-    public String getId(){ return userId; }
     public String getNickname(){ return nickname; }
     public String getUsername(){ return username; }
     public String getPassword(){ return password; }
@@ -67,7 +63,7 @@ public class User {
     public void setRole(Role role){ this.role = role; }
     public void setStatus(UserStatus status){ this.status = status; }
     public void setLastLogin(String lastlogin){ this.lastLogin = lastlogin; }
-    public void setInSession(boolean stage){ this.inSession = stage; }
+    public void setInSession(boolean state){ this.inSession = state; }
     
     public boolean isInSession(){ return inSession; }
     public boolean isAdmin(){ return role == Role.ADMIN; }

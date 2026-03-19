@@ -26,18 +26,17 @@ public class SceneManager {
         try {
             Parent root;
             if (remember && cache.containsKey(fxml)) root = cache.get(fxml);
-            else {
+            else{
                 FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/fxml/" + fxml));
                 root = loader.load();
                 if (remember) cache.put(fxml, root);
             }
             Scene scene = stage.getScene();
-            if (scene == null) {
+            if (scene == null){
                 scene = new Scene(root);
                 stage.setScene(scene);
-            } else {
-                scene.setRoot(root);
             }
+            else scene.setRoot(root);
             
             // load css
             String cssName = fxml.replace(".fxml", ".css");
