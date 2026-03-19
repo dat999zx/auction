@@ -41,31 +41,38 @@ public class User {
         this.lastLogin = lastLogin;
         this.inSession = false;
     }
-
-    public String getNickname(){ return nickname; }
+    public void setUsername(String name){ this.username = name; }
     public String getUsername(){ return username; }
+    
+    public void setPassword(String pass){ this.password = pass; }
     public String getPassword(){ return password; }
+
+    public void setEmail(String email){ this.email = email; }
     public String getEmail(){
         if (email != null) return email;
         else return "Email is not verified";
     }
+
+    public void setPhone(String phone){ this.phoneNumber = phone; }
     public String getPhone(){ return phoneNumber; }
+
+    public void setNickname(String name){ this.nickname = name; }
+    public String getNickname(){ return nickname; }
+
+    public void setRole(Role role){ this.role = role; }
     public Role getRole(){ return role; }
+
+    public void setStatus(UserStatus status){ this.status = status; }
     public UserStatus getStatus(){ return status; }
+
+    public void setLastLogin(String lastlogin){ this.lastLogin = lastlogin; }
     public String getLastLogin(){ return lastLogin; }
+
     public String getCreatedAt(){ return createdAt; }
 
-    public void setUsername(String name){ this.username = name; }
-    public void setPassword(String pass){ this.password = pass; }
-    public void setEmail(String email){ this.email = email; }
-    public void setPhone(String phone){ this.phoneNumber = phone; }
-    public void setNickname(String name){ this.nickname = name; }
-    public void setRole(Role role){ this.role = role; }
-    public void setStatus(UserStatus status){ this.status = status; }
-    public void setLastLogin(String lastlogin){ this.lastLogin = lastlogin; }
     public void setInSession(boolean state){ this.inSession = state; }
-    
     public boolean isInSession(){ return inSession; }
+    
     public boolean isAdmin(){ return role == Role.ADMIN; }
     public boolean isActive(){ return status == UserStatus.ACTIVE; }
 
