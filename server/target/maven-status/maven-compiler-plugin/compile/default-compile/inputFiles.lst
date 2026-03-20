@@ -1,14 +1,16 @@
-D:\coding\auction\server\src\main\java\com\bidify\server\database\Config.java
-D:\coding\auction\server\src\main\java\com\bidify\server\database\DatabaseInitializer.java
-D:\coding\auction\server\src\main\java\com\bidify\server\database\SQLiteConnection.java
-D:\coding\auction\server\src\main\java\com\bidify\server\database\SupabaseClient.java
-D:\coding\auction\server\src\main\java\com\bidify\server\exception\DatabaseException.java
-D:\coding\auction\server\src\main\java\com\bidify\server\handler\AuthHandler.java
-D:\coding\auction\server\src\main\java\com\bidify\server\model\User.java
-D:\coding\auction\server\src\main\java\com\bidify\server\network\ClientHandler.java
-D:\coding\auction\server\src\main\java\com\bidify\server\network\RequestDispatcher.java
-D:\coding\auction\server\src\main\java\com\bidify\server\repository\UserRepository.java
-D:\coding\auction\server\src\main\java\com\bidify\server\ServerApp.java
-D:\coding\auction\server\src\main\java\com\bidify\server\service\AuthService.java
-D:\coding\auction\server\src\main\java\com\bidify\server\utility\IdGenerator.java
-D:\coding\auction\server\src\main\java\com\bidify\server\utility\PasswordUtil.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\database\DatabaseInitializer.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\database\DatabaseManager.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\database\ResultHandler.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\database\SQLiteConnection.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\exception\DatabaseException.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\handler\AuthHandler.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\model\AuctionItem.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\model\Bid.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\model\User.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\network\ClientHandler.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\network\RequestDispatcher.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\repository\UserRepository.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\ServerApp.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\service\AuthService.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\utility\IdGenerator.java
+C:\Users\Legion 5\OneDrive\Máy tính\jackass\auction\server\src\main\java\com\bidify\server\utility\PasswordUtil.java

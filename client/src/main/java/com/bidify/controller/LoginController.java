@@ -114,8 +114,6 @@ public class LoginController {
             passwordField.requestFocus();
             passwordField.positionCaret(passwordField.getText().length());
         }
-        
-        System.out.println(passwordField.getText());
     }
     // đổi sang scene đăng kí
     @FXML
