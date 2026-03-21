@@ -33,7 +33,7 @@ public class AuctionRepository {
                     auction.getStartingPrice(),
                 auction.getMinIncrement(),
                     auction.getMaxIncrement(),
-                        auction.getSeller().getNickname(),                                    
+                        auction.getSeller(),                                    
                             currentBidderName,
                                 auction.getStatus().toString(),
                                     auction.getStartTime(),

@@ -4,7 +4,6 @@ package com.bidify.server.handler;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.service.AuctionService;
-import com.bidify.server.service.AuthService;
 import com.bidify.common.enums.RequestStatus;
 
 public class AuctionHandler {
