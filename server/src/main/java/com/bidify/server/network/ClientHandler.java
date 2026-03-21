@@ -43,7 +43,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    public void setCurrentUsername(String username){ currentUsername = username; }
+    public void setCurrentUsername(String username){ this.currentUsername = username; }
     public String getCurrentUsername(){ return currentUsername; }
 
     private void handleDisconnect(){

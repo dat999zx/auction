@@ -13,7 +13,7 @@ public class Auction {
     private double startingPrice, currentBid, minIncrement = 0, maxIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
     private String seller;
-    User currentBidder;
+    private User currentBidder;
     private LocalDateTime endTime, startTime;
     private int bidCount;
     private List<Bid> bids = new ArrayList<>();
@@ -35,6 +35,7 @@ public class Auction {
         this.currentBid = bid.getAmount();
         this.currentBidder = bid.getBidder();
         this.bids.add(bid);
+        this.bidCount++;
     }
 
     public String getId(){ return id; }
@@ -69,7 +70,7 @@ public class Auction {
     public void setSeller(String person) { this.seller = person; }
 
     public int getBidCount(){ return bidCount; }
-    public void setBidCouint(int count) {this.bidCount = count; }
+    public void setBidCount(int count) {this.bidCount = count; }
     public void incrementBidCount() { this.bidCount++; }
     
     public String getProductType(){ return productType; }

@@ -4,7 +4,7 @@ public class LogoutRequest {
     private String username;
 
     public LogoutRequest(String name){
-        this.username = username;
+        this.username = name;
     }
     public String getUsername() { return username; }
 }

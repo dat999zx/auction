@@ -13,13 +13,14 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.util.JsonUtil;
 import com.bidify.common.util.ValidationUtil;
-import com.bidify.server.repository.AuctionRepository;;
+import com.bidify.server.repository.AuctionRepository;
 
 public class AuctionService {
     private final AuctionRepository auctionRepository = new AuctionRepository();
 
     public Response createAuction(Request request){
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
         String seller = data.getSeller();
         String auctionName = data.getAuctionName();
@@ -34,14 +35,17 @@ public class AuctionService {
         }
 
         try{
+            ValidationUtil.requiresNonBlank(seller, "Seller");
             ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
             ValidationUtil.requiresNonBlank(description, "Description");
             ValidationUtil.validateMaxLength("Description", description, 200);
-            ValidationUtil.requiresNonBlank(endTime.toString(), "End time");
+            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         }
         catch (ValidationException e){
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
+
+        if (!endTime.isAfter(startTime)) return new Response(RequestStatus.FAILED, "End time must be after start time");
 
         try{
             Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);

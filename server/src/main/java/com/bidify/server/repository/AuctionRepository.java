@@ -36,8 +36,8 @@ public class AuctionRepository {
                         auction.getSeller(),                                    
                             currentBidderName,
                                 auction.getStatus().toString(),
-                                    auction.getStartTime(),
-                                    auction.getEndTime());
+                                    auction.getStartTime().toString(),
+                                    auction.getEndTime().toString());
     }
 }
 // CREATE_AUCTION, // tạo đấu giá

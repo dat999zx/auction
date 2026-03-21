@@ -26,7 +26,7 @@ public class ValidationUtil {
     public static void validateNickname(String nickname){
         requiresNonBlank(nickname, "Nickname");
         
-        if (nickname.length() < 3 || nickname.length() > 20) throw new ValidationException("Nickname must be between 3 and 30 characters");
+        if (nickname.length() < 3 || nickname.length() > 20) throw new ValidationException("Nickname must be between 3 and 20 characters");
     }
 
     public static void validatePassword(String password) {
@@ -58,6 +58,6 @@ public class ValidationUtil {
     }
 
     public static void validateMaxLength(String fieldName, String text, int maxlength) {
-        if (text.length() > maxlength) throw new ValidationException(fieldName + "'s length should be greater than " + maxlength);
+        if (text.length() > maxlength) throw new ValidationException(fieldName + "'s length should be smaller than " + maxlength);
     }
 }

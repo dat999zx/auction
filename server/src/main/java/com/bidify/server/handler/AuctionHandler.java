@@ -12,7 +12,7 @@ public class AuctionHandler {
     public Response handle(Request request){
         return switch (request.getType()){
             case CREATE_AUCTION -> auctionService.createAuction(request);
-            default -> new Response(RequestStatus.FAILED, "Invalid auth request");
+            default -> new Response(RequestStatus.FAILED, "Invalid auction request");
         };
     }
 

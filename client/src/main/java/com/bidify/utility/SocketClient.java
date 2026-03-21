@@ -25,7 +25,7 @@ public class SocketClient {
 
     public void connect(String host, int port) throws IOException{ // kết nối với máy chủ (chỉ gọi MỘT lần ở MainApp)
         if (socket != null){
-            System.out.println("Server already started");
+            System.out.println("Client already connected");
             return;
         }
         try{
