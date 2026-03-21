@@ -1,8 +1,8 @@
 package com.bidify.common.enums;
 
 public enum RequestType {
-    REGISTER, // Đắng kí
-    LOGIN, // Đăng nhập
+    REGISTER, // Đắng kí v
+    LOGIN, // Đăng nhập v
     LOGOUT, // Đăng xuất
 
     GET_PROFILE, // Lấy thông tin cơ bản

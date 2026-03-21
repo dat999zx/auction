@@ -1,7 +1,7 @@
-D:\coding\auction\client\src\main\java\com\bidify\controller\LoginController.java
-D:\coding\auction\client\src\main\java\com\bidify\controller\RegisterController.java
-D:\coding\auction\client\src\main\java\com\bidify\MainApp.java
-D:\coding\auction\client\src\main\java\com\bidify\model\Role.java
-D:\coding\auction\client\src\main\java\com\bidify\model\User.java
-D:\coding\auction\client\src\main\java\com\bidify\utility\SceneManager.java
-D:\coding\auction\client\src\main\java\com\bidify\utility\SocketClient.java
+D:\aution\client\src\main\java\com\bidify\controller\LoginController.java
+D:\aution\client\src\main\java\com\bidify\controller\RegisterController.java
+D:\aution\client\src\main\java\com\bidify\MainApp.java
+D:\aution\client\src\main\java\com\bidify\model\Role.java
+D:\aution\client\src\main\java\com\bidify\model\User.java
+D:\aution\client\src\main\java\com\bidify\utility\SceneManager.java
+D:\aution\client\src\main\java\com\bidify\utility\SocketClient.java
