@@ -43,3 +43,4 @@ public class DatabaseManager {
             statement.setObject(i + 1, params[i]);
     }
 }
+// "CREATE Users SELECT username WHERE "

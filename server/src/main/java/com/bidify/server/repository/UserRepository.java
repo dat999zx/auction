@@ -3,8 +3,6 @@ package com.bidify.server.repository;
 import com.bidify.server.database.DatabaseManager;
 import com.bidify.server.model.User;
 
-import java.sql.ResultSet;
-
 // giao tiếp với database về phần người dùng
 public class UserRepository {
     public boolean existsByUsername(String username){ // xét tồn tại username trong database

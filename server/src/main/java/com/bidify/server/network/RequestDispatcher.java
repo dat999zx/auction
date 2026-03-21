@@ -13,7 +13,7 @@ public class RequestDispatcher {
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         return switch (request.getType()) {
-            case REGISTER, LOGIN -> authHandler.handle(request);
+            case REGISTER, LOGIN, LOGOUT-> authHandler.handle(request);
             default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
         };
     }

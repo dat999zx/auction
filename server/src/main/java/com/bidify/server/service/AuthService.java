@@ -1,10 +1,13 @@
 package com.bidify.server.service;
 
+import java.time.LocalDateTime;
+
 import javax.security.auth.login.LoginContext;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
@@ -81,6 +84,19 @@ public class AuthService {
         return new Response(RequestStatus.SUCCESS, "Login successfully", user);
     }
 
-    
+    // đăng kí
+    public Response logout(Request request){
+        LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
+        String username = data.getUsername();
+
+        if (!userRepository.existsByUsername(username)){
+            return new Response(RequestStatus.FAILED, "User is not found");
+        }
+ 
+        userRepository.updateInSession(username, false);
+        userRepository.updateLastLogin(username, LocalDateTime.now().toString());
+
+        return new Response(RequestStatus.SUCCESS, "Logout successfully");
+    }
 
 }
