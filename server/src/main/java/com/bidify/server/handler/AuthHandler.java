@@ -13,6 +13,7 @@ public class AuthHandler {
         return switch (request.getType()) {
             case REGISTER -> authService.register(request);
             case LOGIN -> authService.login(request);
+            case LOGOUT -> authService.logout(request);
             default -> new Response(RequestStatus.FAILED, "Invalid auth request");
         };
     }
