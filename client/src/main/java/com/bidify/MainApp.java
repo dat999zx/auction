@@ -11,6 +11,7 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
         SocketClient client = SocketClient.getClient();
         client.connect("localhost", 5000);
+
         
         SceneManager.setStage(stage);
         stage.setTitle("Bidify");
@@ -20,6 +21,11 @@ public class MainApp extends Application {
         stage.setMaxHeight(800);
         SceneManager.switchScene("login.fxml");
         stage.show();
+    }
+
+    @Override
+    public void stop() throws Exception {
+        SocketClient.getClient().close();
     }
 
     public static void main(String[] args) {
