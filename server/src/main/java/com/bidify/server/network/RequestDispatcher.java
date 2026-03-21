@@ -8,7 +8,6 @@ import com.bidify.server.handler.AuthHandler;
 // chuyển hướng request đúng vào các handler tương ứng
 public class RequestDispatcher {
     private final AuthHandler authHandler = new AuthHandler();
-
     public Response dispatch(Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 

@@ -11,6 +11,11 @@ public class ValidationUtil {
         if (value == null || value.matches(".*\\s.*")) throw new ValidationException(fieldName + " cannot contains spaces");
     }
 
+    public static void requiresNonBlank_Space(String value, String fieldName){
+        requiresNonBlank(value, fieldName);
+        requiresNonSpace(value, fieldName);
+    }
+
     public static void validateUsername(String username) {
         requiresNonBlank(username, "Username");
         requiresNonSpace(username, "Username");
@@ -46,5 +51,13 @@ public class ValidationUtil {
 
     public static void validatePositiveAmount(double amount, String fieldName) {
         if (amount <= 0) throw new ValidationException(fieldName + " must be greater than 0");
+    }
+
+    public static void validateMinLength(String fieldName, String text, int minlength) {
+        if (text.length() < minlength) throw new ValidationException(fieldName + "'s length should be greater than " + minlength);
+    }
+
+    public static void validateMaxLength(String fieldName, String text, int maxlength) {
+        if (text.length() > maxlength) throw new ValidationException(fieldName + "'s length should be greater than " + maxlength);
     }
 }

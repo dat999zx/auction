@@ -45,7 +45,7 @@ public class AuthService {
         }
 
         try{
-            User user = new User(nickname, username, PasswordUtil.hash(password), email);;
+            User user = new User(nickname, username, PasswordUtil.hash(password), email);
             if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){

@@ -10,3 +10,20 @@ CREATE TABLE IF NOT EXISTS Users (
     createdAt TEXT,
     lastLogin TEXT
 );
+CREATE TABLE IF NOT EXISTS Auctions (
+    id TEXT PRIMARY KEY,
+    auctionName TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT,
+    type TEXT,
+    startingPrice REAL NOT NULL,
+    minIncrement REAL,
+    maxIncrement REAL,
+    seller TEXT NOT NULL, 
+    currentBidder TEXT,
+    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'ENDED', 'PAID', 'BANNED', 'UPCOMING')),
+    startAt TEXT NOT NULL,
+    endTime TEXT NOT NULL
+);
+
+

@@ -1,6 +1,0 @@
-package com.bidify.model;
-
-public enum Role {
-    USER,
-    ADMIN
-}
