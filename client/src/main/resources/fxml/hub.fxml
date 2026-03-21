@@ -1,169 +1,282 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.Text?>
-<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<StackPane stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-    
-    <ImageView fitWidth="1920.0" pickOnBounds="true" preserveRatio="true">
-        <Image url="@../images/hub-background.png"/>
-    </ImageView>
-    
-    <VBox spacing="10.0" styleClass="main-content-overlay">
-        
-        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="top-bar">
-            <padding>
-                <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
-            </padding>
-            
-            <Label styleClass="app-logo" text="A" />
-            <Label styleClass="app-title" text="ARTISTRY AUCTIONS" />
-            
-            <Pane HBox.hgrow="ALWAYS" />
-            
-            <Circle fx:id="userAvatar" fill="DODGERBLUE" radius="16.0" stroke="BLACK" strokeType="INSIDE" styleClass="user-avatar" />
-            <VBox alignment="CENTER_LEFT">
-                <TextFlow>
-                    <Text styleClass="welcome-text" text="Welcome, " />
-                    <Text styleClass="welcome-text-bold" text="Alice " />
-                    <Text styleClass="welcome-text" text="| ID: 12345 | Wallet: " />
-                    <Text styleClass="welcome-text-bold" text="\$48,250" />
-                </TextFlow>
-            </VBox>
-            <Button styleClass="icon-button" text="⚙" />
-        </HBox>
-        
-        <VBox alignment="CENTER" spacing="5.0">
-            <padding>
-                <Insets top="20.0" />
-            </padding>
-            <Label styleClass="header-large" text="WELCOME BACK, ALICE!" />
-            <Label styleClass="header-large-sub" text="EXPLORE YOUR AUCTION HUB." />
-            <Label styleClass="header-status-sub" text="3 ITEMS WON | 1 TRACKING | NEXT AUCTION: 2H 15M" />
-        </VBox>
-        
-        <GridPane alignment="TOP_CENTER" hgap="30.0" prefHeight="600.0" styleClass="panels-container" VBox.vgrow="ALWAYS">
-            <padding>
-                <Insets bottom="20.0" left="50.0" right="50.0" top="20.0" />
-            </padding>
-            <columnConstraints>
-                <ColumnConstraints hgrow="ALWAYS" minWidth="300.0" prefWidth="380.0" />
-                <ColumnConstraints hgrow="ALWAYS" minWidth="300.0" prefWidth="380.0" />
-                <ColumnConstraints hgrow="ALWAYS" minWidth="300.0" prefWidth="380.0" />
-            </columnConstraints>
-            
-            <VBox spacing="15.0" styleClass="panel-card" GridPane.columnIndex="0">
-                <padding>
-                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-                </padding>
-                <Label styleClass="panel-header" text="LIVE: VINTAGE ROLEX SUBMARINER (1978)" />
-                
-                <StackPane styleClass="image-container-bw">
-                
-                </StackPane>
-                
-                <TextFlow styleClass="bid-info-container">
-                    <Text styleClass="bid-info" text="CURRENT HIGH BID: " />
-                    <Text styleClass="bid-info-bold" text="\$14,750 " />
-                    <Text styleClass="bid-info" text="(by User_2)" />
-                </TextFlow>
-                
-                <TextFlow styleClass="timer-info-container">
-                    <Text styleClass="timer-info" text="TIMER: " />
-                    <Text styleClass="timer-info-bold" text="03:45 " />
-                    <Text styleClass="timer-info" text="remaining (Counting Down)" />
-                </TextFlow>
-                
-                <HBox spacing="10.0">
-                    <Label text="PLACE BID:" styleClass="place-bid-label"/>
-                    <Button styleClass="bid-button-blue" text="+$100" />
-                    <Button styleClass="bid-button-gray" text="+$500" />
-                </HBox>
-                
-                <HBox spacing="10.0">
-                    <TextField promptText="CONFIRM BID" styleClass="bid-input" HBox.hgrow="ALWAYS" />
-                    <Button styleClass="confirm-bid-button" text="CONFIRM BID" />
-                </HBox>
-            </VBox>
-            
-            <VBox spacing="15.0" styleClass="panel-card" GridPane.columnIndex="1">
-                <padding>
-                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-                </padding>
-                <Label styleClass="panel-header" text="LIVE: MODERN WATCH COLLECTION (3 Auctions Active)" />
-                
-                <HBox alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
-                    <VBox alignment="CENTER" spacing="5.0" styleClass="mini-auction-card">
-                    
-                    </VBox>
-                    
-                    <VBox alignment="CENTER" spacing="5.0" styleClass="mini-auction-card">
+<AnchorPane prefWidth="1280.0" prefHeight="800.0"
+            xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@../css/hub.css"
+            styleClass="root-bg">
 
-                    </VBox>
-                    
-                    <VBox alignment="CENTER" spacing="5.0" styleClass="mini-auction-card">
-                    
-                    </VBox>
+    <BorderPane prefWidth="1280.0" prefHeight="800.0" AnchorPane.topAnchor="0.0" AnchorPane.bottomAnchor="0.0"
+                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0">
+
+        <top>
+            <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
+                <padding>
+                    <Insets top="16.0" right="32.0" bottom="16.0" left="32.0"/>
+                </padding>
+
+                <HBox alignment="CENTER_LEFT" spacing="16.0">
+                    <Button text="☰ Explore" styleClass="ghost-nav-button"/>
+                    <Label text="The Curated Exchange" styleClass="brand-title"/>
                 </HBox>
-                
-                <VBox spacing="5.0" styleClass="watchlist-container">
-                    <HBox alignment="CENTER_LEFT">
-                        <Label styleClass="watchlist-header" text="YOUR WATCHLIST" />
-                        <Pane HBox.hgrow="ALWAYS" />
-                        <Label text="❤️" textFill="RED" />
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox alignment="CENTER_LEFT" spacing="8.0" maxWidth="420.0" styleClass="search-bar">
+                    <Label text="⌕" styleClass="search-icon"/>
+                    <TextField promptText="Search auctions, brands, or categories..." styleClass="search-field"/>
+                </HBox>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <HBox alignment="CENTER_LEFT" spacing="24.0">
+                    <HBox alignment="CENTER_LEFT" spacing="18.0">
+                        <Label text="Auctions" styleClass="top-link-active"/>
+                        <Label text="Galleries" styleClass="top-link"/>
+                        <Label text="Private Sales" styleClass="top-link"/>
                     </HBox>
-                    <Label styleClass="watchlist-item" text="Rolex Submariner" />
-                    <Label styleClass="watchlist-item" text="Classical Greek Sculpture" />
+
+                    <HBox alignment="CENTER_LEFT" spacing="12.0">
+                        <Button text="🔔" styleClass="icon-button"/>
+                        <Button text="⟲" styleClass="icon-button"/>
+                        <StackPane prefWidth="40.0" prefHeight="40.0" styleClass="avatar-circle">
+                            <Label text="U" styleClass="avatar-text"/>
+                        </StackPane>
+                    </HBox>
+                </HBox>
+            </HBox>
+        </top>
+
+        <left>
+            <VBox prefWidth="250.0" spacing="20.0" styleClass="side-bar">
+                <padding>
+                    <Insets top="24.0" right="0.0" bottom="24.0" left="0.0"/>
+                </padding>
+
+                <VBox spacing="2.0" styleClass="sidebar-brand-box">
+                    <padding>
+                        <Insets top="0.0" right="24.0" bottom="0.0" left="24.0"/>
+                    </padding>
+                    <Label text="The Exchange" styleClass="sidebar-brand"/>
+                    <Label text="INSTITUTIONAL GRADE" styleClass="sidebar-subtitle"/>
+                </VBox>
+
+                <VBox spacing="6.0" VBox.vgrow="ALWAYS">
+                    <Button text="◉  Live Auctions" styleClass="side-nav-button-active"/>
+                    <Button text="🗓  Upcoming" styleClass="side-nav-button"/>
+                    <Button text="⚒  Ended" styleClass="side-nav-button"/>
+                    <Button text="💳  My Bids" styleClass="side-nav-button"/>
+                    <Button text="👁  Watchlist" styleClass="side-nav-button"/>
+                </VBox>
+
+                <VBox>
+                    <padding>
+                        <Insets top="0.0" right="24.0" bottom="0.0" left="24.0"/>
+                    </padding>
+                    <Button text="Place a Consignment" styleClass="primary-gradient-button"/>
                 </VBox>
             </VBox>
-            
-            <VBox spacing="15.0" styleClass="panel-card" GridPane.columnIndex="2">
-                <padding>
-                    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
-                </padding>
-                <Label styleClass="panel-header" text="LIVE: CLASSICAL GREEK SCULPTURE" />
-                
-                
-                
-                <TextFlow styleClass="bid-info-container">
-                    <Text styleClass="bid-info" text="CURRENT HIGH BID: " />
-                    <Text styleClass="bid-info-bold" text="\$8,200 " />
-                    <Text styleClass="bid-info" text="(by User_5)" />
-                </TextFlow>
-                
-                <TextFlow styleClass="timer-info-container">
-                    <Text styleClass="timer-info" text="TIMER: " />
-                    <Text styleClass="timer-info-bold" text="18:22 " />
-                    <Text styleClass="timer-info" text="remaining" />
-                </TextFlow>
-                
-                 <VBox spacing="5.0" styleClass="watchlist-container">
-                    <HBox alignment="CENTER_LEFT">
-                        <Label styleClass="watchlist-header" text="YOUR WATCHLIST" />
-                        <Pane HBox.hgrow="ALWAYS" />
-                        <Label text="❤️" textFill="RED" />
-                    </HBox>
-                    <Label styleClass="watchlist-item" text="Rolex Submariner" />
-                    <Label styleClass="watchlist-item" text="Classical Greek Sculpture" />
-                </VBox>
-            </VBox>
-            
-        </GridPane>
-        
-        <HBox alignment="CENTER" spacing="10.0" styleClass="bottom-status-bar">
-            <padding>
-                <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />
-            </padding>
-            <Label styleClass="status-text" text="5 USERS ONLINE" />
-            <Label styleClass="status-separator" text="|" />
-            <Label styleClass="status-text" text="STATUS: IDLE" />
-        </HBox>
-        
-    </VBox>
-    
-</StackPane>
+        </left>
+
+        <center>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="main-scroll">
+                <content>
+                    <VBox spacing="24.0" styleClass="content-area">
+                        <padding>
+                            <Insets top="36.0" right="40.0" bottom="36.0" left="40.0"/>
+                        </padding>
+
+                        <HBox alignment="BOTTOM_LEFT">
+                            <VBox spacing="8.0">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label text="●" styleClass="live-dot"/>
+                                    <Label text="REAL-TIME FLOOR" styleClass="eyebrow"/>
+                                </HBox>
+                                <Label text="Live Running Auctions" styleClass="page-title"/>
+                            </VBox>
+
+                            <Region HBox.hgrow="ALWAYS"/>
+
+                            <HBox spacing="8.0">
+                                <Button text="▦" styleClass="view-toggle-active"/>
+                                <Button text="☰" styleClass="view-toggle"/>
+                            </HBox>
+                        </HBox>
+
+                        <FlowPane hgap="24.0" vgap="24.0" prefWrapLength="980.0">
+
+                            <VBox prefWidth="460.0" styleClass="auction-card">
+                                <StackPane prefHeight="250.0" styleClass="card-image-wrap">
+                                    <ImageView fitWidth="460.0" fitHeight="250.0" preserveRatio="false">
+                                        <image>
+                                            <javafx.scene.image.Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuASD46r3x80ZCWNRgoxkxMIKvCXViBFWE1BcWxoeG97rG_c1SdesgXm6sBlK6mFjdWa5W3Szue_FmgkmBNoQY-_JQjwgvRrGQLJvoQkyay3RBHNlgDCzg4CGCrSbragmFewjZ3Z9-clT4JSiskmFUw49m1ShD5N53xHhWpVvGf8cORkhU1T2c6FqmUHnktV_G-1nHZlfSP0RH0GXVjwL6dYVGGuM8jXOjsbJf6NlR1uAbzkdDOKb0bf6Pnb3Id2mSwgC21Yv2FJIqU"/>
+                                        </image>
+                                    </ImageView>
+
+                                    <HBox alignment="CENTER" spacing="6.0" styleClass="timer-pill" StackPane.alignment="TOP_RIGHT">
+                                        <StackPane.margin>
+                                            <Insets top="16.0" right="16.0" bottom="0.0" left="0.0"/>
+                                        </StackPane.margin>
+                                        <Label text="⏱" styleClass="timer-icon"/>
+                                        <Label text="02:45:12" styleClass="timer-text"/>
+                                    </HBox>
+
+                                    <Label text="Lot 402" styleClass="lot-pill" StackPane.alignment="BOTTOM_LEFT">
+                                        <StackPane.margin>
+                                            <Insets top="0.0" right="0.0" bottom="16.0" left="16.0"/>
+                                        </StackPane.margin>
+                                    </Label>
+                                </StackPane>
+
+                                <VBox spacing="12.0" styleClass="card-body">
+                                    <padding>
+                                        <Insets top="24.0" right="24.0" bottom="24.0" left="24.0"/>
+                                    </padding>
+
+                                    <Label text="Patek Philippe Nautilus 5711/1A" wrapText="true" styleClass="card-title"/>
+                                    <Label text="Original box &amp; papers, unworn condition." wrapText="true" styleClass="card-subtitle"/>
+
+                                    <HBox styleClass="bid-panel">
+                                        <padding>
+                                            <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
+                                        </padding>
+                                        <VBox spacing="4.0">
+                                            <Label text="CURRENT BID" styleClass="meta-label"/>
+                                            <Label text="\$142,500" styleClass="price-text"/>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <VBox spacing="4.0" alignment="CENTER_RIGHT">
+                                            <Label text="BIDDERS" styleClass="meta-label"/>
+                                            <Label text="24 Active" styleClass="meta-value"/>
+                                        </VBox>
+                                    </HBox>
+
+                                    <Button text="Place Instant Bid" styleClass="secondary-action-button"/>
+                                </VBox>
+                            </VBox>
+
+                            <VBox prefWidth="460.0" styleClass="auction-card">
+                                <StackPane prefHeight="250.0" styleClass="card-image-wrap">
+                                    <ImageView fitWidth="460.0" fitHeight="250.0" preserveRatio="false">
+                                        <image>
+                                            <javafx.scene.image.Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuASD46r3x80ZCWNRgoxkxMIKvCXViBFWE1BcWxoeG97rG_c1SdesgXm6sBlK6mFjdWa5W3Szue_FmgkmBNoQY-_JQjwgvRrGQLJvoQkyay3RBHNlgDCzg4CGCrSbragmFewjZ3Z9-clT4JSiskmFUw49m1ShD5N53xHhWpVvGf8cORkhU1T2c6FqmUHnktV_G-1nHZlfSP0RH0GXVjwL6dYVGGuM8jXOjsbJf6NlR1uAbzkdDOKb0bf6Pnb3Id2mSwgC21Yv2FJIqU"/>
+                                        </image>
+                                    </ImageView>
+
+                                    <HBox alignment="CENTER" spacing="6.0" styleClass="timer-pill" StackPane.alignment="TOP_RIGHT">
+                                        <StackPane.margin>
+                                            <Insets top="16.0" right="16.0" bottom="0.0" left="0.0"/>
+                                        </StackPane.margin>
+                                        <Label text="⏱" styleClass="timer-icon"/>
+                                        <Label text="00:14:55" styleClass="timer-text"/>
+                                    </HBox>
+
+                                    <Label text="Lot 118" styleClass="lot-pill" StackPane.alignment="BOTTOM_LEFT">
+                                        <StackPane.margin>
+                                            <Insets top="0.0" right="0.0" bottom="16.0" left="16.0"/>
+                                        </StackPane.margin>
+                                    </Label>
+                                </StackPane>
+
+                                <VBox spacing="12.0" styleClass="card-body">
+                                    <padding>
+                                        <Insets top="24.0" right="24.0" bottom="24.0" left="24.0"/>
+                                    </padding>
+
+                                    <Label text="1967 Jaguar E-Type Series 1" wrapText="true" styleClass="card-title"/>
+                                    <Label text="Full restoration, matching numbers." wrapText="true" styleClass="card-subtitle"/>
+
+                                    <HBox styleClass="bid-panel">
+                                        <padding>
+                                            <Insets top="16.0" right="16.0" bottom="16.0" left="16.0"/>
+                                        </padding>
+                                        <VBox spacing="4.0">
+                                            <Label text="CURRENT BID" styleClass="meta-label"/>
+                                            <Label text="\$285,000" styleClass="price-text"/>
+                                        </VBox>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <VBox spacing="4.0" alignment="CENTER_RIGHT">
+                                            <Label text="BIDDERS" styleClass="meta-label"/>
+                                            <Label text="11 Active" styleClass="meta-value"/>
+                                        </VBox>
+                                    </HBox>
+
+                                    <Button text="Place Instant Bid" styleClass="secondary-action-button"/>
+                                </VBox>
+                            </VBox>
+
+                            <HBox prefWidth="944.0" styleClass="featured-card">
+                                <StackPane prefWidth="472.0" prefHeight="320.0" styleClass="featured-image-wrap">
+                                    <ImageView fitWidth="472.0" fitHeight="320.0" preserveRatio="false">
+                                        <image>
+                                            <javafx.scene.image.Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuASD46r3x80ZCWNRgoxkxMIKvCXViBFWE1BcWxoeG97rG_c1SdesgXm6sBlK6mFjdWa5W3Szue_FmgkmBNoQY-_JQjwgvRrGQLJvoQkyay3RBHNlgDCzg4CGCrSbragmFewjZ3Z9-clT4JSiskmFUw49m1ShD5N53xHhWpVvGf8cORkhU1T2c6FqmUHnktV_G-1nHZlfSP0RH0GXVjwL6dYVGGuM8jXOjsbJf6NlR1uAbzkdDOKb0bf6Pnb3Id2mSwgC21Yv2FJIqU"/>
+                                        </image>
+                                    </ImageView>
+
+                                    <HBox alignment="CENTER" spacing="6.0" styleClass="timer-pill" StackPane.alignment="TOP_LEFT">
+                                        <StackPane.margin>
+                                            <Insets top="16.0" right="0.0" bottom="0.0" left="16.0"/>
+                                        </StackPane.margin>
+                                        <Label text="⏱" styleClass="timer-icon"/>
+                                        <Label text="12:01:44" styleClass="timer-text"/>
+                                    </HBox>
+                                </StackPane>
+
+                                <VBox spacing="18.0" prefWidth="472.0" styleClass="featured-body">
+                                    <padding>
+                                        <Insets top="28.0" right="28.0" bottom="28.0" left="28.0"/>
+                                    </padding>
+
+                                    <Label text="Heritage Fine Art" styleClass="tag-pill"/>
+                                    <Label text="Neon Synthesis #12" wrapText="true" styleClass="featured-title"/>
+                                    <Label text='2023 Original Oil &amp; Mixed Media on Canvas. 48" x 72". Signed by the artist.'
+                                           wrapText="true" styleClass="card-subtitle"/>
+
+                                    <HBox spacing="14.0">
+                                        <VBox prefWidth="180.0" styleClass="info-box">
+                                            <padding>
+                                                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0"/>
+                                            </padding>
+                                            <Label text="CURRENT BID" styleClass="meta-label"/>
+                                            <Label text="\$42,000" styleClass="price-text"/>
+                                        </VBox>
+
+                                        <VBox prefWidth="180.0" styleClass="info-box">
+                                            <padding>
+                                                <Insets top="14.0" right="14.0" bottom="14.0" left="14.0"/>
+                                            </padding>
+                                            <Label text="BIDDERS" styleClass="meta-label"/>
+                                            <Label text="38" styleClass="price-secondary"/>
+                                        </VBox>
+                                    </HBox>
+
+                                    <Button text="Participate in Auction" styleClass="primary-action-button"/>
+                                </VBox>
+                            </HBox>
+                        </FlowPane>
+                    </VBox>
+                </content>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+
+    <Button text="💬" styleClass="fab"
+            AnchorPane.bottomAnchor="32.0"
+            AnchorPane.rightAnchor="32.0"/>
+</AnchorPane>

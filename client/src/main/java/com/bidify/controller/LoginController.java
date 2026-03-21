@@ -3,6 +3,8 @@ package com.bidify.controller;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Label;
 
@@ -23,11 +25,32 @@ public class LoginController {
     @FXML
     private TextField usernameField;
     @FXML
+    private Label messageLabel;
+    @FXML
     private PasswordField passwordField;
     @FXML
-    private Label messageLabel;
-    
+    private TextField passwordFieldVisible;
+    @FXML
+    private ImageView eyeOpen;   // icon for visible mode
+    @FXML
+    private ImageView eyeClose;  // icon for hidden mode
     // nút login
+
+    private boolean showing = false;
+
+    @FXML
+    public void initialize() {
+    // sync text
+    passwordFieldVisible.textProperty()
+    .bindBidirectional(passwordField.textProperty());
+
+    // default state = hidden
+        passwordFieldVisible.setVisible(false);
+        passwordField.setVisible(true);
+
+        eyeOpen.setVisible(false);
+        eyeClose.setVisible(true);
+    }
     @FXML
     private void handleLogin(){
         try{
@@ -66,9 +89,33 @@ public class LoginController {
             messageLabel.setStyle("-fx-text-fill: #ff5656;");
             messageLabel.setText(e.getMessage());
         }
+
     }
 
+    //
+    @FXML
+    private void toggletext(){
+
+        showing = !showing;
+
+        // toggle fields
+        passwordFieldVisible.setVisible(showing);
+        passwordField.setVisible(!showing);
+    
+        // toggle icons
+        eyeOpen.setVisible(showing);
+        eyeClose.setVisible(!showing);
+    
+        // fix typing focus (important)
+        if (showing) {
+            passwordFieldVisible.requestFocus();
+            passwordFieldVisible.positionCaret(passwordFieldVisible.getText().length());
+        } else {
+            passwordField.requestFocus();
+            passwordField.positionCaret(passwordField.getText().length());
+        }
+    }
     // đổi sang scene đăng kí
     @FXML
-    private void toRegister(ActionEvent event){ SceneManager.switchScene("register.fxml"); }
+    private void toRegister(){ SceneManager.switchScene("register.fxml"); }
 }

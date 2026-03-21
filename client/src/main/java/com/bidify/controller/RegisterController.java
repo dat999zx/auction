@@ -3,6 +3,7 @@ package com.bidify.controller;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.Label;
 
@@ -26,13 +27,44 @@ public class RegisterController {
     @FXML
     private TextField emailField;
     @FXML
+    private Label messageLabel;
+    @FXML
     private PasswordField passwordField;
+    @FXML
+    private TextField passwordFieldVisible;
     @FXML
     private PasswordField passwordConfirmField;
     @FXML
-    private Label messageLabel;
-    
+    private TextField passwordConfirmFieldVisible;
+    @FXML
+    private ImageView eyeOpen;   // icon for visible mode
+    @FXML
+    private ImageView eyeClose;  // icon for hidden mode
     // nút register
+
+    private boolean showing = false;
+
+
+    @FXML
+    public void initialize() {
+        // sync both pairs
+        passwordFieldVisible.textProperty()
+            .bindBidirectional(passwordField.textProperty());
+    
+        passwordConfirmFieldVisible.textProperty()
+            .bindBidirectional(passwordConfirmField.textProperty());
+    
+        // default hidden
+        passwordFieldVisible.setVisible(false);
+        passwordField.setVisible(true);
+    
+        passwordConfirmFieldVisible.setVisible(false);
+        passwordConfirmField.setVisible(true);
+    
+        eyeOpen.setVisible(false);
+        eyeClose.setVisible(true);
+    }
+
     @FXML
     private void handleRegister(){
         try{
@@ -76,6 +108,32 @@ public class RegisterController {
         catch(ValidationException e){
             messageLabel.setStyle("-fx-text-fill: #ff5656;");
             messageLabel.setText(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void toggletext(){
+        showing = !showing;
+
+        // toggle main password
+        passwordFieldVisible.setVisible(showing);
+        passwordField.setVisible(!showing);
+    
+        // toggle confirm password
+        passwordConfirmFieldVisible.setVisible(showing);
+        passwordConfirmField.setVisible(!showing);
+    
+        // toggle icons
+        eyeOpen.setVisible(showing);
+        eyeClose.setVisible(!showing);
+    
+        // focus (just focus main field, enough)
+        if (showing) {
+            passwordFieldVisible.requestFocus();
+            passwordFieldVisible.positionCaret(passwordFieldVisible.getText().length());
+        } else {
+            passwordField.requestFocus();
+            passwordField.positionCaret(passwordField.getText().length());
         }
     }
 

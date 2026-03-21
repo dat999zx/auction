@@ -1,0 +1,21 @@
+# Build
+target/
+out/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Logs
+*.log
+
+# Database
+*.db
+
+# Maven / build cache
+*.lst
+*.SNAPSHOT
+
+# OS
+.DS_Store
+Thumbs.db
