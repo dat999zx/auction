@@ -33,7 +33,6 @@ public class UserRepository {
                             rs.getString("password"),
                             rs.getString("email")
                         );
-                        user.setInSession(rs.getInt("inSession") == 1);
                         return user;
                     }
                     return null;
@@ -59,21 +58,6 @@ public class UserRepository {
             e.printStackTrace();
             return false;
         }
-    }
-
-    // thêm client vào database
-    public void addActiveClient(ClientHandler client){
-        RealtimeDatabase.addActiveClient(client);
-    }
-
-    // xóa client khỏi database
-    public void removeActiveClient(String username){
-        RealtimeDatabase.removeActiveClient(username);
-    }
-
-    // reset toàn bộ inSession về false khi server tắt
-    public boolean resetAllSessions(){
-        return DatabaseManager.update("UPDATE Users SET inSession = 0");
     }
 
     // cập nhật lần login gần nhất

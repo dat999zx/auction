@@ -101,7 +101,7 @@ public class RegisterController {
             }
             catch (IOException e){
                 messageLabel.setStyle("-fx-text-fill: #ff5656;");
-                messageLabel.setText("Register failed, please try again");
+                messageLabel.setText("Cannot connect to server");
                 e.printStackTrace();
             }
         }

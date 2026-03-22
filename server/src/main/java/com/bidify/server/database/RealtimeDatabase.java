@@ -31,6 +31,16 @@ public class RealtimeDatabase {
 
     public static void removeAllActiveClients(){ activeClients.clear(); } // xóa tất cả client khỏi database
 
+    public static void saveClient(ClientHandler client){ // lưu client data
+        // TODO: save client data
+        System.out.println("saved client: " + client.getCurrentUsername());
+    }
+
+    public static void saveAllClients(){ // lưu tất cả client data
+        for (ClientHandler client : activeClients.values())
+            saveClient(client);
+    }
+
     public static void addLiveAuction(Auction auction){ // thêm cuộc đấu giá vào database
         if (auction == null) return;
         liveAuctions.put(auction.getId(), auction);
@@ -51,6 +61,21 @@ public class RealtimeDatabase {
     }
 
     public static void removeAllLiveAuctions(){ liveAuctions.clear(); } // xóa tất cả cuộc đấu giá khỏi database
+
+    public static void saveAuction(Auction auction){ // lưu auction data
+        // TODO: save auction data
+        System.out.println("saved auction: " + auction.getAuctionName());
+    }
+
+    public static void saveAllAuctions(){ // lưu tất cả auction data
+        for (Auction auction : liveAuctions.values())
+            saveAuction(auction);
+    }
+
+    public static void saveAll(){ // lưu tất cả dữ liệu
+        saveAllClients();
+        saveAllAuctions();
+    }
 
     public static void clearAll(){ // xóa tất cả dữ liệu trong database
         activeClients.clear();

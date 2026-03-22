@@ -5,6 +5,7 @@ import java.net.Socket;
 
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.database.DatabaseInitializer;
+import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.repository.UserRepository;
 
 import java.net.ServerSocket;
@@ -15,8 +16,8 @@ public class ServerApp {
         System.out.println("Server is starting...");
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Server shutting down, clearing all sessions...");
-            new UserRepository().resetAllSessions(); // nếu tắt mà ko logout cũng tự động reset session account về 0
+            System.out.println("Server is shutting down, saving all data...");
+            RealtimeDatabase.saveAll();
         }));
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)){

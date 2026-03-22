@@ -81,7 +81,7 @@ public class LoginController {
             }
             catch (IOException e){
                 messageLabel.setStyle("-fx-text-fill: #ff5656;");
-                messageLabel.setText("Log in failed, please try again");
+                messageLabel.setText("Cannot connect to server");
                 e.printStackTrace();
             }
         }

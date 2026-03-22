@@ -3,10 +3,11 @@ package com.bidify.server.network;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.LoginRequest;
+import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.network.RequestDispatcher;
-import com.bidify.server.repository.UserRepository;
 import com.bidify.common.util.JsonUtil;
 
 import java.io.BufferedReader;
@@ -37,15 +38,6 @@ public class ClientHandler implements Runnable {
                 Request request = JsonUtil.fromJson(message, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 out.println(JsonUtil.toJson(response));
-
-                if (response.getStatus() == RequestStatus.SUCCESS) {
-                    if (request.getType() == RequestType.LOGIN) {
-                        LoginRequest loginData = JsonUtil.fromMap(request.getData(), LoginRequest.class);
-                        setCurrentUsername(loginData.getUsername());
-                    } else if (request.getType() == RequestType.LOGOUT) {
-                        setCurrentUsername(null);
-                    }
-                }
             }
         }
         catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }
@@ -58,10 +50,10 @@ public class ClientHandler implements Runnable {
     public void setCurrentUsername(String username){ this.currentUsername = username; }
     public String getCurrentUsername(){ return currentUsername; }
 
-    private void handleDisconnect(){
+    private void handleDisconnect(){ // khi user mất kết nối
         if (currentUsername == null) return;
-        // TODO: save user data
-        new UserRepository().removeActiveClient(currentUsername);
-        System.out.println("Saved " + currentUsername + "'s data");
+        Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
+        dispatcher.dispatch(this, request);
+        System.out.println(currentUsername + " logged out");
     }
 }

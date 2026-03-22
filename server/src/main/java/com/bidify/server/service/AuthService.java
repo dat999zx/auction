@@ -64,6 +64,9 @@ public class AuthService {
         String username = data.getUsername();
         String password = data.getPassword();
 
+        if (client.getCurrentUsername() != null)
+            return new Response(RequestStatus.FAILED, "Your are already logged in");
+
         if (!userRepository.existsByUsername(username))
             return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
@@ -81,6 +84,7 @@ public class AuthService {
             return new Response(RequestStatus.FAILED, "Another session is already active");
 
         client.setCurrentUsername(username);
+        RealtimeDatabase.addActiveClient(client);
         
         return new Response(RequestStatus.SUCCESS, "Login successfully", user);
     }
@@ -90,7 +94,7 @@ public class AuthService {
         LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
         String username = data.getUsername();
 
-        if (client.getCurrentUsername() != data.getUsername())
+        if (!client.getCurrentUsername().equals(data.getUsername()))
             return new Response(RequestStatus.FAILED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))
@@ -98,11 +102,13 @@ public class AuthService {
 
         if (RealtimeDatabase.getActiveClient(username) == null)
             return new Response(RequestStatus.FAILED, "Session is inactive");
- 
-        userRepository.removeActiveClient(username);
+        
+        // TODO: save user's data
+
+        client.setCurrentUsername(username);
+        RealtimeDatabase.removeActiveClient(username);
         userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
         return new Response(RequestStatus.SUCCESS, "Logout successfully");
     }
-
 }
