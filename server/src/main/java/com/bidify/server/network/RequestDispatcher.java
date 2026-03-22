@@ -11,12 +11,12 @@ public class RequestDispatcher {
     private final AuthHandler authHandler = new AuthHandler();
     private final AuctionHandler auctionHandler = new AuctionHandler();
 
-    public Response dispatch(Request request){
+    public Response dispatch(ClientHandler client, Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         return switch (request.getType()) {
-            case REGISTER, LOGIN, LOGOUT -> authHandler.handle(request);
-            case CREATE_AUCTION, GET_AUCTIONS, GET_AUCTION_DETAIL, DELETE_AUCTION -> auctionHandler.handle(request);
+            case REGISTER, LOGIN, LOGOUT -> authHandler.handle(client, request);
+            case CREATE_AUCTION, GET_AUCTIONS, GET_AUCTION_DETAIL, DELETE_AUCTION -> auctionHandler.handle(client, request);
             default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
         };
     }

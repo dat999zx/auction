@@ -1,7 +1,9 @@
 package com.bidify.server.repository;
 
 import com.bidify.server.database.DatabaseManager;
+import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.User;
+import com.bidify.server.network.ClientHandler;
 
 // giao tiếp với database về phần người dùng
 public class UserRepository {
@@ -56,13 +58,14 @@ public class UserRepository {
         }
     }
 
-    // cập nhật phiên hoạt động của tài khoản
-    public boolean updateInSession(String username, boolean newState){
-        return DatabaseManager.update(
-            "UPDATE Users SET inSession = ? WHERE username = ?",
-            newState ? 1 : 0,
-            username
-        );
+    // thêm client vào database
+    public void addActiveClient(ClientHandler client){
+        RealtimeDatabase.addActiveClient(client);
+    }
+
+    // xóa client khỏi database
+    public void removeActiveClient(String username){
+        RealtimeDatabase.removeActiveClient(username);
     }
 
     // cập nhật lần login gần nhất

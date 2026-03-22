@@ -2,6 +2,7 @@ package com.bidify.server.service;
 
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
+import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -18,7 +19,7 @@ import com.bidify.server.repository.AuctionRepository;
 public class AuctionService {
     private final AuctionRepository auctionRepository = new AuctionRepository();
 
-    public Response createAuction(Request request){
+    public Response createAuction(ClientHandler client, Request request){
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 

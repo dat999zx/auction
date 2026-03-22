@@ -15,7 +15,6 @@ public class Auction {
     private String seller;
     private User currentBidder;
     private LocalDateTime endTime, startTime;
-    private int bidCount;
     private List<Bid> bids = new ArrayList<>();
 
     public Auction(){ this.id = IdGenerator.genAuctionId();}
@@ -28,14 +27,24 @@ public class Auction {
         this.startTime = startTime;
         this.endTime = endTime;
         this.id = IdGenerator.genAuctionId();
-
     }
     
-    public synchronized void placeBid(Bid bid){
+    public synchronized boolean placeBid(Bid bid){
+        if (bid == null || !isActive()) return false;
+
+        double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
+        if (bid.getAmount() < minAllowed) return false;
+
+        if (maxIncrement > 0){
+            double base = currentBid > 0 ? currentBid : startingPrice;
+            if (bid.getAmount() - base > maxIncrement) return false;
+        }
+
         this.currentBid = bid.getAmount();
         this.currentBidder = bid.getBidder();
         this.bids.add(bid);
-        this.bidCount++;
+
+        return true;
     }
 
     public String getId(){ return id; }
@@ -62,16 +71,14 @@ public class Auction {
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
     public AuctionStatus getStatus() { return status; }
-    public void setAuctionStatus(AuctionStatus status) { this.status = status; }
+    public void setStatus(AuctionStatus status) { this.status = status; }
     public boolean isActive(){ return this.status == AuctionStatus.ACTIVE; }
     public boolean isEnded() { return this.status == AuctionStatus.ENDED; }
 
     public String getSeller() { return seller; }
     public void setSeller(String person) { this.seller = person; }
 
-    public int getBidCount(){ return bidCount; }
-    public void setBidCount(int count) {this.bidCount = count; }
-    public void incrementBidCount() { this.bidCount++; }
+    public int getBidCount(){ return bids.size(); }
     
     public String getProductType(){ return productType; }
     public void setProductType(String type){ this.productType = type; }

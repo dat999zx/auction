@@ -32,7 +32,7 @@ public class ClientHandler implements Runnable {
                 System.out.println("Received: " + message);
                 
                 Request request = JsonUtil.fromJson(message, Request.class);
-                Response response = dispatcher.dispatch(request);
+                Response response = dispatcher.dispatch(this, request);
                 out.println(JsonUtil.toJson(response));
             }
         }
@@ -49,7 +49,7 @@ public class ClientHandler implements Runnable {
     private void handleDisconnect(){
         if (currentUsername == null) return;
         // TODO: save user data
-        new UserRepository().updateInSession(currentUsername, false);
+        new UserRepository().removeActiveClient(currentUsername);
         System.out.println("Saved " + currentUsername + "'s data");
     }
 }

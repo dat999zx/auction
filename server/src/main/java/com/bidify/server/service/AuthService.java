@@ -15,9 +15,11 @@ import com.bidify.common.model.Response;
 import com.bidify.common.util.JsonUtil;
 import com.bidify.common.util.ValidationUtil;
 import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 
 import com.bidify.server.model.User;
+import com.bidify.server.network.ClientHandler;
 import com.bidify.server.repository.UserRepository;
 
 // xử lí phần bề mặt của thông tin người dùng (định dạng, ...) đưa cho UserRepository xử lí với database
@@ -56,7 +58,7 @@ public class AuthService {
     }
 
     // đăng nhập
-    public Response login(Request request){
+    public Response login(ClientHandler client, Request request){
         LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
 
         String username = data.getUsername();
@@ -74,26 +76,30 @@ public class AuthService {
         
         if (user.getStatus() == UserStatus.BANNED)
             return new Response(RequestStatus.FAILED, "You have been banned");
+        
+        if (RealtimeDatabase.getActiveClient(username) != null)
+            return new Response(RequestStatus.FAILED, "Another session is already active");
 
-        if (user.isInSession())
-            return new Response(RequestStatus.FAILED, "Another session is active");
-
-        userRepository.updateInSession(username, true);
-        user.setInSession(true);
+        client.setCurrentUsername(username);
         
         return new Response(RequestStatus.SUCCESS, "Login successfully", user);
     }
 
     // đăng kí
-    public Response logout(Request request){
+    public Response logout(ClientHandler client, Request request){
         LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
         String username = data.getUsername();
 
-        if (!userRepository.existsByUsername(username)){
+        if (client.getCurrentUsername() != data.getUsername())
+            return new Response(RequestStatus.FAILED, "Invalid session");
+
+        if (!userRepository.existsByUsername(username))
             return new Response(RequestStatus.FAILED, "User is not found");
-        }
+
+        if (RealtimeDatabase.getActiveClient(username) == null)
+            return new Response(RequestStatus.FAILED, "Session is inactive");
  
-        userRepository.updateInSession(username, false);
+        userRepository.removeActiveClient(username);
         userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
         return new Response(RequestStatus.SUCCESS, "Logout successfully");

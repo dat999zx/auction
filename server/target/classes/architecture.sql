@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS Users (
     phoneNumber TEXT,
     role TEXT DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
-    inSession INTEGER DEFAULT 0,
     createdAt TEXT,
     lastLogin TEXT
 );
