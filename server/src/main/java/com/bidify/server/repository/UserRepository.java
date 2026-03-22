@@ -26,13 +26,16 @@ public class UserRepository {
             return DatabaseManager.query(
                 "SELECT * FROM Users WHERE username = ?",
                 rs -> {
-                    if (rs != null && rs.next())
-                        return new User(
+                    if (rs != null && rs.next()){
+                        User user = new User(
                             rs.getString("nickname"),
                             rs.getString("username"),
                             rs.getString("password"),
                             rs.getString("email")
                         );
+                        user.setInSession(rs.getInt("inSession") == 1);
+                        return user;
+                    }
                     return null;
                 },
                 username
@@ -66,6 +69,11 @@ public class UserRepository {
     // xóa client khỏi database
     public void removeActiveClient(String username){
         RealtimeDatabase.removeActiveClient(username);
+    }
+
+    // reset toàn bộ inSession về false khi server tắt
+    public boolean resetAllSessions(){
+        return DatabaseManager.update("UPDATE Users SET inSession = 0");
     }
 
     // cập nhật lần login gần nhất

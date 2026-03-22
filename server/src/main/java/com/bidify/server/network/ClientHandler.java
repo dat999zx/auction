@@ -1,5 +1,8 @@
 package com.bidify.server.network;
 
+import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
+import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.network.RequestDispatcher;
@@ -34,6 +37,15 @@ public class ClientHandler implements Runnable {
                 Request request = JsonUtil.fromJson(message, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 out.println(JsonUtil.toJson(response));
+
+                if (response.getStatus() == RequestStatus.SUCCESS) {
+                    if (request.getType() == RequestType.LOGIN) {
+                        LoginRequest loginData = JsonUtil.fromMap(request.getData(), LoginRequest.class);
+                        setCurrentUsername(loginData.getUsername());
+                    } else if (request.getType() == RequestType.LOGOUT) {
+                        setCurrentUsername(null);
+                    }
+                }
             }
         }
         catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }
