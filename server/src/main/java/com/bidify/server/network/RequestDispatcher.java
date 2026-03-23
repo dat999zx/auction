@@ -16,7 +16,7 @@ public class RequestDispatcher {
 
         return switch (request.getType()) {
             case REGISTER, LOGIN, LOGOUT -> authHandler.handle(client, request);
-            case CREATE_AUCTION, GET_AUCTIONS, GET_AUCTION_DETAIL, DELETE_AUCTION -> auctionHandler.handle(client, request);
+            case CREATE_AUCTION, UPDATE_AUCTION, GET_AUCTION_DETAIL, DELETE_AUCTION -> auctionHandler.handle(client, request);
             default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
         };
     }

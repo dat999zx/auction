@@ -9,7 +9,7 @@ public enum RequestType {
     UPDATE_PROFILE, // Sửa profile: nickname, phoneNumber, Email, Pass...
 
     CREATE_AUCTION, // tạo đấu giá
-    GET_AUCTIONS, // xem list các cuột đấu giá
+    UPDATE_AUCTION, // sửa lại cuộc đấu giá
     GET_AUCTION_DETAIL, // xem chi tiết cuộc đấu giá
     DELETE_AUCTION, // xóa cuộc đấu giá
 

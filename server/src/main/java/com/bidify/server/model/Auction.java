@@ -19,6 +19,8 @@ public class Auction {
 
     public Auction(){ this.id = IdGenerator.genAuctionId();}
 
+    public Auction(String id){ this.id = id; } // dùng khi load từ database
+
     public Auction(String seller, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
         this.seller = seller;
         this.auctionName = name;
