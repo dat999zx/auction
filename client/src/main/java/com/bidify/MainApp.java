@@ -3,8 +3,8 @@ package com.bidify;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
+import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
-import com.bidify.utility.SocketClient;
 
 public class MainApp extends Application {
     @Override

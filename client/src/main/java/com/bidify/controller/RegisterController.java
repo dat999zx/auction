@@ -14,8 +14,8 @@ import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.utility.SceneManager;
-import com.bidify.utility.SocketClient;
 import com.bidify.common.util.ValidationUtil;
+import com.bidify.network.SocketClient;
 
 import java.io.IOException;
 

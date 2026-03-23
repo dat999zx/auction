@@ -21,7 +21,7 @@ public class AuctionService {
 
     public Response createAuction(ClientHandler client, Request request){
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        if (data == null) return new Response(request, RequestStatus.INVALID_REQUEST, "Invalid request data");
 
         String seller = data.getSeller();
         String auctionName = data.getAuctionName();
@@ -32,7 +32,7 @@ public class AuctionService {
             startTime = LocalDateTime.parse(data.getStartTime());
             endTime = LocalDateTime.parse(data.getEndTime());
         } catch (DateTimeParseException e) {
-            return new Response(RequestStatus.FAILED, "Invalid date time format");
+            return new Response(request, RequestStatus.FAILED, "Invalid date time format");
         }
 
         try{
@@ -43,20 +43,20 @@ public class AuctionService {
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         }
         catch (ValidationException e){
-            return new Response(RequestStatus.FAILED, e.getMessage());
+            return new Response(request, RequestStatus.FAILED, e.getMessage());
         }
 
-        if (!endTime.isAfter(startTime)) return new Response(RequestStatus.FAILED, "End time must be after start time");
+        if (!endTime.isAfter(startTime)) return new Response(request, RequestStatus.FAILED, "End time must be after start time");
 
         try{
             Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);
             if (!auctionRepository.save(auction)) throw new DatabaseException("Failed to save auction");
         }
         catch (DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
+            return new Response(request, RequestStatus.FAILED, e.getMessage());
         }
 
-        return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
+        return new Response(request, RequestStatus.SUCCESS, "Create new auction successfully!");
     }
 }
 // CREATE_AUCTION, // tạo đấu giá
