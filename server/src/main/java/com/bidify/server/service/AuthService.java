@@ -43,7 +43,7 @@ public class AuthService {
             ValidationUtil.validatePassword(password);
         }
         catch (ValidationException e){
-            return new Response(request, RequestStatus.FAILED, e.getMessage());
+            return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
         try{
@@ -51,10 +51,10 @@ public class AuthService {
             if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
-            return new Response(request, RequestStatus.FAILED, e.getMessage());
+            return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        return new Response(request, RequestStatus.SUCCESS, "Register successfully");
+        return new Response(RequestStatus.SUCCESS, "Register successfully");
     }
 
     // đăng nhập
@@ -65,28 +65,28 @@ public class AuthService {
         String password = data.getPassword();
 
         if (client.getCurrentUsername() != null)
-            return new Response(request, RequestStatus.FAILED, "Your are already logged in");
+            return new Response(RequestStatus.FAILED, "Your are already logged in");
 
         if (!userRepository.existsByUsername(username))
-            return new Response(request, RequestStatus.FAILED, "Username or password is incorrect");
+            return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
         User user = userRepository.findByUsername(username);
         if (user == null)
-            return new Response(request, RequestStatus.FAILED, "Failed to get user data");
+            return new Response(RequestStatus.FAILED, "Failed to get user data");
 
         if (!PasswordUtil.matches(password, user.getPassword()))
-            return new Response(request, RequestStatus.FAILED, "Username or password is incorrect");
+            return new Response(RequestStatus.FAILED, "Username or password is incorrect");
         
         if (user.getStatus() == UserStatus.BANNED)
-            return new Response(request, RequestStatus.FAILED, "You have been banned");
+            return new Response(RequestStatus.FAILED, "You have been banned");
         
         if (RealtimeDatabase.getActiveClient(username) != null)
-            return new Response(request, RequestStatus.FAILED, "Another session is already active");
+            return new Response(RequestStatus.FAILED, "Another session is already active");
 
         client.setCurrentUsername(username);
         RealtimeDatabase.addActiveClient(client);
         
-        return new Response(request, RequestStatus.SUCCESS, "Login successfully", user);
+        return new Response(RequestStatus.SUCCESS, "Login successfully", user);
     }
 
     // đăng kí
@@ -95,13 +95,13 @@ public class AuthService {
         String username = data.getUsername();
 
         if (!client.getCurrentUsername().equals(data.getUsername()))
-            return new Response(request, RequestStatus.FAILED, "Invalid session");
+            return new Response(RequestStatus.FAILED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))
-            return new Response(request, RequestStatus.FAILED, "User is not found");
+            return new Response(RequestStatus.FAILED, "User is not found");
 
         if (RealtimeDatabase.getActiveClient(username) == null)
-            return new Response(request, RequestStatus.FAILED, "Session is inactive");
+            return new Response(RequestStatus.FAILED, "Session is inactive");
         
         RealtimeDatabase.saveClient(client);
 
@@ -109,6 +109,6 @@ public class AuthService {
         RealtimeDatabase.removeActiveClient(username);
         userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
-        return new Response(request, RequestStatus.SUCCESS, "Logout successfully");
+        return new Response(RequestStatus.SUCCESS, "Logout successfully");
     }
 }

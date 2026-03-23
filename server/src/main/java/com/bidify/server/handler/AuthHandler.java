@@ -15,7 +15,7 @@ public class AuthHandler {
             case REGISTER -> authService.register(request);
             case LOGIN -> authService.login(client, request);
             case LOGOUT -> authService.logout(client, request);
-            default -> new Response(request, RequestStatus.FAILED, "Invalid auth request");
+            default -> new Response(RequestStatus.FAILED, "Invalid auth request");
         };
     }
 }

@@ -37,6 +37,7 @@ public class ClientHandler implements Runnable {
                 
                 Request request = JsonUtil.fromJson(message, Request.class);
                 Response response = dispatcher.dispatch(this, request);
+                response.setId(request.getId());
                 out.println(JsonUtil.toJson(response));
             }
         }

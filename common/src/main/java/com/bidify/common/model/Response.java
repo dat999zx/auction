@@ -7,21 +7,18 @@ public class Response {
     private String message;
     private Object data;
 
-    public Response(Request request) {
-        this.id = request.getId();
-        this.status = RequestStatus.NOT_FOUND;
-    }
-    public Response(Request request, RequestStatus status, String message) {
-        this.id = request.getId();
+    public Response() { this.status = RequestStatus.NOT_FOUND; }
+    public Response(RequestStatus status, String message) {
         this.status = status;
         this.message = message;
     }
-    public Response(Request request, RequestStatus status, String message, Object data) {
-        this.id = request.getId();
+    public Response(RequestStatus status, String message, Object data) {
         this.status = status;
         this.message = message;
         this.data = data;
     }
+
+    public void setId(String id){ this.id = id; }
 
     public String getId(){ return id; }
     public RequestStatus getStatus(){ return status; }
