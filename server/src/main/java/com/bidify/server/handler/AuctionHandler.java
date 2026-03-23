@@ -14,8 +14,7 @@ public class AuctionHandler {
         return switch (request.getType()){
             case CREATE_AUCTION -> auctionService.createAuction(client, request);
             case UPDATE_AUCTION -> auctionService.updateAuction(client, request);
-
-            default -> new Response(RequestStatus.FAILED, "Invalid auction request");
+            default -> new Response(request, RequestStatus.FAILED, "Invalid auction request");
         };
     }
 
