@@ -12,10 +12,13 @@ out/
 
 # Database
 *.db
+*.db-shm
+*.db-wal
 
 # Maven / build cache
 *.lst
 *.SNAPSHOT
+**/*-SNAPSHOT.jar
 
 # OS
 .DS_Store

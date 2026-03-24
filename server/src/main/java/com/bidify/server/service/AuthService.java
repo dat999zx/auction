@@ -109,6 +109,8 @@ public class AuthService {
         RealtimeDatabase.removeActiveClient(username);
         userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
+        System.out.println(username + " logged out");
+
         return new Response(RequestStatus.SUCCESS, "Logout successfully");
     }
 }

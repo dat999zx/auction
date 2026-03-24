@@ -3,14 +3,18 @@ package com.bidify.network;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.io.*;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import com.bidify.common.model.Message;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.util.JsonUtil;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 
@@ -26,6 +30,9 @@ public class SocketClient {
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
+    private Thread listenerThread;
+
+    private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
     public void connect(String host, int port) throws IOException { // kết nối với máy chủ (chỉ gọi MỘT lần ở MainApp)
         if (socket != null) {
@@ -36,6 +43,7 @@ public class SocketClient {
             socket = new Socket(host, port);
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
+            startListening();
         } catch (ConnectException e) {
             System.out.println("Server has not started");
             Platform.exit();
@@ -49,28 +57,69 @@ public class SocketClient {
     }
 
     public Response send(Request request) throws IOException { // gửi Request cho server và nhận về Response
+        if (listenerThread == null || !listenerThread.isAlive() || out == null)
+            throw new IOException("Client has not started listening");
+        BlockingQueue<Response> queue = new ArrayBlockingQueue<>(1);
+        pendingResponses.put(request.getId(), queue);
+
         String json = JsonUtil.toJson(request);
         out.println(json);
-        String responseJson = in.readLine();
-        return JsonUtil.fromJson(responseJson, Response.class);
+        try {
+            Response response = queue.poll(30, TimeUnit.SECONDS);
+            pendingResponses.remove(request.getId());
+            if (response == null)
+                throw new IOException("Request timed out");
+            return response;
+        } catch (InterruptedException e) {
+            pendingResponses.remove(request.getId());
+            Thread.currentThread().interrupt();
+            throw new IOException("Interrupted while waiting for response", e);
+        }
     }
 
-    public void startListening() {
-        new Thread(() -> {
+    public void startListening() { // lắng nghe data từ server (Response và Message)
+        if (listenerThread != null && listenerThread.isAlive() || socket == null || in == null)
+            return;
+        listenerThread = new Thread(() -> {
             try {
                 String line;
-                while ((line = in.readLine()) != null) {
-                    Message message = JsonUtil.fromJson(line, Message.class);
-                    System.out.println("Message: " + message.getMessage());
+                while (socket != null && in != null && (line = in.readLine()) != null) {
+                    JsonObject json = JsonParser.parseString(line).getAsJsonObject();
+
+                    if (json.has("status")) { // nếu là Response
+                        Response response = JsonUtil.fromJson(line, Response.class);
+                        BlockingQueue<Response> queue = pendingResponses.remove(response.getId());
+
+                        if (queue != null)
+                            queue.offer(response);
+                        continue;
+                    }
+
+                    if (json.has("type")) {
+                        Message message = JsonUtil.fromJson(line, Message.class);
+                        System.out.println(message.getMessage());
+                    }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }).start();
+        });
+        listenerThread.setDaemon(true);
+        listenerThread.start();
     };
 
     public void close() throws IOException { // ngắt kết nối
         if (socket != null)
             socket.close();
+        if (listenerThread != null)
+            listenerThread.interrupt();
+        if (in != null)
+            in.close();
+        if (out != null)
+            out.close();
+        socket = null;
+        in = null;
+        out = null;
+        listenerThread = null;
     }
 }

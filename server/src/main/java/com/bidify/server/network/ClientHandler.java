@@ -55,6 +55,5 @@ public class ClientHandler implements Runnable {
         if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
         dispatcher.dispatch(this, request);
-        System.out.println(currentUsername + " logged out");
     }
 }
