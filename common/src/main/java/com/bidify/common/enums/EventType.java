@@ -1,6 +1,6 @@
 package com.bidify.common.enums;
 
-public enum MessageType {
+public enum EventType {
     AUCTION_CREATED,
     AUCTION_UPDATED,
     AUCTION_ENDED,

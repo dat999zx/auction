@@ -1,13 +1,11 @@
 package com.bidify.server.network;
 
-import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.LoginRequest;
+import com.bidify.common.model.Event;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.network.RequestDispatcher;
 import com.bidify.common.util.JsonUtil;
 
 import java.io.BufferedReader;
@@ -22,37 +20,57 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
     private String currentUsername;
+    private BufferedReader in;
+    private PrintWriter out;
 
-    public ClientHandler(Socket socket){ this.socket = socket; }
+    public ClientHandler(Socket socket) {
+        this.socket = socket;
+    }
 
     @Override
-    public void run(){ // chạy liên tục để nhận mọi request từ client (mỗi client là 1 thread)
+    public void run() {
         try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); // dùng để nhận request
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true); // dùng để trả response
-        ){
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);) {
             String message;
-            while ((message = in.readLine()) != null) { // liên tục đọc dữ liệu nhận từ client
+            while ((message = in.readLine()) != null) {
                 System.out.println("Received: " + message);
-                
+
                 Request request = JsonUtil.fromJson(message, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 response.setId(request.getId());
-                out.println(JsonUtil.toJson(response));
+                sendResponse(response);
             }
-        }
-        catch(SocketException e){ System.out.println("Client disconnected: " + socket.getInetAddress()); }
-        catch(IOException e){ e.printStackTrace(); }
-        finally{
+        } catch (SocketException e2) {
+            System.out.println("Client disconnected: " + socket.getInetAddress());
+        } catch (IOException e2) {
+            e2.printStackTrace();
+        } finally {
             handleDisconnect();
         }
     }
 
-    public void setCurrentUsername(String username){ this.currentUsername = username; }
-    public String getCurrentUsername(){ return currentUsername; }
+    public void sendResponse(Response response) { // gửi response đến client
+        if (out != null)
+            out.println(JsonUtil.toJson(response));
+    }
 
-    private void handleDisconnect(){ // khi user mất kết nối
-        if (currentUsername == null) return;
+    public void sendEvent(Event event) { // gửi event đến client
+        if (out != null)
+            out.println(JsonUtil.toJson(event));
+    }
+
+    public void setCurrentUsername(String username) {
+        this.currentUsername = username;
+    }
+
+    public String getCurrentUsername() {
+        return currentUsername;
+    }
+
+    private void handleDisconnect() { // xử lý khi client ngắt kết nối
+        if (currentUsername == null)
+            return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
         dispatcher.dispatch(this, request);
     }
