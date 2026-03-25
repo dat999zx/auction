@@ -29,14 +29,15 @@ public class ClientHandler implements Runnable {
 
     @Override
     public void run() {
-        try (
-                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);) {
-            String message;
-            while ((message = in.readLine()) != null) {
-                System.out.println("Received: " + message);
+        try {
+            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            out = new PrintWriter(socket.getOutputStream(), true);
+            
+            String line;
+            while ((line = in.readLine()) != null) {
+                System.out.println("Received: " + line);
 
-                Request request = JsonUtil.fromJson(message, Request.class);
+                Request request = JsonUtil.fromJson(line, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 response.setId(request.getId());
                 sendResponse(response);
