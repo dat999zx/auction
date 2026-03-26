@@ -36,9 +36,9 @@ public class UserRepository {
     }
 
     public boolean save(User user){ // lưu user vào database
-        return (!DatabaseManager.update(
+        return DatabaseManager.update(
             "INSERT INTO Users(username, nickname, password) VALUES (?, ?, ?)",
-            user.getUsername(), user.getNickname(), user.getPassword()));
+            user.getUsername(), user.getNickname(), user.getPassword());
     }
 
     // cập nhật lần login gần nhất

@@ -69,6 +69,10 @@ public class ClientHandler implements Runnable {
         return currentUsername;
     }
 
+    public boolean isValidUser(){ // xác thực client đã đăng nhập chưa
+        return socket != null && currentUsername != null;
+    }
+
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
         if (currentUsername == null)
             return;
