@@ -1,10 +1,10 @@
 package com.bidify.common.model;
 
 public class GetAuctionDetailRequest {
-    private String seller;
+    private String auctionId;
 
     public GetAuctionDetailRequest() {}
-    public GetAuctionDetailRequest(String seller) { this.seller = seller; }
+    public GetAuctionDetailRequest(String auctionId) { this.auctionId = auctionId; }
 
-    public String getSeller() { return seller; }
+    public String getAuctionId() { return auctionId; }
 }

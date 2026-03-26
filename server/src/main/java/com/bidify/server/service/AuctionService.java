@@ -1,5 +1,6 @@
 package com.bidify.server.service;
 
+import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.network.ClientHandler;
@@ -12,6 +13,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
+import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -132,6 +134,8 @@ public class AuctionService {
     
     public Response deleteAuction(ClientHandler client, Request request){
         DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid data request");
+
         String auctionId = data.getId();
         try{
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
@@ -142,7 +146,9 @@ public class AuctionService {
 
         Auction auction = auctionRepository.findById(auctionId);
         if (auction == null) 
-            return new Response(RequestStatus.FAILED, "Auction not found");
+            return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+
+        if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Can not delete auction after it started");
 
         if (!auction.getSeller().equals(client.getCurrentUsername())) 
             return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
@@ -150,7 +156,31 @@ public class AuctionService {
         if (!auctionRepository.deleteById(auctionId)) 
             return new Response(RequestStatus.FAILED, "Failed to delete auction");
 
+        RealtimeDatabase.removeLiveAuction(auctionId);
         return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+    }
+
+    public Response getAuctionDetail(ClientHandler client, Request request){
+        GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+
+        String auctionId = data.getAuctionId();
+        try {
+            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
+        } catch (ValidationException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+
+        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+        if (auction == null) {
+            auction = auctionRepository.findById(auctionId);
+        }
+
+        if (auction == null) {
+            return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+        }
+
+        return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
     }
 }
 // CREATE_AUCTION, // tạo đấu giá
