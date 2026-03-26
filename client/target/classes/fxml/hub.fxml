@@ -41,9 +41,9 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="24.0">
                     <HBox alignment="CENTER_LEFT" spacing="18.0">
-                        <Label styleClass="top-link-active" text="Auctions" />
-                        <Label styleClass="top-link" text="Galleries" />
-                        <Label styleClass="top-link" text="Private Sales" />
+                        <Button fx:id="auctionsButton" onAction="#handleSelection" styleClass="top-link-active" text="Auctions" />
+                        <Button fx:id="galleriesButton" onAction="#handleSelection" styleClass="top-link" text="Galleries" />
+                        <Button fx:id="privateSalesButton" onAction="#handleSelection" styleClass="top-link" text="Private Sales" />
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="12.0">

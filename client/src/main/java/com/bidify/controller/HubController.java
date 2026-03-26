@@ -10,9 +10,32 @@ import com.bidify.common.model.Response;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 
 public class HubController {
+    @FXML
+    private Button auctionsButton;
+
+    @FXML
+    private Button galleriesButton;
+
+    @FXML
+    private Button privateSalesButton;
+
+    @FXML
+    private void initialize() {
+        setActiveTopNav(auctionsButton);
+    }
+
+    @FXML
+    private void handleSelection(ActionEvent event) {
+        if (event.getSource() instanceof Button selectedButton) {
+            setActiveTopNav(selectedButton);
+        }
+    }
+
     @FXML
     private void handleLogout() {
         SocketClient client = SocketClient.getClient();
@@ -37,6 +60,18 @@ public class HubController {
         } catch (IOException e) {
             System.err.println("Cannot connect to server while logging out");
             e.printStackTrace();
+        }
+    }
+
+    private void setActiveTopNav(Button activeButton) {
+        Button[] topNavButtons = { auctionsButton, galleriesButton, privateSalesButton };
+
+        for (Button button : topNavButtons) {
+            if (button == null) {
+                continue;
+            }
+            button.getStyleClass().removeAll("top-link", "top-link-active");
+            button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
         }
     }
 }

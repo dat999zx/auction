@@ -52,18 +52,28 @@
 }
 
 .top-link {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
     -fx-text-fill: #64748b;
     -fx-font-size: 13px;
     -fx-font-weight: 600;
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
 }
 
 .top-link-active {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
     -fx-text-fill: #001e40;
     -fx-font-size: 13px;
     -fx-font-weight: 800;
     -fx-border-color: transparent transparent #ffddb8 transparent;
     -fx-border-width: 0 0 2 0;
-    -fx-padding: 0 0 4 0;
+    -fx-padding: 10 14 8 14;
+    -fx-cursor: hand;
 }
 
 .icon-button {
