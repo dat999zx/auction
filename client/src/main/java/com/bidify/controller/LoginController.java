@@ -69,8 +69,12 @@ public class LoginController {
                 System.out.println(response.getMessage());
                 switch (response.getStatus()) {
                     case SUCCESS -> {
+                        client.setCurrentUsername(username);
                         messageLabel.setStyle("-fx-text-fill: #2fe957;");
                         messageLabel.setText("Logged in");
+                        SceneManager.switchScene("hub.fxml");
+                        SceneManager.clearAllCache();
+                        
                     }
                     default -> throw new AuthException(response.getMessage());
                 }

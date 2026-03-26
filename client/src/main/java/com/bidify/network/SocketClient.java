@@ -21,15 +21,10 @@ import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 
-/*
-kết nối client và server
-gọi connect() ở MainApp để nối server và client
-SocketClient client = SocketClient.getClient(); để lấy client
-Response response = client.send(request) để gửi request đến server và nhận về response
-*/
 public class SocketClient {
     private static SocketClient client;
 
+    private String currentUsername;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -37,7 +32,7 @@ public class SocketClient {
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
-    public void connect(String host, int port) throws IOException { // kết nối với server
+    public void connect(String host, int port) throws IOException {
         if (socket != null) {
             System.out.println("Already connected to server");
             return;
@@ -53,13 +48,22 @@ public class SocketClient {
         }
     }
 
-    public static SocketClient getClient() { // lấy client
-        if (client == null)
+    public static SocketClient getClient() {
+        if (client == null) {
             client = new SocketClient();
+        }
         return client;
     }
 
-    public Response send(Request request) throws IOException { // gửi request đến server và nhận về response
+    public String getCurrentUsername() {
+        return currentUsername;
+    }
+
+    public void setCurrentUsername(String currentUsername) {
+        this.currentUsername = currentUsername;
+    }
+
+    public Response send(Request request) throws IOException {
         if (listenerThread == null || !listenerThread.isAlive() || out == null) {
             throw new IOException("Client has not started listening");
         }
@@ -71,8 +75,9 @@ public class SocketClient {
         try {
             Response response = queue.poll(30, TimeUnit.SECONDS);
             pendingResponses.remove(request.getId());
-            if (response == null)
+            if (response == null) {
                 throw new IOException("Request timed out");
+            }
             return response;
         } catch (InterruptedException e) {
             pendingResponses.remove(request.getId());
@@ -81,9 +86,10 @@ public class SocketClient {
         }
     }
 
-    public void startListening() { // lắng nghe server
-        if ((listenerThread != null && listenerThread.isAlive()) || socket == null || in == null)
+    public void startListening() {
+        if ((listenerThread != null && listenerThread.isAlive()) || socket == null || in == null) {
             return;
+        }
 
         listenerThread = new Thread(() -> {
             try {
@@ -95,8 +101,9 @@ public class SocketClient {
                         Response response = JsonUtil.fromJson(line, Response.class);
                         BlockingQueue<Response> queue = pendingResponses.remove(response.getId());
 
-                        if (queue != null)
+                        if (queue != null) {
                             queue.offer(response);
+                        }
                     } else if (json.has("type")) {
                         Event event = JsonUtil.fromJson(line, Event.class);
                         System.out.println(event.getMessage());
@@ -110,18 +117,23 @@ public class SocketClient {
         listenerThread.start();
     }
 
-    public void close() throws IOException { // đóng kết nối
-        if (socket != null)
+    public void close() throws IOException {
+        if (socket != null) {
             socket.close();
-        if (listenerThread != null)
+        }
+        if (listenerThread != null) {
             listenerThread.interrupt();
-        if (in != null)
+        }
+        if (in != null) {
             in.close();
-        if (out != null)
+        }
+        if (out != null) {
             out.close();
+        }
         socket = null;
         in = null;
         out = null;
         listenerThread = null;
+        currentUsername = null;
     }
 }

@@ -10,7 +10,7 @@ public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         SocketClient client = SocketClient.getClient();
-        client.connect("localhost", 5000);
+        client.connect("10.11.3.78", 5000);
 
         
         SceneManager.setStage(stage);
