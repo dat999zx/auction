@@ -21,6 +21,13 @@ import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 
+/*
+kết nối client và server
+gọi connect() ở MainApp để nối server và client
+SocketClient client = SocketClient.getClient(); để lấy client
+Response response = client.send(request) để gửi request đến server và nhận về response
+*/
+
 public class SocketClient {
     private static SocketClient client;
 
