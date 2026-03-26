@@ -87,6 +87,8 @@ public class RealtimeDatabase {
 
     public static void removeAuctionWatcher(String auctionId, String username){ // xóa người xem khỏi database
         if (auctionId == null || username == null) return;
+        if (!auctionWatchers.containsKey(auctionId) || !auctionWatchers.get(auctionId).contains(username)) return;
+        if (!userWatching.containsKey(username) || !userWatching.get(username).contains(auctionId)) return;
         auctionWatchers.get(auctionId).remove(username);
         userWatching.get(username).remove(auctionId);
     }

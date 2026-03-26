@@ -2,8 +2,6 @@ package com.bidify.server.service;
 
 import java.time.LocalDateTime;
 
-import javax.security.auth.login.LoginContext;
-
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
@@ -64,7 +62,7 @@ public class AuthService {
         String username = data.getUsername();
         String password = data.getPassword();
 
-        if (client.getCurrentUsername() != null)
+        if (client.isValidUser())
             return new Response(RequestStatus.FAILED, "Your are already logged in");
 
         if (!userRepository.existsByUsername(username))
@@ -94,8 +92,8 @@ public class AuthService {
         LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
         String username = data.getUsername();
 
-        if (!client.getCurrentUsername().equals(data.getUsername()))
-            return new Response(RequestStatus.FAILED, "Invalid session");
+        if (!client.isValidUser() || !client.getCurrentUsername().equals(username))
+            return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))
             return new Response(RequestStatus.FAILED, "User is not found");
