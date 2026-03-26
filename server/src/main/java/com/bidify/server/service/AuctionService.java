@@ -11,6 +11,7 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.model.CreateAuctionRequest;
+import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -127,6 +128,29 @@ public class AuctionService {
         } catch (ValidationException e) { return new Response(RequestStatus.FAILED, e.getMessage()); }
 
         return new Response(RequestStatus.SUCCESS, "Auction updated successfully!");
+    }
+    
+    public Response deleteAuction(ClientHandler client, Request request){
+        DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
+        String auctionId = data.getId();
+        try{
+            ValidationUtil.requiresNonBlank(auctionId, "Auction id");
+        } 
+        catch( ValidationException e){
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+
+        Auction auction = auctionRepository.findById(auctionId);
+        if (auction == null) 
+            return new Response(RequestStatus.FAILED, "Auction not found");
+
+        if (!auction.getSeller().equals(client.getCurrentUsername())) 
+            return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
+
+        if (!auctionRepository.deleteById(auctionId)) 
+            return new Response(RequestStatus.FAILED, "Failed to delete auction");
+
+        return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
     }
 }
 // CREATE_AUCTION, // tạo đấu giá

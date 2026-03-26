@@ -81,6 +81,10 @@ public class AuctionRepository {
                                     auction.getStartTime().toString(),
                                     auction.getEndTime().toString());
     }
+    public boolean deleteById(String id){
+        String sql = "DELETE FROM Auctions WHERE id = ?";
+        return DatabaseManager.update(sql, id);
+    }
 }
 // CREATE_AUCTION, // tạo đấu giá
 // GET_AUCTIONS, // xem list các cuột đấu giá
