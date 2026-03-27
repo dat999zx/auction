@@ -1,157 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
 
-<StackPane xmlns="http://javafx.com/javafx/21"
-           xmlns:fx="http://javafx.com/fxml/1"
-           prefWidth="1280.0"
-           prefHeight="800.0"
-           styleClass="register-root">
+<AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="register-root" stylesheets="@../css/register.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.RegisterController">
+
     <children>
-        <HBox prefWidth="1100.0" prefHeight="700.0" maxWidth="1100.0" maxHeight="700.0" styleClass="register-card">
-            <children>
-                <VBox prefWidth="520.0" spacing="0.0" styleClass="register-left">
-                    <padding>
-                        <Insets top="48.0" right="48.0" bottom="48.0" left="48.0"/>
-                    </padding>
-                    <children>
-                        <Label text="Bidify" styleClass="left-brand"/>
 
-                        <VBox spacing="18.0">
-                            <padding>
-                                <Insets top="70.0" right="0.0" bottom="0.0" left="0.0"/>
-                            </padding>
-                            <children>
-                                <Label text="Join the Elite&#10;Circle of Bidders." styleClass="left-title"/>
-                                <Label text="Experience the world's most sophisticated auction platform where precision meets luxury."
-                                       wrapText="true"
-                                       maxWidth="320.0"
-                                       styleClass="left-subtitle"/>
-                            </children>
-                        </VBox>
+        <Pane layoutX="365.0" layoutY="29.0" prefHeight="700.0" prefWidth="480.0" styleClass="register-right">
+         <children>
+      
+              <Label alignment="CENTER" layoutX="81.0" layoutY="25.0" prefHeight="50.0" prefWidth="318.0" styleClass="form-title" text="Create Account" />
+      
+              <Label alignment="CENTER" layoutX="89.0" layoutY="75.0" prefHeight="20.0" prefWidth="302.0" styleClass="form-subtitle" text="Fill in your details to start your journey." />
+            <Label fx:id="messageLabel" alignment="CENTER" layoutX="50.0" layoutY="542.0" prefHeight="20.0" prefWidth="372.0" styleClass="field-label" text="-" />
+         </children></Pane>
 
-                        <VBox spacing="20.0" VBox.vgrow="ALWAYS" styleClass="left-bottom">
-                            <children>
-                                <HBox spacing="12.0">
-                                    <children>
-                                        <HBox spacing="-8.0">
-                                            <children>
-                                                <StackPane prefWidth="40.0" prefHeight="40.0" styleClass="avatar avatar-one">
-                                                    <children><Label text="A" styleClass="avatar-text"/></children>
-                                                </StackPane>
-                                                <StackPane prefWidth="40.0" prefHeight="40.0" styleClass="avatar avatar-two">
-                                                    <children><Label text="B" styleClass="avatar-text"/></children>
-                                                </StackPane>
-                                                <StackPane prefWidth="40.0" prefHeight="40.0" styleClass="avatar avatar-three">
-                                                    <children><Label text="C" styleClass="avatar-text"/></children>
-                                                </StackPane>
-                                            </children>
-                                        </HBox>
-                                        <Label text="+2.4k Active Curators" styleClass="curator-text"/>
-                                    </children>
-                                </HBox>
-                                <Label text="Professional Auctioneering Services" styleClass="bottom-caption"/>
-                            </children>
-                            <padding>
-                                <Insets top="0.0" right="0.0" bottom="0.0" left="0.0"/>
-                            </padding>
-                        </VBox>
-                    </children>
-                </VBox>
+              <Label layoutX="419.0" layoutY="154.0" prefHeight="16.0" prefWidth="73.0" styleClass="field-label" text="Username" />
 
-                <VBox prefWidth="580.0" spacing="0.0" styleClass="register-right">
-                    <padding>
-                        <Insets top="52.0" right="64.0" bottom="52.0" left="64.0"/>
-                    </padding>
-                    <children>
-                        <VBox spacing="8.0">
-                            <children>
-                                <Label text="Create Account" styleClass="form-title"/>
-                                <Label text="Fill in your details to start your journey." styleClass="form-subtitle"/>
-                            </children>
-                        </VBox>
+        <TextField fx:id="usernameField" layoutX="419.0" layoutY="171.0" prefHeight="46.0" prefWidth="372.0" promptText="e.g. curator_john" styleClass="text-input" />
 
-                        <VBox spacing="18.0">
-                            <padding>
-                                <Insets top="34.0" right="0.0" bottom="0.0" left="0.0"/>
-                            </padding>
-                            <children>
-                                <VBox spacing="8.0">
-                                    <children>
-                                        <Label text="Username" styleClass="field-label"/>
-                                        <TextField promptText="e.g. curator_john" prefHeight="48.0" styleClass="text-input"/>
-                                    </children>
-                                </VBox>
+        <Label layoutX="419.0" layoutY="221.0" prefHeight="26.0" prefWidth="73.0" styleClass="field-label" text="Nickname" />
 
-                                <VBox spacing="8.0">
-                                    <children>
-                                        <Label text="Email Address" styleClass="field-label"/>
-                                        <TextField promptText="john@example.com" prefHeight="48.0" styleClass="text-input"/>
-                                    </children>
-                                </VBox>
+        <TextField fx:id="nicknameField" layoutX="419.0" layoutY="242.0" prefHeight="46.0" prefWidth="372.0" promptText="What should we call you?" styleClass="text-input" />
 
-                                <VBox spacing="8.0">
-                                    <children>
-                                        <Label text="Phone Number" styleClass="field-label"/>
-                                        <TextField promptText="+1 (555) 000-0000" prefHeight="48.0" styleClass="text-input"/>
-                                    </children>
-                                </VBox>
+        <Label layoutX="419.0" layoutY="295.0" prefHeight="26.0" prefWidth="79.0" styleClass="field-label" text="Email" />
 
-                                <GridPane hgap="16.0" vgap="0.0">
-                                    <columnConstraints>
-                                        <ColumnConstraints percentWidth="50.0"/>
-                                        <ColumnConstraints percentWidth="50.0"/>
-                                    </columnConstraints>
-                                    <children>
-                                        <VBox spacing="8.0" GridPane.columnIndex="0">
-                                            <children>
-                                                <Label text="Password" styleClass="field-label"/>
-                                                <PasswordField promptText="••••••••" prefHeight="48.0" styleClass="text-input"/>
-                                            </children>
-                                        </VBox>
-                                        <VBox spacing="8.0" GridPane.columnIndex="1">
-                                            <children>
-                                                <Label text="Confirm" styleClass="field-label"/>
-                                                <PasswordField promptText="••••••••" prefHeight="48.0" styleClass="text-input"/>
-                                            </children>
-                                        </VBox>
-                                    </children>
-                                </GridPane>
+        <TextField fx:id="emailField" layoutX="419.0" layoutY="316.0" prefHeight="46.0" prefWidth="372.0" promptText="john@example.com" styleClass="text-input" />
 
-                                <VBox spacing="12.0">
-                                    <children>
-                                        <CheckBox text="I agree to the Terms of Service and Privacy Policy of Bidify Concierge."
-                                                  wrapText="true"
-                                                  styleClass="terms-check"/>
-                                        <Button text="Register" prefHeight="52.0" maxWidth="1.7976931348623157E308" styleClass="primary-button"/>
-                                    </children>
-                                </VBox>
+        <Label layoutX="419.0" layoutY="369.0" prefHeight="20.0" prefWidth="73.0" styleClass="field-label" text="Password" />
+      <TextField fx:id="passwordFieldVisible" layoutX="419.0" layoutY="386.0" prefHeight="46.0" prefWidth="372.0" promptText="password" styleClass="text-input" />
 
-                                <HBox spacing="6.0" alignment="CENTER">
-                                    <children>
-                                        <Label text="Already have an account?" styleClass="footer-text"/>
-                                        <Hyperlink text="Login" styleClass="footer-link"/>
-                                    </children>
-                                    <padding>
-                                        <Insets top="10.0" right="0.0" bottom="0.0" left="0.0"/>
-                                    </padding>
-                                </HBox>
-                            </children>
-                        </VBox>
-                    </children>
-                </VBox>
-            </children>
-        </HBox>
+        <PasswordField fx:id="passwordField" layoutX="419.0" layoutY="386.0" prefHeight="46.0" prefWidth="372.0" promptText="••••••••" styleClass="text-input" />
+      <ImageView fx:id="eyeClose" fitHeight="31.0" fitWidth="41.0" layoutX="749.0" layoutY="394.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../images/eye-close.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="eyeOpen" fitHeight="31.0" fitWidth="41.0" layoutX="749.0" layoutY="394.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../images/eye-open.png" />
+         </image>
+      </ImageView>
+
+       <Label layoutX="421.0" layoutY="444.0" prefHeight="20.0" prefWidth="98.0" styleClass="field-label" text="Confirm" />
+
+        <PasswordField fx:id="passwordConfirmField" layoutX="419.0" layoutY="461.0" prefHeight="46.0" prefWidth="372.0" promptText="••••••••" styleClass="text-input" />
+
+        <CheckBox layoutX="419.0" layoutY="516.0" prefHeight="46.0" prefWidth="372.0" styleClass="terms-check" text="I agree to the Terms of Service and Privacy Policy of Bidify Concierge." wrapText="true" />
+
+        <Button layoutX="419.0" layoutY="591.0" onAction="#handleRegister" prefHeight="50.0" prefWidth="372.0" styleClass="primary-button" text="Register" />
+
+        <Label layoutX="500.0" layoutY="663.0" prefHeight="26.0" prefWidth="158.0" styleClass="footer-text" text="Already have an account?">
+         <font>
+            <Font size="14.0" />
+         </font></Label>
+
+              <Hyperlink layoutX="674.0" layoutY="663.0" onAction="#toLogin" prefHeight="26.0" prefWidth="73.0" styleClass="footer-link" text="Login">
+         <font>
+            <Font size="14.0" />
+         </font>
+      </Hyperlink>
+      <Button layoutX="741.0" layoutY="387.0" mnemonicParsing="false" onAction="#toggletext" opacity="0.0" prefHeight="46.0" prefWidth="48.0" />
     </children>
-</StackPane>
+</AnchorPane>

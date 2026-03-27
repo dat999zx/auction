@@ -35,8 +35,6 @@ public class RegisterController {
     @FXML
     private PasswordField passwordConfirmField;
     @FXML
-    private TextField passwordConfirmFieldVisible;
-    @FXML
     private ImageView eyeOpen;   // icon for visible mode
     @FXML
     private ImageView eyeClose;  // icon for hidden mode
@@ -51,42 +49,41 @@ public class RegisterController {
         passwordFieldVisible.textProperty()
             .bindBidirectional(passwordField.textProperty());
     
-        passwordConfirmFieldVisible.textProperty()
-            .bindBidirectional(passwordConfirmField.textProperty());
-    
         // default hidden
         passwordFieldVisible.setVisible(false);
         passwordField.setVisible(true);
     
-        passwordConfirmFieldVisible.setVisible(false);
-        passwordConfirmField.setVisible(true);
-    
-        eyeOpen.setVisible(false);
-        eyeClose.setVisible(true);
+        eyeOpen.setVisible(true);
+        eyeClose.setVisible(false);
     }
 
     @FXML
-    private void handleRegister(){
-        try{
-            String username = usernameField.getText();
-            String nickname = nicknameField.getText();
-            String email = emailField.getText();
+    private void handleRegister() {
+        try {
+            
+            String username = usernameField.getText().trim();
+            String nickname = nicknameField.getText().trim();
+            String email = emailField.getText().trim();
             String password = passwordField.getText();
-            String passwordConfirm = passwordConfirmField.getText();
             
             ValidationUtil.validateUsername(username);
             ValidationUtil.validateNickname(nickname);
             ValidationUtil.validateEmail(email);
             ValidationUtil.validatePassword(password);
-            if (!passwordConfirm.equals(password)) throw new ValidationException("Password confirmation does not match");
+
+            String passwordConfirm = passwordConfirmField.getText();
+            if (!password.equals(passwordConfirm)) {
+                throw new ValidationException("Confirm password do not match");
+            }
 
             SocketClient client = SocketClient.getClient();
-            RegisterRequest data = new RegisterRequest(username, nickname, email, password);           
+            RegisterRequest data = new RegisterRequest(username, nickname, email, password);
             Request request = new Request(RequestType.REGISTER, data);
 
-            try{
+            try {
                 Response response = client.send(request);
                 System.out.println(response.getMessage());
+
                 switch (response.getStatus()) {
                     case SUCCESS -> {
                         messageLabel.setStyle("-fx-text-fill: #2fe957;");
@@ -94,18 +91,15 @@ public class RegisterController {
                     }
                     default -> throw new AuthException(response.getMessage());
                 }
-            }
-            catch (AuthException e){
+            } catch (AuthException e) {
                 messageLabel.setStyle("-fx-text-fill: #ff5656;");
                 messageLabel.setText(e.getMessage());
-            }
-            catch (IOException e){
+            } catch (IOException e) {
                 messageLabel.setStyle("-fx-text-fill: #ff5656;");
                 messageLabel.setText("Cannot connect to server");
                 e.printStackTrace();
             }
-        }
-        catch(ValidationException e){
+        } catch (ValidationException e) {
             messageLabel.setStyle("-fx-text-fill: #ff5656;");
             messageLabel.setText(e.getMessage());
         }
@@ -119,13 +113,9 @@ public class RegisterController {
         passwordFieldVisible.setVisible(showing);
         passwordField.setVisible(!showing);
     
-        // toggle confirm password
-        passwordConfirmFieldVisible.setVisible(showing);
-        passwordConfirmField.setVisible(!showing);
-    
         // toggle icons
-        eyeOpen.setVisible(showing);
-        eyeClose.setVisible(!showing);
+        eyeOpen.setVisible(!showing);
+        eyeClose.setVisible(showing);
     
         // focus (just focus main field, enough)
         if (showing) {

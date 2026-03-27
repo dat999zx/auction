@@ -48,8 +48,8 @@ public class LoginController {
         passwordFieldVisible.setVisible(false);
         passwordField.setVisible(true);
 
-        eyeOpen.setVisible(false);
-        eyeClose.setVisible(true);
+        eyeOpen.setVisible(true);
+        eyeClose.setVisible(false);
     }
     @FXML
     private void handleLogin(){
@@ -59,11 +59,11 @@ public class LoginController {
 
             ValidationUtil.validateUsername(username);
             ValidationUtil.validatePassword(password);
-
+            
             SocketClient client = SocketClient.getClient();
             LoginRequest data = new LoginRequest(username, password);           
             Request request = new Request(RequestType.LOGIN, data);
-
+            System.out.println("sent success");
             try{
                 Response response = client.send(request);
                 System.out.println(response.getMessage());
@@ -107,8 +107,8 @@ public class LoginController {
         passwordField.setVisible(!showing);
     
         // toggle icons
-        eyeOpen.setVisible(showing);
-        eyeClose.setVisible(!showing);
+        eyeOpen.setVisible(!showing);
+        eyeClose.setVisible(showing);
     
         // fix typing focus (important)
         if (showing) {
