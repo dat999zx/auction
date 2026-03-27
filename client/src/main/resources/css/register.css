@@ -1,7 +1,86 @@
-#fade {
-    -fx-fill: linear-gradient(
-        from 0% 0% to 100% 0%,
-        rgba(255,255,255,0) 0%,
-        rgba(255,255,255,1) 20%
-    );
+.auth-root {
+    -fx-background-color: #0d1219;
+}
+
+.auth-overlay {
+    -fx-background-color: linear-gradient(to bottom right, rgba(11, 16, 23, 0.78), rgba(11, 16, 23, 0.58));
+}
+
+.auth-card {
+    -fx-background-color: rgba(252, 253, 255, 0.95);
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: rgba(255, 255, 255, 0.38);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.26), 28, 0.2, 0, 12);
+}
+
+.auth-badge {
+    -fx-text-fill: #2d5b92;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-letter-spacing: 1.2px;
+}
+
+.auth-title {
+    -fx-text-fill: #142033;
+    -fx-font-size: 25px;
+    -fx-font-weight: 800;
+}
+
+.auth-subtitle {
+    -fx-text-fill: #617083;
+    -fx-font-size: 13px;
+}
+
+.auth-input {
+    -fx-background-color: #f6f8fb;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #d6deea;
+    -fx-padding: 0 42 0 14;
+    -fx-font-size: 14px;
+    -fx-text-fill: #142033;
+    -fx-prompt-text-fill: #8a96a8;
+}
+
+.auth-input:focused {
+    -fx-background-color: white;
+    -fx-border-color: #4d87c7;
+    -fx-effect: dropshadow(gaussian, rgba(77, 135, 199, 0.16), 10, 0.1, 0, 2);
+}
+
+.auth-link {
+    -fx-text-fill: #2d5b92;
+    -fx-font-size: 13px;
+    -fx-border-color: transparent;
+    -fx-padding: 0;
+}
+
+.auth-link:hover {
+    -fx-text-fill: #1f4675;
+}
+
+.primary-button {
+    -fx-background-color: linear-gradient(to right, #2d5b92, #3f79be);
+    -fx-background-radius: 12;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: linear-gradient(to right, #274f80, #386eae);
+}
+
+.message-label {
+    -fx-min-height: 20;
+    -fx-text-fill: #d14f4f;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.footer-text {
+    -fx-text-fill: #617083;
+    -fx-font-size: 13px;
 }
