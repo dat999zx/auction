@@ -1,6 +1,5 @@
 package com.bidify.server.database;
 
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -16,6 +15,16 @@ public class RealtimeDatabase {
     // auctionWatchers và userWatching là 2 map ngược nhau
     // auctionWatchers có dạng (auction_id, [username1, username2, ...]) là auction này đang chứa các user nào
     // userWatching có dạng (username, [auction_id1, auction_id2, ...]) là user này đang xem các auction nào
+
+    public static boolean isUserOnline(String username){ // kiểm tra user có online ko
+        if (username == null) return false;
+        return activeClients.containsKey(username);
+    }
+
+    public static boolean isWatchingAuction(String username, String auctionId){
+        if (username == null || auctionId == null) return false;
+        return userWatching.containsKey(username) && userWatching.get(username).contains(auctionId);
+    }
 
     public static void addActiveClient(ClientHandler client){ // thêm client vào database
         if (client == null || client.getCurrentUsername() == null) return;
@@ -33,10 +42,11 @@ public class RealtimeDatabase {
 
     public static void removeActiveClient(String username){ // xóa client khỏi database
         if (username == null) return;
+        for (String auctionId : auctionWatchers.keySet())
+            removeAuctionWatcher(auctionId, username);
+        userWatching.remove(username);
         activeClients.remove(username);
     }
-
-    public static void removeAllActiveClients(){ activeClients.clear(); } // xóa tất cả client khỏi database
 
     public static void saveClient(ClientHandler client){ // lưu client data
         // TODO: save client data
@@ -67,8 +77,6 @@ public class RealtimeDatabase {
         liveAuctions.remove(auctionId);
     }
 
-    public static void removeAllLiveAuctions(){ liveAuctions.clear(); } // xóa tất cả cuộc đấu giá khỏi database
-
     public static void saveAuction(Auction auction){ // lưu auction data
         // TODO: save auction data
         System.out.println("saved auction: " + auction.getAuctionName());
@@ -85,7 +93,7 @@ public class RealtimeDatabase {
         userWatching.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(auctionId);
     }
 
-    public static void removeAuctionWatcher(String auctionId, String username){ // xóa người xem khỏi database
+    public static void removeAuctionWatcher(String auctionId, String username){ // xóa người xem auction
         if (auctionId == null || username == null) return;
         if (!auctionWatchers.containsKey(auctionId) || !auctionWatchers.get(auctionId).contains(username)) return;
         if (!userWatching.containsKey(username) || !userWatching.get(username).contains(auctionId)) return;
@@ -101,5 +109,7 @@ public class RealtimeDatabase {
     public static void clearAll(){ // xóa tất cả dữ liệu trong database
         activeClients.clear();
         liveAuctions.clear();
+        auctionWatchers.clear();
+        userWatching.clear();
     }
 }

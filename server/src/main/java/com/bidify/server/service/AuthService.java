@@ -62,7 +62,7 @@ public class AuthService {
         String username = data.getUsername();
         String password = data.getPassword();
 
-        if (client.isValidUser())
+        if (client.isValidClient())
             return new Response(RequestStatus.FAILED, "Your are already logged in");
 
         if (!userRepository.existsByUsername(username))
@@ -92,7 +92,7 @@ public class AuthService {
         LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
         String username = data.getUsername();
 
-        if (!client.isValidUser() || !client.getCurrentUsername().equals(username))
+        if (!client.isValidClient() || !client.getCurrentUsername().equals(username))
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))

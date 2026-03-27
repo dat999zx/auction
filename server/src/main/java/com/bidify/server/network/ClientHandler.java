@@ -61,15 +61,15 @@ public class ClientHandler implements Runnable {
             out.println(JsonUtil.toJson(event));
     }
 
-    public void setCurrentUsername(String username) {
+    public void setCurrentUsername(String username) { // thiết lập username của client
         this.currentUsername = username;
     }
 
-    public String getCurrentUsername() {
+    public String getCurrentUsername() { // lấy username của client
         return currentUsername;
     }
 
-    public boolean isValidUser(){ // xác thực client đã đăng nhập chưa
+    public boolean isValidClient(){ // xác thực client đã đăng nhập chưa
         return socket != null && currentUsername != null;
     }
 

@@ -27,7 +27,7 @@ public class AuctionService {
     public Response createAuction(ClientHandler client, Request request){
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidUser()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String seller = data.getSeller();
         String auctionName = data.getAuctionName();
@@ -72,7 +72,7 @@ public class AuctionService {
     public Response updateAuction(ClientHandler client, Request request){
         UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidUser()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getAuctionId();
         try {
@@ -140,7 +140,7 @@ public class AuctionService {
     public Response deleteAuction(ClientHandler client, Request request){
         DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid data request");
-        if (!client.isValidUser()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getId();
         try{
