@@ -2,6 +2,7 @@ package com.bidify.server.service;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
@@ -30,14 +31,12 @@ public class AuthService {
 
         String username = data.getUsername();
         String nickname = data.getNickname();
-        String email = data.getEmail();
         String password = data.getPassword();
 
         try{
             ValidationUtil.validateUsername(username);
             if (userRepository.existsByUsername(username)) throw new ValidationException("Username already exists");
             ValidationUtil.validateNickname(nickname);
-            ValidationUtil.validateEmail(email);
             ValidationUtil.validatePassword(password);
         }
         catch (ValidationException e){
@@ -45,7 +44,7 @@ public class AuthService {
         }
 
         try{
-            User user = new User(nickname, username, PasswordUtil.hash(password), email);
+            User user = new User(nickname, username, PasswordUtil.hash(password));
             if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
@@ -83,14 +82,15 @@ public class AuthService {
 
         client.setCurrentUsername(username);
         RealtimeDatabase.addActiveClient(client);
+
+        UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
         
-        return new Response(RequestStatus.SUCCESS, "Login successfully", user);
+        return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
     }
 
     // đăng kí
     public Response logout(ClientHandler client, Request request){
-        LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
-        String username = data.getUsername();
+        String username = client.getCurrentUsername();
 
         if (!client.isValidClient() || !client.getCurrentUsername().equals(username))
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");

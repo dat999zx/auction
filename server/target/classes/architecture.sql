@@ -4,7 +4,6 @@ CREATE TABLE IF NOT EXISTS Users (
     password TEXT NOT NULL,
     email TEXT,
     phoneNumber TEXT,
-    role TEXT DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     createdAt TEXT,
     lastLogin TEXT

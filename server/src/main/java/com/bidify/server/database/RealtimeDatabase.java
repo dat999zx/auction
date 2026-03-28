@@ -60,7 +60,7 @@ public class RealtimeDatabase {
     }
 
     public static ClientHandler getActiveClient(String username){ // lấy client trong database
-        if (username == null) return null;
+        if (username == null || !activeClients.containsKey(username)) return null;
         return activeClients.get(username);
     }
 
@@ -72,8 +72,8 @@ public class RealtimeDatabase {
         if (username == null) return;
         for (String auctionId : auctionWatchers.keySet())
             removeAuctionWatcher(auctionId, username);
-        userWatching.remove(username);
-        activeClients.remove(username);
+        if (activeClients.containsKey(username)) activeClients.remove(username);
+        if (!userWatching.containsKey(username)) userWatching.remove(username);
     }
 
     public static void saveClient(ClientHandler client){ // lưu client data
@@ -97,7 +97,7 @@ public class RealtimeDatabase {
     }
 
     public static Auction getLiveAuction(String auctionId){ // lấy cuộc đấu giá từ database
-        if (auctionId == null) return null;
+        if (auctionId == null || !liveAuctions.containsKey(auctionId)) return null;
         return liveAuctions.get(auctionId);
     }
 
@@ -106,7 +106,7 @@ public class RealtimeDatabase {
     }
 
     public static void removeLiveAuction(String auctionId){ // xóa cuộc đấu giá khỏi database
-        if (auctionId == null) return;
+        if (auctionId == null || !liveAuctions.containsKey(auctionId)) return;
         liveAuctions.remove(auctionId);
     }
 
@@ -162,10 +162,10 @@ public class RealtimeDatabase {
 
     public static void removeAuctionWatcher(String auctionId, String username){ // xóa người xem auction
         if (auctionId == null || username == null) return;
-        if (!auctionWatchers.containsKey(auctionId) || !auctionWatchers.get(auctionId).contains(username)) return;
-        if (!userWatching.containsKey(username) || !userWatching.get(username).contains(auctionId)) return;
-        auctionWatchers.get(auctionId).remove(username);
-        userWatching.get(username).remove(auctionId);
+        if (auctionWatchers.containsKey(auctionId) || auctionWatchers.get(auctionId).contains(username))
+            auctionWatchers.get(auctionId).remove(username);
+        if (userWatching.containsKey(username) || userWatching.get(username).contains(auctionId))
+            userWatching.get(username).remove(auctionId);
     }
 
     public static void saveAll(){ // lưu tất cả dữ liệu

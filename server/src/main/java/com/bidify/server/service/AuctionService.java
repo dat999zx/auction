@@ -15,6 +15,8 @@ import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.GetAuctionDetailRequest;
+import com.bidify.common.model.JoinAuctionRequest;
+import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -212,11 +214,46 @@ public class AuctionService {
         }
         return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
     }
+
+    public Response joinAuction(ClientHandler client, Request request){
+        JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+
+        String auctionId = data.getAuctionId();
+        String username = client.getCurrentUsername();
+
+        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+        if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+
+        if (RealtimeDatabase.isWatchingAuction(username, auctionId))
+            return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
+
+        RealtimeDatabase.addAuctionWatcher(auctionId, username);
+        return new Response(RequestStatus.SUCCESS, "Join auction successfully"); // TODO: return auctionDto
+    }
+
+    public Response leaveAuction(ClientHandler client, Request request){
+        LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+
+        String auctionId = data.getAuctionId();
+        String username = client.getCurrentUsername();
+
+        if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
+            return new Response(RequestStatus.FAILED, "You are not watching this auction");
+
+        RealtimeDatabase.removeAuctionWatcher(auctionId, username);
+        return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
+    }
 }
 // CREATE_AUCTION, // tạo đấu giá
 // UPDATE_AUCTION, // sửa lại cuộc đấu giá trước khi bắt đầu
 // GET_AUCTION_DETAIL, // xem chi tiết cuộc đấu giá
 // DELETE_AUCTION, // xóa cuộc đấu giá
+// JOIN_AUCTION // tham gia vào cuộc đấu giá
+// LEAVE_AUCTION // rời khỏi cuộc đấu giá
 /*
 important not null:
 id

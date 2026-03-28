@@ -74,9 +74,10 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
+        System.out.println("Client disconnected: " + socket.getInetAddress());
         if (currentUsername == null)
             return;
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
+        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         dispatcher.dispatch(this, request);
     }
 }
