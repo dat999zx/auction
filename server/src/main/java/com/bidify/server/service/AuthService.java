@@ -90,8 +90,7 @@ public class AuthService {
 
     // đăng kí
     public Response logout(ClientHandler client, Request request){
-        LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
-        String username = data.getUsername();
+        String username = client.getCurrentUsername();
 
         if (!client.isValidClient() || !client.getCurrentUsername().equals(username))
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");

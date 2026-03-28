@@ -47,7 +47,7 @@ public class HubController {
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
+        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
             Response response = client.send(request);
             if (response.getStatus() == RequestStatus.SUCCESS) {
