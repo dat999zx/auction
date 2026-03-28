@@ -1,21 +1,22 @@
 package com.bidify.common.enums;
 
 public enum RequestType {
-    REGISTER, // Đắng kí v
-    LOGIN, // Đăng nhập v
-    LOGOUT, // Đăng xuất
+    REGISTER,
+    LOGIN,
+    LOGOUT,
 
-    GET_PROFILE, // Lấy thông tin cơ bản
-    UPDATE_PROFILE, // Sửa profile: nickname, phoneNumber, Email, Pass...
+    GET_PROFILE,
+    UPDATE_PROFILE,
 
-    CREATE_AUCTION, // tạo đấu giá
-    UPDATE_AUCTION, // sửa lại cuộc đấu giá
-    GET_AUCTION_DETAIL, // xem chi tiết cuộc đấu giá
-    DELETE_AUCTION, // xóa cuộc đấu giá
+    CREATE_AUCTION,
+    UPDATE_AUCTION,
+    GET_LIVE_AUCTIONS,
+    GET_AUCTION_DETAIL,
+    DELETE_AUCTION,
 
-    PLACE_BID, // đặt giá
-    GET_BID_HISTORY, // xem lịch sử bid
+    PLACE_BID,
+    GET_BID_HISTORY,
 
-    JOIN_AUCTION, // vào đấu giá
-    LEAVE_AUCTION // rời đấu giá
+    JOIN_AUCTION,
+    LEAVE_AUCTION
 }

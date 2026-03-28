@@ -15,6 +15,7 @@ public class ServerApp {
     public static void main(String[] args) {
         System.out.println("Server is starting...");
         DatabaseManager.init();
+        RealtimeDatabase.init();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");

@@ -1,8 +1,10 @@
 package com.bidify.server.database;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.Auction;
 import com.bidify.server.network.ClientHandler;
 
@@ -15,6 +17,32 @@ public class RealtimeDatabase {
     // auctionWatchers và userWatching là 2 map ngược nhau
     // auctionWatchers có dạng (auction_id, [username1, username2, ...]) là auction này đang chứa các user nào
     // userWatching có dạng (username, [auction_id1, auction_id2, ...]) là user này đang xem các auction nào
+
+    public static void init(){
+        clearAll();
+        DatabaseManager.query(
+            "SELECT * FROM Auctions WHERE status = ?",
+            rs -> {
+                while (rs.next()) {
+                    Auction auction = new Auction(rs.getString("id"));
+                    auction.setAuctionName(rs.getString("auctionName"));
+                    auction.setDescription(rs.getString("description"));
+                    auction.setCategory(rs.getString("category"));
+                    auction.setProductType(rs.getString("type"));
+                    auction.setStartingPrice(rs.getDouble("startingPrice"));
+                    auction.setMinIncrement(rs.getDouble("minIncrement"));
+                    auction.setMaxIncrement(rs.getDouble("maxIncrement"));
+                    auction.setSeller(rs.getString("seller"));
+                    auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
+                    auction.setStartTime(LocalDateTime.parse(rs.getString("startAt")));
+                    auction.setEndTime(LocalDateTime.parse(rs.getString("endTime")));
+                    addLiveAuction(auction);
+                }
+                return null;
+            },
+            AuctionStatus.ACTIVE.toString()
+        );
+    }
 
     public static boolean isUserOnline(String username){ // kiểm tra user có online ko
         if (username == null) return false;
@@ -49,7 +77,12 @@ public class RealtimeDatabase {
     }
 
     public static void saveClient(ClientHandler client){ // lưu client data
-        // TODO: save client data
+        if (client == null || client.getCurrentUsername() == null) return;
+        DatabaseManager.update(
+            "UPDATE Users SET lastLogin = ? WHERE username = ?",
+            LocalDateTime.now().toString(),
+            client.getCurrentUsername()
+        );
         System.out.println("saved client: " + client.getCurrentUsername());
     }
 
@@ -78,7 +111,41 @@ public class RealtimeDatabase {
     }
 
     public static void saveAuction(Auction auction){ // lưu auction data
-        // TODO: save auction data
+        if (auction == null) return;
+        String currentBidderName = auction.getCurrentBidder() != null
+            ? auction.getCurrentBidder().getNickname()
+            : null;
+        DatabaseManager.update(
+            """
+                                    UPDATE Auctions SET 
+                                auctionName = ?,
+                            description = ?,
+                        category = ?,
+                    type = ?,
+                startingPrice = ?,
+            minIncrement = ?,
+                maxIncrement = ?,
+                    seller = ?,
+                        currentBidder = ?,
+                            status = ?,
+                                startAt = ?,
+                                    endTime = ?
+                                        WHERE id = ?
+            """,
+                                        auction.getAuctionName(),
+                                    auction.getDescription(),
+                            auction.getCategory(),
+                        auction.getProductType(),
+                    auction.getStartingPrice(),
+                auction.getMinIncrement(),
+            auction.getMaxIncrement(),
+                auction.getSeller(),
+                    currentBidderName,
+                        auction.getStatus().toString(),
+                            auction.getStartTime().toString(),
+                                    auction.getEndTime().toString(),
+                                        auction.getId()
+        );
         System.out.println("saved auction: " + auction.getAuctionName());
     }
 

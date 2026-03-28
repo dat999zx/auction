@@ -11,6 +11,7 @@ import java.time.format.DateTimeParseException;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.GetAuctionDetailRequest;
@@ -187,6 +188,29 @@ public class AuctionService {
         }
 
         return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
+    }
+
+    public Response getLiveAuctions(ClientHandler client, Request request){
+        Auction[] auctions = RealtimeDatabase.getAllLiveAuctions();
+        if (auctions == null || auctions.length == 0)
+            return new Response(RequestStatus.SUCCESS, "No live auctions", new AuctionSummary[0]);
+
+        AuctionSummary[] summaries = new AuctionSummary[auctions.length];
+        for (int i = 0; i < auctions.length; i++) {
+            Auction auction = auctions[i];
+            double displayBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
+            summaries[i] = new AuctionSummary(
+                auction.getId(),
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSeller(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                displayBid,
+                auction.getBidCount()
+            );
+        }
+        return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
     }
 }
 // CREATE_AUCTION, // tạo đấu giá
