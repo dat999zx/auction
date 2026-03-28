@@ -81,7 +81,7 @@ public class RegisterController {
             if (!passwordConfirm.equals(password)) throw new ValidationException("Password confirmation does not match");
 
             SocketClient client = SocketClient.getClient();
-            RegisterRequest data = new RegisterRequest(username, nickname, email, password);           
+            RegisterRequest data = new RegisterRequest(username, nickname, password);           
             Request request = new Request(RequestType.REGISTER, data);
 
             try{

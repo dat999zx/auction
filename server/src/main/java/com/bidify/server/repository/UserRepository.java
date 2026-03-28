@@ -24,8 +24,7 @@ public class UserRepository {
                     User user = new User(
                         rs.getString("nickname"),
                         rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("email")
+                        rs.getString("password")
                     );
                     return user;
                 }
