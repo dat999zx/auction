@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.net.Socket;
 
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.repository.AuctionRepository;
+import com.bidify.server.repository.UserRepository;
 import com.bidify.server.database.DatabaseManager;
 import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.repository.UserRepository;
 
 import java.net.ServerSocket;
 
@@ -14,12 +15,15 @@ public class ServerApp {
     private static final int PORT = 5000;
     public static void main(String[] args) {
         System.out.println("Server is starting...");
+        
         DatabaseManager.init();
-        RealtimeDatabase.init();
+        new AuctionRepository().init();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");
-            RealtimeDatabase.saveAll();
+            new UserRepository().saveAllClients();
+            new AuctionRepository().saveAllAuctions();
+            RealtimeDatabase.clearAll();
         }));
 
         try (ServerSocket serverSocket = new ServerSocket(PORT)){

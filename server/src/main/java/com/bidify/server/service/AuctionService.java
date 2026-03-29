@@ -7,13 +7,17 @@ import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
+import com.bidify.common.model.Event;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
@@ -64,6 +68,7 @@ public class AuctionService {
         try{
             Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);
             if (!auctionRepository.save(auction)) throw new DatabaseException("Failed to save auction");
+            RealtimeDatabase.addLiveAuction(auction);
         }
         catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -132,12 +137,12 @@ public class AuctionService {
         }
 
         // gửi tin nhắn cho người tham gia nếu có message
-        String message = data.getMessage();
-        try {
-            ValidationUtil.requiresNonBlank(message, "Message");
-        } catch (ValidationException e) { return new Response(RequestStatus.FAILED, e.getMessage()); }
-
-        return new Response(RequestStatus.SUCCESS, "Auction updated successfully!");
+        List<ClientHandler> watchers = RealtimeDatabase.getAuctionWatchers(auctionId);
+        if (watchers != null){
+            for (ClientHandler watcher : watchers)
+                watcher.sendEvent(new Event(EventType.AUCTION_UPDATED, "Auction updated")); // TODO: gửi auctionDto
+        }
+        return new Response(RequestStatus.SUCCESS, "Auction updated successfully!"); // TODO: return auctionDto
     }
     
     public Response deleteAuction(ClientHandler client, Request request){
@@ -180,10 +185,7 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
-        if (auction == null) {
-            auction = auctionRepository.findById(auctionId);
-        }
+        Auction auction = auctionRepository.findById(auctionId);
 
         if (auction == null) {
             return new Response(RequestStatus.NOT_FOUND, "Auction not found");
@@ -193,15 +195,14 @@ public class AuctionService {
     }
 
     public Response getLiveAuctions(ClientHandler client, Request request){
-        Auction[] auctions = RealtimeDatabase.getAllLiveAuctions();
-        if (auctions == null || auctions.length == 0)
-            return new Response(RequestStatus.SUCCESS, "No live auctions", new AuctionSummary[0]);
+        List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
+        if (auctions == null || auctions.size() == 0)
+            return new Response(RequestStatus.SUCCESS, "No live auctions", auctions);
 
-        AuctionSummary[] summaries = new AuctionSummary[auctions.length];
-        for (int i = 0; i < auctions.length; i++) {
-            Auction auction = auctions[i];
+        List<AuctionSummary> summaries = new ArrayList<AuctionSummary>();
+        for (Auction auction : auctions) {
             double displayBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
-            summaries[i] = new AuctionSummary(
+            summaries.add(new AuctionSummary(
                 auction.getId(),
                 auction.getAuctionName(),
                 auction.getDescription(),
@@ -210,7 +211,7 @@ public class AuctionService {
                 auction.getStartingPrice(),
                 displayBid,
                 auction.getBidCount()
-            );
+            ));
         }
         return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
     }

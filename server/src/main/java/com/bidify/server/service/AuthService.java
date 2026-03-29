@@ -44,8 +44,8 @@ public class AuthService {
         }
 
         try{
-            User user = new User(nickname, username, PasswordUtil.hash(password));
-            if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
+            User user = new User(username, nickname, PasswordUtil.hash(password));
+            if (!userRepository.register(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -92,7 +92,7 @@ public class AuthService {
     public Response logout(ClientHandler client, Request request){
         String username = client.getCurrentUsername();
 
-        if (!client.isValidClient() || !client.getCurrentUsername().equals(username))
+        if (!client.isValidClient())
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))
@@ -101,11 +101,9 @@ public class AuthService {
         if (RealtimeDatabase.getActiveClient(username) == null)
             return new Response(RequestStatus.FAILED, "Session is inactive");
         
-        RealtimeDatabase.saveClient(client);
-
+        userRepository.saveClient(client);
         client.setCurrentUsername(null);
         RealtimeDatabase.removeActiveClient(username);
-        userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
         System.out.println(username + " logged out");
 

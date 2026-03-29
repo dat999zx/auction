@@ -1,6 +1,5 @@
 package com.bidify.server.network;
 
-import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.LogoutRequest;
