@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -44,17 +46,41 @@
                                         <TextField fx:id="usernameField" prefHeight="52.0" promptText="Enter your credentials" styleClass="text-input" />
                                     </children>
                                 </VBox>
-      
+
                                 <VBox spacing="8.0">
                                     <children>
                                         <Label styleClass="field-label" text="Password" />
-                                        <PasswordField fx:id="passwordField" prefHeight="52.0" promptText="••••••••" styleClass="text-input" />
+                                        <StackPane>
+                                            <children>
+                                                <PasswordField fx:id="passwordField" prefHeight="52.0" promptText="••••••••" styleClass="text-input password-input" />
+                                                <TextField fx:id="passwordFieldVisible" managed="false" prefHeight="52.0" promptText="••••••••" styleClass="text-input password-input" visible="false" />
+                                                <Button mnemonicParsing="false" onAction="#togglePasswordVisibility" prefHeight="36.0" prefWidth="36.0" styleClass="eye-button" StackPane.alignment="CENTER_RIGHT">
+                                                    <graphic>
+                                                        <StackPane>
+                                                            <children>
+                                                                <ImageView fx:id="passwordEyeCloseIcon" fitHeight="18.0" fitWidth="18.0" pickOnBounds="true" preserveRatio="true">
+                                                                    <image>
+                                                                        <Image url="@../images/eye-close.png" />
+                                                                    </image>
+                                                                </ImageView>
+                                                                <ImageView fx:id="passwordEyeOpenIcon" fitHeight="18.0" fitWidth="18.0" managed="false" pickOnBounds="true" preserveRatio="true" visible="false">
+                                                                    <image>
+                                                                        <Image url="@../images/eye-open.png" />
+                                                                    </image>
+                                                                </ImageView>
+                                                            </children>
+                                                        </StackPane>
+                                                    </graphic>
+                                                </Button>
+                                            </children>
+                                        </StackPane>
                                     </children>
                                 </VBox>
 
                                 <VBox prefHeight="126.0" prefWidth="360.0" spacing="16.0">
                                     <children>
                                         <Button maxWidth="1.7976931348623157E308" onAction="#handleLogin" prefHeight="54.0" styleClass="primary-button" text="Sign In" />
+                                        <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
                                         <Hyperlink styleClass="secondary-link" text="Forgot password?" />
                                     </children>
                                 </VBox>
@@ -62,12 +88,12 @@
                         </VBox>
                     </children>
                 </VBox>
-            <AnchorPane prefHeight="88.0" prefWidth="1280.0">
-               <children>
+                <AnchorPane prefHeight="88.0" prefWidth="1280.0">
+                    <children>
                         <Label alignment="CENTER" layoutX="569.0" layoutY="14.0" styleClass="footer-text" text="New to Bidify?" />
                         <Hyperlink alignment="CENTER" layoutX="569.0" layoutY="31.0" onAction="#toRegister" prefHeight="39.0" prefWidth="86.0" styleClass="footer-link" text="Register" />
-               </children>
-            </AnchorPane>
+                    </children>
+                </AnchorPane>
             </children>
         </VBox>
     </children>
