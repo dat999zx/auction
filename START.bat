@@ -1,15 +1,62 @@
 @echo off
+setlocal EnableDelayedExpansion
 
-powershell -NoProfile -Command ^
-  "$p = Start-Process mvn -ArgumentList 'exec:java','-Dexec.mainClass=com.bidify.server.ServerApp' -WorkingDirectory 'server' -PassThru; $p.Id | Out-File -Encoding ascii server.pid"
+set "ROOT=%~dp0"
+set "SERVER_DIR=%ROOT%server"
+set "CLIENT_DIR=%ROOT%client"
+set "SERVER_PID=%ROOT%server.pid"
+set "CLIENT_PID=%ROOT%client.pid"
+set "SERVER_PORT=5000"
 
-:: WAIT for server to boot
+if exist "%SERVER_PID%" del "%SERVER_PID%"
+if exist "%CLIENT_PID%" del "%CLIENT_PID%"
+
+echo Building shared module...
+call mvn -q -pl common -am install
+if errorlevel 1 (
+  echo Failed to build/install the common module.
+  exit /b 1
+)
+
+cmd /c "netstat -an | find ":%SERVER_PORT%" >nul"
+if not errorlevel 1 goto startclient
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q exec:java -Dexec.mainClass=com.bidify.server.ServerApp' -WorkingDirectory '%SERVER_DIR%' -PassThru; $p.Id | Out-File -Encoding ascii '%SERVER_PID%'"
+if errorlevel 1 (
+  echo Failed to start the server process.
+  exit /b 1
+)
+
+set /a WAIT_SECONDS=0
 :waitloop
-timeout /t 1 >nul
-netstat -an | find ":5000" >nul
-if errorlevel 1 goto waitloop
+powershell -NoProfile -Command "Start-Sleep -Seconds 1"
+set /a WAIT_SECONDS+=1
 
-:: RUN CLIENT (blocking)
-cd /d client
-powershell -NoProfile -Command ^
-  "$p = Start-Process mvn -ArgumentList 'javafx:run' -WorkingDirectory '%~dp0client' -PassThru; $p.Id | Out-File -Encoding ascii '%~dp0client.pid'"
+netstat -an | find ":%SERVER_PORT%" >nul
+if not errorlevel 1 goto startclient
+
+if exist "%SERVER_PID%" (
+  set /p SERVER_PID_VALUE=<"%SERVER_PID%"
+  if defined SERVER_PID_VALUE (
+    powershell -NoProfile -Command "if (Get-Process -Id !SERVER_PID_VALUE! -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
+    if errorlevel 1 (
+      echo Server process exited before opening port %SERVER_PORT%.
+      exit /b 1
+    )
+  )
+)
+
+if %WAIT_SECONDS% geq 60 (
+  echo Timed out waiting for server port %SERVER_PORT%.
+  exit /b 1
+)
+goto waitloop
+
+:startclient
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q javafx:run' -WorkingDirectory '%CLIENT_DIR%' -PassThru; $p.Id | Out-File -Encoding ascii '%CLIENT_PID%'"
+if errorlevel 1 (
+  echo Failed to start the client process.
+  exit /b 1
+)
