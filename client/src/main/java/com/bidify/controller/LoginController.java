@@ -24,33 +24,33 @@ import com.bidify.common.exception.AuthException;
 public class LoginController {
     @FXML
     private TextField usernameField;
-    @FXML
-    private Label messageLabel;
+    // @FXML
+    // private Label messageLabel;
     @FXML
     private PasswordField passwordField;
-    @FXML
-    private TextField passwordFieldVisible;
-    @FXML
-    private ImageView eyeOpen;   // icon for visible mode
-    @FXML
-    private ImageView eyeClose;  // icon for hidden mode
+    // @FXML
+    // private TextField passwordFieldVisible;
+    // @FXML
+    // private ImageView eyeOpen;   // icon for visible mode
+    // @FXML
+    // private ImageView eyeClose;  // icon for hidden mode
     // nút login
 
-    private boolean showing = false;
+    // private boolean showing = false;
 
-    @FXML
-    public void initialize() {
-    // sync text
-    passwordFieldVisible.textProperty()
-    .bindBidirectional(passwordField.textProperty());
+    // @FXML
+    // public void initialize() {
+    // // sync text
+    // passwordFieldVisible.textProperty()
+    // .bindBidirectional(passwordField.textProperty());
 
-    // default state = hidden
-        passwordFieldVisible.setVisible(false);
-        passwordField.setVisible(true);
+    // // default state = hidden
+    //     passwordFieldVisible.setVisible(false);
+    //     passwordField.setVisible(true);
 
-        eyeOpen.setVisible(false);
-        eyeClose.setVisible(true);
-    }
+    //     eyeOpen.setVisible(false);
+    //     eyeClose.setVisible(true);
+    // }
     @FXML
     private void handleLogin(){
         try{
@@ -70,8 +70,8 @@ public class LoginController {
                 switch (response.getStatus()) {
                     case SUCCESS -> {
                         client.setCurrentUsername(username);
-                        messageLabel.setStyle("-fx-text-fill: #2fe957;");
-                        messageLabel.setText("Logged in");
+                        // messageLabel.setStyle("-fx-text-fill: #2fe957;");
+                        // messageLabel.setText("Logged in");
                         SceneManager.switchScene("hub.fxml");
                         SceneManager.clearAllCache();
                         
@@ -80,45 +80,45 @@ public class LoginController {
                 }
             }
             catch (AuthException e){
-                messageLabel.setStyle("-fx-text-fill: #ff5656;");
-                messageLabel.setText(e.getMessage());
+                // messageLabel.setStyle("-fx-text-fill: #ff5656;");
+                // messageLabel.setText(e.getMessage());
             }
             catch (IOException e){
-                messageLabel.setStyle("-fx-text-fill: #ff5656;");
-                messageLabel.setText("Cannot connect to server");
+                // messageLabel.setStyle("-fx-text-fill: #ff5656;");
+                // messageLabel.setText("Cannot connect to server");
                 e.printStackTrace();
             }
         }
         catch(ValidationException e){
-            messageLabel.setStyle("-fx-text-fill: #ff5656;");
-            messageLabel.setText(e.getMessage());
+            // messageLabel.setStyle("-fx-text-fill: #ff5656;");
+            // messageLabel.setText(e.getMessage());
         }
 
     }
 
     //
-    @FXML
-    private void toggletext(){
+    // @FXML
+    // private void toggletext(){
 
-        showing = !showing;
+    //     showing = !showing;
 
-        // toggle fields
-        passwordFieldVisible.setVisible(showing);
-        passwordField.setVisible(!showing);
+    //     // toggle fields
+    //     passwordFieldVisible.setVisible(showing);
+    //     passwordField.setVisible(!showing);
     
-        // toggle icons
-        eyeOpen.setVisible(showing);
-        eyeClose.setVisible(!showing);
+    //     // toggle icons
+    //     eyeOpen.setVisible(showing);
+    //     eyeClose.setVisible(!showing);
     
-        // fix typing focus (important)
-        if (showing) {
-            passwordFieldVisible.requestFocus();
-            passwordFieldVisible.positionCaret(passwordFieldVisible.getText().length());
-        } else {
-            passwordField.requestFocus();
-            passwordField.positionCaret(passwordField.getText().length());
-        }
-    }
+    //     // fix typing focus (important)
+    //     if (showing) {
+    //         passwordFieldVisible.requestFocus();
+    //         passwordFieldVisible.positionCaret(passwordFieldVisible.getText().length());
+    //     } else {
+    //         passwordField.requestFocus();
+    //         passwordField.positionCaret(passwordField.getText().length());
+    //     }
+    // }
     // đổi sang scene đăng kí
     @FXML
     private void toRegister(){ SceneManager.switchScene("register.fxml"); }

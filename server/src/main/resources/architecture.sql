@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS Users (
     phoneNumber TEXT,
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     createdAt TEXT,
-    lastLogin TEXT
+    lastLogin TEXT,
+    wallet REAL DEFAULT 0
 );
 CREATE INDEX username_idx ON Users(username);
 CREATE TABLE IF NOT EXISTS Auctions (

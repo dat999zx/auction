@@ -3,9 +3,9 @@ package com.bidify.common.model;
 public class RegisterRequest {
     private String username, password, nickname;
 
-    public RegisterRequest(String username, String nickname, String password){
+    public RegisterRequest(String username, String password){
         this.username = username;
-        this.nickname = nickname;
+        this.nickname = username;
         this.password = password;
     }
 
