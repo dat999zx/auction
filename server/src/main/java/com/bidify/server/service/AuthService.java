@@ -2,6 +2,7 @@ package com.bidify.server.service;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
@@ -30,14 +31,12 @@ public class AuthService {
 
         String username = data.getUsername();
         String nickname = data.getNickname();
-        String email = data.getEmail();
         String password = data.getPassword();
 
         try{
             ValidationUtil.validateUsername(username);
             if (userRepository.existsByUsername(username)) throw new ValidationException("Username already exists");
             ValidationUtil.validateNickname(nickname);
-            ValidationUtil.validateEmail(email);
             ValidationUtil.validatePassword(password);
         }
         catch (ValidationException e){
@@ -45,8 +44,8 @@ public class AuthService {
         }
 
         try{
-            User user = new User(nickname, username, PasswordUtil.hash(password), email);
-            if (!userRepository.save(user)) throw new DatabaseException("Failed to save User");
+            User user = new User(username, nickname, PasswordUtil.hash(password));
+            if (!userRepository.register(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -62,7 +61,7 @@ public class AuthService {
         String username = data.getUsername();
         String password = data.getPassword();
 
-        if (client.isValidUser())
+        if (client.isValidClient())
             return new Response(RequestStatus.FAILED, "Your are already logged in");
 
         if (!userRepository.existsByUsername(username))
@@ -83,16 +82,17 @@ public class AuthService {
 
         client.setCurrentUsername(username);
         RealtimeDatabase.addActiveClient(client);
+
+        UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
         
-        return new Response(RequestStatus.SUCCESS, "Login successfully", user);
+        return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
     }
 
     // đăng kí
     public Response logout(ClientHandler client, Request request){
-        LogoutRequest data = JsonUtil.fromMap(request.getData(), LogoutRequest.class);
-        String username = data.getUsername();
+        String username = client.getCurrentUsername();
 
-        if (!client.isValidUser() || !client.getCurrentUsername().equals(username))
+        if (!client.isValidClient())
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         if (!userRepository.existsByUsername(username))
@@ -101,11 +101,9 @@ public class AuthService {
         if (RealtimeDatabase.getActiveClient(username) == null)
             return new Response(RequestStatus.FAILED, "Session is inactive");
         
-        RealtimeDatabase.saveClient(client);
-
+        userRepository.saveClient(client);
         client.setCurrentUsername(null);
         RealtimeDatabase.removeActiveClient(username);
-        userRepository.updateLastLogin(username, LocalDateTime.now().toString());
 
         System.out.println(username + " logged out");
 

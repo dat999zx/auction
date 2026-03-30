@@ -18,12 +18,14 @@ public class RequestDispatcher {
             case REGISTER -> authService.register(request);
             case LOGIN -> authService.login(client, request);
             case LOGOUT -> authService.logout(client, request);
+            case JOIN_AUCTION -> auctionService.joinAuction(client, request);
+            case LEAVE_AUCTION -> auctionService.leaveAuction(client, request);
             case CREATE_AUCTION -> auctionService.createAuction(client, request);
             case UPDATE_AUCTION -> auctionService.updateAuction(client, request);
+            case GET_LIVE_AUCTIONS -> auctionService.getLiveAuctions(client, request);
             case GET_AUCTION_DETAIL -> auctionService.getAuctionDetail(client, request);
             case DELETE_AUCTION -> auctionService.deleteAuction(client, request);
             default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
-
         };
     }
 }

@@ -251,6 +251,13 @@
     -fx-line-spacing: 2px;
 }
 
+.empty-state-label {
+    -fx-text-fill: #515f74;
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-padding: 8 0 0 0;
+}
+
 .timer-pill {
     -fx-background-color: rgba(216, 227, 251, 0.85);
     -fx-background-radius: 999;

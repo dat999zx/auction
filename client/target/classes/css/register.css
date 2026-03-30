@@ -1,86 +1,223 @@
-.auth-root {
-    -fx-background-color: #0d1219;
+.root {
+    -fx-font-smoothing-type: gray;
 }
 
-.auth-overlay {
-    -fx-background-color: linear-gradient(to bottom right, rgba(11, 16, 23, 0.78), rgba(11, 16, 23, 0.58));
+.register-root {
+    -fx-pref-width: 1280px;
+    -fx-pref-height: 800px;
+    -fx-background-color: #f7f9fc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
+    -fx-background-color:
+        radial-gradient(center 14% 18%, radius 34%, rgba(0,72,216,0.10), transparent),
+        radial-gradient(center 86% 82%, radius 28%, rgba(0,6,102,0.08), transparent),
+        linear-gradient(to bottom right, #f8faff, #eef3fb);
 }
 
-.auth-card {
-    -fx-background-color: rgba(252, 253, 255, 0.95);
-    -fx-background-radius: 20;
-    -fx-border-radius: 20;
-    -fx-border-color: rgba(255, 255, 255, 0.38);
-    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.26), 28, 0.2, 0, 12);
+.register-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24px;
+    -fx-border-radius: 24px;
+    -fx-border-color: rgba(0, 6, 102, 0.06);
+    -fx-effect: dropshadow(gaussian, rgba(18, 27, 38, 0.12), 44, 0.18, 0, 18);
 }
 
-.auth-badge {
-    -fx-text-fill: #2d5b92;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
-    -fx-letter-spacing: 1.2px;
+.register-left {
+    -fx-background-color:
+        linear-gradient(to bottom right, rgba(0, 6, 102, 0.96), rgba(0, 72, 216, 0.88));
+    -fx-background-radius: 24 0 0 24;
 }
 
-.auth-title {
-    -fx-text-fill: #142033;
-    -fx-font-size: 25px;
+.register-right {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 0 24 24 0;
+}
+
+.left-brand {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Manrope", "Arial";
+    -fx-font-size: 34px;
     -fx-font-weight: 800;
 }
 
-.auth-subtitle {
-    -fx-text-fill: #617083;
-    -fx-font-size: 13px;
+.left-title {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Manrope", "Arial";
+    -fx-font-size: 38px;
+    -fx-font-weight: 800;
+    -fx-line-spacing: 4px;
 }
 
-.auth-input {
-    -fx-background-color: #f6f8fb;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-border-color: #d6deea;
-    -fx-padding: 0 42 0 14;
+.left-subtitle {
+    -fx-text-fill: rgba(255, 255, 255, 0.78);
+    -fx-font-family: "Inter", "Arial";
     -fx-font-size: 14px;
-    -fx-text-fill: #142033;
-    -fx-prompt-text-fill: #8a96a8;
+    -fx-line-spacing: 3px;
 }
 
-.auth-input:focused {
-    -fx-background-color: white;
-    -fx-border-color: #4d87c7;
-    -fx-effect: dropshadow(gaussian, rgba(77, 135, 199, 0.16), 10, 0.1, 0, 2);
+.left-bottom {
+    -fx-alignment: bottom-left;
 }
 
-.auth-link {
-    -fx-text-fill: #2d5b92;
+.avatar {
+    -fx-background-radius: 999px;
+    -fx-border-radius: 999px;
+    -fx-border-color: rgba(255, 255, 255, 0.40);
+    -fx-border-width: 2px;
+}
+
+.avatar-one {
+    -fx-background-color: #f5f7ff;
+}
+
+.avatar-two {
+    -fx-background-color: #dbe7ff;
+}
+
+.avatar-three {
+    -fx-background-color: #bcd3ff;
+}
+
+.avatar-text {
+    -fx-text-fill: #000666;
+    -fx-font-family: "Manrope", "Arial";
     -fx-font-size: 13px;
-    -fx-border-color: transparent;
-    -fx-padding: 0;
+    -fx-font-weight: 800;
 }
 
-.auth-link:hover {
-    -fx-text-fill: #1f4675;
+.curator-text {
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+}
+
+.bottom-caption {
+    -fx-text-fill: rgba(255, 255, 255, 0.72);
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+    -fx-letter-spacing: 0.5px;
+}
+
+.form-title {
+    -fx-text-fill: #191c1e;
+    -fx-font-family: "Manrope", "Arial";
+    -fx-font-size: 30px;
+    -fx-font-weight: 800;
+}
+
+.form-subtitle {
+    -fx-text-fill: #656b78;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 14px;
+}
+
+.field-label {
+    -fx-text-fill: #454652;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.text-input {
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 12px;
+    -fx-border-color: transparent;
+    -fx-border-radius: 12px;
+    -fx-padding: 0 16px 0 16px;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 14px;
+    -fx-text-fill: #191c1e;
+    -fx-prompt-text-fill: #8a909d;
+}
+
+.text-input:focused {
+    -fx-background-color: #ffffff;
+    -fx-border-color: rgba(0, 72, 216, 0.25);
+    -fx-border-width: 2px;
+}
+
+.password-input {
+    -fx-padding: 0 46px 0 16px;
+}
+
+.terms-check {
+    -fx-text-fill: #545b68;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 12px;
+}
+
+.terms-check .box {
+    -fx-background-color: #f2f4f7;
+    -fx-border-color: #cfd7e4;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.terms-check:selected .box {
+    -fx-background-color: #000666;
+    -fx-border-color: #000666;
+}
+
+.terms-check:selected .mark {
+    -fx-background-color: #ffffff;
 }
 
 .primary-button {
-    -fx-background-color: linear-gradient(to right, #2d5b92, #3f79be);
-    -fx-background-radius: 12;
-    -fx-text-fill: white;
-    -fx-font-size: 14px;
+    -fx-background-color: linear-gradient(to right, #000666, #1a237e);
+    -fx-background-radius: 12px;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Manrope", "Arial";
+    -fx-font-size: 16px;
     -fx-font-weight: 700;
     -fx-cursor: hand;
 }
 
 .primary-button:hover {
-    -fx-background-color: linear-gradient(to right, #274f80, #386eae);
-}
-
-.message-label {
-    -fx-min-height: 20;
-    -fx-text-fill: #d14f4f;
-    -fx-font-size: 12px;
-    -fx-font-weight: 700;
+    -fx-opacity: 0.95;
 }
 
 .footer-text {
-    -fx-text-fill: #617083;
-    -fx-font-size: 13px;
+    -fx-text-fill: #454652;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 14px;
+}
+
+.footer-link {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #000666;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+.message-label {
+    -fx-min-height: 18px;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-wrap-text: true;
+}
+
+.message-success {
+    -fx-text-fill: #198754;
+}
+
+.message-error {
+    -fx-text-fill: #c63f3f;
+}
+
+.eye-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0 10px 0 10px;
+}
+
+.eye-button:hover {
+    -fx-opacity: 0.8;
 }

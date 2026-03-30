@@ -82,6 +82,10 @@
     -fx-border-width: 2px;
 }
 
+.password-input {
+    -fx-padding: 0 46px 0 16px;
+}
+
 .primary-button {
     -fx-background-color: linear-gradient(to right, #000666, #1a237e);
     -fx-background-radius: 10px;
@@ -128,4 +132,31 @@
     -fx-font-family: "Inter", "Arial";
     -fx-font-size: 10px;
     -fx-font-weight: 700;
+}
+
+.message-label {
+    -fx-min-height: 18px;
+    -fx-font-family: "Inter", "Arial";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-wrap-text: true;
+}
+
+.message-success {
+    -fx-text-fill: #198754;
+}
+
+.message-error {
+    -fx-text-fill: #c63f3f;
+}
+
+.eye-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 0 12px 0 12px;
+}
+
+.eye-button:hover {
+    -fx-opacity: 0.8;
 }

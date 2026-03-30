@@ -1,6 +1,5 @@
 package com.bidify.server.network;
 
-import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.LogoutRequest;
@@ -61,22 +60,23 @@ public class ClientHandler implements Runnable {
             out.println(JsonUtil.toJson(event));
     }
 
-    public void setCurrentUsername(String username) {
+    public void setCurrentUsername(String username) { // thiết lập username của client
         this.currentUsername = username;
     }
 
-    public String getCurrentUsername() {
+    public String getCurrentUsername() { // lấy username của client
         return currentUsername;
     }
 
-    public boolean isValidUser(){ // xác thực client đã đăng nhập chưa
+    public boolean isValidClient(){ // xác thực client đã đăng nhập chưa
         return socket != null && currentUsername != null;
     }
 
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
+        System.out.println("Client disconnected: " + socket.getInetAddress());
         if (currentUsername == null)
             return;
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest(currentUsername));
+        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         dispatcher.dispatch(this, request);
     }
 }

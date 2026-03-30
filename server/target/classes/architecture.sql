@@ -4,11 +4,12 @@ CREATE TABLE IF NOT EXISTS Users (
     password TEXT NOT NULL,
     email TEXT,
     phoneNumber TEXT,
-    role TEXT DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     createdAt TEXT,
-    lastLogin TEXT
+    lastLogin TEXT,
+    wallet REAL DEFAULT 0
 );
+CREATE INDEX username_idx ON Users(username);
 CREATE TABLE IF NOT EXISTS Auctions (
     id TEXT PRIMARY KEY,
     auctionName TEXT NOT NULL,
@@ -24,5 +25,4 @@ CREATE TABLE IF NOT EXISTS Auctions (
     startAt TEXT NOT NULL,
     endTime TEXT NOT NULL
 );
-
-
+CREATE INDEX auction_id_idx ON Auctions(id);
