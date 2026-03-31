@@ -23,6 +23,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -33,14 +34,14 @@ import javafx.scene.layout.VBox;
 public class HubController {
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
 
+    @FXML 
+    private TextField searchBar; 
+
     @FXML
     private Button auctionsButton;
 
     @FXML
-    private Button galleriesButton;
-
-    @FXML
-    private Button privateSalesButton;
+    private Button createAuctionButton;
 
     @FXML
     private FlowPane liveAuctionsContainer;
@@ -58,6 +59,9 @@ public class HubController {
     private void handleSelection(ActionEvent event) {
         if (event.getSource() instanceof Button selectedButton) {
             setActiveTopNav(selectedButton);
+            if (selectedButton == createAuctionButton) {
+                handleCreateAuction();
+            }
         }
     }
 
@@ -222,7 +226,7 @@ public class HubController {
     }
 
     private void setActiveTopNav(Button activeButton) {
-        Button[] topNavButtons = { auctionsButton, galleriesButton, privateSalesButton };
+        Button[] topNavButtons = { auctionsButton, createAuctionButton };
 
         for (Button button : topNavButtons) {
             if (button == null) {
@@ -232,4 +236,14 @@ public class HubController {
             button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
         }
     }
+
+    private void search(){
+        if (searchBar.getText() == null || searchBar.getText().isBlank()) return;
+        //TODO: search key AuctionName, AuctionId, Auction Category
+    }
+
+    private void handleCreateAuction() {
+        SceneManager.switchScene("create-auction.fxml");
+    }
+
 }
