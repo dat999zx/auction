@@ -68,7 +68,7 @@ public class HubController {
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml", false);
+            SceneManager.switchScene("login.fxml");
             return;
         }
 
@@ -78,7 +78,7 @@ public class HubController {
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 client.setCurrentUsername(null);
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml", false);
+                SceneManager.switchScene("login.fxml");
                 return;
             }
             System.err.println("Logout failed: " + response.getMessage());

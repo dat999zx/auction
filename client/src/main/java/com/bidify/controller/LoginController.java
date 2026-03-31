@@ -59,8 +59,8 @@ public class LoginController {
                     case SUCCESS -> {
                         client.setCurrentUsername(username);
                         showMessage("Logged in", true);
-                        SceneManager.switchScene("hub.fxml");
                         SceneManager.clearAllCache();
+                        SceneManager.switchScene("hub.fxml");
                     }
                     default -> throw new AuthException(response.getMessage());
                 }
