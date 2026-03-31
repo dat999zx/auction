@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS Users (
     lastLogin TEXT,
     wallet REAL DEFAULT 0
 );
-CREATE INDEX username_idx ON Users(username);
 CREATE TABLE IF NOT EXISTS Auctions (
     id TEXT PRIMARY KEY,
     auctionName TEXT NOT NULL,
@@ -25,4 +24,4 @@ CREATE TABLE IF NOT EXISTS Auctions (
     startAt TEXT NOT NULL,
     endTime TEXT NOT NULL
 );
-CREATE INDEX auction_id_idx ON Auctions(id);
+CREATE INDEX auction_status_idx ON Auctions(status);

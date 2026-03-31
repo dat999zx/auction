@@ -1,12 +1,10 @@
 package com.bidify.server.database;
 
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.Auction;
 import com.bidify.server.network.ClientHandler;
 

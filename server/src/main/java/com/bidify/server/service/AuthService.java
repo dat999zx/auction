@@ -1,12 +1,9 @@
 package com.bidify.server.service;
 
-import java.time.LocalDateTime;
-
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
