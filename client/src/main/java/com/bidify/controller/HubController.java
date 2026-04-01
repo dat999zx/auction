@@ -13,7 +13,7 @@ import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.JsonUtil;
+import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
@@ -88,8 +88,8 @@ public class HubController {
                 return;
             }
             System.err.println("Logout failed: " + response.getMessage());
-        } catch (IOException e) {
-            System.err.println("Cannot connect to server while logging out");
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -199,6 +199,7 @@ public class HubController {
 
         Button bidButton = new Button("Place Instant Bid");
         bidButton.getStyleClass().add("secondary-action-button");
+        bidButton.setOnAction(event -> AuctionDetailsController.openAuctionDetails(auction.getId()));
 
         body.getChildren().addAll(title, subtitle, sellerLabel, bidPanel, bidButton);
         card.getChildren().addAll(imageWrap, body);

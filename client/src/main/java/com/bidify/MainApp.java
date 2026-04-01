@@ -9,9 +9,9 @@ import com.bidify.utility.SceneManager;
 public class MainApp extends Application {
     @Override
     public void start(Stage stage) throws Exception {
+        System.out.println("Connecting to server...");
         SocketClient client = SocketClient.getClient();
         client.connect("localhost", 5000);
-
         
         SceneManager.setStage(stage);
         stage.setTitle("Bidify");

@@ -8,6 +8,8 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 
 public class DatabaseManager {
+    private DatabaseManager(){}
+
     // tạo bảng nếu chưa tồn tại
     public static void init() { // chỉ chạy 1 lần khi server start
         try (Connection connection = SQLiteConnection.connect()) {

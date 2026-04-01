@@ -11,7 +11,7 @@ set "SERVER_PORT=5000"
 if exist "%SERVER_PID%" del "%SERVER_PID%"
 if exist "%CLIENT_PID%" del "%CLIENT_PID%"
 
-echo Building shared module...
+echo Building common module...
 call mvn -q -pl common -am install
 if errorlevel 1 (
   echo Failed to build/install the common module.

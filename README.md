@@ -10,7 +10,7 @@ https://docs.google.com/document/d/1Sj1TxuoD_zeq0wu-CCMGqSefZQMXZrzrDEWELx7WQUA/
 - Lưu Quỳnh Phương
 
 ## Requirements:
-- OpenJDK 21
+- OpenJDK 21+
 - Apache Maven 3.9+
 
 ## How to run:

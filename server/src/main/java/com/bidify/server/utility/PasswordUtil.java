@@ -7,6 +7,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class PasswordUtil {
+    private PasswordUtil(){}
+
     public static String hash(String iniPassword){
         if (iniPassword == null) throw new IllegalArgumentException("Password cannot be null");
         try {

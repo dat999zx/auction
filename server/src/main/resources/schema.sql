@@ -24,4 +24,4 @@ CREATE TABLE IF NOT EXISTS Auctions (
     startAt TEXT NOT NULL,
     endTime TEXT NOT NULL
 );
-CREATE INDEX auction_status_idx ON Auctions(status);
+CREATE INDEX IF NOT EXISTS auction_status_idx ON Auctions(status);

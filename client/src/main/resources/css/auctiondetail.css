@@ -19,24 +19,25 @@
     -fx-font-weight: 900;
 }
 
-.ghost-button {
+.ghost-nav-button {
     -fx-background-color: transparent;
-    -fx-text-fill: #6b7280;
-    -fx-font-size: 13px;
+    -fx-text-fill: #516173;
+    -fx-font-size: 14px;
     -fx-font-weight: 600;
-    -fx-background-radius: 8px;
-    -fx-padding: 8 12 8 12;
+    -fx-background-radius: 10;
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
 }
 
-.ghost-button:hover {
+.ghost-nav-button:hover {
     -fx-background-color: #dee8ff;
     -fx-text-fill: #001e40;
 }
 
-.search-box {
+.search-bar {
     -fx-background-color: #f0f3ff;
-    -fx-background-radius: 999px;
-    -fx-padding: 8 14 8 14;
+    -fx-background-radius: 999;
+    -fx-padding: 8 14;
     -fx-min-width: 380px;
     -fx-max-width: 420px;
 }
@@ -62,18 +63,29 @@
     -fx-faint-focus-color: transparent;
 }
 
-.nav-link {
+.top-link {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
+    -fx-border-color: transparent;
     -fx-text-fill: #6b7280;
     -fx-font-size: 13px;
     -fx-font-weight: 600;
+    -fx-padding: 10 14;
+    -fx-cursor: hand;
 }
 
-.nav-link.active {
+.top-link-active {
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10;
     -fx-text-fill: #001e40;
+    -fx-font-size: 13px;
     -fx-font-weight: 800;
     -fx-border-color: transparent transparent #ffddb8 transparent;
     -fx-border-width: 0 0 2 0;
-    -fx-padding: 0 0 4 0;
+    -fx-padding: 10 14 8 14;
+    -fx-cursor: hand;
 }
 
 .icon-button {
@@ -344,6 +356,14 @@
     -fx-font-size: 9px;
     -fx-font-weight: 600;
     -fx-text-alignment: center;
+}
+
+.message-success {
+    -fx-text-fill: #1f7a1f;
+}
+
+.message-error {
+    -fx-text-fill: #ba1a1a;
 }
 
 .floating-chat {

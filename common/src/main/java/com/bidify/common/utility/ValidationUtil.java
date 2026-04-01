@@ -1,8 +1,10 @@
-package com.bidify.common.util;
+package com.bidify.common.utility;
 
 import com.bidify.common.exception.ValidationException;
 
 public class ValidationUtil {
+    private ValidationUtil(){}
+
     public static void requiresNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) throw new ValidationException(fieldName + " cannot be empty"); 
     }

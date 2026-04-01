@@ -1,6 +1,6 @@
 package com.bidify.common.model;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.util.IdGenerator;
+import com.bidify.common.utility.IdGenerator;
 
 public class Request {
     private String id;
