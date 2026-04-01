@@ -22,10 +22,10 @@ import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
+import com.bidify.common.utility.JsonUtil;
+import com.bidify.common.utility.ValidationUtil;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.JsonUtil;
-import com.bidify.common.util.ValidationUtil;
 import com.bidify.server.repository.AuctionRepository;
 
 public class AuctionService {

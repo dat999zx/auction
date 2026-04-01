@@ -6,7 +6,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.ValidationUtil;
+import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;

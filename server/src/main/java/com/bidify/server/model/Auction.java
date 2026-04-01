@@ -1,7 +1,7 @@
 package com.bidify.server.model;
 
 import com.bidify.common.enums.AuctionStatus;
-import com.bidify.server.utility.IdGenerator;
+import com.bidify.common.utility.IdGenerator;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

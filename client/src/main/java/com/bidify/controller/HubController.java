@@ -13,7 +13,7 @@ import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.JsonUtil;
+import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 

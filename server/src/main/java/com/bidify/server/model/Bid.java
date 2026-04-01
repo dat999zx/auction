@@ -1,7 +1,8 @@
 package com.bidify.server.model;
 
-import com.bidify.server.utility.IdGenerator;
 import java.time.LocalDateTime;
+
+import com.bidify.common.utility.IdGenerator;
 
 public class Bid {
     private final String id = IdGenerator.genBidId();

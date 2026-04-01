@@ -1,4 +1,4 @@
-package com.bidify.common.util;
+package com.bidify.common.utility;
 
 import com.bidify.common.exception.ValidationException;
 

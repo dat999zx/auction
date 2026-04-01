@@ -1,4 +1,4 @@
-package com.bidify.common.util;
+package com.bidify.common.utility;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;

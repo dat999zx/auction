@@ -5,7 +5,7 @@ import com.bidify.common.model.Event;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.JsonUtil;
+import com.bidify.common.utility.JsonUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;

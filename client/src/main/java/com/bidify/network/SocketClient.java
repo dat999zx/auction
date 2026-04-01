@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.util.JsonUtil;
+import com.bidify.common.utility.JsonUtil;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -29,7 +29,7 @@ SocketClient client = SocketClient.getClient(); để lấy client
 Response response = client.send(request) để gửi request đến server và nhận về response
 */
 public class SocketClient {
-    private static SocketClient client;
+    private static SocketClient client = new SocketClient();
 
     private String currentUsername;
     private Socket socket;
@@ -63,7 +63,6 @@ public class SocketClient {
     }
 
     public static SocketClient getClient() { // lấy client
-        if (client == null) client = new SocketClient();
         return client;
     }
 
