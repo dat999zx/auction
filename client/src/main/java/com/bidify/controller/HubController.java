@@ -51,17 +51,19 @@ public class HubController {
 
     @FXML
     private void initialize() {
-        setActiveTopNav(auctionsButton);
+        auctionsButton.getStyleClass().removeAll("top-link");
+    //         button.getStyleClass().removeAll("top-link", "top-link-active");
+    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
         loadLiveAuctions();
     }
 
     @FXML
     private void handleSelection(ActionEvent event) {
         if (event.getSource() instanceof Button selectedButton) {
-            setActiveTopNav(selectedButton);
             if (selectedButton == createAuctionButton) {
                 handleCreateAuction();
             }
+                
         }
     }
 
@@ -225,21 +227,22 @@ public class HubController {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private void setActiveTopNav(Button activeButton) {
-        Button[] topNavButtons = { auctionsButton, createAuctionButton };
+    // private void setActiveTopNav(Button activeButton) {
+    //     Button[] topNavButtons = { auctionsButton, createAuctionButton };
 
-        for (Button button : topNavButtons) {
-            if (button == null) {
-                continue;
-            }
-            button.getStyleClass().removeAll("top-link", "top-link-active");
-            button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
-        }
-    }
+    //     for (Button button : topNavButtons) {
+    //         if (button == null) {
+    //             continue;
+    //         }
+    //         button.getStyleClass().removeAll("top-link", "top-link-active");
+    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
+    //     }
+    // }
 
     private void search(){
         if (searchBar.getText() == null || searchBar.getText().isBlank()) return;
         //TODO: search key AuctionName, AuctionId, Auction Category
+
     }
 
     private void handleCreateAuction() {
