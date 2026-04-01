@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -18,11 +19,9 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.shape.Rectangle?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1">
-
+<AnchorPane prefHeight="800.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
     <children>
         <BorderPane prefHeight="800.0" prefWidth="1280.0" styleClass="viewport-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-
             <top>
                 <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
                     <padding>
@@ -30,14 +29,13 @@
                     </padding>
 
                     <HBox alignment="CENTER_LEFT" spacing="18.0">
-                        <Button styleClass="ghost-button" text="☰  Explore" />
-                        <Label styleClass="brand-title" text="The Curated Exchange" />
+                        <Button styleClass="ghost-nav-button" text="☰ Explore" />
                     </HBox>
 
                     <Region HBox.hgrow="ALWAYS" />
 
-                    <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="search-box">
-                        <Label styleClass="search-icon" text="⌕" />
+                    <HBox alignment="CENTER_LEFT" maxWidth="420.0" spacing="8.0" styleClass="search-bar">
+                        <Label styleClass="search-icon" text="Search" />
                         <TextField promptText="Search auctions, brands, or categories..." styleClass="search-field" />
                     </HBox>
 
@@ -45,14 +43,14 @@
 
                     <HBox alignment="CENTER_LEFT" spacing="28.0">
                         <HBox alignment="CENTER_LEFT" spacing="22.0">
-                            <Label styleClass="nav-link active" text="Auctions" />
-                            <Label styleClass="nav-link" text="Galleries" />
-                            <Label styleClass="nav-link" text="Private Sales" />
+                            <Button fx:id="auctionsButton" mnemonicParsing="false" onAction="#handleSelection" styleClass="top-link-active" text="Auctions" />
+                            <Button fx:id="createAuctionButton" mnemonicParsing="false" onAction="#handleSelection" styleClass="top-link" text="Create Auction" />
+                            <Button fx:id="logoutButton" mnemonicParsing="false" onAction="#handleSelection" styleClass="top-link" text="Logout" />
                         </HBox>
 
                         <HBox alignment="CENTER_LEFT" spacing="12.0">
                             <Button styleClass="icon-button" text="🔔" />
-                            <Button styleClass="icon-button" text="🕘" />
+                            <Button styleClass="icon-button" text="⟲" />
                             <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-frame">
                                 <Circle radius="16.0" styleClass="avatar-placeholder" />
                             </StackPane>
@@ -70,7 +68,7 @@
                             </padding>
 
                             <HBox alignment="CENTER_LEFT">
-                                <Button styleClass="back-link" text="‹  Back to Auctions" />
+                                <Button onAction="#tomenu" styleClass="back-link" text="Back to Auctions" />
                             </HBox>
 
                             <GridPane hgap="32.0" VBox.vgrow="ALWAYS">
@@ -78,10 +76,14 @@
                                     <ColumnConstraints percentWidth="58.0" />
                                     <ColumnConstraints percentWidth="42.0" />
                                 </columnConstraints>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
 
                                 <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
                                     <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
                                         <Rectangle arcHeight="20.0" arcWidth="20.0" height="480.0" styleClass="image-placeholder" width="700.0" />
+                                        <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
 
                                         <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="live-pill" translateX="16.0" translateY="16.0" StackPane.alignment="TOP_LEFT">
                                             <Circle radius="4.0" styleClass="live-dot" />
@@ -96,6 +98,9 @@
                                             <ColumnConstraints percentWidth="25.0" />
                                             <ColumnConstraints percentWidth="25.0" />
                                         </columnConstraints>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
 
                                         <StackPane prefHeight="80.0" styleClass="thumb-card" GridPane.columnIndex="0">
                                             <Rectangle arcHeight="12.0" arcWidth="12.0" height="70.0" styleClass="thumb-placeholder" width="150.0" />
@@ -112,20 +117,17 @@
                                         <StackPane prefHeight="80.0" styleClass="thumb-more-card" GridPane.columnIndex="3">
                                             <Label styleClass="thumb-more-text" text="+12" />
                                         </StackPane>
-                              <rowConstraints>
-                                 <RowConstraints />
-                              </rowConstraints>
                                     </GridPane>
                                 </VBox>
 
                                 <VBox fillWidth="true" spacing="20.0" GridPane.columnIndex="1">
                                     <VBox spacing="10.0">
                                         <VBox spacing="6.0">
-                                            <Label styleClass="item-title" text="Patek Philippe Nautilus 5711/1A" />
+                                            <Label fx:id="name" styleClass="item-title" text="Auction title" />
                                             <Region maxWidth="40.0" prefHeight="4.0" prefWidth="40.0" styleClass="title-accent" />
                                         </VBox>
 
-                                        <Label styleClass="item-description" text="An icon of horology, this Nautilus 5711/1A features the sought-after blue-black gradient dial with horizontal embossing. Immaculately maintained, recently serviced, and complete with original box and papers dated 2018." wrapText="true" />
+                                        <Label fx:id="description" styleClass="item-description" text="Auction description" wrapText="true" />
                                     </VBox>
 
                                     <VBox spacing="18.0" styleClass="status-card">
@@ -134,29 +136,29 @@
                                                 <ColumnConstraints percentWidth="50.0" />
                                                 <ColumnConstraints percentWidth="50.0" />
                                             </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints />
+                                            </rowConstraints>
 
                                             <VBox spacing="4.0" GridPane.columnIndex="0">
                                                 <Label styleClass="metric-label" text="STARTING PRICE" />
-                                                <Label styleClass="metric-secondary" text="\$120,000" />
+                                                <Label fx:id="startprice" styleClass="metric-secondary" text="\$0.00" />
                                             </VBox>
 
                                             <VBox alignment="CENTER_RIGHT" spacing="4.0" GridPane.columnIndex="1">
                                                 <Label styleClass="metric-label" text="CURRENT BID" />
-                                                <Label styleClass="metric-primary" text="\$142,500" />
+                                                <Label fx:id="currentprice" styleClass="metric-primary" text="\$0.00" />
                                             </VBox>
-                                 <rowConstraints>
-                                    <RowConstraints />
-                                 </rowConstraints>
                                         </GridPane>
 
                                         <VBox spacing="8.0">
                                             <HBox alignment="CENTER_LEFT">
                                                 <HBox alignment="CENTER_LEFT" spacing="6.0">
-                                                    <Label styleClass="timer-icon" text="⏱" />
-                                                    <Label styleClass="timer-text" text="02:45:12 remaining" />
+                                                    <Label styleClass="timer-icon" text="Time" />
+                                                    <Label fx:id="enddate" styleClass="timer-text" text="Loading..." />
                                                 </HBox>
                                                 <Region HBox.hgrow="ALWAYS" />
-                                                <Label styleClass="progress-label" text="82% Completed" />
+                                                <Label styleClass="progress-label" text="Auction timeline" />
                                             </HBox>
 
                                             <StackPane maxHeight="6.0" prefHeight="6.0" styleClass="progress-track">
@@ -175,12 +177,13 @@
                                                     <ColumnConstraints percentWidth="33.0" />
                                                     <ColumnConstraints percentWidth="33.0" />
                                                 </columnConstraints>
+                                                <rowConstraints>
+                                                    <RowConstraints />
+                                                </rowConstraints>
+
                                                 <Label styleClass="activity-header-text" text="Bidder" GridPane.columnIndex="0" />
                                                 <Label styleClass="activity-header-text right" text="Amount" GridPane.columnIndex="1" />
                                                 <Label styleClass="activity-header-text right" text="Time" GridPane.columnIndex="2" />
-                                    <rowConstraints>
-                                       <RowConstraints />
-                                    </rowConstraints>
                                             </GridPane>
 
                                             <ScrollPane fitToWidth="true" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
@@ -192,12 +195,13 @@
                                                                 <ColumnConstraints percentWidth="33.0" />
                                                                 <ColumnConstraints percentWidth="33.0" />
                                                             </columnConstraints>
-                                                            <Label styleClass="bidder-name" text="J. Sterling" GridPane.columnIndex="0" />
-                                                            <Label styleClass="bid-amount right" text="\$142,500" GridPane.columnIndex="1" />
-                                                            <Label styleClass="bid-time right" text="2m ago" GridPane.columnIndex="2" />
-                                             <rowConstraints>
-                                                <RowConstraints />
-                                             </rowConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints />
+                                                            </rowConstraints>
+
+                                                            <Label styleClass="bidder-name" text="Latest bid" GridPane.columnIndex="0" />
+                                                            <Label styleClass="bid-amount right" text="Live value shown above" GridPane.columnIndex="1" />
+                                                            <Label styleClass="bid-time right" text="Waiting for server data" GridPane.columnIndex="2" />
                                                         </GridPane>
                                                         <Separator />
                                                         <GridPane styleClass="activity-row">
@@ -206,26 +210,13 @@
                                                                 <ColumnConstraints percentWidth="33.0" />
                                                                 <ColumnConstraints percentWidth="33.0" />
                                                             </columnConstraints>
-                                                            <Label styleClass="bidder-name" text="A. Von Hoff" GridPane.columnIndex="0" />
-                                                            <Label styleClass="bid-amount right" text="\$140,000" GridPane.columnIndex="1" />
-                                                            <Label styleClass="bid-time right" text="12m ago" GridPane.columnIndex="2" />
-                                             <rowConstraints>
-                                                <RowConstraints />
-                                             </rowConstraints>
-                                                        </GridPane>
-                                                        <Separator />
-                                                        <GridPane styleClass="activity-row">
-                                                            <columnConstraints>
-                                                                <ColumnConstraints percentWidth="34.0" />
-                                                                <ColumnConstraints percentWidth="33.0" />
-                                                                <ColumnConstraints percentWidth="33.0" />
-                                                            </columnConstraints>
-                                                            <Label styleClass="bidder-name" text="Anonymous" GridPane.columnIndex="0" />
-                                                            <Label styleClass="bid-amount right" text="\$138,500" GridPane.columnIndex="1" />
-                                                            <Label styleClass="bid-time right" text="45m ago" GridPane.columnIndex="2" />
-                                             <rowConstraints>
-                                                <RowConstraints />
-                                             </rowConstraints>
+                                                            <rowConstraints>
+                                                                <RowConstraints />
+                                                            </rowConstraints>
+
+                                                            <Label styleClass="bidder-name" text="Starting price" GridPane.columnIndex="0" />
+                                                            <Label styleClass="bid-amount right" text="Opening value shown above" GridPane.columnIndex="1" />
+                                                            <Label styleClass="bid-time right" text="Opening bid" GridPane.columnIndex="2" />
                                                         </GridPane>
                                                     </VBox>
                                                 </content>
@@ -236,21 +227,19 @@
                                     <VBox spacing="12.0">
                                         <HBox alignment="CENTER_LEFT" styleClass="bid-input-wrap">
                                             <Label styleClass="bid-currency" text="\$" />
-                                            <TextField promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="inputprice" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
                                         </HBox>
 
-                                        <Button styleClass="place-bid-button" text="⚒  Place Bid" />
+                                        <Button fx:id="placebid" onAction="#attemptplacebid" styleClass="place-bid-button" text="Place Bid" />
 
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
+                                        <Label fx:id="messageLabel" styleClass="footnote-text" wrapText="true" />
                                     </VBox>
                                 </VBox>
-                        <rowConstraints>
-                           <RowConstraints />
-                        </rowConstraints>
                             </GridPane>
                         </VBox>
 
-                        <Button styleClass="floating-chat" text="💬" AnchorPane.bottomAnchor="24.0" AnchorPane.rightAnchor="24.0" />
+                        <Button styleClass="floating-chat" text="Chat" AnchorPane.bottomAnchor="24.0" AnchorPane.rightAnchor="24.0" />
                     </children>
                 </AnchorPane>
             </center>

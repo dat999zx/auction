@@ -197,6 +197,7 @@ public class HubController {
 
         Button bidButton = new Button("Place Instant Bid");
         bidButton.getStyleClass().add("secondary-action-button");
+        bidButton.setOnAction(event -> AuctionDetailsController.openAuctionDetails(auction.getId()));
 
         body.getChildren().addAll(title, subtitle, sellerLabel, bidPanel, bidButton);
         card.getChildren().addAll(imageWrap, body);
