@@ -5,8 +5,6 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
@@ -27,14 +25,13 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="16.0">
                     <Button styleClass="ghost-nav-button" text="☰ Explore" />
-                    <Label styleClass="brand-title" text="The Curated Exchange" />
                 </HBox>
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <HBox alignment="CENTER_LEFT" maxWidth="420.0" spacing="8.0" styleClass="search-bar">
+                <HBox alignment="CENTER_LEFT" maxWidth="420.0" prefHeight="46.0" prefWidth="331.0" spacing="8.0" styleClass="search-bar">
                     <Label styleClass="search-icon" text="⌕" />
-                    <TextField promptText="Search auctions, brands, or categories..." styleClass="search-field" />
+                    <TextField fx:id="searchBar" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
                 </HBox>
 
                 <Region HBox.hgrow="ALWAYS" />
@@ -42,8 +39,7 @@
                 <HBox alignment="CENTER_LEFT" spacing="24.0">
                     <HBox alignment="CENTER_LEFT" spacing="18.0">
                         <Button fx:id="auctionsButton" onAction="#handleSelection" styleClass="top-link-active" text="Auctions" />
-                        <Button fx:id="galleriesButton" onAction="#handleSelection" styleClass="top-link" text="Galleries" />
-                        <Button fx:id="privateSalesButton" onAction="#handleSelection" styleClass="top-link" text="Private Sales" />
+                        <Button fx:id="createAuctionButton" onAction="#handleSelection" styleClass="top-link" text="Create Auction" />
                     </HBox>
 
                     <HBox alignment="CENTER_LEFT" spacing="12.0">
@@ -68,8 +64,8 @@
                     <padding>
                         <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
                     </padding>
-                    <Label styleClass="sidebar-brand" text="The Exchange" />
-                    <Label styleClass="sidebar-subtitle" text="INSTITUTIONAL GRADE" />
+                    <Label styleClass="sidebar-brand" text="BIDIFY" />
+                    <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
                 </VBox>
 
                 <VBox spacing="6.0" VBox.vgrow="ALWAYS">
