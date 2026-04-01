@@ -8,6 +8,8 @@ import com.google.gson.JsonParser;
 public class JsonUtil {
     private static final Gson gson = new Gson();
 
+    private JsonUtil(){}
+
     public static String toJson(Object obj) { return gson.toJson(obj); } // biến object thành json
     public static <T> T fromJson(String json, Class<T> clazz){ return gson.fromJson(json, clazz); } // biến json thành object
     public static <T> T fromJsonArray(String json, Class<T> clazz){

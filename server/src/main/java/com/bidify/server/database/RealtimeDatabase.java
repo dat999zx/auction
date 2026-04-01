@@ -18,6 +18,8 @@ public class RealtimeDatabase {
     // auctionWatchers có dạng (auction_id, [username1, username2, ...]) là auction này đang chứa các user nào
     // userWatching có dạng (username, [auction_id1, auction_id2, ...]) là user này đang xem các auction nào
 
+    private RealtimeDatabase(){}
+
     public static boolean isUserOnline(String username){ // kiểm tra user có online ko
         if (username == null) return false;
         return activeClients.containsKey(username);

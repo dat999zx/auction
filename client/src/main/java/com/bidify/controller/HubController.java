@@ -82,8 +82,8 @@ public class HubController {
                 return;
             }
             System.err.println("Logout failed: " + response.getMessage());
-        } catch (IOException e) {
-            System.err.println("Cannot connect to server while logging out");
+        }
+        catch (IOException e) {
             e.printStackTrace();
         }
     }

@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ConnectException;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -27,7 +28,6 @@ gọi connect() ở MainApp để nối server và client
 SocketClient client = SocketClient.getClient(); để lấy client
 Response response = client.send(request) để gửi request đến server và nhận về response
 */
-
 public class SocketClient {
     private static SocketClient client;
 
@@ -39,6 +39,9 @@ public class SocketClient {
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
+    private SocketClient(){} // tránh tạo object từ ngoài -> singleton
+
+    // kết nối đến server
     public void connect(String host, int port) throws IOException {
         if (socket != null) {
             System.out.println("Already connected to server");
@@ -49,31 +52,33 @@ public class SocketClient {
             in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             out = new PrintWriter(socket.getOutputStream(), true);
             startListening();
-        } catch (ConnectException e) {
+        }
+        catch (ConnectException e) {
             System.out.println("Server has not started");
             Platform.exit();
         }
+        catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
     }
 
-    public static SocketClient getClient() {
-        if (client == null) {
-            client = new SocketClient();
-        }
+    public static SocketClient getClient() { // lấy client
+        if (client == null) client = new SocketClient();
         return client;
     }
 
-    public String getCurrentUsername() {
+    public String getCurrentUsername() { // lấy username hiện tại
         return currentUsername;
     }
 
-    public void setCurrentUsername(String currentUsername) {
+    public void setCurrentUsername(String currentUsername) { // set username hiện tại
         this.currentUsername = currentUsername;
     }
 
+    // gửi request đến server và nhận về response
     public Response send(Request request) throws IOException {
-        if (listenerThread == null || !listenerThread.isAlive() || out == null) {
+        if (listenerThread == null || !listenerThread.isAlive() || out == null)
             throw new IOException("Client has not started listening");
-        }
 
         BlockingQueue<Response> queue = new ArrayBlockingQueue<>(1);
         pendingResponses.put(request.getId(), queue);
@@ -82,21 +87,19 @@ public class SocketClient {
         try {
             Response response = queue.poll(30, TimeUnit.SECONDS);
             pendingResponses.remove(request.getId());
-            if (response == null) {
-                throw new IOException("Request timed out");
-            }
+            if (response == null) throw new IOException("Request timed out");
             return response;
-        } catch (InterruptedException e) {
+        }
+        catch (InterruptedException e) {
             pendingResponses.remove(request.getId());
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted while waiting for response", e);
         }
     }
 
+    // bắt đầu lắng nghe server
     public void startListening() {
-        if ((listenerThread != null && listenerThread.isAlive()) || socket == null || in == null) {
-            return;
-        }
+        if ((listenerThread != null && listenerThread.isAlive()) || socket == null || in == null) return;
 
         listenerThread = new Thread(() -> {
             try {
@@ -116,7 +119,11 @@ public class SocketClient {
                         System.out.println(event.getMessage());
                     }
                 }
-            } catch (IOException e) {
+            }
+            catch (SocketException e) {
+                e.printStackTrace();
+            }
+            catch (IOException e) {
                 e.printStackTrace();
             }
         });
@@ -124,19 +131,12 @@ public class SocketClient {
         listenerThread.start();
     }
 
+    // đóng kết nối
     public void close() throws IOException {
-        if (socket != null) {
-            socket.close();
-        }
-        if (listenerThread != null) {
-            listenerThread.interrupt();
-        }
-        if (in != null) {
-            in.close();
-        }
-        if (out != null) {
-            out.close();
-        }
+        if (socket != null) socket.close();
+        if (listenerThread != null) listenerThread.interrupt();
+        if (in != null) in.close();
+        if (out != null) out.close();
         socket = null;
         in = null;
         out = null;

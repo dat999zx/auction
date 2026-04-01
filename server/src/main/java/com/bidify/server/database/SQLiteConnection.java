@@ -8,6 +8,8 @@ import java.sql.DriverManager;
 public class SQLiteConnection {
     private static final String URL = "jdbc:sqlite:" + resolveDbPath();
 
+    private SQLiteConnection(){}
+
     public static Connection connect() { // tạo kết nối với data.db
         try {
             return DriverManager.getConnection(URL);

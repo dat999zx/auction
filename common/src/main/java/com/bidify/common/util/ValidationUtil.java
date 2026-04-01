@@ -3,6 +3,8 @@ package com.bidify.common.util;
 import com.bidify.common.exception.ValidationException;
 
 public class ValidationUtil {
+    private ValidationUtil(){}
+
     public static void requiresNonBlank(String value, String fieldName) {
         if (value == null || value.isBlank()) throw new ValidationException(fieldName + " cannot be empty"); 
     }

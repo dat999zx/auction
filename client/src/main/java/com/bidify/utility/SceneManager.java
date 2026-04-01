@@ -18,6 +18,8 @@ public class SceneManager {
     private static Stage stage;
     private static final Map<String, Parent> cache = new HashMap<>(); // chứa các scene đã ghi nhớ
 
+    private SceneManager(){}
+
     public static void setStage(Stage s){ stage = s; } // chỉ gọi 1 lần trong MainApp
 
     public static void switchScene(String fxml){ switchScene(fxml, true); } // mặc định ghi nhớ
