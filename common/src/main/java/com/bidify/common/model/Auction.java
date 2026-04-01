@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.bidify.common.enums.AuctionStatus;
+
 /**
  * Auction - Represents an auction session for an item
  */
@@ -19,14 +21,14 @@ public class Auction extends Entity {
     private LocalDateTime endTime;
     private AuctionStatus status;
     private List<String> bidderIds;
-    private double reservePrice;
-    private boolean autoExtend;
+    private double reservePrice; // Giá tối thiểu mà seller chấp nhận
+    private boolean autoExtend; // Liệu đấu giá có tự động kéo dài endTime khi có bid mới gần cuối không
     
     public Auction() {
         super();
         this.currentBidPrice = 0.0;
         this.totalBids = 0;
-        this.status = AuctionStatus.PENDING;
+        this.status = AuctionStatus.PENDING; // Đang chờ
         this.bidderIds = new ArrayList<>();
         this.autoExtend = false;
     }
