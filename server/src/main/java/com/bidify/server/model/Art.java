@@ -1,76 +1,68 @@
-package com.bidify.common.model;
+package com.bidify.server.model;
 
-/**
- * Art - Item category for art pieces and collectibles
- */
 public class Art extends Item {
-    private static final long serialVersionUID = 1L;
-    
     private String artist;
-    private String artworkType; // loại tác phẩm nghệ thuật
+    private String artworkType;
     private int yearCreated;
-    private String medium; // chất liệu / kỹ thuật sáng tác
-    private boolean isAuthenticated; // đã xác thực 
-    private String authentication; // xác thực
-    
-    public Art() {
-        super();
-    }
-    
+    private String medium;
+    private boolean authenticated;
+    private String authentication;
+
     public Art(String name, String description, double startingPrice, String sellerId) {
         super(name, description, startingPrice, sellerId);
     }
-    
+
     @Override
     public String getItemType() {
         return "ART";
     }
-    
+
     public String getArtist() {
         return artist;
     }
-    
+
     public void setArtist(String artist) {
         this.artist = artist;
     }
-    
+
     public String getArtworkType() {
         return artworkType;
     }
-    
+
     public void setArtworkType(String artworkType) {
         this.artworkType = artworkType;
     }
-    
+
     public int getYearCreated() {
         return yearCreated;
     }
-    
+
     public void setYearCreated(int yearCreated) {
         this.yearCreated = yearCreated;
     }
-    
+
     public String getMedium() {
         return medium;
     }
-    
+
     public void setMedium(String medium) {
         this.medium = medium;
     }
-    
+
     public boolean isAuthenticated() {
-        return isAuthenticated;
+        return authenticated;
     }
-    
+
     public void setAuthenticated(boolean authenticated) {
-        isAuthenticated = authenticated;
+        this.authenticated = authenticated;
     }
-    
+
     public String getAuthentication() {
         return authentication;
     }
-    
+
     public void setAuthentication(String authentication) {
         this.authentication = authentication;
     }
 }
+
