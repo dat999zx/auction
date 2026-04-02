@@ -14,5 +14,6 @@ https://docs.google.com/document/d/1Sj1TxuoD_zeq0wu-CCMGqSefZQMXZrzrDEWELx7WQUA/
 - Apache Maven 3.9+
 
 ## How to run:
+- Auto: Run "./START.bat" start both server and client
 - Server: Run ServerApp.java in server folder
 - Client: Access client folder in terminal, run "mvn javafx:run"
