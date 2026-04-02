@@ -3,7 +3,7 @@ package com.bidify.server.repository;
 import java.time.LocalDateTime;
 
 import com.bidify.common.enums.UserStatus;
-import com.bidify.server.database.DatabaseManager;
+import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
@@ -11,7 +11,7 @@ import com.bidify.server.network.ClientHandler;
 // giao tiếp với database về phần người dùng
 public class UserRepository {
     public boolean existsByUsername(String username){ // xét tồn tại username trong database
-        Boolean exists = DatabaseManager.query(
+        Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
             rs -> rs != null && rs.next(),
             username
@@ -20,7 +20,7 @@ public class UserRepository {
     }
 
     public User findByUsername(String username){ // lấy User từ database bằng username
-        return DatabaseManager.query(
+        return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
                 if (rs != null && rs.next()){
@@ -44,7 +44,7 @@ public class UserRepository {
     }
 
     public boolean register(User user){ // đăng kí
-        return DatabaseManager.update(
+        return SQLiteHelper.update(
             "INSERT INTO Users(username, nickname, password) VALUES (?, ?, ?)",
             user.getUsername(), user.getNickname(), user.getPassword());
     }
@@ -57,7 +57,7 @@ public class UserRepository {
         if (client == null || client.getCurrentUsername() == null) return;
         // TODO: save client
         if (saveLastLogin){
-            DatabaseManager.update(
+            SQLiteHelper.update(
                 "UPDATE Users SET lastLogin = ? WHERE username = ?",
                 LocalDateTime.now().toString(),
                 client.getCurrentUsername()

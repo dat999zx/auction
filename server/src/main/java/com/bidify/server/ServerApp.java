@@ -6,7 +6,7 @@ import java.net.Socket;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.repository.AuctionRepository;
 import com.bidify.server.repository.UserRepository;
-import com.bidify.server.database.DatabaseManager;
+import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.database.RealtimeDatabase;
 
 import java.net.ServerSocket;
@@ -16,7 +16,7 @@ public class ServerApp {
     public static void main(String[] args) {
         System.out.println("Server is starting...");
         
-        DatabaseManager.init();
+        SQLiteHelper.init();
         new AuctionRepository().init();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

@@ -7,8 +7,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-public class DatabaseManager {
-    private DatabaseManager(){}
+public class SQLiteHelper {
+    private SQLiteHelper(){}
 
     // tạo bảng nếu chưa tồn tại
     public static void init() { // chỉ chạy 1 lần khi server start
@@ -17,7 +17,7 @@ public class DatabaseManager {
                 throw new IllegalStateException("Cannot connect to database");
 
             try (Statement statement = connection.createStatement()) {
-            InputStream in = DatabaseManager.class.getResourceAsStream("/schema.sql");
+            InputStream in = SQLiteHelper.class.getResourceAsStream("/schema.sql");
             if (in == null)
                 throw new IllegalStateException("Missing resource: /schema.sql");
 

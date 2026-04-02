@@ -3,7 +3,7 @@ package com.bidify.server.repository;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Auction;
-import com.bidify.server.database.DatabaseManager;
+import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.database.RealtimeDatabase;
 import java.util.List;
 import java.util.ArrayList;
@@ -21,7 +21,7 @@ public class AuctionRepository {
     public List<Auction> findByStatus(AuctionStatus status) {
         if (status == AuctionStatus.ACTIVE) return RealtimeDatabase.getAllLiveAuctions();
         String sql = "SELECT * FROM Auctions WHERE status = ?";
-        return DatabaseManager.query(sql, rs -> {
+        return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
             while (rs.next()) {
                 Auction auction = new Auction(rs.getString("id"));
@@ -45,7 +45,7 @@ public class AuctionRepository {
     public Auction findById(String id){
         if (RealtimeDatabase.getLiveAuction(id) != null) return RealtimeDatabase.getLiveAuction(id);
         String sql = "SELECT * FROM Auctions WHERE id = ?";
-        return DatabaseManager.query(sql, rs -> {
+        return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
             Auction auction = new Auction(rs.getString("id"));
             auction.setAuctionName(rs.getString("auctionName"));
@@ -73,7 +73,7 @@ public class AuctionRepository {
                 endTime = ?
             WHERE id = ?
         """;
-        return DatabaseManager.update(sql,
+        return SQLiteHelper.update(sql,
                 auction.getAuctionName(),
                 auction.getDescription(),
                 auction.getStartingPrice(),
@@ -102,7 +102,7 @@ public class AuctionRepository {
 """;
         User currentBidder = auction.getCurrentBidder();
         String currentBidderName = (currentBidder != null) ? currentBidder.getNickname() : null;
-        return DatabaseManager.update(sql, auction.getId(), 
+        return SQLiteHelper.update(sql, auction.getId(), 
                                     auction.getAuctionName(),
                                 auction.getDescription(),
                             auction.getCategory(),
@@ -119,7 +119,7 @@ public class AuctionRepository {
 
     public boolean deleteById(String id){
         String sql = "DELETE FROM Auctions WHERE id = ?";
-        return DatabaseManager.update(sql, id);
+        return SQLiteHelper.update(sql, id);
     }
 
     public void saveAuction(Auction auction){ // lưu auction data
@@ -127,7 +127,7 @@ public class AuctionRepository {
         String currentBidderName = auction.getCurrentBidder() != null
             ? auction.getCurrentBidder().getNickname()
             : null;
-        DatabaseManager.update(
+        SQLiteHelper.update(
             """
                                     UPDATE Auctions SET 
                                 auctionName = ?,
