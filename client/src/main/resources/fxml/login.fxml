@@ -81,7 +81,7 @@
                                     <children>
                                         <Button maxWidth="1.7976931348623157E308" onAction="#handleLogin" prefHeight="54.0" styleClass="primary-button" text="Sign In" />
                                         <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
-                                        <Hyperlink styleClass="secondary-link" text="Forgot password?" />
+                                        <Hyperlink styleClass="secondary-link" text="Forgot password?" onAction="#suprise"/>
                                     </children>
                                 </VBox>
                             </children>

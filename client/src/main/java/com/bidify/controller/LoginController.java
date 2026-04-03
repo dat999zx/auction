@@ -9,7 +9,9 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -108,5 +110,19 @@ public class LoginController {
     @FXML
     private void toRegister() {
         SceneManager.switchScene("register.fxml");
+    }
+
+    @FXML
+    private void suprise() {
+        try {
+            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                showMessage("", true);
+                return;
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
