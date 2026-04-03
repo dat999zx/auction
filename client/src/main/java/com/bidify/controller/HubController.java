@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -152,7 +152,7 @@ public class HubController {
                 return;
             }
 
-            AuctionSummary[] auctions = JsonUtil.fromMap(response.getData(), AuctionSummary[].class);
+            AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
             if (auctions == null || auctions.length == 0) {
                 showEmptyState("No live auctions right now.");
                 return;
@@ -161,7 +161,7 @@ public class HubController {
             emptyStateLabel.setVisible(false);
             emptyStateLabel.setManaged(false);
             liveAuctionsContainer.getChildren().clear();
-            for (AuctionSummary auction : auctions) {
+            for (AuctionDto auction : auctions) {
                 liveAuctionsContainer.getChildren().add(createAuctionCard(auction));
             }
         } catch (IOException e) {
@@ -180,7 +180,7 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
-    private VBox createAuctionCard(AuctionSummary auction) {
+    private VBox createAuctionCard(AuctionDto auction) {
         VBox card = new VBox();
         card.setPrefWidth(460);
         card.getStyleClass().add("auction-card");
