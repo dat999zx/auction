@@ -19,7 +19,8 @@ public class AuctionRepository {
 
     // tạm thêm cái này để về sau seller tìm lại các auction theo trạng thái của mình
     public List<Auction> findByStatus(AuctionStatus status) {
-        if (status == AuctionStatus.ACTIVE) return RealtimeDatabase.getAllLiveAuctions();
+        if (status == AuctionStatus.ACTIVE && RealtimeDatabase.getAllLiveAuctions() != null && RealtimeDatabase.getAllLiveAuctions().size() > 0)
+            return RealtimeDatabase.getAllLiveAuctions();
         String sql = "SELECT * FROM Auctions WHERE status = ?";
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
