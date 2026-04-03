@@ -2,10 +2,15 @@ package com.bidify.controller;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -22,6 +27,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
@@ -34,28 +40,31 @@ public class CreateAuctionController {
     private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
 
     @FXML
+    private Label messageLabel;
+
+    @FXML
     private TextField productNameField;
 
     @FXML 
-    private TextArea descriptionField;
+    private TextArea descriptionArea;
 
     @FXML
-    private ComboBox<String> category;
+    private ComboBox<String> categoryComboBox;
 
     @FXML
-    private ComboBox<String> type;
+    private ComboBox<String> productTypeComboBox;
 
     @FXML
     private TextField startingPriceField;
 
     @FXML 
-    private DatePicker endDateField;
-
-    @FXML 
-    private DatePicker startDateField;
+    private DatePicker startDatePicker;
 
     @FXML 
     private TextField minIncrementField;
+
+    @FXML
+    private DatePicker endDatePicker;
 
     @FXML
     private Button auctionsButton;
@@ -80,6 +89,18 @@ public class CreateAuctionController {
         clip.widthProperty().bind(sidebarContainer.widthProperty());
         clip.heightProperty().bind(sidebarContainer.heightProperty());
         sidebarContainer.setClip(clip);
+
+        if (categoryComboBox != null) {
+            categoryComboBox.getItems().setAll(
+                List.of("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other")
+            );
+        }
+
+        if (productTypeComboBox != null) {
+            productTypeComboBox.getItems().setAll(
+                List.of("New", "Used", "Rare", "Vintage", "Limited")
+            );
+        }
     }
 
     @FXML
@@ -150,24 +171,97 @@ public class CreateAuctionController {
             e.printStackTrace();
         }
     }
-
     @FXML
-    private void createAution(){
+    private void createAuction() {
         try {
-            String productName = productNameField.getText();
-            String description = descriptionField.getText();
-            Double startingPrice = Double.parseDouble(startingPriceField.getText());
-            Double minIncrement = Double.parseDouble(minIncrementField.getText());
-            LocalDate startTime = startDateField.getValue();
-            LocalDate endTime = endDateField.getValue();
+            showMessage("", false);
+            String productName = productNameField.getText() == null ? "" : productNameField.getText().trim();
+            String description = descriptionArea.getText() == null ? "" : descriptionArea.getText().trim();
+            String category = categoryComboBox.getValue();
+            String productType = productTypeComboBox.getValue();
+            double startingPrice = parseAmount(startingPriceField.getText(), "Starting price");
+            double minIncrement = parseAmount(minIncrementField.getText(), "Min increment");
+            LocalDate startTime = startDatePicker.getValue();
+            LocalDate endTime = endDatePicker.getValue();
+            LocalDateTime startDateTime;
+            LocalDateTime endDateTime;
 
-            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");;
+            SocketClient client = SocketClient.getClient();
 
+            ValidationUtil.requiresNonBlank(productName, "Product name");
+            ValidationUtil.requiresNonBlank(description, "Description");
+            ValidationUtil.requiresNonBlank(category, "Category");
+            ValidationUtil.requiresNonBlank(productType, "Product type");
+            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
+            ValidationUtil.validateMaxLength("description", description, 2000);
+            if (startTime == null) throw new ValidationException("Start date cannot be empty");
+            if (endTime == null) throw new ValidationException("End date cannot be empty");
+
+            if (minIncrement < 0) throw new ValidationException("min increment should be non-negative");
             if (startTime.isBefore(LocalDate.now())) throw new ValidationException("Start time must be after current time!");
-
             if (endTime.isBefore(startTime)) throw new ValidationException("End time must be after start time!");
 
+            startDateTime = startTime.atStartOfDay();
+            endDateTime = endTime.atTime(LocalTime.MAX);
 
+            CreateAuctionRequest data = new CreateAuctionRequest(
+                client.getCurrentUsername(),
+                productName,
+                description,
+                category,
+                productType,
+                startingPrice,
+                minIncrement,
+                startDateTime.toString(),
+                endDateTime.toString()
+            );
+            Request request = new Request(RequestType.CREATE_AUCTION, data);
+
+            Response response = client.send(request);
+            System.out.println(response.getMessage());
+            switch (response.getStatus()) {
+                case SUCCESS:
+                    showMessage("Create new Auction successfully", true);
+                    SceneManager.switchScene("hub.fxml");
+                    break;    
+                default:
+                    throw new AuctionException(response.getMessage());
+            }
+        }
+        catch (AuctionException e) {
+            showMessage(e.getMessage(), false);
+        }
+        catch (IOException e) {
+            showMessage("Cannot connect to server", false);
+            e.printStackTrace();
+        }
+        catch (ValidationException e) {
+            showMessage(e.getMessage(), false);
+        }
+        catch (NumberFormatException e) {
+            showMessage(e.getMessage(), false);
+        }
+    }
+    
+
+    private void showMessage(String message, boolean success) {
+        if (messageLabel == null) return;
+        messageLabel.setText(message);
+        messageLabel.getStyleClass().removeAll("message-success", "message-error");
+        if (!message.isBlank()) {
+            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
+        }
+    }
+
+    // check valid double trước khi parse để tránh lỗi
+    private double parseAmount(String value, String fieldName) {
+        String parseValue = value == null ? "" : value.trim();
+        ValidationUtil.requiresNonBlank(parseValue, fieldName);
+
+        try {
+            return Double.parseDouble(parseValue);
+        } catch (NumberFormatException e) {
+            throw new NumberFormatException(fieldName + " must be a number");
         }
     }
 }

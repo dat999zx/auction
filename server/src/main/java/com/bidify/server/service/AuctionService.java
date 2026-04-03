@@ -39,7 +39,10 @@ public class AuctionService {
         String seller = data.getSeller();
         String auctionName = data.getAuctionName();
         String description = data.getDescription();
+        String category = data.getCategory();
+        String productType = data.getProductType();
         double startingPrice = data.getStartingPrice();
+        double minIncrement = data.getMinIncrement();
         LocalDateTime startTime, endTime;
         try{
             startTime = LocalDateTime.parse(data.getStartTime());
@@ -53,8 +56,11 @@ public class AuctionService {
             ValidationUtil.requiresNonBlank(seller, "Seller");
             ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
             ValidationUtil.requiresNonBlank(description, "Description");
+            ValidationUtil.requiresNonBlank(category, "Category");
+            ValidationUtil.requiresNonBlank(productType, "Product type");
             ValidationUtil.validateMaxLength("Description", description, 200);
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
+            if (minIncrement < 0) throw new ValidationException("Min increment must be non-negative");
         }
         catch (ValidationException e){
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -67,6 +73,9 @@ public class AuctionService {
 
         try{
             Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);
+            auction.setCategory(category);
+            auction.setProductType(productType);
+            auction.setMinIncrement(minIncrement);
             if (!auctionRepository.save(auction)) throw new DatabaseException("Failed to save auction");
             RealtimeDatabase.addLiveAuction(auction);
         }

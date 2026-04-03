@@ -60,10 +60,10 @@ public class ValidationUtil {
     }
 
     public static void validateMinLength(String fieldName, String text, int minlength) {
-        if (text.length() < minlength) throw new ValidationException(fieldName + "'s length should be greater than " + minlength);
+        if (text.length() < minlength) throw new ValidationException(fieldName + "'s character length should be greater than " + minlength + " characters");
     }
 
     public static void validateMaxLength(String fieldName, String text, int maxlength) {
-        if (text.length() > maxlength) throw new ValidationException(fieldName + "'s length should be smaller than " + maxlength);
+        if (text.length() > maxlength) throw new ValidationException(fieldName + "'s character length should be smaller than " + maxlength + " characters");
     }
 }
