@@ -1,54 +1,281 @@
 package com.bidify.utility;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
+import javafx.animation.FadeTransition;
+import javafx.animation.Interpolator;
+import javafx.animation.ParallelTransition;
+import javafx.animation.RotateTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.effect.DropShadow;
+import javafx.scene.layout.StackPane;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.LinearGradient;
+import javafx.scene.paint.Stop;
+import javafx.scene.shape.Arc;
+import javafx.scene.shape.ArcType;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
-
-import java.util.HashMap;
-import java.util.Map;
+import javafx.util.Duration;
 
 /*
 chuyển đổi sang các scene khác dễ dàng hơn
 SceneManager.switchScene(fxml) để đổi sang scene mới và tự ghi nhớ
-SceneManager.switchScene(fxml, false) để đổi sang scene mới mà ko ghi nhớ lại
+SceneManager.switchScene(fxml, false) để đổi sang scene mới mà không ghi nhớ lại
 mục đích của việc ghi nhớ là để lần sau nếu có mở lại scene đó thì load nhanh hơn
 */
-public class SceneManager {
+public final class SceneManager {
+    private static final long LOADING_DELAY_MS = 150;
+
     private static Stage stage;
-    private static final Map<String, Parent> cache = new HashMap<>(); // chứa các scene đã ghi nhớ
+    private static final Map<String, Parent> cache = new ConcurrentHashMap<>(); // lưu các scene đã load
 
-    private SceneManager(){}
+    private static final StackPane shell = new StackPane(); // gốc chứa
+    private static final StackPane contentLayer = new StackPane(); // chứa nội dung
+    private static final StackPane overlayLayer = new StackPane(); // chứa loading
+    private static final StackPane loadingNode = new StackPane(); // spinner loading
 
-    public static void setStage(Stage s){ stage = s; } // chỉ gọi 1 lần trong MainApp
+    private static final AtomicLong navigationToken = new AtomicLong(); // giúp xác định đúng scene đang load
+    private static final AtomicBoolean isSwitchingScene = new AtomicBoolean(false); // khóa switchScene khi có scene đang load
+    private static RotateTransition spinAnimation;
 
-    public static void switchScene(String fxml){ switchScene(fxml, true); } // mặc định ghi nhớ
-
-    public static void switchScene(String fxml, boolean remember){
-        try {
-            Parent root;
-            if (remember && cache.containsKey(fxml)) root = cache.get(fxml);
-            else{
-                FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/fxml/" + fxml));
-                root = loader.load();
-                if (remember) cache.put(fxml, root);
-            }
-            Scene scene = stage.getScene();
-            if (scene == null){
-                scene = new Scene(root);
-                stage.setScene(scene);
-            }
-            else scene.setRoot(root);
-            
-            // load css
-            String cssName = fxml.replace(".fxml", ".css");
-            var cssUrl = SceneManager.class.getResource("/css/" + cssName);
-            scene.getStylesheets().clear();
-            if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
-        }
-        catch (Exception e){ e.printStackTrace(); }
+    private SceneManager() {
     }
 
-    public static void clearCache(String fxml){ cache.remove(fxml); } // xóa scene khỏi bộ nhớ
-    public static void clearAllCache(){ cache.clear(); } // xóa tất cả scene trong bộ nhớ
+    public static void setStage(Stage s) { // chỉ gọi 1 lần ở MainApp để thiết lập stage chính
+        if (stage != null) return;
+        stage = s;
+        initOverlay();
+    }
+
+    public static void switchScene(String fxml) { // đổi scene mặc định tự ghi nhớ
+        switchScene(fxml, true);
+    }
+
+    public static void switchScene(String fxml, boolean remember) { // đổi scene
+        if (!isSwitchingScene.compareAndSet(false, true)) return; // kiểm tra có scene nào đang load không, nếu ko thì cho thành có để khóa hàm
+        Platform.runLater(() -> setInputBlocked(true)); // khóa chuột
+
+        long token = navigationToken.incrementAndGet(); // lấy token của scene hiện tại
+        AtomicBoolean completed = new AtomicBoolean(false);
+
+        // thread chờ loading (nếu chờ lâu hơn LOADING_DELAY_MS thì hiện ra màn hình loading)
+        Thread loadingDelayThread = new Thread(() -> {
+            try {
+                Thread.sleep(LOADING_DELAY_MS);
+                if (!completed.get() && token == navigationToken.get()) {
+                    Platform.runLater(() -> {
+                        if (!completed.get() && token == navigationToken.get()) showLoading(true);
+                    });
+                }
+            }
+            catch (InterruptedException ignored) {
+                Thread.currentThread().interrupt();
+            }
+        });
+        loadingDelayThread.setDaemon(true);
+        loadingDelayThread.start();
+
+        // thread load scene
+        Thread loaderThread = new Thread(() -> {
+            try {
+                Parent root = loadFxml(fxml, remember);
+
+                Platform.runLater(() -> {
+                    if (token != navigationToken.get()) return;
+                    completed.set(true);
+
+                    Scene scene = stage.getScene();
+                    if (scene == null) {
+                        contentLayer.getChildren().setAll(root);
+                        stage.setScene(new Scene(shell));
+                        scene = stage.getScene();
+                    }
+                    else {
+                        if (scene.getRoot() != shell) {
+                            Parent currentRoot = scene.getRoot();
+                            contentLayer.getChildren().setAll(currentRoot);
+                            scene.setRoot(shell);
+                        }
+                        contentLayer.getChildren().setAll(root);
+                    }
+
+                    loadCss(scene, fxml);
+                    showLoading(false);
+                });
+            }
+            catch (Exception e) {
+                Platform.runLater(() -> {
+                    if (token != navigationToken.get()) return;
+                    completed.set(true);
+                    showLoading(false);
+                    e.printStackTrace();
+                });
+            }
+        });
+        loaderThread.setDaemon(true);
+        loaderThread.start();
+    }
+
+    private static void setInputBlocked(boolean blocked){ // khóa/mở chuột tránh spam khi switchScene
+        if (stage == null || stage.getScene() == null) return;
+        stage.getScene().getRoot().setMouseTransparent(blocked);
+    }
+
+    private static void finishSwitchScene() { // kết thúc switchScene
+        Platform.runLater(() -> setInputBlocked(false)); // mở khóa chuột
+        isSwitchingScene.set(false); // mở khóa switchScene
+    }
+
+    public static void preloadScenes(String... fxmls) { // load các scene trước dưới nền
+        if (fxmls == null) return;
+
+        for (String fxml : fxmls) {
+            if (fxml == null || fxml.isBlank() || cache.containsKey(fxml)) continue;
+
+            Thread preloadThread = new Thread(() -> {
+                try {
+                    loadFxml(fxml, true);
+                }
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
+            preloadThread.setDaemon(true);
+            preloadThread.start();
+        }
+    }
+
+    public static void clearCache(String fxml) { // xóa 1 scene khỏi cache
+        if (fxml == null) return;
+        cache.remove(fxml);
+    }
+
+    public static void clearAllCache() { cache.clear(); } // xóa toàn bộ scene khỏi cache
+
+    private static Parent loadFxml(String fxml, boolean remember) throws Exception { // load fxml
+        Parent cached = cache.get(fxml);
+        if (remember && cached != null) return cached;
+
+        var location = SceneManager.class.getResource("/fxml/" + fxml);
+        if (location == null) throw new IllegalArgumentException("FXML not found: /fxml/" + fxml);
+
+        FXMLLoader loader = new FXMLLoader(location);
+        Parent root = loader.load();
+        if (remember) cache.put(fxml, root);
+        return root;
+    }
+
+    private static void loadCss(Scene scene, String fxml) { // load css
+        String cssName = fxml.replace(".fxml", ".css");
+        var cssUrl = SceneManager.class.getResource("/css/" + cssName);
+
+        scene.getStylesheets().clear();
+        if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
+    }
+
+    private static void initOverlay() { // khởi tạo loading
+        Circle baseRing = new Circle(12); // vòng tròn mờ ở sau vòng loading
+        baseRing.setFill(Color.TRANSPARENT);
+        baseRing.setStroke(Color.web("#000666", 0.14));
+        baseRing.setStrokeWidth(2);
+
+        Arc spinner = new Arc(0, 0, 12, 12, 18, 230); // vòng loading
+        spinner.setType(ArcType.OPEN);
+        spinner.setFill(Color.TRANSPARENT);
+        spinner.setStroke(new LinearGradient(
+                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+                new Stop(0, Color.web("#000666")),
+                new Stop(1, Color.web("#0048d8"))
+        ));
+        spinner.setStrokeWidth(2.5);
+        spinner.setStrokeLineCap(StrokeLineCap.ROUND);
+        spinner.setEffect(new DropShadow(7, Color.web("#0048d8", 0.26)));
+
+        loadingNode.getChildren().setAll(baseRing, spinner);
+        loadingNode.setOpacity(0);
+        loadingNode.setTranslateY(-450);
+        loadingNode.setVisible(false);
+        loadingNode.setManaged(false);
+        StackPane.setAlignment(loadingNode, Pos.TOP_CENTER);
+        StackPane.setMargin(loadingNode, new Insets(10, 0, 0, 0));
+
+        overlayLayer.getChildren().setAll(loadingNode);
+        overlayLayer.setAlignment(Pos.TOP_CENTER);
+        overlayLayer.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
+        overlayLayer.setVisible(false);
+        overlayLayer.setManaged(false);
+
+        shell.getChildren().setAll(contentLayer, overlayLayer);
+
+        spinAnimation = new RotateTransition(Duration.millis(850), loadingNode);
+        spinAnimation.setByAngle(360);
+        spinAnimation.setCycleCount(RotateTransition.INDEFINITE);
+        spinAnimation.setInterpolator(Interpolator.LINEAR);
+    }
+
+    private static void showLoading(boolean visible) { // hiển thị loading
+        if (stage == null) return;
+        if (visible) animateShowLoading();
+        else {
+            if (overlayLayer.isVisible()) animateHideLoading();
+            else finishSwitchScene();
+        }
+    }
+
+    private static void animateShowLoading() { // hiện vòng loading
+        overlayLayer.setVisible(true);
+        overlayLayer.setManaged(true);
+        loadingNode.setVisible(true);
+        loadingNode.setManaged(true);
+
+        spinAnimation.playFromStart();
+
+        FadeTransition fade = new FadeTransition(Duration.millis(100), loadingNode);
+        fade.setFromValue(loadingNode.getOpacity());
+        fade.setToValue(1);
+
+        TranslateTransition drop = new TranslateTransition(Duration.millis(150), loadingNode);
+        drop.setFromY(loadingNode.getTranslateY());
+        drop.setToY(-350);
+        drop.setInterpolator(Interpolator.EASE_OUT);
+
+        new ParallelTransition(fade, drop).play();
+    }
+
+    private static void animateHideLoading() { // giấu vòng loading
+        if (!overlayLayer.isVisible()) return;
+
+        FadeTransition fade = new FadeTransition(Duration.millis(50), loadingNode);
+        fade.setFromValue(loadingNode.getOpacity());
+        fade.setToValue(0);
+
+        TranslateTransition rise = new TranslateTransition(Duration.millis(120), loadingNode);
+        rise.setFromY(loadingNode.getTranslateY());
+        rise.setToY(-450);
+        rise.setInterpolator(Interpolator.EASE_IN);
+
+        ParallelTransition hide = new ParallelTransition(fade, rise);
+        hide.setOnFinished(event -> {
+            spinAnimation.stop();
+            loadingNode.setVisible(false);
+            loadingNode.setManaged(false);
+            loadingNode.setOpacity(0);
+            loadingNode.setTranslateY(-450);
+            overlayLayer.setVisible(false);
+            overlayLayer.setManaged(false);
+            finishSwitchScene();
+        });
+        hide.play();
+    }
 }

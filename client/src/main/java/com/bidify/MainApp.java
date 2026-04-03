@@ -13,13 +13,16 @@ public class MainApp extends Application {
         SocketClient client = SocketClient.getClient();
         client.connect("localhost", 5000);
         
-        SceneManager.setStage(stage);
         stage.setTitle("Bidify");
         stage.setMinWidth(1280);
         stage.setMaxWidth(1280);
         stage.setMinHeight(800);
         stage.setMaxHeight(800);
-        SceneManager.switchScene("hub.fxml");
+        SceneManager.setStage(stage);
+
+        SceneManager.preloadScenes("login.fxml", "register.fxml");
+
+        SceneManager.switchScene("login.fxml");
         stage.show();
     }
 
