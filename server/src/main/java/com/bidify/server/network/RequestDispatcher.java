@@ -25,6 +25,7 @@ public class RequestDispatcher {
             case GET_LIVE_AUCTIONS -> auctionService.getLiveAuctions(client, request);
             case GET_AUCTION_DETAIL -> auctionService.getAuctionDetail(client, request);
             case DELETE_AUCTION -> auctionService.deleteAuction(client, request);
+            case PLACE_BID -> auctionService.placeBid(client, request);
             default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
         };
     }

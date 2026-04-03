@@ -78,7 +78,7 @@ public class AuthService {
             return new Response(RequestStatus.FAILED, "Another session is already active");
 
         client.setCurrentUsername(username);
-        RealtimeDatabase.addActiveClient(client);
+        RealtimeDatabase.addActiveClient(client, user);
 
         UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
         

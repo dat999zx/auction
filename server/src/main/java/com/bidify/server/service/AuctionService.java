@@ -3,6 +3,8 @@ package com.bidify.server.service;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.Bid;
+import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
@@ -12,15 +14,16 @@ import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
-import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
+import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
@@ -190,7 +193,7 @@ public class AuctionService {
         if (auction == null) {
             return new Response(RequestStatus.NOT_FOUND, "Auction not found");
         }
-
+        // TODO: return auctionDto
         return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
     }
 
@@ -199,10 +202,10 @@ public class AuctionService {
         if (auctions == null || auctions.size() == 0)
             return new Response(RequestStatus.SUCCESS, "No live auctions", auctions);
 
-        List<AuctionSummary> summaries = new ArrayList<AuctionSummary>();
+        List<AuctionDto> summaries = new ArrayList<AuctionDto>();
         for (Auction auction : auctions) {
             double displayBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
-            summaries.add(new AuctionSummary(
+            summaries.add(new AuctionDto(
                 auction.getId(),
                 auction.getAuctionName(),
                 auction.getDescription(),
@@ -248,6 +251,71 @@ public class AuctionService {
         RealtimeDatabase.removeAuctionWatcher(auctionId, username);
         return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
     }
+
+    public Response placeBid(ClientHandler client, Request request){
+        PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+
+        String auctionId = data.getAuctionId();
+        double bidAmount = data.getBidAmount();
+        String username = client.getCurrentUsername();
+
+        try {
+            ValidationUtil.requiresNonBlank(auctionId, "Invalid auction ID");
+            ValidationUtil.validatePositiveAmount(bidAmount, "Bid amount must be positive");
+        }
+        catch (ValidationException e){
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+
+        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+        User user = RealtimeDatabase.getActiveUser(username);
+
+        if (user == null) return new Response(RequestStatus.FAILED, "User not found");
+        if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
+        if (auction == null)
+            return new Response(RequestStatus.NOT_FOUND, "Auction not found or inactive");
+
+        if (auction.getSeller().equals(username))
+            return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
+
+        double currentBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
+        if (bidAmount - currentBid < auction.getMinIncrement())
+            return new Response(RequestStatus.FAILED, "Bid amount must be at least " + auction.getMinIncrement() + "$ higher than current bid");
+
+        Bid bid = new Bid(auction, user, bidAmount);
+        if (!auction.placeBid(bid))
+            return new Response(RequestStatus.FAILED, "Failed to place bid");
+
+        try {
+            if (!auctionRepository.update(auction)) throw new DatabaseException("Failed to update bid in database");
+        } catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+
+        // Thông báo cho những người đang theo dõi
+        AuctionDto updateDto = new AuctionDto(
+            auction.getId(),
+            auction.getAuctionName(),
+            auction.getDescription(),
+            auction.getSeller(),
+            auction.getEndTime().toString(),
+            auction.getStartingPrice(),
+            auction.getCurrentBid(),
+            auction.getBidCount()
+        );
+
+        List<ClientHandler> watchers = RealtimeDatabase.getAuctionWatchers(auctionId);
+        if (watchers != null){
+            for (ClientHandler watcher : watchers){
+                if (watcher != null)
+                    watcher.sendEvent(new Event(EventType.BID_PLACED, "New bid placed", updateDto));
+            }
+        }
+
+        return new Response(RequestStatus.SUCCESS, "Place bid successfully");
+    }
 }
 // CREATE_AUCTION, // tạo đấu giá
 // UPDATE_AUCTION, // sửa lại cuộc đấu giá trước khi bắt đầu
@@ -255,6 +323,7 @@ public class AuctionService {
 // DELETE_AUCTION, // xóa cuộc đấu giá
 // JOIN_AUCTION // tham gia vào cuộc đấu giá
 // LEAVE_AUCTION // rời khỏi cuộc đấu giá
+// PLACE_BID // đặt bid mới
 /*
 important not null:
 id
