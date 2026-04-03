@@ -63,6 +63,7 @@ public class LoginController {
                         showMessage("Logged in", true);
                         SceneManager.clearAllCache();
                         SceneManager.switchScene("hub.fxml");
+                        break;
                     }
                     default -> throw new AuthException(response.getMessage());
                 }
