@@ -1,12 +1,15 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
@@ -17,6 +20,10 @@ import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -25,6 +32,30 @@ import javafx.util.Duration;
 public class CreateAuctionController {
     private static final Duration SIDEBAR_ANIMATION_DURATION = Duration.millis(160);
     private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
+
+    @FXML
+    private TextField productNameField;
+
+    @FXML 
+    private TextArea descriptionField;
+
+    @FXML
+    private ComboBox<String> category;
+
+    @FXML
+    private ComboBox<String> type;
+
+    @FXML
+    private TextField startingPriceField;
+
+    @FXML 
+    private DatePicker endDateField;
+
+    @FXML 
+    private DatePicker startDateField;
+
+    @FXML 
+    private TextField minIncrementField;
 
     @FXML
     private Button auctionsButton;
@@ -117,6 +148,26 @@ public class CreateAuctionController {
         } catch (IOException e) {
             System.err.println("Cannot connect to server while logging out");
             e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void createAution(){
+        try {
+            String productName = productNameField.getText();
+            String description = descriptionField.getText();
+            Double startingPrice = Double.parseDouble(startingPriceField.getText());
+            Double minIncrement = Double.parseDouble(minIncrementField.getText());
+            LocalDate startTime = startDateField.getValue();
+            LocalDate endTime = endDateField.getValue();
+
+            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");;
+
+            if (startTime.isBefore(LocalDate.now())) throw new ValidationException("Start time must be after current time!");
+
+            if (endTime.isBefore(startTime)) throw new ValidationException("End time must be after start time!");
+
+
         }
     }
 }

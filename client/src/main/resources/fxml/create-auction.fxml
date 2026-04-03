@@ -21,7 +21,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="800.0" prefWidth="1280.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="1080.0" prefWidth="1920.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
@@ -29,7 +29,12 @@
                 <Insets bottom="16.0" left="32.0" right="32.0" top="16.0" />
             </padding>
 
-            <HBox alignment="CENTER_LEFT" spacing="16.0">
+            <HBox alignment="CENTER_LEFT" spacing="0.1">
+            <ImageView fitHeight="27.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../images/left-arrow%20(1).png" />
+               </image>
+            </ImageView>
                 <Button fx:id="exploreButton" onAction="#toggleSidebar" styleClass="ghost-nav-button" text="☰ Explore" />
             </HBox>
 
@@ -44,7 +49,6 @@
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <Button onAction="#handleLogout" styleClass="ghost-nav-button" text="Logout" />
                     <Button styleClass="icon-button" text="🔔" />
-                    <Button styleClass="icon-button" text="⟲" />
                     <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
                         <Label styleClass="avatar-text" text="U" />
                     </StackPane>
@@ -219,8 +223,8 @@
                                 </VBox>
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
-                                    <Label styleClass="field-label" text="END DATE" />
-                                    <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" />
+                                    <Label styleClass="field-label" text="START DATE" />
+                                    <DatePicker fx:id="endDatePicker" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" />
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
@@ -235,12 +239,12 @@
 
                                 <VBox spacing="6.0" GridPane.columnIndex="0">
                                     <Label styleClass="field-label" text="MIN INCREMENT" />
-                                    <TextField fx:id="minIncrementField" promptText="50" styleClass="text-field-modern" />
+                                    <TextField fx:id="minIncrementField" promptText="0" styleClass="text-field-modern" text="0" />
                                 </VBox>
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
-                                    <Label styleClass="field-label" text="MAX INCREMENT" />
-                                    <TextField fx:id="maxIncrementField" promptText="5000" styleClass="text-field-modern" />
+                                    <Label styleClass="field-label" text="END DATE" />
+                           <DatePicker fx:id="endDatePicker1" maxWidth="Infinity" styleClass="date-picker-modern" />
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
@@ -255,11 +259,16 @@
                     <Separator />
 
                     <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                        <Button mnemonicParsing="false" styleClass="secondary-button" text="Save as Draft" />
                         <Button mnemonicParsing="false" styleClass="primary-button-large" text="Create Auction" />
                     </HBox>
 
                     <Label styleClass="footer-label" text="© 2024 BIDIFY PREMIUM AUCTIONEERING ECOSYSTEM. ALL LISTINGS SUBJECT TO CURATOR VERIFICATION." wrapText="true" />
+               <VBox layoutX="34.0" layoutY="30.0" spacing="4.0">
+                  <children>
+                     <Label styleClass="page-title" text="Create New Auction" />
+                     <Label styleClass="page-subtitle" text="List your premium asset on the global stage." />
+                  </children>
+               </VBox>
                 </VBox>
             </content>
         </ScrollPane>

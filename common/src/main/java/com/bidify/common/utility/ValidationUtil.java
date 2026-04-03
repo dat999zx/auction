@@ -51,8 +51,12 @@ public class ValidationUtil {
         if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) throw new ValidationException("Invalid email format");
     }
 
+    public static void greaterThan(double amount, double check, String fieldName) {
+        if (amount <= check) throw new ValidationException(fieldName + " must be greater than " + amount);
+    }
+
     public static void validatePositiveAmount(double amount, String fieldName) {
-        if (amount <= 0) throw new ValidationException(fieldName + " must be greater than 0");
+        greaterThan(amount, 0, fieldName);
     }
 
     public static void validateMinLength(String fieldName, String text, int minlength) {
