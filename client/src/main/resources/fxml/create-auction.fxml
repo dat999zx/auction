@@ -30,14 +30,7 @@
             </padding>
 
             <HBox alignment="CENTER_LEFT" spacing="16.0">
-                <Button styleClass="ghost-nav-button" text="☰ Explore" />
-            </HBox>
-
-            <Region HBox.hgrow="ALWAYS" />
-
-            <HBox alignment="CENTER_LEFT" maxWidth="420.0" prefHeight="46.0" prefWidth="331.0" spacing="8.0" styleClass="search-bar">
-                <Label styleClass="search-icon" text="⌕" />
-                <TextField fx:id="searchBar" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
+                <Button fx:id="exploreButton" onAction="#toggleSidebar" styleClass="ghost-nav-button" text="☰ Explore" />
             </HBox>
 
             <Region HBox.hgrow="ALWAYS" />
@@ -61,53 +54,55 @@
     </top>
 
     <left>
-        <VBox prefWidth="250.0" spacing="20.0" styleClass="side-bar">
-            <padding>
-                <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
-            </padding>
-
-            <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
+        <StackPane fx:id="sidebarContainer" maxWidth="250.0" minWidth="250.0" prefWidth="250.0">
+            <VBox fx:id="sidebarContent" prefWidth="250.0" spacing="20.0" styleClass="side-bar">
                 <padding>
-                    <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                    <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
                 </padding>
-                <Label styleClass="sidebar-brand" text="BIDIFY" />
-                <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
-            </VBox>
 
-            <VBox spacing="6.0" VBox.vgrow="ALWAYS">
-                <Button styleClass="side-nav-button-active" text="◉  Live Auctions" />
-                <Button styleClass="side-nav-button" text="🗓  Upcoming" />
-                <Button styleClass="side-nav-button" text="⚒  Ended" />
-                <Button styleClass="side-nav-button" text="💳  My Bids" />
-                <Button styleClass="side-nav-button" text="👁  Watchlist" />
-            </VBox>
+                <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
+                    <padding>
+                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                    </padding>
+                    <Label styleClass="sidebar-brand" text="BIDIFY" />
+                    <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
+                </VBox>
 
-            <VBox>
-                <padding>
-                    <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
-                </padding>
-                <Button styleClass="primary-gradient-button" text="Place a Consignment" />
+                <VBox spacing="6.0" VBox.vgrow="ALWAYS">
+                    <Button styleClass="side-nav-button-active" text="Live Auctions" />
+                    <Button styleClass="side-nav-button" text="Upcoming" />
+                    <Button styleClass="side-nav-button" text="Ended" />
+                    <Button styleClass="side-nav-button" text="My Bids" />
+                    <Button styleClass="side-nav-button" text="Watchlist" />
+                </VBox>
+
+                <VBox>
+                    <padding>
+                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                    </padding>
+                    <Button styleClass="primary-gradient-button" text="Place a Consignment" />
+                </VBox>
             </VBox>
-        </VBox>
+        </StackPane>
     </left>
 
     <center>
-        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-scroll">
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
             <content>
-                <VBox spacing="24.0" styleClass="content-wrapper">
+                <VBox fillWidth="true" maxWidth="Infinity" minWidth="0.0" spacing="16.0" styleClass="content-wrapper">
                     <padding>
-                        <Insets bottom="32.0" left="40.0" right="40.0" top="40.0" />
+                        <Insets bottom="18.0" left="24.0" right="24.0" top="20.0" />
                     </padding>
 
-                    <VBox spacing="8.0">
+                    <VBox spacing="4.0">
                         <Label styleClass="page-title" text="Create New Auction" />
                         <Label styleClass="page-subtitle" text="List your premium asset on the global stage." />
                     </VBox>
 
-                    <GridPane hgap="32.0">
+                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="33.33" />
-                            <ColumnConstraints percentWidth="66.67" />
+                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
                         </columnConstraints>
 
                         <VBox spacing="8.0" GridPane.columnIndex="0">
@@ -115,46 +110,46 @@
                             <Label styleClass="section-description" text="Provide the essential information about your item." wrapText="true" />
                         </VBox>
 
-                        <VBox spacing="16.0" GridPane.columnIndex="1">
-                            <VBox spacing="8.0">
+                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                            <VBox spacing="6.0">
                                 <Label styleClass="field-label" text="PRODUCT NAME" />
                                 <TextField fx:id="productNameField" promptText="e.g. 1963 Vintage Chronograph" styleClass="text-field-modern" />
                             </VBox>
 
-                            <VBox spacing="8.0">
+                            <VBox spacing="6.0">
                                 <Label styleClass="field-label" text="DESCRIPTION" />
-                                <TextArea fx:id="descriptionArea" prefRowCount="4" promptText="Detail the provenance, condition, and unique features..." styleClass="text-area-modern" wrapText="true" />
+                                <TextArea fx:id="descriptionArea" prefRowCount="3" promptText="Detail the provenance, condition, and unique features..." styleClass="text-area-modern" wrapText="true" />
                             </VBox>
 
-                            <GridPane hgap="16.0">
+                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
                                 <columnConstraints>
                                     <ColumnConstraints percentWidth="50.0" />
                                     <ColumnConstraints percentWidth="50.0" />
                                 </columnConstraints>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                <VBox spacing="6.0" GridPane.columnIndex="0">
                                     <Label styleClass="field-label" text="CATEGORY" />
                                     <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" promptText="Select category" styleClass="combo-box-modern" />
                                 </VBox>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="1">
+                                <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="PRODUCT TYPE" />
                                     <ComboBox fx:id="productTypeComboBox" maxWidth="Infinity" promptText="Select type" styleClass="combo-box-modern" />
                                 </VBox>
-                        <rowConstraints>
-                           <RowConstraints />
-                        </rowConstraints>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
                             </GridPane>
                         </VBox>
-                  <rowConstraints>
-                     <RowConstraints />
-                  </rowConstraints>
+                        <rowConstraints>
+                            <RowConstraints />
+                        </rowConstraints>
                     </GridPane>
 
-                    <GridPane hgap="32.0">
+                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="33.33" />
-                            <ColumnConstraints percentWidth="66.67" />
+                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
                         </columnConstraints>
 
                         <VBox spacing="8.0" GridPane.columnIndex="0">
@@ -162,45 +157,45 @@
                             <Label styleClass="section-description" text="High-resolution imagery increases final bid values by up to 40%." wrapText="true" />
                         </VBox>
 
-                        <VBox spacing="16.0" GridPane.columnIndex="1">
-                            <StackPane prefHeight="192.0" styleClass="upload-box">
-                                <ImageView fitHeight="192.0" fitWidth="720.0" opacity="0.10" preserveRatio="false">
+                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                            <StackPane maxWidth="Infinity" prefHeight="130.0" styleClass="upload-box">
+                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="false">
                                     <image>
                                         <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuApyd0CCvVBwnZ8dEarN_inuQTAjBareF0HNbk1d2BuLDy2sAUZs5hCsSO2JBay1mcIfbfUU3HYA2ricPCXaCoNTJdrq9A4DHEq1ayK5dwCsd5qAS-6_Jsi3SNQACx50H-9wtIQVmOgOKHqaoa1XE_zw5Z52oeN3vstORT6HcB-6goXtmOrOkX1sxIfw8nYOd-xWKB70bS7l0Cx-zFTek6z9XjHq15wRsIR6XAk3dtzuwUulSMNCfM7TD9TucVGVTd25rqwgo6b14w" />
                                     </image>
                                 </ImageView>
 
                                 <VBox alignment="CENTER" spacing="6.0">
-                                    <Label styleClass="upload-icon" text="ðŸ“·" />
+                                    <Label styleClass="upload-icon" text="📷" />
                                     <Label styleClass="upload-title" text="Drop images here or click to upload" />
                                     <Label styleClass="upload-subtitle" text="SVG, PNG, JPG or GIF (max. 10MB)" />
                                 </VBox>
                             </StackPane>
 
-                            <FlowPane hgap="16.0" vgap="16.0">
-                                <StackPane prefHeight="120.0" prefWidth="120.0" styleClass="preview-tile">
-                                    <ImageView fitHeight="120.0" fitWidth="120.0" preserveRatio="false">
+                            <FlowPane hgap="12.0" maxWidth="Infinity" prefWrapLength="400.0" vgap="12.0">
+                                <StackPane prefHeight="84.0" prefWidth="84.0" styleClass="preview-tile">
+                                    <ImageView fitHeight="84.0" fitWidth="84.0" preserveRatio="false">
                                         <image>
                                             <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuAK7b94xkE921VTFWMqcevwzzbpE7er4tXwxtQDefJ6yF7-hrJ3G0_4DoXbjQ01E2nnVYiw5owALL3hmE5U3MpmL82ZDm7JZHj6mpnSDTLC2MLjijVtEH6r2sow4T6OsdasT_Y5YMw0Ige-j5_nLIp-EIKl0FmPeMm7LWNh5TfZyhaKTdyRd6-NYBkSIlb-UhKk6gqQVROoO4g1wz81Ivyyp0_wdW7RSMG4-YKyXI91DFq3T2z8XysINW3U2n7FR1nJ8EzAtp4-KQs" />
                                         </image>
                                     </ImageView>
-                                    <Button mnemonicParsing="false" styleClass="remove-image-button" text="âœ•" StackPane.alignment="TOP_RIGHT" />
+                                    <Button mnemonicParsing="false" styleClass="remove-image-button" text="x" StackPane.alignment="TOP_RIGHT" />
                                 </StackPane>
 
-                                <StackPane prefHeight="120.0" prefWidth="120.0" styleClass="empty-preview-tile">
-                                    <Label styleClass="empty-preview-icon" text="ðŸ–¼" />
+                                <StackPane prefHeight="84.0" prefWidth="84.0" styleClass="empty-preview-tile">
+                                    <Label styleClass="empty-preview-icon" text="🖼" />
                                 </StackPane>
                             </FlowPane>
                         </VBox>
-                  <rowConstraints>
-                     <RowConstraints />
-                  </rowConstraints>
+                        <rowConstraints>
+                            <RowConstraints />
+                        </rowConstraints>
                     </GridPane>
 
-                    <GridPane hgap="32.0">
+                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
                         <columnConstraints>
-                            <ColumnConstraints percentWidth="33.33" />
-                            <ColumnConstraints percentWidth="66.67" />
+                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
                         </columnConstraints>
 
                         <VBox spacing="8.0" GridPane.columnIndex="0">
@@ -208,14 +203,14 @@
                             <Label styleClass="section-description" text="Define the financial parameters and duration of the event." wrapText="true" />
                         </VBox>
 
-                        <VBox spacing="16.0" GridPane.columnIndex="1">
-                            <GridPane hgap="16.0">
+                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
                                 <columnConstraints>
                                     <ColumnConstraints percentWidth="50.0" />
                                     <ColumnConstraints percentWidth="50.0" />
                                 </columnConstraints>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                <VBox spacing="6.0" GridPane.columnIndex="0">
                                     <Label styleClass="field-label" text="STARTING PRICE (USD)" />
                                     <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="input-wrapper">
                                         <Label styleClass="currency-label" text="\$" />
@@ -223,48 +218,48 @@
                                     </HBox>
                                 </VBox>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="1">
+                                <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="END DATE" />
                                     <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" />
                                 </VBox>
-                        <rowConstraints>
-                           <RowConstraints />
-                        </rowConstraints>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
                             </GridPane>
 
-                            <GridPane hgap="16.0">
+                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
                                 <columnConstraints>
                                     <ColumnConstraints percentWidth="50.0" />
                                     <ColumnConstraints percentWidth="50.0" />
                                 </columnConstraints>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                <VBox spacing="6.0" GridPane.columnIndex="0">
                                     <Label styleClass="field-label" text="MIN INCREMENT" />
                                     <TextField fx:id="minIncrementField" promptText="50" styleClass="text-field-modern" />
-                                </VBox> 
+                                </VBox>
 
-                                <VBox spacing="8.0" GridPane.columnIndex="1">
+                                <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="MAX INCREMENT" />
                                     <TextField fx:id="maxIncrementField" promptText="5000" styleClass="text-field-modern" />
                                 </VBox>
-                        <rowConstraints>
-                           <RowConstraints />
-                        </rowConstraints>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
                             </GridPane>
                         </VBox>
-                  <rowConstraints>
-                     <RowConstraints />
-                  </rowConstraints>
+                        <rowConstraints>
+                            <RowConstraints />
+                        </rowConstraints>
                     </GridPane>
 
                     <Separator />
 
-                    <HBox alignment="CENTER_RIGHT" spacing="16.0">
+                    <HBox alignment="CENTER_RIGHT" spacing="12.0">
                         <Button mnemonicParsing="false" styleClass="secondary-button" text="Save as Draft" />
                         <Button mnemonicParsing="false" styleClass="primary-button-large" text="Create Auction" />
                     </HBox>
 
-                    <Label styleClass="footer-label" text="Â© 2024 BIDIFY PREMIUM AUCTIONEERING ECOSYSTEM. ALL LISTINGS SUBJECT TO CURATOR VERIFICATION." wrapText="true" />
+                    <Label styleClass="footer-label" text="© 2024 BIDIFY PREMIUM AUCTIONEERING ECOSYSTEM. ALL LISTINGS SUBJECT TO CURATOR VERIFICATION." wrapText="true" />
                 </VBox>
             </content>
         </ScrollPane>

@@ -10,14 +10,21 @@ import com.bidify.common.model.Response;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
+import javafx.util.Duration;
 
 public class CreateAuctionController {
-    @FXML
-    private TextField searchBar;
+    private static final Duration SIDEBAR_ANIMATION_DURATION = Duration.millis(160);
+    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
 
     @FXML
     private Button auctionsButton;
@@ -26,8 +33,54 @@ public class CreateAuctionController {
     private Button createAuctionButton;
 
     @FXML
+    private StackPane sidebarContainer;
+
+    @FXML
+    private VBox sidebarContent;
+
+    private boolean sidebarVisible = true;
+    private boolean sidebarAnimating = false;
+
+    @FXML
     private void initialize() {
         createAuctionButton.getStyleClass().removeAll("top-link");
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(sidebarContainer.widthProperty());
+        clip.heightProperty().bind(sidebarContainer.heightProperty());
+        sidebarContainer.setClip(clip);
+    }
+
+    @FXML
+    private void toggleSidebar() {
+        if (sidebarAnimating) {
+            return;
+        }
+
+        sidebarAnimating = true;
+        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
+        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
+
+        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
+        slideTransition.setToX(targetTranslateX);
+
+        Timeline resizeTimeline = new Timeline(
+            new KeyFrame(
+                SIDEBAR_ANIMATION_DURATION,
+                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
+            )
+        );
+
+        slideTransition.setOnFinished(event -> {
+            sidebarVisible = !sidebarVisible;
+            sidebarAnimating = false;
+        });
+
+        sidebarContent.setMouseTransparent(sidebarVisible);
+        slideTransition.play();
+        resizeTimeline.play();
     }
 
     @FXML
@@ -37,7 +90,6 @@ public class CreateAuctionController {
         }
         if (selectedButton == auctionsButton) {
             SceneManager.switchScene("hub.fxml");
-            return;
         }
     }
 
@@ -67,16 +119,4 @@ public class CreateAuctionController {
             e.printStackTrace();
         }
     }
-
-    // private void setActiveTopNav(Button activeButton) {
-    //     Button[] topNavButtons = { auctionsButton, createAuctionButton };
-
-    //     for (Button button : topNavButtons) {
-    //         if (button == null) {
-    //             continue;
-    //         }
-    //         button.getStyleClass().removeAll("top-link", "top-link-active");
-    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
-    //     }
-    // }
 }

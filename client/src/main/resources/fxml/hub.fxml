@@ -24,7 +24,7 @@
                 </padding>
 
                 <HBox alignment="CENTER_LEFT" spacing="16.0">
-                    <Button styleClass="ghost-nav-button" text="☰ Explore" />
+                    <Button fx:id="exploreButton" onAction="#toggleSidebar" styleClass="ghost-nav-button" text="☰ Explore" />
                 </HBox>
 
                 <Region HBox.hgrow="ALWAYS" />
@@ -55,34 +55,36 @@
         </top>
 
         <left>
-            <VBox prefWidth="250.0" spacing="20.0" styleClass="side-bar">
-                <padding>
-                    <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
-                </padding>
-
-                <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
+            <StackPane fx:id="sidebarContainer" maxWidth="250.0" minWidth="250.0" prefWidth="250.0">
+                <VBox fx:id="sidebarContent" prefWidth="250.0" spacing="20.0" styleClass="side-bar">
                     <padding>
-                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                        <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
                     </padding>
-                    <Label styleClass="sidebar-brand" text="BIDIFY" />
-                    <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
-                </VBox>
 
-                <VBox spacing="6.0" VBox.vgrow="ALWAYS">
-                    <Button styleClass="side-nav-button-active" text="◉  Live Auctions" />
-                    <Button styleClass="side-nav-button" text="🗓  Upcoming" />
-                    <Button styleClass="side-nav-button" text="⚒  Ended" />
-                    <Button styleClass="side-nav-button" text="💳  My Bids" />
-                    <Button styleClass="side-nav-button" text="👁  Watchlist" />
-                </VBox>
+                    <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
+                        <padding>
+                            <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                        </padding>
+                        <Label styleClass="sidebar-brand" text="BIDIFY" />
+                        <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
+                    </VBox>
 
-                <VBox>
-                    <padding>
-                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
-                    </padding>
-                    <Button styleClass="primary-gradient-button" text="Place a Consignment" />
+                    <VBox spacing="6.0" VBox.vgrow="ALWAYS">
+                        <Button styleClass="side-nav-button-active" text="Live Auctions" />
+                        <Button styleClass="side-nav-button" text="Upcoming" />
+                        <Button styleClass="side-nav-button" text="Ended" />
+                        <Button styleClass="side-nav-button" text="My Bids" />
+                        <Button styleClass="side-nav-button" text="Watchlist" />
+                    </VBox>
+
+                    <VBox>
+                        <padding>
+                            <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                        </padding>
+                        <Button styleClass="primary-gradient-button" text="Place a Consignment" />
+                    </VBox>
                 </VBox>
-            </VBox>
+            </StackPane>
         </left>
 
         <center>
@@ -112,8 +114,7 @@
 
                         <Label fx:id="emptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
 
-                        <FlowPane fx:id="liveAuctionsContainer" hgap="24.0" prefWrapLength="980.0" vgap="24.0">
-                        </FlowPane>
+                        <FlowPane fx:id="liveAuctionsContainer" hgap="24.0" prefWrapLength="980.0" vgap="24.0" />
                     </VBox>
                 </content>
             </ScrollPane>

@@ -2,7 +2,6 @@ package com.bidify.controller;
 
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
@@ -17,6 +16,10 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -30,9 +33,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-
+import javafx.scene.shape.Rectangle;
 public class HubController {
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
+    private static final javafx.util.Duration SIDEBAR_ANIMATION_DURATION = javafx.util.Duration.millis(160);
+    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
 
     @FXML 
     private TextField searchBar; 
@@ -50,11 +55,56 @@ public class HubController {
     private Label emptyStateLabel;
 
     @FXML
+    private StackPane sidebarContainer;
+
+    @FXML
+    private VBox sidebarContent;
+
+    private boolean sidebarVisible = true;
+    private boolean sidebarAnimating = false;
+
+    @FXML
     private void initialize() {
         auctionsButton.getStyleClass().removeAll("top-link");
-    //         button.getStyleClass().removeAll("top-link", "top-link-active");
-    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(sidebarContainer.widthProperty());
+        clip.heightProperty().bind(sidebarContainer.heightProperty());
+        sidebarContainer.setClip(clip);
+
         loadLiveAuctions();
+    }
+
+    @FXML
+    private void toggleSidebar() {
+        if (sidebarAnimating) {
+            return;
+        }
+
+        sidebarAnimating = true;
+        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
+        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
+
+        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
+        slideTransition.setToX(targetTranslateX);
+
+        Timeline resizeTimeline = new Timeline(
+            new KeyFrame(
+                SIDEBAR_ANIMATION_DURATION,
+                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
+            )
+        );
+
+        slideTransition.setOnFinished(event -> {
+            sidebarVisible = !sidebarVisible;
+            sidebarAnimating = false;
+        });
+
+        sidebarContent.setMouseTransparent(sidebarVisible);
+        slideTransition.play();
+        resizeTimeline.play();
     }
 
     @FXML
@@ -211,7 +261,7 @@ public class HubController {
             return "Unknown";
         }
         try {
-            Duration duration = Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
+            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
             if (duration.isNegative() || duration.isZero()) {
                 return "Ended";
             }
