@@ -1,6 +1,7 @@
 package com.bidify.server.service;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
@@ -11,16 +12,16 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.repository.UserRepository;
 
-// xử lí phần bề mặt của thông tin người dùng (định dạng, ...) đưa cho UserRepository xử lí với database
+// xử lí phần bề mặt của thông tin người dùng (định dạng, xác thực, ...) đưa cho UserDao xử lí với database
 public class AuthService {
-    private final UserRepository userRepository = new UserRepository();
+    private final UserDao userDao = new UserDao();
 
     // đăng kí
     public Response register(Request request) {
@@ -32,7 +33,7 @@ public class AuthService {
 
         try{
             ValidationUtil.validateUsername(username);
-            if (userRepository.existsByUsername(username)) throw new ValidationException("Username already exists");
+            if (userDao.existsByUsername(username)) throw new ValidationException("Username already exists");
             ValidationUtil.validateNickname(nickname);
             ValidationUtil.validatePassword(password);
         }
@@ -42,7 +43,7 @@ public class AuthService {
 
         try{
             User user = new User(username, nickname, PasswordUtil.hash(password));
-            if (!userRepository.register(user)) throw new DatabaseException("Failed to save User");
+            if (!userDao.create(user)) throw new DatabaseException("Failed to save User");
         }
         catch (DatabaseException e){
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -61,10 +62,10 @@ public class AuthService {
         if (client.isValidClient())
             return new Response(RequestStatus.FAILED, "Your are already logged in");
 
-        if (!userRepository.existsByUsername(username))
+        if (!userDao.existsByUsername(username))
             return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
-        User user = userRepository.findByUsername(username);
+        User user = userDao.findByUsername(username);
         if (user == null)
             return new Response(RequestStatus.FAILED, "Failed to get user data");
 
@@ -78,7 +79,7 @@ public class AuthService {
             return new Response(RequestStatus.FAILED, "Another session is already active");
 
         client.setCurrentUsername(username);
-        RealtimeDatabase.addActiveClient(client);
+        RealtimeDatabase.addActiveClient(client, user);
 
         UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
         
@@ -92,18 +93,28 @@ public class AuthService {
         if (!client.isValidClient())
             return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        if (!userRepository.existsByUsername(username))
-            return new Response(RequestStatus.FAILED, "User is not found");
+        User user = RealtimeDatabase.getActiveUser(username);
+        if (!userDao.existsByUsername(username) || user == null)
+            return new Response(RequestStatus.FAILED, "User is not found or not active");
 
         if (RealtimeDatabase.getActiveClient(username) == null)
             return new Response(RequestStatus.FAILED, "Session is inactive");
         
-        userRepository.saveClient(client);
+        userDao.save(user);
         client.setCurrentUsername(null);
         RealtimeDatabase.removeActiveClient(username);
 
         System.out.println(username + " logged out");
 
         return new Response(RequestStatus.SUCCESS, "Logout successfully");
+    }
+
+    public void saveAllClients(){ // lưu tất cả client data mặc định cập nhật last login
+        saveAllClients(true);
+    }
+
+    public void saveAllClients(boolean saveLastLogin){ // lưu tất cả client data
+        for (User user : RealtimeDatabase.getAllActiveUsers())
+            userDao.save(user, saveLastLogin);
     }
 }

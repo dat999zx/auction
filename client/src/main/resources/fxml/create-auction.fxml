@@ -44,6 +44,7 @@
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <Button onAction="#handleLogout" styleClass="ghost-nav-button" text="Logout" />
                     <Button styleClass="icon-button" text="🔔" />
+                    <Button styleClass="icon-button" text="⟲" />
                     <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
                         <Label styleClass="avatar-text" text="U" />
                     </StackPane>

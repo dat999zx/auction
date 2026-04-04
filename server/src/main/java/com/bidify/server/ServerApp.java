@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.repository.AuctionRepository;
-import com.bidify.server.repository.UserRepository;
+import com.bidify.server.service.AuctionService;
+import com.bidify.server.service.AuthService;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.database.RealtimeDatabase;
 
@@ -17,12 +17,12 @@ public class ServerApp {
         System.out.println("Server is starting...");
         
         SQLiteHelper.init();
-        new AuctionRepository().init();
+        new AuctionService().loadToRuntime();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");
-            new UserRepository().saveAllClients();
-            new AuctionRepository().saveAllAuctions();
+            new AuthService().saveAllClients();
+            new AuctionService().saveAllLiveAuctions();
             RealtimeDatabase.clearAll();
         }));
 

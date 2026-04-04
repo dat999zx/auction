@@ -84,7 +84,7 @@ public class SocketClient {
 
         out.println(JsonUtil.toJson(request));
         try {
-            Response response = queue.poll(30, TimeUnit.SECONDS);
+            Response response = queue.poll(120, TimeUnit.SECONDS);
             pendingResponses.remove(request.getId());
             if (response == null) throw new IOException("Request timed out");
             return response;

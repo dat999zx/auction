@@ -1,6 +1,6 @@
-package com.bidify.common.model;
+package com.bidify.common.dto;
 
-public class AuctionSummary {
+public class AuctionDto {
     private String id;
     private String auctionName;
     private String description;
@@ -10,10 +10,10 @@ public class AuctionSummary {
     private double currentBid;
     private int bidCount;
 
-    public AuctionSummary() {
+    public AuctionDto() {
     }
 
-    public AuctionSummary(String id, String auctionName, String description, String seller, String endTime,
+    public AuctionDto(String id, String auctionName, String description, String seller, String endTime,
             double startingPrice, double currentBid, int bidCount) {
         this.id = id;
         this.auctionName = auctionName;

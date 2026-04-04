@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.AuctionSummary;
 import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -27,7 +27,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -49,7 +48,7 @@ public class HubController {
     private Button createAuctionButton;
 
     @FXML
-    private FlowPane liveAuctionsContainer;
+    private VBox liveAuctionsContainer;
 
     @FXML
     private Label emptyStateLabel;
@@ -152,7 +151,7 @@ public class HubController {
                 return;
             }
 
-            AuctionSummary[] auctions = JsonUtil.fromMap(response.getData(), AuctionSummary[].class);
+            AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
             if (auctions == null || auctions.length == 0) {
                 showEmptyState("No live auctions right now.");
                 return;
@@ -161,8 +160,19 @@ public class HubController {
             emptyStateLabel.setVisible(false);
             emptyStateLabel.setManaged(false);
             liveAuctionsContainer.getChildren().clear();
-            for (AuctionSummary auction : auctions) {
-                liveAuctionsContainer.getChildren().add(createAuctionCard(auction));
+            for (int i = 0; i < auctions.length; i += 2) {
+                HBox row = new HBox(24);
+                row.setAlignment(Pos.TOP_LEFT);
+
+                VBox firstCard = createAuctionCard(auctions[i]);
+                row.getChildren().add(firstCard);
+
+                if (i + 1 < auctions.length) {
+                    VBox secondCard = createAuctionCard(auctions[i + 1]);
+                    row.getChildren().add(secondCard);
+                }
+
+                liveAuctionsContainer.getChildren().add(row);
             }
         } catch (IOException e) {
             showEmptyState("Cannot connect to server.");
@@ -180,7 +190,7 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
-    private VBox createAuctionCard(AuctionSummary auction) {
+    private VBox createAuctionCard(AuctionDto auction) {
         VBox card = new VBox();
         card.setPrefWidth(460);
         card.getStyleClass().add("auction-card");

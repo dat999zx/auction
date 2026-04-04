@@ -6,11 +6,13 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.ClientSession;
+import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
 // database được lưu trong ram, giúp truy cập nhanh trong thời gian thực. chỉ có hiệu lực khi server chạy
 public class RealtimeDatabase {
-    private static final ConcurrentHashMap<String, ClientHandler> activeClients = new ConcurrentHashMap<>(); // người dùng đang kết nối server
+    private static final ConcurrentHashMap<String, ClientSession> activeClients = new ConcurrentHashMap<>(); // người dùng đang kết nối server
     private static final ConcurrentHashMap<String, Auction> liveAuctions = new ConcurrentHashMap<>(); // các cuộc đấu giá đang chạy
     private static final ConcurrentHashMap<String, Set<String>> auctionWatchers = new ConcurrentHashMap<>(); // cuộc đấu giá đang chứa người xem nào
     private static final ConcurrentHashMap<String, Set<String>> userWatching = new ConcurrentHashMap<>(); // người dùng đang xem các cuộc đấu giá nào
@@ -31,18 +33,50 @@ public class RealtimeDatabase {
     }
 
     public static boolean addActiveClient(ClientHandler client){ // thêm client vào database
+        return addActiveClient(client, null);
+    }
+
+    public static boolean addActiveClient(ClientHandler client, User user){ // thêm client vào database
         if (client == null || client.getCurrentUsername() == null) return false;
-        activeClients.put(client.getCurrentUsername(), client);
+        activeClients.put(client.getCurrentUsername(), new ClientSession(client, user));
         return true;
     }
 
     public static ClientHandler getActiveClient(String username){ // lấy client trong database
         if (username == null || !activeClients.containsKey(username)) return null;
+        ClientSession session = activeClients.get(username);
+        if (session == null) return null;
+        return session.getClientHandler();
+    }
+
+    public static User getActiveUser(String username){ // lấy user trong database
+        if (username == null || !activeClients.containsKey(username)) return null;
+        ClientSession session = activeClients.get(username);
+        if (session == null) return null;
+        return session.getUser();
+    }
+
+    public static List<User> getAllActiveUsers(){ // lấy tất cả user trong database
+        List<User> users = new ArrayList<>();
+        for (ClientSession session : activeClients.values()) {
+            if (session != null && session.getUser() != null)
+                users.add(session.getUser());
+        }
+        return users;
+    }
+
+    public static ClientSession getActiveSession(String username){ // lấy session trong database
+        if (username == null || !activeClients.containsKey(username)) return null;
         return activeClients.get(username);
     }
 
     public static List<ClientHandler> getAllActiveClients(){ // lấy tất cả client trong database
-        return new ArrayList<>(activeClients.values());
+        List<ClientHandler> clients = new ArrayList<>();
+        for (ClientSession session : activeClients.values()){
+            if (session != null && session.getClientHandler() != null)
+                clients.add(session.getClientHandler());
+        }
+        return clients;
     }
 
     public static boolean removeActiveClient(String username){ // xóa client khỏi database
