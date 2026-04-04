@@ -7,7 +7,6 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
@@ -114,7 +113,7 @@
 
                         <Label fx:id="emptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
 
-                        <FlowPane fx:id="liveAuctionsContainer" hgap="24.0" prefWrapLength="980.0" vgap="24.0" />
+                        <VBox fx:id="liveAuctionsContainer" spacing="24.0" />
                     </VBox>
                 </content>
             </ScrollPane>
