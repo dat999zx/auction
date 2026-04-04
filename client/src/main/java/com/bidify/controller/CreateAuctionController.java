@@ -222,6 +222,7 @@ public class CreateAuctionController {
             switch (response.getStatus()) {
                 case SUCCESS:
                     showMessage("Create new Auction successfully", true);
+                    SceneManager.clearCache("create-auction.fxml");
                     SceneManager.switchScene("hub.fxml");
                     break;    
                 default:
