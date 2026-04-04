@@ -56,6 +56,15 @@ public class RealtimeDatabase {
         return session.getUser();
     }
 
+    public static List<User> getAllActiveUsers(){ // lấy tất cả user trong database
+        List<User> users = new ArrayList<>();
+        for (ClientSession session : activeClients.values()) {
+            if (session != null && session.getUser() != null)
+                users.add(session.getUser());
+        }
+        return users;
+    }
+
     public static ClientSession getActiveSession(String username){ // lấy session trong database
         if (username == null || !activeClients.containsKey(username)) return null;
         return activeClients.get(username);

@@ -1,5 +1,6 @@
 package com.bidify.server.service;
 
+import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
@@ -29,12 +30,17 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.server.repository.AuctionRepository;
 
 public class AuctionService {
-    private final AuctionRepository auctionRepository = new AuctionRepository();
+    private final AuctionDao auctionDao = new AuctionDao();
 
-    public Response createAuction(ClientHandler client, Request request){ // tạo auction
+    // load live auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
+    public void loadToRuntime(){
+        List<Auction> liveAuctions = auctionDao.findByStatus(AuctionStatus.ACTIVE);
+        for (Auction auction : liveAuctions) RealtimeDatabase.addLiveAuction(auction);
+    }
+
+    public Response create(ClientHandler client, Request request){ // tạo auction
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -79,7 +85,7 @@ public class AuctionService {
             auction.setCategory(category);
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);
-            if (!auctionRepository.save(auction)) throw new DatabaseException("Failed to save auction");
+            if (!auctionDao.create(auction)) throw new DatabaseException("Failed to create auction");
             RealtimeDatabase.addLiveAuction(auction);
         }
         catch (DatabaseException e) {
@@ -89,7 +95,7 @@ public class AuctionService {
         return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
     }
 
-    public Response updateAuction(ClientHandler client, Request request){ // cập nhật thông tin của auction
+    public Response update(ClientHandler client, Request request){ // cập nhật thông tin của auction
         UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -101,7 +107,7 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        Auction auction = auctionRepository.findById(auctionId);
+        Auction auction = auctionDao.findById(auctionId);
         if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
         if (!auction.getSeller().equals(client.getCurrentUsername()))
@@ -143,7 +149,7 @@ public class AuctionService {
         auction.setEndTime(endTime);
 
         try {
-            if (!auctionRepository.update(auction)) throw new DatabaseException("Failed to update auction");
+            if (!auctionDao.save(auction)) throw new DatabaseException("Failed to update auction");
         } catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
@@ -157,7 +163,12 @@ public class AuctionService {
         return new Response(RequestStatus.SUCCESS, "Auction updated successfully!"); // TODO: return auctionDto
     }
     
-    public Response deleteAuction(ClientHandler client, Request request){ // xóa auction
+    public void saveAllLiveAuctions(){ // lưu tất cả auction data
+        for (Auction auction : RealtimeDatabase.getAllLiveAuctions())
+            auctionDao.save(auction);
+    }
+
+    public Response delete(ClientHandler client, Request request){ // xóa auction
         DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid data request");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -170,7 +181,7 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        Auction auction = auctionRepository.findById(auctionId);
+        Auction auction = auctionDao.findById(auctionId);
         if (auction == null) 
             return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
@@ -179,14 +190,14 @@ public class AuctionService {
         if (!auction.getSeller().equals(client.getCurrentUsername())) 
             return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
 
-        if (!auctionRepository.deleteById(auctionId)) 
+        if (!auctionDao.deleteById(auctionId)) 
             return new Response(RequestStatus.FAILED, "Failed to delete auction");
 
         RealtimeDatabase.removeLiveAuction(auctionId);
         return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
     }
 
-    public Response getAuctionDetail(ClientHandler client, Request request){ // lấy chi tiết của auction
+    public Response getDetail(ClientHandler client, Request request){ // lấy chi tiết của auction
         GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
@@ -197,7 +208,7 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        Auction auction = auctionRepository.findById(auctionId);
+        Auction auction = auctionDao.findById(auctionId);
 
         if (auction == null) {
             return new Response(RequestStatus.NOT_FOUND, "Auction not found");
@@ -206,7 +217,7 @@ public class AuctionService {
         return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
     }
 
-    public Response getLiveAuctions(ClientHandler client, Request request){ // lấy danh sách các auction đang diễn ra
+    public Response getAllLiveAuctions(ClientHandler client, Request request){ // lấy danh sách các auction đang diễn ra
         List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
         if (auctions == null || auctions.size() == 0)
             return new Response(RequestStatus.SUCCESS, "No live auctions", auctions);
@@ -228,7 +239,7 @@ public class AuctionService {
         return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
     }
 
-    public Response joinAuction(ClientHandler client, Request request){ // tham gia vào auction
+    public Response join(ClientHandler client, Request request){ // tham gia vào auction
         JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -246,7 +257,7 @@ public class AuctionService {
         return new Response(RequestStatus.SUCCESS, "Join auction successfully"); // TODO: return auctionDto
     }
 
-    public Response leaveAuction(ClientHandler client, Request request){ // thoát khỏi auction
+    public Response leave(ClientHandler client, Request request){ // thoát khỏi auction
         LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -284,7 +295,7 @@ public class AuctionService {
         if (user == null) return new Response(RequestStatus.FAILED, "User not found");
         if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
         if (auction == null)
-            return new Response(RequestStatus.NOT_FOUND, "Auction not found or inactive");
+            return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
 
         if (auction.getSeller().equals(username))
             return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
@@ -298,7 +309,7 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, "Failed to place bid");
 
         try {
-            if (!auctionRepository.update(auction)) throw new DatabaseException("Failed to update bid in database");
+            if (!auctionDao.save(auction)) throw new DatabaseException("Failed to update bid in database");
         } catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }

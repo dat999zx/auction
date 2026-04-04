@@ -1,26 +1,19 @@
-package com.bidify.server.repository;
+package com.bidify.server.dao;
 
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Auction;
+import com.bidify.server.contract.ImplementAuctionDao;
 import com.bidify.server.database.SQLiteHelper;
-import com.bidify.server.database.RealtimeDatabase;
 import java.util.List;
 import java.util.ArrayList;
 
 import java.time.LocalDateTime;
 
-public class AuctionRepository {
-    // load live auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
-    public void init(){
-        List<Auction> liveAuctions = findByStatus(AuctionStatus.ACTIVE);
-        for (Auction auction : liveAuctions) RealtimeDatabase.addLiveAuction(auction);
-    }
-
+// giao tiếp với SQLite database về bảng Auctions
+public class AuctionDao implements ImplementAuctionDao{
     // tạm thêm cái này để về sau seller tìm lại các auction theo trạng thái của mình
     public List<Auction> findByStatus(AuctionStatus status) {
-        if (status == AuctionStatus.ACTIVE && RealtimeDatabase.getAllLiveAuctions() != null && RealtimeDatabase.getAllLiveAuctions().size() > 0)
-            return RealtimeDatabase.getAllLiveAuctions();
         String sql = "SELECT * FROM Auctions WHERE status = ?";
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
@@ -43,8 +36,7 @@ public class AuctionRepository {
         }, status.toString());
     }
 
-    public Auction findById(String id){
-        if (RealtimeDatabase.getLiveAuction(id) != null) return RealtimeDatabase.getLiveAuction(id);
+    public Auction findById(String id){ // lấy auction theo id
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
@@ -64,26 +56,7 @@ public class AuctionRepository {
         }, id);
     }
 
-    public boolean update(Auction auction){
-        String sql = """
-            UPDATE Auctions SET
-                auctionName = ?,
-                description = ?,
-                startingPrice = ?,
-                startAt = ?,
-                endTime = ?
-            WHERE id = ?
-        """;
-        return SQLiteHelper.update(sql,
-                auction.getAuctionName(),
-                auction.getDescription(),
-                auction.getStartingPrice(),
-                auction.getStartTime().toString(),
-                auction.getEndTime().toString(),
-                auction.getId());
-    }
-
-    public boolean save(Auction auction){
+    public boolean create(Auction auction){ // tạo auction
         String sql = """
             INSERT INTO Auctions(
             id, 
@@ -118,17 +91,17 @@ public class AuctionRepository {
                                     auction.getEndTime().toString());
     }
 
-    public boolean deleteById(String id){
+    public boolean deleteById(String id){ // xóa auction theo id
         String sql = "DELETE FROM Auctions WHERE id = ?";
         return SQLiteHelper.update(sql, id);
     }
 
-    public void saveAuction(Auction auction){ // lưu auction data
-        if (auction == null) return;
+    public boolean save(Auction auction){ // lưu auction
+        if (auction == null) return false;
         String currentBidderName = auction.getCurrentBidder() != null
-            ? auction.getCurrentBidder().getNickname()
+            ? auction.getCurrentBidder().getUsername()
             : null;
-        SQLiteHelper.update(
+        return SQLiteHelper.update(
             """
                                     UPDATE Auctions SET 
                                 auctionName = ?,
@@ -159,12 +132,6 @@ public class AuctionRepository {
                                     auction.getEndTime().toString(),
                                         auction.getId()
         );
-        System.out.println("saved auction: " + auction.getAuctionName());
-    }
-
-    public void saveAllAuctions(){ // lưu tất cả auction data
-        for (Auction auction : RealtimeDatabase.getAllLiveAuctions())
-            saveAuction(auction);
     }
 }
 // CREATE_AUCTION, // tạo đấu giá
