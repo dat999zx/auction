@@ -2,13 +2,11 @@ package com.bidify.server;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.repository.AuctionRepository;
-import com.bidify.server.repository.UserRepository;
+import com.bidify.server.service.AuctionService;
+import com.bidify.server.service.AuthService;
 import com.bidify.server.database.SQLiteHelper;
-import com.bidify.server.model.Auction;
 import com.bidify.server.database.RealtimeDatabase;
 
 import java.net.ServerSocket;
@@ -19,17 +17,12 @@ public class ServerApp {
         System.out.println("Server is starting...");
         
         SQLiteHelper.init();
-        new AuctionRepository().init();
-
-        List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
-        for (Auction auction : auctions){
-            System.out.println(auction.getAuctionName());
-        }
+        new AuctionService().loadToRuntime();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");
-            new UserRepository().saveAllClients();
-            new AuctionRepository().saveAllAuctions();
+            new AuthService().saveAllClients();
+            new AuctionService().saveAllLiveAuctions();
             RealtimeDatabase.clearAll();
         }));
 

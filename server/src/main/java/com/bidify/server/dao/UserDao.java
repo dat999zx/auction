@@ -1,15 +1,14 @@
-package com.bidify.server.repository;
+package com.bidify.server.dao;
 
 import java.time.LocalDateTime;
 
 import com.bidify.common.enums.UserStatus;
 import com.bidify.server.database.SQLiteHelper;
-import com.bidify.server.database.RealtimeDatabase;
+import com.bidify.server.contract.ImplementUserDao;
 import com.bidify.server.model.User;
-import com.bidify.server.network.ClientHandler;
 
-// giao tiếp với database về phần người dùng
-public class UserRepository {
+// giao tiếp với SQLite database về bảng Users
+public class UserDao implements ImplementUserDao {
     public boolean existsByUsername(String username){ // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
@@ -43,35 +42,26 @@ public class UserRepository {
         );
     }
 
-    public boolean register(User user){ // đăng kí
+    public boolean create(User user){ // đăng kí
         return SQLiteHelper.update(
             "INSERT INTO Users(username, nickname, password) VALUES (?, ?, ?)",
             user.getUsername(), user.getNickname(), user.getPassword());
     }
 
-    public void saveClient(ClientHandler client){
-        saveClient(client, true);
+    public void save(User user){ // lưu user data mặc định cập nhật last login
+        save(user, true);
     }
 
-    public void saveClient(ClientHandler client, boolean saveLastLogin) { // lưu client data
-        if (client == null || client.getCurrentUsername() == null) return;
-        // TODO: save client
+    public void save(User user, boolean saveLastLogin) { // lưu user data
+        if (user == null) return;
+        // TODO: save user data
         if (saveLastLogin){
             SQLiteHelper.update(
                 "UPDATE Users SET lastLogin = ? WHERE username = ?",
                 LocalDateTime.now().toString(),
-                client.getCurrentUsername()
+                user.getUsername()
             );
         }
-        System.out.println("saved client: " + client.getCurrentUsername());
-    }
-
-    public void saveAllClients(){
-        saveAllClients(true);
-    }
-
-    public void saveAllClients(boolean saveLastLogin){ // lưu tất cả client data
-        for (ClientHandler client : RealtimeDatabase.getAllActiveClients())
-            saveClient(client, saveLastLogin);
+        System.out.println("saved user: " + user.getUsername());
     }
 }
