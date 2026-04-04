@@ -19,5 +19,8 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Build with Maven
+      - name: Compile project
         run: mvn -B clean compile
+
+      - name: Run unit tests
+        run: mvn -B test
