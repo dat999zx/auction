@@ -1,7 +1,6 @@
 package com.bidify.server.dao;
 
 import com.bidify.common.enums.AuctionStatus;
-import com.bidify.server.model.User;
 import com.bidify.server.model.Auction;
 import com.bidify.server.contract.ImplementAuctionDao;
 import com.bidify.server.database.SQLiteHelper;
@@ -25,8 +24,9 @@ public class AuctionDao implements ImplementAuctionDao{
                 auction.setProductType(rs.getString("type"));
                 auction.setStartingPrice(rs.getDouble("startingPrice"));
                 auction.setMinIncrement(rs.getDouble("minIncrement"));
-                auction.setMaxIncrement(rs.getDouble("maxIncrement"));
-                auction.setSeller(rs.getString("seller"));
+                auction.setSellerUsername(rs.getString("seller"));
+                auction.setCurrentBid(rs.getDouble("currentBid"));
+                auction.setCurrentBidderUsername(rs.getString("currentBidder"));
                 auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
                 auction.setStartTime(LocalDateTime.parse(rs.getString("startAt")));
                 auction.setEndTime(LocalDateTime.parse(rs.getString("endTime")));
@@ -47,8 +47,9 @@ public class AuctionDao implements ImplementAuctionDao{
             auction.setProductType(rs.getString("type"));
             auction.setStartingPrice(rs.getDouble("startingPrice"));
             auction.setMinIncrement(rs.getDouble("minIncrement"));
-            auction.setMaxIncrement(rs.getDouble("maxIncrement"));
-            auction.setSeller(rs.getString("seller"));
+            auction.setSellerUsername(rs.getString("seller"));
+            auction.setCurrentBid(rs.getDouble("currentBid"));
+            auction.setCurrentBidderUsername(rs.getString("currentBidder"));
             auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
             auction.setStartTime(LocalDateTime.parse(rs.getString("startAt")));
             auction.setEndTime(LocalDateTime.parse(rs.getString("endTime")));
@@ -59,23 +60,22 @@ public class AuctionDao implements ImplementAuctionDao{
     public boolean create(Auction auction){ // tạo auction
         String sql = """
             INSERT INTO Auctions(
-            id, 
+            id,
             auctionName,
             description,
             category,
             type,
             startingPrice,
             minIncrement,
-            maxIncrement,
             seller,
+            currentBid,
             currentBidder,
             status,
-            startAt, 
+            startAt,
             endTime
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """;
-        User currentBidder = auction.getCurrentBidder();
-        String currentBidderName = (currentBidder != null) ? currentBidder.getNickname() : null;
+
         return SQLiteHelper.update(sql, auction.getId(), 
                                     auction.getAuctionName(),
                                 auction.getDescription(),
@@ -83,12 +83,12 @@ public class AuctionDao implements ImplementAuctionDao{
                         auction.getProductType(),
                     auction.getStartingPrice(),
                 auction.getMinIncrement(),
-                    auction.getMaxIncrement(),
-                        auction.getSeller(),                                    
-                            currentBidderName,
+                    auction.getSellerUsername(),
+                        auction.getCurrentBid(),                              
+                            auction.getCurrentBidderUsername(),
                                 auction.getStatus().toString(),
                                     auction.getStartTime().toString(),
-                                    auction.getEndTime().toString());
+                                        auction.getEndTime().toString());
     }
 
     public boolean deleteById(String id){ // xóa auction theo id
@@ -98,9 +98,6 @@ public class AuctionDao implements ImplementAuctionDao{
 
     public boolean save(Auction auction){ // lưu auction
         if (auction == null) return false;
-        String currentBidderName = auction.getCurrentBidder() != null
-            ? auction.getCurrentBidder().getUsername()
-            : null;
         return SQLiteHelper.update(
             """
                                     UPDATE Auctions SET 
@@ -110,8 +107,8 @@ public class AuctionDao implements ImplementAuctionDao{
                     type = ?,
                 startingPrice = ?,
             minIncrement = ?,
-                maxIncrement = ?,
-                    seller = ?,
+                seller = ?,
+                    currentBid = ?,
                         currentBidder = ?,
                             status = ?,
                                 startAt = ?,
@@ -124,9 +121,9 @@ public class AuctionDao implements ImplementAuctionDao{
                         auction.getProductType(),
                     auction.getStartingPrice(),
                 auction.getMinIncrement(),
-            auction.getMaxIncrement(),
-                auction.getSeller(),
-                    currentBidderName,
+                auction.getSellerUsername(),
+                auction.getCurrentBid(),
+                    auction.getCurrentBidderUsername(),
                         auction.getStatus().toString(),
                             auction.getStartTime().toString(),
                                     auction.getEndTime().toString(),

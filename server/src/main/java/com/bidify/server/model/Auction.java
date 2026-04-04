@@ -10,25 +10,22 @@ import java.util.List;
 public class Auction {
     private final String id; 
     private String auctionName, productType, category, description;
-    private double startingPrice, currentBid, minIncrement = 0, maxIncrement = 0;
+    private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
-    private String seller;
-    private User currentBidder;
+    private String sellerUsername, currentBidderUsername;
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
 
-    public Auction(){ this.id = IdGenerator.genAuctionId();}
+    public Auction(String id){ this.id = id; } // dùng khi load từ sql database
 
-    public Auction(String id){ this.id = id; } // dùng khi load từ database
-
-    public Auction(String seller, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
-        this.seller = seller;
+    public Auction(String sellerUsername, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
+        this.id = IdGenerator.genAuctionId();
+        this.sellerUsername = sellerUsername;
         this.auctionName = name;
         this.description = description;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.id = IdGenerator.genAuctionId();
     }
     
     public synchronized boolean placeBid(Bid bid){
@@ -37,13 +34,8 @@ public class Auction {
         double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
         if (bid.getAmount() < minAllowed) return false;
 
-        if (maxIncrement > 0){
-            double base = currentBid > 0 ? currentBid : startingPrice;
-            if (bid.getAmount() - base > maxIncrement) return false;
-        }
-
         this.currentBid = bid.getAmount();
-        this.currentBidder = bid.getBidder();
+        this.currentBidderUsername = bid.getBidderUserName();
         this.bids.add(bid);
 
         return true;
@@ -63,8 +55,8 @@ public class Auction {
     public double getCurrentBid() { return currentBid; }
     public void setCurrentBid(double bid) { this.currentBid = bid; }
 
-    public User getCurrentBidder() { return currentBidder; }
-    public void setCurrentBidder(User person) { this.currentBidder = person; }
+    public String getCurrentBidderUsername() { return currentBidderUsername; }
+    public void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime start) { this.startTime = start; }
@@ -77,8 +69,8 @@ public class Auction {
     public boolean isActive(){ return this.status == AuctionStatus.ACTIVE; }
     public boolean isEnded() { return this.status == AuctionStatus.ENDED; }
 
-    public String getSeller() { return seller; }
-    public void setSeller(String person) { this.seller = person; }
+    public String getSellerUsername() { return sellerUsername; }
+    public void setSellerUsername(String username) { this.sellerUsername = username; }
 
     public int getBidCount(){ return bids.size(); }
     
@@ -90,9 +82,6 @@ public class Auction {
 
     public double getMinIncrement() { return minIncrement; }
     public void setMinIncrement(double num) { this.minIncrement = num; }
-
-    public double getMaxIncrement() { return maxIncrement; }
-    public void setMaxIncrement(double num) { this.maxIncrement = num; }
 
     public List<Bid> getBids() { return bids; }
 }
