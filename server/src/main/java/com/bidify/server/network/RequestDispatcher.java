@@ -1,9 +1,13 @@
 package com.bidify.server.network;
 
+import java.time.format.DateTimeParseException;
+
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.service.AuthService;
+import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.service.AuctionService;
 
 // chuyển hướng request đúng vào các service tương ứng
@@ -14,19 +18,27 @@ public class RequestDispatcher {
     public Response dispatch(ClientHandler client, Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return switch (request.getType()) {
-            case REGISTER -> authService.register(request);
-            case LOGIN -> authService.login(client, request);
-            case LOGOUT -> authService.logout(client, request);
-            case JOIN_AUCTION -> auctionService.join(client, request);
-            case LEAVE_AUCTION -> auctionService.leave(client, request);
-            case CREATE_AUCTION -> auctionService.create(client, request);
-            case UPDATE_AUCTION -> auctionService.update(client, request);
-            case GET_LIVE_AUCTIONS -> auctionService.getAllLiveAuctions(client, request);
-            case GET_AUCTION_DETAIL -> auctionService.getDetail(client, request);
-            case DELETE_AUCTION -> auctionService.delete(client, request);
-            case PLACE_BID -> auctionService.placeBid(client, request);
-            default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
-        };
+        Response response;
+        try {
+            switch (request.getType()) {
+                case REGISTER -> response = authService.register(request);
+                case LOGIN -> response = authService.login(client, request);
+                case LOGOUT -> response = authService.logout(client, request);
+                case JOIN_AUCTION -> response = auctionService.join(client, request);
+                case LEAVE_AUCTION -> response = auctionService.leave(client, request);
+                case CREATE_AUCTION -> response = auctionService.create(client, request);
+                case UPDATE_AUCTION -> response = auctionService.update(client, request);
+                case GET_LIVE_AUCTIONS -> response = auctionService.getAllLiveAuctions(client, request);
+                case GET_AUCTION_DETAIL -> response = auctionService.getDetail(client, request);
+                case DELETE_AUCTION -> response = auctionService.delete(client, request);
+                case PLACE_BID -> response = auctionService.placeBid(client, request);
+                default -> response = new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
+            }
+            return response;
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return new Response(RequestStatus.ERROR, "Unknown error");
+        }
     }
 }
