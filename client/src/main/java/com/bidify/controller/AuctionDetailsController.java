@@ -11,6 +11,7 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.LogoutRequest;
+import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.network.SocketClient;
@@ -54,6 +55,18 @@ public class AuctionDetailsController {
     private ImageView previewimage;
     @FXML
     private Label messageLabel;
+    @FXML
+    private Label latestBidderLabel;
+    @FXML
+    private Label latestBidAmountLabel;
+    @FXML
+    private Label latestBidTimeLabel;
+    @FXML
+    private Label openingBidderLabel;
+    @FXML
+    private Label openingBidAmountLabel;
+    @FXML
+    private Label openingBidTimeLabel;
 
     private double currentDisplayedPrice;
 
@@ -97,10 +110,23 @@ public class AuctionDetailsController {
             return;
         }
 
-        currentDisplayedPrice = bidAmount;
-        currentprice.setText(formatCurrency(bidAmount));
-        inputprice.clear();
-        showMessage("Bid validated on the client. Server-side PLACE_BID is not wired in this repo yet.", true);
+        try {
+            Response response = SocketClient.getClient().send(
+                new Request(RequestType.PLACE_BID, new PlaceBidRequest(selectedAuctionId, bidAmount))
+            );
+
+            if (response.getStatus() != RequestStatus.SUCCESS) {
+                showMessage(response.getMessage() == null ? "Failed to place bid." : response.getMessage(), false);
+                return;
+            }
+
+            inputprice.clear();
+            showMessage(response.getMessage() == null ? "Bid placed successfully." : response.getMessage(), true);
+            loadAuctionDetails(selectedAuctionId);
+        } catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
+            e.printStackTrace();
+        }
     }
 
     @FXML
@@ -198,12 +224,37 @@ public class AuctionDetailsController {
         startprice.setText(formatCurrency(startingValue));
         currentprice.setText(formatCurrency(currentDisplayedPrice));
         enddate.setText(formatDate(stringValue(data.get("endTime"), "Unknown")));
+        bindActivity(data, startingValue);
 
         Object imageValue = data.get("previewImage");
         if (imageValue == null) {
             imageValue = data.get("imageUrl");
         }
         setPreviewImage(stringValue(imageValue, DEFAULT_PREVIEW_IMAGE));
+    }
+
+    private void bindActivity(Map<?, ?> data, double startingValue) {
+        Map<?, ?> latestBid = latestBid(data.get("bids"));
+        if (latestBid != null) {
+            openingBidderLabel.setText("Opening price");
+            openingBidAmountLabel.setText(formatCurrency(startingValue));
+            openingBidTimeLabel.setText(formatDateTimeLabel(data.get("startTime"), "Auction opened"));
+
+            latestBidderLabel.setText(stringValue(
+                latestBid.get("bidderUsername") != null ? latestBid.get("bidderUsername") : latestBid.get("bidderUserName"),
+                "Latest bid"
+            ));
+            latestBidAmountLabel.setText(formatCurrency(doubleValue(latestBid.get("amount"))));
+            latestBidTimeLabel.setText(formatDateTimeLabel(latestBid.get("placeAt"), "Bid received"));
+            return;
+        }
+
+        latestBidderLabel.setText("No bids yet");
+        latestBidAmountLabel.setText("Waiting for first bid");
+        latestBidTimeLabel.setText("Live auction");
+        openingBidderLabel.setText("Starting price");
+        openingBidAmountLabel.setText(formatCurrency(startingValue));
+        openingBidTimeLabel.setText(formatDateTimeLabel(data.get("startTime"), "Opening bid"));
     }
 
     private void resetView() {
@@ -213,6 +264,12 @@ public class AuctionDetailsController {
         currentprice.setText(formatCurrency(0));
         enddate.setText("Loading...");
         messageLabel.setText("");
+        latestBidderLabel.setText("Latest bid");
+        latestBidAmountLabel.setText("Live value shown above");
+        latestBidTimeLabel.setText("Waiting for server data");
+        openingBidderLabel.setText("Starting price");
+        openingBidAmountLabel.setText("Opening value shown above");
+        openingBidTimeLabel.setText("Opening bid");
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
     }
@@ -297,5 +354,24 @@ public class AuctionDetailsController {
         } catch (DateTimeParseException e) {
             return rawDate;
         }
+    }
+
+    private String formatDateTimeLabel(Object rawDate, String fallback) {
+        String value = stringValue(rawDate, fallback);
+        return "Unknown".equals(formatDate(value)) ? fallback : formatDate(value);
+    }
+
+    private Map<?, ?> latestBid(Object bidsValue) {
+        if (!(bidsValue instanceof Iterable<?> bids)) {
+            return null;
+        }
+
+        Map<?, ?> latest = null;
+        for (Object bid : bids) {
+            if (bid instanceof Map<?, ?> bidMap) {
+                latest = bidMap;
+            }
+        }
+        return latest;
     }
 }
