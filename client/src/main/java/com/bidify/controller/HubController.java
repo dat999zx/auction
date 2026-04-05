@@ -1,10 +1,8 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.text.NumberFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Locale;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
@@ -22,22 +20,19 @@ import javafx.animation.Timeline;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.geometry.Insets;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 public class HubController {
-    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     private static final javafx.util.Duration SIDEBAR_ANIMATION_DURATION = javafx.util.Duration.millis(160);
     private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
-    private static final double AUCTION_CARD_WIDTH = 460.0;
     private static final double SIDEBAR_VISIBLE_ROW_GAP = 24.0;
     private static final double SIDEBAR_HIDDEN_ROW_GAP = 56.0;
 
@@ -184,84 +179,6 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
-    private VBox createAuctionCard(AuctionDto auction) {
-        VBox card = new VBox();
-        card.setPrefWidth(AUCTION_CARD_WIDTH);
-        card.setMinWidth(AUCTION_CARD_WIDTH);
-        card.setMaxWidth(AUCTION_CARD_WIDTH);
-        card.getStyleClass().add("auction-card");
-
-        StackPane imageWrap = new StackPane();
-        imageWrap.setPrefHeight(250);
-        imageWrap.getStyleClass().add("card-image-wrap");
-
-        HBox timerPill = new HBox(6);
-        timerPill.getStyleClass().add("timer-pill");
-        timerPill.setAlignment(Pos.CENTER);
-        StackPane.setAlignment(timerPill, Pos.TOP_RIGHT);
-        StackPane.setMargin(timerPill, new Insets(16, 16, 0, 0));
-
-        Label timerIcon = new Label("T");
-        timerIcon.getStyleClass().add("timer-icon");
-        Label timerText = new Label(formatRemainingTime(auction.getEndTime()));
-        timerText.getStyleClass().add("timer-text");
-        timerPill.getChildren().addAll(timerIcon, timerText);
-
-        Label lotPill = new Label(defaultText(auction.getId(), "Auction"));
-        lotPill.getStyleClass().add("lot-pill");
-        StackPane.setAlignment(lotPill, Pos.BOTTOM_LEFT);
-        StackPane.setMargin(lotPill, new Insets(0, 0, 16, 16));
-
-        imageWrap.getChildren().addAll(timerPill, lotPill);
-
-        VBox body = new VBox(12);
-        body.setPadding(new Insets(24));
-        body.getStyleClass().add("card-body");
-
-        Label title = new Label(defaultText(auction.getAuctionName(), "Untitled auction"));
-        title.setWrapText(true);
-        title.getStyleClass().add("card-title");
-
-        Label subtitle = new Label(defaultText(auction.getDescription(), "No description."));
-        subtitle.setWrapText(true);
-        subtitle.getStyleClass().add("card-subtitle");
-
-        HBox bidPanel = new HBox();
-        bidPanel.getStyleClass().add("bid-panel");
-        bidPanel.setPadding(new Insets(16));
-
-        VBox currentBidBox = new VBox(4);
-        Label currentBidLabel = new Label("CURRENT BID");
-        currentBidLabel.getStyleClass().add("meta-label");
-        Label currentBidValue = new Label(CURRENCY_FORMAT.format(auction.getCurrentBid()));
-        currentBidValue.getStyleClass().add("price-text");
-        currentBidBox.getChildren().addAll(currentBidLabel, currentBidValue);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        VBox bidCountBox = new VBox(4);
-        bidCountBox.setAlignment(Pos.CENTER_RIGHT);
-        Label bidCountLabel = new Label("BIDDERS");
-        bidCountLabel.getStyleClass().add("meta-label");
-        Label bidCountValue = new Label(Integer.toString(auction.getBidCount()));
-        bidCountValue.getStyleClass().add("meta-value");
-        bidCountBox.getChildren().addAll(bidCountLabel, bidCountValue);
-
-        bidPanel.getChildren().addAll(currentBidBox, spacer, bidCountBox);
-
-        Label sellerLabel = new Label("Seller: " + defaultText(auction.getSeller(), "Unknown"));
-        sellerLabel.getStyleClass().add("card-subtitle");
-
-        Button bidButton = new Button("Place Instant Bid");
-        bidButton.getStyleClass().add("secondary-action-button");
-        bidButton.setOnAction(event -> AuctionDetailsController.openAuctionDetails(auction.getId()));
-
-        body.getChildren().addAll(title, subtitle, sellerLabel, bidPanel, bidButton);
-        card.getChildren().addAll(imageWrap, body);
-        return card;
-    }
-
     private void initializeSidebarState() {
         sidebarContainer.setPrefWidth(0.0);
         sidebarContainer.setMinWidth(0.0);
@@ -283,7 +200,7 @@ public class HubController {
             row.setAlignment(Pos.TOP_CENTER);
 
             for (int j = 0; j < cardsPerRow && i + j < currentAuctions.length; j++) {
-                row.getChildren().add(createAuctionCard(currentAuctions[i + j]));
+                row.getChildren().add(loadAuctionCard(currentAuctions[i + j]));
             }
 
             liveAuctionsContainer.getChildren().add(row);
@@ -310,6 +227,18 @@ public class HubController {
 
     private String defaultText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private AnchorPane loadAuctionCard(AuctionDto auction) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
+            AnchorPane card = loader.load();
+            AuctionCardController controller = loader.getController();
+            controller.bind(auction);
+            return card;
+        } catch (IOException e) {
+            throw new IllegalStateException("Cannot load auction-card.fxml", e);
+        }
     }
 
     // private void setActiveTopNav(Button activeButton) {
