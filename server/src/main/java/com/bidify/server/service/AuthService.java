@@ -61,7 +61,7 @@ public class AuthService {
         String password = data.getPassword();
 
         try {
-            if (client.isValidClient())
+            if (client.isInSession())
                 return new Response(RequestStatus.FAILED, "You are already logged in");
 
             if (!userDao.existsByUsername(username))
@@ -96,7 +96,7 @@ public class AuthService {
         String username = client.getCurrentUsername();
 
         try {
-            if (!client.isValidClient())
+            if (!client.isInSession())
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
             User user = RealtimeDatabase.getActiveUser(username);

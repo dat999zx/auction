@@ -1,5 +1,6 @@
-package com.bidify.server.model;
+package com.bidify.server.model.runtime;
 
+import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
 public class ClientSession {

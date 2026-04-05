@@ -6,6 +6,7 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.User;
+import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
@@ -45,7 +46,7 @@ public class AuctionService {
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         try {
-            if (!client.isValidClient())
+            if (!client.isInSession())
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
             String sellerUsername = data.getSeller();
@@ -101,7 +102,7 @@ public class AuctionService {
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
         try {
-            if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
             String auctionId = data.getAuctionId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
@@ -175,7 +176,7 @@ public class AuctionService {
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         try {
-            if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
             
             String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
@@ -262,7 +263,7 @@ public class AuctionService {
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         try {
-            if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
     
             String auctionId = data.getAuctionId();
             String username = client.getCurrentUsername();
@@ -274,7 +275,7 @@ public class AuctionService {
             if (RealtimeDatabase.isWatchingAuction(username, auctionId))
                 return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
 
-            RealtimeDatabase.addAuctionWatcher(auctionId, username);
+            RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
             AuctionDto auctionDto = new AuctionDto(
                 auctionId,
@@ -299,7 +300,7 @@ public class AuctionService {
     public Response leave(ClientHandler client, Request request){ // thoát khỏi auction
         LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getAuctionId();
         String username = client.getCurrentUsername();
@@ -307,14 +308,14 @@ public class AuctionService {
         if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
             return new Response(RequestStatus.FAILED, "You are not watching this auction");
 
-        RealtimeDatabase.removeAuctionWatcher(auctionId, username);
+        RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
         return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
     }
 
     public Response placeBid(ClientHandler client, Request request){ // đặt bid mới
         PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getAuctionId();
         double bidAmount = data.getBidAmount();
@@ -360,13 +361,9 @@ public class AuctionService {
             auction.getBidCount()
         );
 
-        List<ClientHandler> watchers = RealtimeDatabase.getAuctionWatchers(auctionId);
-        if (watchers != null){
-            for (ClientHandler watcher : watchers){
-                if (watcher != null)
-                    watcher.sendEvent(new Event(EventType.BID_PLACED, "New bid placed", updateDto));
-            }
-        }
+        AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
+        if (auctionChannel != null)
+            auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", updateDto));
 
         return new Response(RequestStatus.SUCCESS, "Place bid successfully");
     }
