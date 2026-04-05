@@ -141,8 +141,18 @@ public class AuctionService {
             auction.setEndTime(endTime);
 
             auctionDao.save(auction);
-            // TODO: return auctionDto, send event to all users
-            return new Response(RequestStatus.SUCCESS, "Auction updated successfully!");
+            
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+            return new Response(RequestStatus.SUCCESS, "Auction updated successfully!", auctionDto);
         }
         catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -204,8 +214,18 @@ public class AuctionService {
             if (auction == null)
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
-            // TODO: return auctionDto
-            return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+
+            return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auctionDto);
         }
         catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
@@ -255,7 +275,18 @@ public class AuctionService {
                 return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
 
             RealtimeDatabase.addAuctionWatcher(auctionId, username);
-            return new Response(RequestStatus.SUCCESS, "Join auction successfully"); // TODO: return auctionDto
+
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+            return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         }
         catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
