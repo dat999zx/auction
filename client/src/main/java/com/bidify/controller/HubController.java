@@ -37,6 +37,9 @@ public class HubController {
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     private static final javafx.util.Duration SIDEBAR_ANIMATION_DURATION = javafx.util.Duration.millis(160);
     private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
+    private static final double AUCTION_CARD_WIDTH = 460.0;
+    private static final double SIDEBAR_VISIBLE_ROW_GAP = 24.0;
+    private static final double SIDEBAR_HIDDEN_ROW_GAP = 56.0;
 
     @FXML 
     private TextField searchBar; 
@@ -59,8 +62,9 @@ public class HubController {
     @FXML
     private VBox sidebarContent;
 
-    private boolean sidebarVisible = true;
+    private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
+    private AuctionDto[] currentAuctions = new AuctionDto[0];
 
     @FXML
     private void initialize() {
@@ -71,6 +75,7 @@ public class HubController {
         clip.heightProperty().bind(sidebarContainer.heightProperty());
         sidebarContainer.setClip(clip);
 
+        initializeSidebarState();
         loadLiveAuctions();
     }
 
@@ -99,6 +104,7 @@ public class HubController {
         slideTransition.setOnFinished(event -> {
             sidebarVisible = !sidebarVisible;
             sidebarAnimating = false;
+            renderAuctionRows();
         });
 
         sidebarContent.setMouseTransparent(sidebarVisible);
@@ -157,23 +163,10 @@ public class HubController {
                 return;
             }
 
+            currentAuctions = auctions;
             emptyStateLabel.setVisible(false);
             emptyStateLabel.setManaged(false);
-            liveAuctionsContainer.getChildren().clear();
-            for (int i = 0; i < auctions.length; i += 2) {
-                HBox row = new HBox(24);
-                row.setAlignment(Pos.TOP_LEFT);
-
-                VBox firstCard = createAuctionCard(auctions[i]);
-                row.getChildren().add(firstCard);
-
-                if (i + 1 < auctions.length) {
-                    VBox secondCard = createAuctionCard(auctions[i + 1]);
-                    row.getChildren().add(secondCard);
-                }
-
-                liveAuctionsContainer.getChildren().add(row);
-            }
+            renderAuctionRows();
         } catch (IOException e) {
             showEmptyState("Cannot connect to server.");
             e.printStackTrace();
@@ -181,6 +174,7 @@ public class HubController {
     }
 
     private void showEmptyState(String message) {
+        currentAuctions = new AuctionDto[0];
         liveAuctionsContainer.getChildren().clear();
         emptyStateLabel.setText(message);
         if (!emptyStateLabel.getStyleClass().contains("empty-state-label")) {
@@ -192,7 +186,9 @@ public class HubController {
 
     private VBox createAuctionCard(AuctionDto auction) {
         VBox card = new VBox();
-        card.setPrefWidth(460);
+        card.setPrefWidth(AUCTION_CARD_WIDTH);
+        card.setMinWidth(AUCTION_CARD_WIDTH);
+        card.setMaxWidth(AUCTION_CARD_WIDTH);
         card.getStyleClass().add("auction-card");
 
         StackPane imageWrap = new StackPane();
@@ -264,6 +260,34 @@ public class HubController {
         body.getChildren().addAll(title, subtitle, sellerLabel, bidPanel, bidButton);
         card.getChildren().addAll(imageWrap, body);
         return card;
+    }
+
+    private void initializeSidebarState() {
+        sidebarContainer.setPrefWidth(0.0);
+        sidebarContainer.setMinWidth(0.0);
+        sidebarContainer.setMaxWidth(0.0);
+        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
+        sidebarContent.setMouseTransparent(true);
+    }
+
+    private void renderAuctionRows() {
+        liveAuctionsContainer.getChildren().clear();
+        if (currentAuctions == null || currentAuctions.length == 0) {
+            return;
+        }
+
+        int cardsPerRow = 2;
+        double rowGap = sidebarVisible ? SIDEBAR_VISIBLE_ROW_GAP : SIDEBAR_HIDDEN_ROW_GAP;
+        for (int i = 0; i < currentAuctions.length; i += cardsPerRow) {
+            HBox row = new HBox(rowGap);
+            row.setAlignment(Pos.TOP_CENTER);
+
+            for (int j = 0; j < cardsPerRow && i + j < currentAuctions.length; j++) {
+                row.getChildren().add(createAuctionCard(currentAuctions[i + j]));
+            }
+
+            liveAuctionsContainer.getChildren().add(row);
+        }
     }
 
     private String formatRemainingTime(String endTime) {
