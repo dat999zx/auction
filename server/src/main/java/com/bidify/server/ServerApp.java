@@ -7,6 +7,7 @@ import com.bidify.server.network.ClientHandler;
 import com.bidify.server.service.AuctionService;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
 
 import java.net.ServerSocket;
@@ -16,7 +17,13 @@ public class ServerApp {
     public static void main(String[] args) {
         System.out.println("Server is starting...");
         
-        SQLiteHelper.init();
+        try {
+            SQLiteHelper.init();
+        }
+        catch (DatabaseException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
         new AuctionService().loadToRuntime();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {

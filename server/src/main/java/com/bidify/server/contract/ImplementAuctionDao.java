@@ -8,7 +8,7 @@ import com.bidify.server.model.Auction;
 public interface ImplementAuctionDao {
     List<Auction> findByStatus(AuctionStatus status);
     Auction findById(String id);
-    boolean create(com.bidify.server.model.Auction auction);
-    boolean deleteById(String id);
-    boolean save(com.bidify.server.model.Auction auction);
+    void create(com.bidify.server.model.Auction auction);
+    void deleteById(String id);
+    void save(com.bidify.server.model.Auction auction);
 }
