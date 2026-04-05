@@ -6,27 +6,27 @@ import com.bidify.common.utility.IdGenerator;
 
 public class Bid {
     private final String id = IdGenerator.genBidId();
-    private Auction item;
-    private User bidder;
+    private Auction auction;
+    private String bidderUsername;
     private double amount;
     private LocalDateTime placeAt;
 
     public Bid(){};
 
-    public Bid(Auction item, User bidder, double amount){
-        this.item = item;
-        this.bidder = bidder;
+    public Bid(Auction auction, String bidderUsername, double amount){
+        this.auction = auction;
+        this.bidderUsername = bidderUsername;
         this.amount = amount;
         this.placeAt = LocalDateTime.now();
     }
 
     public String getId() { return id; }
 
-    public Auction getItem() { return item; }
-    public void setItem(Auction item) { this.item = item; }
+    public Auction getItem() { return auction; }
+    public void setItem(Auction item) { this.auction = item; }
 
-    public User getBidder() { return bidder; }
-    public void setBidder(User bidder) { this.bidder = bidder; }
+    public String getBidderUserName() { return bidderUsername; }
+    public void setBidderUsername(String bidderUsername) { this.bidderUsername = bidderUsername; }
 
     public double getAmount() { return amount; }
     public void setAmount(double amount) { this.amount = amount; }

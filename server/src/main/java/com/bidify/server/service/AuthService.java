@@ -1,7 +1,6 @@
 package com.bidify.server.service;
 
 import com.bidify.common.dto.UserDto;
-import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;

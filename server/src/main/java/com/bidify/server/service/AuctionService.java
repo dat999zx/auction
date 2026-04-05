@@ -45,7 +45,7 @@ public class AuctionService {
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
         if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        String seller = data.getSeller();
+        String sellerUsername = data.getSeller();
         String auctionName = data.getAuctionName();
         String description = data.getDescription();
         String category = data.getCategory();
@@ -56,13 +56,13 @@ public class AuctionService {
         try{
             startTime = LocalDateTime.parse(data.getStartTime());
             endTime = LocalDateTime.parse(data.getEndTime());
-        } catch (DateTimeParseException e) {
+        }
+        catch (DateTimeParseException e) {
             return new Response(RequestStatus.FAILED, "Invalid date time format");
         }
 
-        
         try{
-            ValidationUtil.requiresNonBlank(seller, "Seller");
+            ValidationUtil.requiresNonBlank(sellerUsername, "Seller");
             ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
             ValidationUtil.requiresNonBlank(description, "Description");
             ValidationUtil.requiresNonBlank(category, "Category");
@@ -75,13 +75,13 @@ public class AuctionService {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        if (!client.getCurrentUsername().equals(seller))
-            return new Response(RequestStatus.UNAUTHORIZED, "Invalid seller");
+        if (!client.getCurrentUsername().equals(sellerUsername))
+            return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         if (!endTime.isAfter(startTime)) return new Response(RequestStatus.FAILED, "End time must be after start time");
 
         try{
-            Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);
+            Auction auction = new Auction(sellerUsername, auctionName, description, startingPrice, startTime, endTime);
             auction.setCategory(category);
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);
@@ -110,8 +110,8 @@ public class AuctionService {
         Auction auction = auctionDao.findById(auctionId);
         if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
-        if (!auction.getSeller().equals(client.getCurrentUsername()))
-            return new Response(RequestStatus.UNAUTHORIZED, "Only the seller can update this auction");
+        if (!auction.getSellerUsername().equals(client.getCurrentUsername()))
+            return new Response(RequestStatus.UNAUTHORIZED, "You don't have permission to update this auction");
 
         // chỉ cho phép update trước khi bắt đầu đấu giá
         if (auction.getStatus() != AuctionStatus.UPCOMING)
@@ -187,7 +187,7 @@ public class AuctionService {
 
         if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Can not delete auction after it started");
 
-        if (!auction.getSeller().equals(client.getCurrentUsername())) 
+        if (!auction.getSellerUsername().equals(client.getCurrentUsername())) 
             return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
 
         if (!auctionDao.deleteById(auctionId)) 
@@ -229,7 +229,7 @@ public class AuctionService {
                 auction.getId(),
                 auction.getAuctionName(),
                 auction.getDescription(),
-                auction.getSeller(),
+                auction.getSellerUsername(),
                 auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
                 auction.getStartingPrice(),
                 displayBid,
@@ -292,34 +292,25 @@ public class AuctionService {
         Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
         User user = RealtimeDatabase.getActiveUser(username);
 
-        if (user == null) return new Response(RequestStatus.FAILED, "User not found");
-        if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
         if (auction == null)
             return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
-
-        if (auction.getSeller().equals(username))
+        if (user == null) return new Response(RequestStatus.FAILED, "User not found");
+        if (auction.getSellerUsername().equals(username))
             return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
+        if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
 
-        double currentBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
-        if (bidAmount - currentBid < auction.getMinIncrement())
-            return new Response(RequestStatus.FAILED, "Bid amount must be at least " + auction.getMinIncrement() + "$ higher than current bid");
-
-        Bid bid = new Bid(auction, user, bidAmount);
+        Bid bid = new Bid(auction, username, bidAmount);
         if (!auction.placeBid(bid))
             return new Response(RequestStatus.FAILED, "Failed to place bid");
 
-        try {
-            if (!auctionDao.save(auction)) throw new DatabaseException("Failed to update bid in database");
-        } catch (DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
+        if (!auctionDao.save(auction)) return new Response(RequestStatus.FAILED, "Failed to update bid in database");
 
-        // Thông báo cho những người đang theo dõi
+        // thông báo cho những người đang theo dõi
         AuctionDto updateDto = new AuctionDto(
             auction.getId(),
             auction.getAuctionName(),
             auction.getDescription(),
-            auction.getSeller(),
+            auction.getSellerUsername(),
             auction.getEndTime().toString(),
             auction.getStartingPrice(),
             auction.getCurrentBid(),
