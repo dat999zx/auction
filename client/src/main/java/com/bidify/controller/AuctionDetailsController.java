@@ -25,7 +25,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
-public class AuctionDetailsController {
+    public class AuctionDetailsController {
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
 
