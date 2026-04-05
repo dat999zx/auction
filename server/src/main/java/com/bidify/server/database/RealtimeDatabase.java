@@ -13,7 +13,7 @@ import com.bidify.server.network.ClientHandler;
 
 // database được lưu trong ram, giúp truy cập nhanh trong thời gian thực. chỉ có hiệu lực khi server chạy
 public class RealtimeDatabase {
-    private static final ConcurrentHashMap<String, ClientSession> activeClients = new ConcurrentHashMap<>(); // người dùng đang kết nối server
+    private static final ConcurrentHashMap<String, ClientSession> activeUsers = new ConcurrentHashMap<>(); // người dùng đang kết nối server
     private static final ConcurrentHashMap<String, Auction> liveAuctions = new ConcurrentHashMap<>(); // các cuộc đấu giá đang chạy
     private static final ConcurrentHashMap<String, AuctionChannel> auctionChannels = new ConcurrentHashMap<>(); // các channel của các cuộc đấu giá
     private static final GlobalChannel globalChannel = new GlobalChannel(); // channel chung của hệ thống
@@ -22,66 +22,63 @@ public class RealtimeDatabase {
 
     public static boolean isUserOnline(String username){ // kiểm tra user có online ko
         if (username == null) return false;
-        return activeClients.containsKey(username);
+        return activeUsers.containsKey(username);
     }
 
     public static boolean isWatchingAuction(String username, String auctionId){ // kiểm tra user có đang xem auction ko
         if (username == null || auctionId == null) return false;
-        ClientHandler client = getActiveClient(username);
+        ClientHandler client = getUserClient(username);
         AuctionChannel channel = auctionChannels.get(auctionId);
         if (client == null || channel == null) return false;
         return channel.hasObserver(client);
     }
 
-    public static void addActiveClient(ClientHandler client){ // thêm client vào database
-        addActiveClient(client, null);
-    }
-
-    public static void addActiveClient(ClientHandler client, User user){ // thêm client vào database
+    public static void addActiveUser(ClientHandler client, User user){ // thêm user vào database
         if (client == null || client.getCurrentUsername() == null) return;
-        activeClients.put(client.getCurrentUsername(), new ClientSession(client, user));
+        activeUsers.put(client.getCurrentUsername(), new ClientSession(client, user));
+        globalChannel.subscribe(client);
     }
 
-    public static ClientHandler getActiveClient(String username){ // lấy client trong database
+    public static ClientHandler getUserClient(String username){ // lấy client trong database
         if (username == null) return null;
-        ClientSession session = activeClients.get(username);
+        ClientSession session = activeUsers.get(username);
         if (session == null) return null;
         return session.getClientHandler();
     }
 
     public static User getActiveUser(String username){ // lấy user trong database
         if (username == null) return null;
-        ClientSession session = activeClients.get(username);
+        ClientSession session = activeUsers.get(username);
         if (session == null) return null;
         return session.getUser();
     }
 
     public static List<User> getAllActiveUsers(){ // lấy tất cả user trong database
         List<User> users = new ArrayList<>();
-        for (ClientSession session : activeClients.values()) {
+        for (ClientSession session : activeUsers.values()) {
             if (session != null && session.getUser() != null)
                 users.add(session.getUser());
         }
         return users;
     }
 
-    public static ClientSession getActiveSession(String username){ // lấy session trong database
+    public static ClientSession getUserSession(String username){ // lấy session trong database
         if (username == null) return null;
-        return activeClients.get(username);
+        return activeUsers.get(username);
     }
 
-    public static List<ClientHandler> getAllActiveClients(){ // lấy tất cả client trong database
+    public static List<ClientHandler> getAllUserClients(){ // lấy tất cả client trong database
         List<ClientHandler> clients = new ArrayList<>();
-        for (ClientSession session : activeClients.values()){
+        for (ClientSession session : activeUsers.values()){
             if (session != null && session.getClientHandler() != null)
                 clients.add(session.getClientHandler());
         }
         return clients;
     }
 
-    public static void removeActiveClient(String username){ // xóa client khỏi database
+    public static void removeActiveUser(String username){ // xóa user khỏi database
         if (username == null) return;
-        ClientSession session = activeClients.remove(username);
+        ClientSession session = activeUsers.remove(username);
         if (session == null) return;
         ClientHandler client = session.getClientHandler();
         if (client == null) return;
@@ -114,7 +111,7 @@ public class RealtimeDatabase {
     public static void subscribeAuctionChannel(String auctionId, String username){ // thêm người xem vào database
         if (auctionId == null || username == null) return;
         AuctionChannel channel = auctionChannels.get(auctionId);
-        ClientHandler client = getActiveClient(username);
+        ClientHandler client = getUserClient(username);
         if (channel == null || client == null) return;
         channel.subscribe(client);
     }
@@ -122,7 +119,7 @@ public class RealtimeDatabase {
     public static void unsubscribeAuctionChannel(String auctionId, String username){ // xóa người xem auction
         if (auctionId == null || username == null) return;
         AuctionChannel channel = auctionChannels.get(auctionId);
-        ClientHandler client = getActiveClient(username);
+        ClientHandler client = getUserClient(username);
         if (channel == null || client == null) return;
         channel.unsubscribe(client);
     }
@@ -136,22 +133,8 @@ public class RealtimeDatabase {
         return globalChannel;
     }
 
-    public static void subscribeGlobalChannel(String username){ // thêm người xem vào channel chung
-        if (username == null) return;
-        ClientHandler client = getActiveClient(username);
-        if (client == null) return;
-        globalChannel.subscribe(client);
-    }
-
-    public static void unsubscribeGlobalChannel(String username){ // xóa người xem khỏi channel chung
-        if (username == null) return;
-        ClientHandler client = getActiveClient(username);
-        if (client == null) return;
-        globalChannel.unsubscribe(client);
-    }
-
     public static void clearAll(){ // xóa tất cả dữ liệu trong database
-        activeClients.clear();
+        activeUsers.clear();
         liveAuctions.clear();
         auctionChannels.clear();
     }

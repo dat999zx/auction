@@ -77,11 +77,11 @@ public class AuthService {
             if (user.getStatus() == UserStatus.BANNED)
                 return new Response(RequestStatus.FAILED, "You have been banned");
 
-            if (RealtimeDatabase.getActiveClient(username) != null)
+            if (RealtimeDatabase.getUserClient(username) != null)
                 return new Response(RequestStatus.FAILED, "Another session is already active");
 
             client.setCurrentUsername(username);
-            RealtimeDatabase.addActiveClient(client, user);
+            RealtimeDatabase.addActiveUser(client, user);
 
             UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
             return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
@@ -105,7 +105,7 @@ public class AuthService {
 
             userDao.save(user);
             client.setCurrentUsername(null);
-            RealtimeDatabase.removeActiveClient(username);
+            RealtimeDatabase.removeActiveUser(username);
 
             return new Response(RequestStatus.SUCCESS, "Logout successfully");
         }
