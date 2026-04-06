@@ -6,6 +6,7 @@ out/
 # IntelliJ
 .idea/
 *.iml
+.vscode
 
 # Logs
 *.log

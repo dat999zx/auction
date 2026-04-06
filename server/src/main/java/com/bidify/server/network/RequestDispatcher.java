@@ -34,6 +34,14 @@ public class RequestDispatcher {
         }
         catch (Exception e) {
             e.printStackTrace();
+            return new Response(RequestStatus.ERROR, "Unknown exception");
+        }
+        catch (StackOverflowError e) {
+            e.printStackTrace();
+            return new Response(RequestStatus.ERROR, "Stack overflow error");
+        }
+        catch (Error e) {
+            e.printStackTrace();
             return new Response(RequestStatus.ERROR, "Unknown error");
         }
     }

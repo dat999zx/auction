@@ -61,7 +61,7 @@ public class AuthService {
         String password = data.getPassword();
 
         try {
-            if (client.isValidClient())
+            if (client.isInSession())
                 return new Response(RequestStatus.FAILED, "You are already logged in");
 
             if (!userDao.existsByUsername(username))
@@ -77,11 +77,11 @@ public class AuthService {
             if (user.getStatus() == UserStatus.BANNED)
                 return new Response(RequestStatus.FAILED, "You have been banned");
 
-            if (RealtimeDatabase.getActiveClient(username) != null)
+            if (RealtimeDatabase.getUserClient(username) != null)
                 return new Response(RequestStatus.FAILED, "Another session is already active");
 
             client.setCurrentUsername(username);
-            RealtimeDatabase.addActiveClient(client, user);
+            RealtimeDatabase.addActiveUser(client, user);
 
             UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
             return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
@@ -96,7 +96,7 @@ public class AuthService {
         String username = client.getCurrentUsername();
 
         try {
-            if (!client.isValidClient())
+            if (!client.isInSession())
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
             User user = RealtimeDatabase.getActiveUser(username);
@@ -105,7 +105,7 @@ public class AuthService {
 
             userDao.save(user);
             client.setCurrentUsername(null);
-            RealtimeDatabase.removeActiveClient(username);
+            RealtimeDatabase.removeActiveUser(username);
 
             return new Response(RequestStatus.SUCCESS, "Logout successfully");
         }
@@ -114,11 +114,11 @@ public class AuthService {
         }
     }
 
-    public void saveAllClients(){ // lưu tất cả client data mặc định cập nhật last login
-        saveAllClients(true);
+    public void saveAllUsers(){ // lưu tất cả user data mặc định cập nhật last login
+        saveAllUsers(true);
     }
 
-    public void saveAllClients(boolean saveLastLogin){ // lưu tất cả client data
+    public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers())
             userDao.save(user, saveLastLogin);
     }

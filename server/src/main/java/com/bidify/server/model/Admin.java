@@ -2,6 +2,7 @@ package com.bidify.server.model;
 
 import com.bidify.common.model.Event;
 import com.bidify.server.database.RealtimeDatabase;
+import com.bidify.server.model.runtime.GlobalChannel;
 import com.bidify.server.contract.*;
 import com.bidify.server.network.ClientHandler;
 
@@ -36,13 +37,13 @@ public class Admin extends User implements CanManageUser, CanManageAuction, CanM
 
     @Override
     public void sendEvent(Event event){ // gửi event đến tất cả user
-        for (ClientHandler client : RealtimeDatabase.getAllActiveClients())
-            if (client != null) client.sendEvent(event);
+        GlobalChannel globalChannel = RealtimeDatabase.getGlobalChannel();
+        if (globalChannel != null) globalChannel.publish(event);
     }
 
     @Override
     public void sendEvent(String username, Event event){ // gửi event đến user cụ thể
-        ClientHandler client = RealtimeDatabase.getActiveClient(username);
+        ClientHandler client = RealtimeDatabase.getUserClient(username);
         if (client != null) client.sendEvent(event);
     }
 }
