@@ -28,7 +28,7 @@ public class ServerApp {
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");
-            new AuthService().saveAllClients();
+            new AuthService().saveAllUsers();
             new AuctionService().saveAllLiveAuctions();
             RealtimeDatabase.clearAll();
         }));

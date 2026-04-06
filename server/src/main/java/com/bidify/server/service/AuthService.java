@@ -114,11 +114,11 @@ public class AuthService {
         }
     }
 
-    public void saveAllClients(){ // lưu tất cả client data mặc định cập nhật last login
-        saveAllClients(true);
+    public void saveAllUsers(){ // lưu tất cả user data mặc định cập nhật last login
+        saveAllUsers(true);
     }
 
-    public void saveAllClients(boolean saveLastLogin){ // lưu tất cả client data
+    public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers())
             userDao.save(user, saveLastLogin);
     }

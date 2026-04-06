@@ -23,4 +23,6 @@ public class GlobalChannel implements Channel {
         for (Observer observer : observers)
             observer.onEvent(event);
     }
+
+    public void clear() { observers.clear(); }
 }

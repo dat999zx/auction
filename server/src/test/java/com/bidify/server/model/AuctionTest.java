@@ -8,7 +8,48 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.bidify.common.enums.AuctionStatus;
+
 public class AuctionTest {
+    @Test
+    void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
+        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        auction.setMinIncrement(100);
+
+        Bid bid = new Bid(auction, "user1", 1100);
+
+        assertTrue(auction.placeBid(bid));
+        assertEquals(1100, auction.getCurrentBid());
+        assertEquals("user1", auction.getCurrentBidderUsername());
+        assertEquals(1, auction.getBidCount());
+    }
+
+    @Test
+    void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
+        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        auction.setMinIncrement(100);
+
+        Bid bid = new Bid(auction, "user1", 1050);
+
+        assertFalse(auction.placeBid(bid));
+        assertEquals(0, auction.getCurrentBid());
+        assertNull(auction.getCurrentBidderUsername());
+        assertEquals(0, auction.getBidCount());
+    }
+
+    @Test
+    void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
+        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        auction.setStatus(AuctionStatus.ENDED);
+
+        Bid bid = new Bid(auction, "user1", 1200);
+
+        assertFalse(auction.placeBid(bid));
+        assertEquals(0, auction.getCurrentBid());
+        assertNull(auction.getCurrentBidderUsername());
+        assertEquals(0, auction.getBidCount());
+    }
+
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
         Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));

@@ -136,6 +136,9 @@ public class RealtimeDatabase {
     public static void clearAll(){ // xóa tất cả dữ liệu trong database
         activeUsers.clear();
         liveAuctions.clear();
+        for (AuctionChannel channel : auctionChannels.values())
+            channel.clear();
         auctionChannels.clear();
+        globalChannel.clear();
     }
 }

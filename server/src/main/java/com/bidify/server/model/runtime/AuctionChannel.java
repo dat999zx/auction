@@ -30,4 +30,6 @@ public class AuctionChannel implements Channel {
         if (observer == null) return false;
         return observers.contains(observer);
     }
+
+    public void clear() { observers.clear(); }
 }
