@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
@@ -38,6 +40,7 @@ import javafx.util.Duration;
 public class CreateAuctionController {
     private static final Duration SIDEBAR_ANIMATION_DURATION = Duration.millis(160);
     private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @FXML
     private Label messageLabel;
@@ -60,11 +63,17 @@ public class CreateAuctionController {
     @FXML 
     private DatePicker startDatePicker;
 
+    @FXML
+    private TextField startTimeField;
+
     @FXML 
     private TextField minIncrementField;
 
     @FXML
     private DatePicker endDatePicker;
+
+    @FXML
+    private TextField endTimeField;
 
     @FXML
     private Button auctionsButton;
@@ -102,6 +111,14 @@ public class CreateAuctionController {
             productTypeComboBox.getItems().setAll(
                 List.of("New", "Used", "Rare", "Vintage", "Limited")
             );
+        }
+
+        if (startTimeField != null) {
+            startTimeField.setText("09:00");
+        }
+
+        if (endTimeField != null) {
+            endTimeField.setText("18:00");
         }
     }
 
@@ -183,8 +200,10 @@ public class CreateAuctionController {
             String productType = productTypeComboBox.getValue();
             double startingPrice = parseAmount(startingPriceField.getText(), "Starting price");
             double minIncrement = parseAmount(minIncrementField.getText(), "Min increment");
-            LocalDate startTime = startDatePicker.getValue();
-            LocalDate endTime = endDatePicker.getValue();
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue();
+            LocalTime startTime = parseTime(startTimeField.getText(), "Start time");
+            LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime startDateTime;
             LocalDateTime endDateTime;
 
@@ -196,15 +215,15 @@ public class CreateAuctionController {
             ValidationUtil.requiresNonBlank(productType, "Product type");
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
             ValidationUtil.validateMaxLength("description", description, 2000);
-            if (startTime == null) throw new ValidationException("Start date cannot be empty");
-            if (endTime == null) throw new ValidationException("End date cannot be empty");
+            if (startDate == null) throw new ValidationException("Start date cannot be empty");
+            if (endDate == null) throw new ValidationException("End date cannot be empty");
 
             if (minIncrement < 0) throw new ValidationException("min increment should be non-negative");
-            if (startTime.isBefore(LocalDate.now())) throw new ValidationException("Start time must be after current time!");
-            if (endTime.isBefore(startTime)) throw new ValidationException("End time must be after start time!");
+            startDateTime = LocalDateTime.of(startDate, startTime);
+            endDateTime = LocalDateTime.of(endDate, endTime);
 
-            startDateTime = startTime.atStartOfDay();
-            endDateTime = endTime.atTime(LocalTime.MAX);
+            if (startDateTime.isBefore(LocalDateTime.now())) throw new ValidationException("Start time must be after current time!");
+            if (!endDateTime.isAfter(startDateTime)) throw new ValidationException("End time must be after start time!");
 
             CreateAuctionRequest data = new CreateAuctionRequest(
                 client.getCurrentUsername(),
@@ -265,6 +284,17 @@ public class CreateAuctionController {
             return Double.parseDouble(parseValue);
         } catch (NumberFormatException e) {
             throw new NumberFormatException(fieldName + " must be a number");
+        }
+    }
+
+    private LocalTime parseTime(String value, String fieldName) {
+        String parseValue = value == null ? "" : value.trim();
+        ValidationUtil.requiresNonBlank(parseValue, fieldName);
+
+        try {
+            return LocalTime.parse(parseValue, TIME_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ValidationException(fieldName + " must use HH:mm format");
         }
     }
 

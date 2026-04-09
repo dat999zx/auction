@@ -34,11 +34,6 @@
 
                     <Region HBox.hgrow="ALWAYS" />
 
-                    <HBox alignment="CENTER_LEFT" maxWidth="420.0" spacing="8.0" styleClass="search-bar">
-                        <Label styleClass="search-icon" text="Search" />
-                        <TextField promptText="Search auctions, brands, or categories..." styleClass="search-field" />
-                    </HBox>
-
                     <Region HBox.hgrow="ALWAYS" />
 
                     <HBox alignment="CENTER_LEFT" spacing="28.0">

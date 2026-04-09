@@ -220,7 +220,12 @@
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="START DATE" />
-                                    <DatePicker fx:id="startDatePicker" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" />
+                                    <HBox spacing="10.0">
+                                        <children>
+                                            <DatePicker fx:id="startDatePicker" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="startTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                        </children>
+                                    </HBox>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
@@ -240,7 +245,12 @@
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="END DATE" />
-                           <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" />
+                                    <HBox spacing="10.0">
+                                        <children>
+                                            <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="endTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                        </children>
+                                    </HBox>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
