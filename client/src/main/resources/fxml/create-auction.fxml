@@ -11,6 +11,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
@@ -21,7 +22,9 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
+<AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
     <top>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
@@ -52,39 +55,6 @@
             </HBox>
         </HBox>
     </top>
-
-    <left>
-        <StackPane fx:id="sidebarContainer" maxWidth="250.0" minWidth="250.0" prefWidth="250.0">
-            <VBox fx:id="sidebarContent" prefWidth="250.0" spacing="20.0" styleClass="side-bar">
-                <padding>
-                    <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
-                </padding>
-
-                <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
-                    <padding>
-                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
-                    </padding>
-                    <Label styleClass="sidebar-brand" text="BIDIFY" />
-                    <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
-                </VBox>
-
-                <VBox spacing="6.0" VBox.vgrow="ALWAYS">
-                    <Button styleClass="side-nav-button-active" text="Live Auctions" />
-                    <Button styleClass="side-nav-button" text="Upcoming" />
-                    <Button styleClass="side-nav-button" text="Ended" />
-                    <Button styleClass="side-nav-button" text="My Bids" />
-                    <Button styleClass="side-nav-button" text="Watchlist" />
-                </VBox>
-
-                <VBox>
-                    <padding>
-                        <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
-                    </padding>
-                    <Button styleClass="primary-gradient-button" text="Place a Consignment" />
-                </VBox>
-            </VBox>
-        </StackPane>
-    </left>
 
     <center>
         <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
@@ -220,7 +190,12 @@
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="START DATE" />
-                                    <DatePicker fx:id="startDatePicker" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" />
+                                    <HBox spacing="10.0">
+                                        <children>
+                                            <DatePicker fx:id="startDatePicker" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="startTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                        </children>
+                                    </HBox>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
@@ -240,7 +215,12 @@
 
                                 <VBox spacing="6.0" GridPane.columnIndex="1">
                                     <Label styleClass="field-label" text="END DATE" />
-                           <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" />
+                                    <HBox spacing="10.0">
+                                        <children>
+                                            <DatePicker fx:id="endDatePicker" maxWidth="Infinity" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="endTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                        </children>
+                                    </HBox>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
@@ -265,3 +245,6 @@
         </ScrollPane>
     </center>
 </BorderPane>
+
+<fx:include fx:id="sharedSidebar" source="common-sidebar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="78.0" />
+</AnchorPane>

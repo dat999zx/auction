@@ -1,8 +1,6 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
@@ -14,10 +12,6 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -27,14 +21,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
 public class HubController {
-    private static final javafx.util.Duration SIDEBAR_ANIMATION_DURATION = javafx.util.Duration.millis(160);
-    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
-    private static final double SIDEBAR_VISIBLE_ROW_GAP = 24.0;
-    private static final double SIDEBAR_HIDDEN_ROW_GAP = 56.0;
+    private static final double AUCTION_ROW_GAP = 56.0;
 
     @FXML 
     private TextField searchBar; 
@@ -52,68 +41,31 @@ public class HubController {
     private Label emptyStateLabel;
 
     @FXML
-    private StackPane sidebarContainer;
+    private SidebarController sharedSidebarController;
 
-    @FXML
-    private VBox sidebarContent;
-
-    private boolean sidebarVisible = false;
-    private boolean sidebarAnimating = false;
     private AuctionDto[] currentAuctions = new AuctionDto[0];
 
     @FXML
     private void initialize() {
         auctionsButton.getStyleClass().removeAll("top-link");
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(sidebarContainer.widthProperty());
-        clip.heightProperty().bind(sidebarContainer.heightProperty());
-        sidebarContainer.setClip(clip);
-
-        initializeSidebarState();
         loadLiveAuctions();
     }
 
     @FXML
     private void toggleSidebar() {
-        if (sidebarAnimating) {
-            return;
+        if (sharedSidebarController != null) {
+            sharedSidebarController.toggleSidebar();
         }
-
-        sidebarAnimating = true;
-        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
-        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
-
-        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
-        slideTransition.setToX(targetTranslateX);
-
-        Timeline resizeTimeline = new Timeline(
-            new KeyFrame(
-                SIDEBAR_ANIMATION_DURATION,
-                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
-            )
-        );
-
-        slideTransition.setOnFinished(event -> {
-            sidebarVisible = !sidebarVisible;
-            sidebarAnimating = false;
-            renderAuctionRows();
-        });
-
-        sidebarContent.setMouseTransparent(sidebarVisible);
-        slideTransition.play();
-        resizeTimeline.play();
     }
 
     @FXML
     private void handleSelection(ActionEvent event) {
-        if (event.getSource() instanceof Button selectedButton) {
-            if (selectedButton == createAuctionButton) {
-                handleCreateAuction();
-            }
-                
+        if (!(event.getSource() instanceof Button selectedButton)) {
+            return;
+        }
+
+        if (selectedButton == createAuctionButton) {
+            handleCreateAuction();
         }
     }
 
@@ -179,14 +131,6 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
-    private void initializeSidebarState() {
-        sidebarContainer.setPrefWidth(0.0);
-        sidebarContainer.setMinWidth(0.0);
-        sidebarContainer.setMaxWidth(0.0);
-        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
-        sidebarContent.setMouseTransparent(true);
-    }
-
     private void renderAuctionRows() {
         liveAuctionsContainer.getChildren().clear();
         if (currentAuctions == null || currentAuctions.length == 0) {
@@ -194,9 +138,8 @@ public class HubController {
         }
 
         int cardsPerRow = 2;
-        double rowGap = sidebarVisible ? SIDEBAR_VISIBLE_ROW_GAP : SIDEBAR_HIDDEN_ROW_GAP;
         for (int i = 0; i < currentAuctions.length; i += cardsPerRow) {
-            HBox row = new HBox(rowGap);
+            HBox row = new HBox(AUCTION_ROW_GAP);
             row.setAlignment(Pos.TOP_CENTER);
 
             for (int j = 0; j < cardsPerRow && i + j < currentAuctions.length; j++) {
@@ -205,28 +148,6 @@ public class HubController {
 
             liveAuctionsContainer.getChildren().add(row);
         }
-    }
-
-    private String formatRemainingTime(String endTime) {
-        if (endTime == null || endTime.isBlank()) {
-            return "Unknown";
-        }
-        try {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
-            if (duration.isNegative() || duration.isZero()) {
-                return "Ended";
-            }
-            long hours = duration.toHours();
-            long minutes = duration.toMinutesPart();
-            long seconds = duration.toSecondsPart();
-            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        } catch (DateTimeParseException e) {
-            return endTime;
-        }
-    }
-
-    private String defaultText(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
     }
 
     private AnchorPane loadAuctionCard(AuctionDto auction) {
@@ -240,18 +161,6 @@ public class HubController {
             throw new IllegalStateException("Cannot load auction-card.fxml", e);
         }
     }
-
-    // private void setActiveTopNav(Button activeButton) {
-    //     Button[] topNavButtons = { auctionsButton, createAuctionButton };
-
-    //     for (Button button : topNavButtons) {
-    //         if (button == null) {
-    //             continue;
-    //         }
-    //         button.getStyleClass().removeAll("top-link", "top-link-active");
-    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
-    //     }
-    // }
 
     private void search(){
         if (searchBar.getText() == null || searchBar.getText().isBlank()) return;

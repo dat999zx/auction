@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="sidebarLayer" pickOnBounds="false" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.SidebarController">
+    <children>
+        <Region fx:id="sidebarOverlay" onMouseClicked="#handleOverlayClick" styleClass="sidebar-overlay" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+
+        <VBox fx:id="sidebarContent" prefWidth="250.0" spacing="20.0" styleClass="side-bar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <padding>
+                <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
+            </padding>
+
+            <VBox alignment="CENTER" spacing="2.0" styleClass="sidebar-brand-box">
+                <padding>
+                    <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
+                </padding>
+                <Label styleClass="sidebar-brand" text="BIDIFY" />
+                <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
+            </VBox>
+
+            <VBox spacing="6.0" VBox.vgrow="ALWAYS">
+                <padding>
+                    <Insets bottom="0.0" left="16.0" right="16.0" top="0.0" />
+                </padding>
+                <Button styleClass="side-nav-button-active" text="Live Auctions" />
+                <Button styleClass="side-nav-button" text="Upcoming" />
+                <Button styleClass="side-nav-button" text="Ended" />
+                <Button styleClass="side-nav-button" text="My Bids" />
+                <Button styleClass="side-nav-button" text="Watchlist" />
+            </VBox>
+
+            <VBox>
+                <padding>
+                    <Insets bottom="0.0" left="16.0" right="16.0" top="0.0" />
+                </padding>
+                <Button styleClass="primary-gradient-button" text="Place a Consignment" />
+            </VBox>
+        </VBox>
+    </children>
+</AnchorPane>

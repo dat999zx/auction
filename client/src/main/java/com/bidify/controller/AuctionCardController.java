@@ -29,8 +29,6 @@ public class AuctionCardController {
     private Label bidCountValue;
     @FXML
     private Label sellerLabel;
-    @FXML
-    private Button bidButton;
 
     private AuctionDto auction;
 

@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
@@ -18,10 +20,6 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -30,14 +28,11 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class CreateAuctionController {
-    private static final Duration SIDEBAR_ANIMATION_DURATION = Duration.millis(160);
-    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @FXML
     private Label messageLabel;
@@ -60,11 +55,17 @@ public class CreateAuctionController {
     @FXML 
     private DatePicker startDatePicker;
 
+    @FXML
+    private TextField startTimeField;
+
     @FXML 
     private TextField minIncrementField;
 
     @FXML
     private DatePicker endDatePicker;
+
+    @FXML
+    private TextField endTimeField;
 
     @FXML
     private Button auctionsButton;
@@ -73,24 +74,11 @@ public class CreateAuctionController {
     private Button createAuctionButton;
 
     @FXML
-    private StackPane sidebarContainer;
-
-    @FXML
-    private VBox sidebarContent;
-
-    private boolean sidebarVisible = false;
-    private boolean sidebarAnimating = false;
+    private SidebarController sharedSidebarController;
 
     @FXML
     private void initialize() {
         createAuctionButton.getStyleClass().removeAll("top-link");
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(sidebarContainer.widthProperty());
-        clip.heightProperty().bind(sidebarContainer.heightProperty());
-        sidebarContainer.setClip(clip);
-
-        initializeSidebarState();
 
         if (categoryComboBox != null) {
             categoryComboBox.getItems().setAll(
@@ -103,38 +91,21 @@ public class CreateAuctionController {
                 List.of("New", "Used", "Rare", "Vintage", "Limited")
             );
         }
+
+        if (startTimeField != null) {
+            startTimeField.setText("09:00");
+        }
+
+        if (endTimeField != null) {
+            endTimeField.setText("18:00");
+        }
     }
 
     @FXML
     private void toggleSidebar() {
-        if (sidebarAnimating) {
-            return;
+        if (sharedSidebarController != null) {
+            sharedSidebarController.toggleSidebar();
         }
-
-        sidebarAnimating = true;
-        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
-        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
-
-        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
-        slideTransition.setToX(targetTranslateX);
-
-        Timeline resizeTimeline = new Timeline(
-            new KeyFrame(
-                SIDEBAR_ANIMATION_DURATION,
-                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
-            )
-        );
-
-        slideTransition.setOnFinished(event -> {
-            sidebarVisible = !sidebarVisible;
-            sidebarAnimating = false;
-        });
-
-        sidebarContent.setMouseTransparent(sidebarVisible);
-        slideTransition.play();
-        resizeTimeline.play();
     }
 
     @FXML
@@ -183,8 +154,10 @@ public class CreateAuctionController {
             String productType = productTypeComboBox.getValue();
             double startingPrice = parseAmount(startingPriceField.getText(), "Starting price");
             double minIncrement = parseAmount(minIncrementField.getText(), "Min increment");
-            LocalDate startTime = startDatePicker.getValue();
-            LocalDate endTime = endDatePicker.getValue();
+            LocalDate startDate = startDatePicker.getValue();
+            LocalDate endDate = endDatePicker.getValue();
+            LocalTime startTime = parseTime(startTimeField.getText(), "Start time");
+            LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime startDateTime;
             LocalDateTime endDateTime;
 
@@ -196,15 +169,15 @@ public class CreateAuctionController {
             ValidationUtil.requiresNonBlank(productType, "Product type");
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
             ValidationUtil.validateMaxLength("description", description, 2000);
-            if (startTime == null) throw new ValidationException("Start date cannot be empty");
-            if (endTime == null) throw new ValidationException("End date cannot be empty");
+            if (startDate == null) throw new ValidationException("Start date cannot be empty");
+            if (endDate == null) throw new ValidationException("End date cannot be empty");
 
             if (minIncrement < 0) throw new ValidationException("min increment should be non-negative");
-            if (startTime.isBefore(LocalDate.now())) throw new ValidationException("Start time must be after current time!");
-            if (endTime.isBefore(startTime)) throw new ValidationException("End time must be after start time!");
+            startDateTime = LocalDateTime.of(startDate, startTime);
+            endDateTime = LocalDateTime.of(endDate, endTime);
 
-            startDateTime = startTime.atStartOfDay();
-            endDateTime = endTime.atTime(LocalTime.MAX);
+            if (startDateTime.isBefore(LocalDateTime.now())) throw new ValidationException("Start time must be after current time!");
+            if (!endDateTime.isAfter(startDateTime)) throw new ValidationException("End time must be after start time!");
 
             CreateAuctionRequest data = new CreateAuctionRequest(
                 client.getCurrentUsername(),
@@ -268,11 +241,15 @@ public class CreateAuctionController {
         }
     }
 
-    private void initializeSidebarState() {
-        sidebarContainer.setPrefWidth(0.0);
-        sidebarContainer.setMinWidth(0.0);
-        sidebarContainer.setMaxWidth(0.0);
-        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
-        sidebarContent.setMouseTransparent(true);
+    private LocalTime parseTime(String value, String fieldName) {
+        String parseValue = value == null ? "" : value.trim();
+        ValidationUtil.requiresNonBlank(parseValue, fieldName);
+
+        try {
+            return LocalTime.parse(parseValue, TIME_FORMATTER);
+        } catch (DateTimeParseException e) {
+            throw new ValidationException(fieldName + " must use HH:mm format");
+        }
     }
+
 }
