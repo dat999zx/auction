@@ -17,6 +17,7 @@ import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.event.EventManager;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -31,11 +32,13 @@ Response response = client.send(request) để gửi request đến server và n
 public class SocketClient {
     private static SocketClient client = new SocketClient();
 
-    private String currentUsername;
-    private Socket socket;
-    private BufferedReader in;
-    private PrintWriter out;
-    private Thread listenerThread;
+    private final Object connectionLock = new Object(); // khóa method (connect, close, send)
+
+    private volatile Socket socket;
+    private volatile String currentUsername; // username hiện tại đã đăng nhập
+    private volatile BufferedReader in; // nhận data từ server
+    private volatile PrintWriter out; // gửi data đến server
+    private volatile Thread listenerThread; // lắng nghe server
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
@@ -43,22 +46,24 @@ public class SocketClient {
 
     // kết nối đến server
     public void connect(String host, int port) throws IOException {
-        if (socket != null) {
-            System.out.println("Already connected to server");
-            return;
-        }
-        try {
-            socket = new Socket(host, port);
-            in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            out = new PrintWriter(socket.getOutputStream(), true);
-            startListening();
-        }
-        catch (ConnectException e) {
-            System.out.println("Server has not started");
-            Platform.exit();
-        }
-        catch (IOException e) {
-            System.out.println(e.getMessage());
+        synchronized (connectionLock) {
+            if (socket != null) {
+                System.out.println("Already connected to server");
+                return;
+            }
+            try {
+                socket = new Socket(host, port);
+                in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                out = new PrintWriter(socket.getOutputStream(), true);
+                startListening();
+            }
+            catch (ConnectException e) {
+                System.out.println("Server has not started");
+                Platform.exit();
+            }
+            catch (IOException e) {
+                System.out.println(e.getMessage());
+            }
         }
     }
 
@@ -76,13 +81,16 @@ public class SocketClient {
 
     // gửi request đến server và nhận về response
     public Response send(Request request) throws IOException {
-        if (listenerThread == null || !listenerThread.isAlive() || out == null)
-            throw new IOException("Client has not started listening");
-
         BlockingQueue<Response> queue = new ArrayBlockingQueue<>(1);
-        pendingResponses.put(request.getId(), queue);
 
-        out.println(JsonUtil.toJson(request));
+        synchronized (connectionLock) {
+            if (listenerThread == null || !listenerThread.isAlive() || out == null)
+                throw new IOException("Client has not started listening");
+    
+            pendingResponses.put(request.getId(), queue);
+            out.println(JsonUtil.toJson(request));
+        }
+
         try {
             Response response = queue.poll(120, TimeUnit.SECONDS);
             pendingResponses.remove(request.getId());
@@ -110,12 +118,12 @@ public class SocketClient {
                         Response response = JsonUtil.fromJson(line, Response.class);
                         BlockingQueue<Response> queue = pendingResponses.remove(response.getId());
 
-                        if (queue != null) {
-                            queue.offer(response);
-                        }
-                    } else if (json.has("type")) {
+                        if (queue != null) queue.offer(response);
+                    }
+                    else if (json.has("type")) {
                         Event event = JsonUtil.fromJson(line, Event.class);
-                        System.out.println(event.getMessage());
+                        System.out.println("Received: " + event.getType());
+                        Platform.runLater(() -> EventManager.getInstance().publish(event));
                     }
                 }
             }
@@ -132,14 +140,16 @@ public class SocketClient {
 
     // đóng kết nối
     public void close() throws IOException {
-        if (socket != null) socket.close();
-        if (listenerThread != null) listenerThread.interrupt();
-        if (in != null) in.close();
-        if (out != null) out.close();
-        socket = null;
-        in = null;
-        out = null;
-        listenerThread = null;
-        currentUsername = null;
+        synchronized (connectionLock) {
+            if (socket != null) socket.close();
+            if (listenerThread != null) listenerThread.interrupt();
+            if (in != null) in.close();
+            if (out != null) out.close();
+            socket = null;
+            in = null;
+            out = null;
+            listenerThread = null;
+            currentUsername = null;
+        }
     }
 }
