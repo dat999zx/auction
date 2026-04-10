@@ -6,6 +6,7 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.User;
+import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
@@ -42,125 +43,127 @@ public class AuctionService {
 
     public Response create(ClientHandler client, Request request){ // tạo auction
         CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        String seller = data.getSeller();
-        String auctionName = data.getAuctionName();
-        String description = data.getDescription();
-        String category = data.getCategory();
-        String productType = data.getProductType();
-        double startingPrice = data.getStartingPrice();
-        double minIncrement = data.getMinIncrement();
-        LocalDateTime startTime, endTime;
-        try{
-            startTime = LocalDateTime.parse(data.getStartTime());
-            endTime = LocalDateTime.parse(data.getEndTime());
-        } catch (DateTimeParseException e) {
-            return new Response(RequestStatus.FAILED, "Invalid date time format");
-        }
+        try {
+            if (!client.isInSession())
+                return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        
-        try{
-            ValidationUtil.requiresNonBlank(seller, "Seller");
+            String sellerUsername = data.getSeller();
+            String auctionName = data.getAuctionName();
+            String description = data.getDescription();
+            String category = data.getCategory();
+            String productType = data.getProductType();
+            double startingPrice = data.getStartingPrice();
+            double minIncrement = data.getMinIncrement();
+            LocalDateTime startTime = LocalDateTime.parse(data.getStartTime());
+            LocalDateTime endTime = LocalDateTime.parse(data.getEndTime());
+
+            ValidationUtil.requiresNonBlank(sellerUsername, "Seller");
             ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
             ValidationUtil.requiresNonBlank(description, "Description");
             ValidationUtil.requiresNonBlank(category, "Category");
             ValidationUtil.requiresNonBlank(productType, "Product type");
             ValidationUtil.validateMaxLength("Description", description, 200);
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
-            if (minIncrement < 0) throw new ValidationException("Min increment must be non-negative");
-        }
-        catch (ValidationException e){
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
+            ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
 
-        if (!client.getCurrentUsername().equals(seller))
-            return new Response(RequestStatus.UNAUTHORIZED, "Invalid seller");
+            if (!client.getCurrentUsername().equals(sellerUsername))
+                return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        if (!endTime.isAfter(startTime)) return new Response(RequestStatus.FAILED, "End time must be after start time");
+            if (startTime.isAfter(endTime))
+                throw new ValidationException("End time must be after start time");
 
-        try{
-            Auction auction = new Auction(seller, auctionName, description, startingPrice, startTime, endTime);
+            if (LocalDateTime.now().isAfter(startTime))
+                throw new ValidationException("Start time must be in the future");
+            
+            Auction auction = new Auction(sellerUsername, auctionName, description, startingPrice, startTime, endTime);
             auction.setCategory(category);
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);
-            if (!auctionDao.create(auction)) throw new DatabaseException("Failed to create auction");
+            auctionDao.create(auction);
             RealtimeDatabase.addLiveAuction(auction);
+
+            return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
+        }
+        catch (ValidationException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+        catch (DateTimeParseException e) {
+            return new Response(RequestStatus.FAILED, "Invalid date time format");
         }
         catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
     }
 
     public Response update(ClientHandler client, Request request){ // cập nhật thông tin của auction
         UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        String auctionId = data.getAuctionId();
         try {
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+
+            String auctionId = data.getAuctionId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-        } catch (ValidationException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
 
-        Auction auction = auctionDao.findById(auctionId);
-        if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            Auction auction = auctionDao.findById(auctionId);
+            if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            
+            if (!auction.getSellerUsername().equals(client.getCurrentUsername()))
+                return new Response(RequestStatus.UNAUTHORIZED, "You don't have permission to update this auction");
 
-        if (!auction.getSeller().equals(client.getCurrentUsername()))
-            return new Response(RequestStatus.UNAUTHORIZED, "Only the seller can update this auction");
+            // chỉ cho phép update trước khi bắt đầu đấu giá
+            if (auction.getStatus() != AuctionStatus.UPCOMING)
+                return new Response(RequestStatus.FAILED, "Can only update auction before it starts");
 
-        // chỉ cho phép update trước khi bắt đầu đấu giá
-        if (auction.getStatus() != AuctionStatus.UPCOMING)
-            return new Response(RequestStatus.FAILED, "Can only update auction before it starts");
+            // validate và cập nhật các field
+            String auctionName = data.getAuctionName();
+            String description = data.getDescription();
+            double startingPrice = data.getStartingPrice();
+            LocalDateTime startTime = LocalDateTime.parse(data.getStartTime());
+            LocalDateTime endTime = LocalDateTime.parse(data.getEndTime());
 
-        // validate và cập nhật các field
-        String auctionName = data.getAuctionName();
-        String description = data.getDescription();
-        double startingPrice = data.getStartingPrice();
-        LocalDateTime startTime, endTime;
-
-        try {
-            startTime = LocalDateTime.parse(data.getStartTime());
-            endTime = LocalDateTime.parse(data.getEndTime());
-        } catch (DateTimeParseException e) {
-            return new Response(RequestStatus.FAILED, "Invalid date time format");
-        }
-
-        try {
             ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
             ValidationUtil.requiresNonBlank(description, "Description");
             ValidationUtil.validateMaxLength("Description", description, 200);
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
-        } catch (ValidationException e) {
+
+            if (startTime.isAfter(endTime))
+                throw new ValidationException("End time must be after start time");
+
+            if (LocalDateTime.now().isAfter(startTime))
+                throw new ValidationException("Start time must be in the future");
+
+            auction.setAuctionName(auctionName);
+            auction.setDescription(description);
+            auction.setStartingPrice(startingPrice);
+            auction.setStartTime(startTime);
+            auction.setEndTime(endTime);
+
+            auctionDao.save(auction);
+            
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+            return new Response(RequestStatus.SUCCESS, "Auction updated successfully!", auctionDto);
+        }
+        catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        if (!endTime.isAfter(startTime))
-            return new Response(RequestStatus.FAILED, "End time must be after start time");
-
-        auction.setAuctionName(auctionName);
-        auction.setDescription(description);
-        auction.setStartingPrice(startingPrice);
-        auction.setStartTime(startTime);
-        auction.setEndTime(endTime);
-
-        try {
-            if (!auctionDao.save(auction)) throw new DatabaseException("Failed to update auction");
-        } catch (DatabaseException e) {
+        catch (DateTimeParseException e) {
+            return new Response(RequestStatus.FAILED, "Invalid date time format");
+        }
+        catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        // gửi tin nhắn cho người tham gia nếu có message
-        List<ClientHandler> watchers = RealtimeDatabase.getAuctionWatchers(auctionId);
-        if (watchers != null){
-            for (ClientHandler watcher : watchers)
-                watcher.sendEvent(new Event(EventType.AUCTION_UPDATED, "Auction updated")); // TODO: gửi auctionDto
-        }
-        return new Response(RequestStatus.SUCCESS, "Auction updated successfully!"); // TODO: return auctionDto
     }
     
     public void saveAllLiveAuctions(){ // lưu tất cả auction data
@@ -170,51 +173,67 @@ public class AuctionService {
 
     public Response delete(ClientHandler client, Request request){ // xóa auction
         DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid data request");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        String auctionId = data.getId();
-        try{
+        try {
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+            
+            String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
-        } 
-        catch( ValidationException e){
+
+            Auction auction;
+            auction = auctionDao.findById(auctionId);
+            if (auction == null) 
+                return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+
+            if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Cannot delete auction after it has started");
+
+            if (!auction.getSellerUsername().equals(client.getCurrentUsername())) 
+                return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
+
+            auctionDao.deleteById(auctionId);
+            RealtimeDatabase.removeLiveAuction(auctionId);
+            return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+        }
+        catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        Auction auction = auctionDao.findById(auctionId);
-        if (auction == null) 
-            return new Response(RequestStatus.NOT_FOUND, "Auction not found");
-
-        if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Can not delete auction after it started");
-
-        if (!auction.getSeller().equals(client.getCurrentUsername())) 
-            return new Response(RequestStatus.FAILED, "Only seller can delete their auction");
-
-        if (!auctionDao.deleteById(auctionId)) 
-            return new Response(RequestStatus.FAILED, "Failed to delete auction");
-
-        RealtimeDatabase.removeLiveAuction(auctionId);
-        return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
     }
 
     public Response getDetail(ClientHandler client, Request request){ // lấy chi tiết của auction
         GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        String auctionId = data.getAuctionId();
         try {
+            String auctionId = data.getAuctionId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-        } catch (ValidationException e) {
+
+            Auction auction = auctionDao.findById(auctionId);
+            if (auction == null)
+                return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+
+            return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auctionDto);
+        }
+        catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        Auction auction = auctionDao.findById(auctionId);
-
-        if (auction == null) {
-            return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
         }
-        // TODO: return auctionDto
-        return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auction);
     }
 
     public Response getAllLiveAuctions(ClientHandler client, Request request){ // lấy danh sách các auction đang diễn ra
@@ -229,7 +248,7 @@ public class AuctionService {
                 auction.getId(),
                 auction.getAuctionName(),
                 auction.getDescription(),
-                auction.getSeller(),
+                auction.getSellerUsername(),
                 auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
                 auction.getStartingPrice(),
                 displayBid,
@@ -241,26 +260,47 @@ public class AuctionService {
 
     public Response join(ClientHandler client, Request request){ // tham gia vào auction
         JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        String auctionId = data.getAuctionId();
-        String username = client.getCurrentUsername();
+        try {
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+    
+            String auctionId = data.getAuctionId();
+            String username = client.getCurrentUsername();
 
-        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
-        if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
+            Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+            if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
-        if (RealtimeDatabase.isWatchingAuction(username, auctionId))
-            return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
+            if (RealtimeDatabase.isWatchingAuction(username, auctionId))
+                return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
 
-        RealtimeDatabase.addAuctionWatcher(auctionId, username);
-        return new Response(RequestStatus.SUCCESS, "Join auction successfully"); // TODO: return auctionDto
+            RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
+
+            AuctionDto auctionDto = new AuctionDto(
+                auctionId,
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+            return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
+        }
+        catch (ValidationException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
     }
 
     public Response leave(ClientHandler client, Request request){ // thoát khỏi auction
         LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getAuctionId();
         String username = client.getCurrentUsername();
@@ -268,14 +308,14 @@ public class AuctionService {
         if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
             return new Response(RequestStatus.FAILED, "You are not watching this auction");
 
-        RealtimeDatabase.removeAuctionWatcher(auctionId, username);
+        RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
         return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
     }
 
     public Response placeBid(ClientHandler client, Request request){ // đặt bid mới
         PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isValidClient()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
         String auctionId = data.getAuctionId();
         double bidAmount = data.getBidAmount();
@@ -292,47 +332,38 @@ public class AuctionService {
         Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
         User user = RealtimeDatabase.getActiveUser(username);
 
-        if (user == null) return new Response(RequestStatus.FAILED, "User not found");
-        if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
         if (auction == null)
             return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
-
-        if (auction.getSeller().equals(username))
+        if (user == null) return new Response(RequestStatus.FAILED, "User not found");
+        if (auction.getSellerUsername().equals(username))
             return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
+        if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
 
-        double currentBid = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
-        if (bidAmount - currentBid < auction.getMinIncrement())
-            return new Response(RequestStatus.FAILED, "Bid amount must be at least " + auction.getMinIncrement() + "$ higher than current bid");
-
-        Bid bid = new Bid(auction, user, bidAmount);
+        Bid bid = new Bid(auction, username, bidAmount);
         if (!auction.placeBid(bid))
             return new Response(RequestStatus.FAILED, "Failed to place bid");
 
         try {
-            if (!auctionDao.save(auction)) throw new DatabaseException("Failed to update bid in database");
+            auctionDao.save(auction);
         } catch (DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
 
-        // Thông báo cho những người đang theo dõi
+        // thông báo cho những người đang theo dõi
         AuctionDto updateDto = new AuctionDto(
             auction.getId(),
             auction.getAuctionName(),
             auction.getDescription(),
-            auction.getSeller(),
+            auction.getSellerUsername(),
             auction.getEndTime().toString(),
             auction.getStartingPrice(),
             auction.getCurrentBid(),
             auction.getBidCount()
         );
 
-        List<ClientHandler> watchers = RealtimeDatabase.getAuctionWatchers(auctionId);
-        if (watchers != null){
-            for (ClientHandler watcher : watchers){
-                if (watcher != null)
-                    watcher.sendEvent(new Event(EventType.BID_PLACED, "New bid placed", updateDto));
-            }
-        }
+        AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
+        if (auctionChannel != null)
+            auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", updateDto));
 
         return new Response(RequestStatus.SUCCESS, "Place bid successfully");
     }

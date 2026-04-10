@@ -6,6 +6,7 @@ import com.bidify.common.model.LogoutRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.server.contract.Observer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,7 +16,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 // lắng nghe client
-public class ClientHandler implements Runnable {
+public class ClientHandler implements Runnable, Observer {
     private final Socket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
     private String currentUsername;
@@ -60,6 +61,11 @@ public class ClientHandler implements Runnable {
             out.println(JsonUtil.toJson(event));
     }
 
+    @Override
+    public void onEvent(Event event) {
+        sendEvent(event);
+    }
+
     public void setCurrentUsername(String username) { // thiết lập username của client
         this.currentUsername = username;
     }
@@ -68,7 +74,7 @@ public class ClientHandler implements Runnable {
         return currentUsername;
     }
 
-    public boolean isValidClient(){ // xác thực client đã đăng nhập chưa
+    public boolean isInSession(){ // xác thực client đã đăng nhập chưa
         return socket != null && currentUsername != null;
     }
 

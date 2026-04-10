@@ -1,7 +1,6 @@
 package com.bidify.server.service;
 
 import com.bidify.common.dto.UserDto;
-import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
@@ -26,94 +25,100 @@ public class AuthService {
     // đăng kí
     public Response register(Request request) {
         RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         String username = data.getUsername();
         String nickname = data.getNickname();
         String password = data.getPassword();
 
-        try{
+        try {
             ValidationUtil.validateUsername(username);
-            if (userDao.existsByUsername(username)) throw new ValidationException("Username already exists");
             ValidationUtil.validateNickname(nickname);
             ValidationUtil.validatePassword(password);
-        }
-        catch (ValidationException e){
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
 
-        try{
+            if (userDao.existsByUsername(username))
+                return new Response(RequestStatus.FAILED, "Username already exists");
+
             User user = new User(username, nickname, PasswordUtil.hash(password));
-            if (!userDao.create(user)) throw new DatabaseException("Failed to save User");
+            userDao.create(user);
+
+            return new Response(RequestStatus.SUCCESS, "Register successfully");
         }
-        catch (DatabaseException e){
+        catch (ValidationException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
-
-        return new Response(RequestStatus.SUCCESS, "Register successfully");
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
     }
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
         LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         String username = data.getUsername();
         String password = data.getPassword();
 
-        if (client.isValidClient())
-            return new Response(RequestStatus.FAILED, "Your are already logged in");
+        try {
+            if (client.isInSession())
+                return new Response(RequestStatus.FAILED, "You are already logged in");
 
-        if (!userDao.existsByUsername(username))
-            return new Response(RequestStatus.FAILED, "Username or password is incorrect");
+            if (!userDao.existsByUsername(username))
+                return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
-        User user = userDao.findByUsername(username);
-        if (user == null)
-            return new Response(RequestStatus.FAILED, "Failed to get user data");
+            User user = userDao.findByUsername(username);
+            if (user == null)
+                return new Response(RequestStatus.FAILED, "Failed to get user data");
+            
+            if (!PasswordUtil.matches(password, user.getPassword()))
+                return new Response(RequestStatus.FAILED, "Username or password is incorrect");
 
-        if (!PasswordUtil.matches(password, user.getPassword()))
-            return new Response(RequestStatus.FAILED, "Username or password is incorrect");
-        
-        if (user.getStatus() == UserStatus.BANNED)
-            return new Response(RequestStatus.FAILED, "You have been banned");
-        
-        if (RealtimeDatabase.getActiveClient(username) != null)
-            return new Response(RequestStatus.FAILED, "Another session is already active");
+            if (user.getStatus() == UserStatus.BANNED)
+                return new Response(RequestStatus.FAILED, "You have been banned");
 
-        client.setCurrentUsername(username);
-        RealtimeDatabase.addActiveClient(client, user);
+            if (RealtimeDatabase.getUserClient(username) != null)
+                return new Response(RequestStatus.FAILED, "Another session is already active");
 
-        UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
-        
-        return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
+            client.setCurrentUsername(username);
+            RealtimeDatabase.addActiveUser(client, user);
+
+            UserDto userDto = new UserDto(user.getUsername(), user.getNickname(), user.getWallet());
+            return new Response(RequestStatus.SUCCESS, "Login successfully", userDto);
+        }
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
     }
 
     // đăng kí
     public Response logout(ClientHandler client, Request request){
         String username = client.getCurrentUsername();
 
-        if (!client.isValidClient())
-            return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        try {
+            if (!client.isInSession())
+                return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        User user = RealtimeDatabase.getActiveUser(username);
-        if (!userDao.existsByUsername(username) || user == null)
-            return new Response(RequestStatus.FAILED, "User is not found or not active");
+            User user = RealtimeDatabase.getActiveUser(username);
+            if (user == null)
+                return new Response(RequestStatus.FAILED, "Session is inactive");
 
-        if (RealtimeDatabase.getActiveClient(username) == null)
-            return new Response(RequestStatus.FAILED, "Session is inactive");
-        
-        userDao.save(user);
-        client.setCurrentUsername(null);
-        RealtimeDatabase.removeActiveClient(username);
+            userDao.save(user);
+            client.setCurrentUsername(null);
+            RealtimeDatabase.removeActiveUser(username);
 
-        System.out.println(username + " logged out");
-
-        return new Response(RequestStatus.SUCCESS, "Logout successfully");
+            return new Response(RequestStatus.SUCCESS, "Logout successfully");
+        }
+        catch (DatabaseException e) {
+            return new Response(RequestStatus.FAILED, e.getMessage());
+        }
     }
 
-    public void saveAllClients(){ // lưu tất cả client data mặc định cập nhật last login
-        saveAllClients(true);
+    public void saveAllUsers(){ // lưu tất cả user data mặc định cập nhật last login
+        saveAllUsers(true);
     }
 
-    public void saveAllClients(boolean saveLastLogin){ // lưu tất cả client data
+    public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers())
             userDao.save(user, saveLastLogin);
     }

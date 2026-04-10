@@ -199,9 +199,9 @@
                                                                 <RowConstraints />
                                                             </rowConstraints>
 
-                                                            <Label styleClass="bidder-name" text="Latest bid" GridPane.columnIndex="0" />
-                                                            <Label styleClass="bid-amount right" text="Live value shown above" GridPane.columnIndex="1" />
-                                                            <Label styleClass="bid-time right" text="Waiting for server data" GridPane.columnIndex="2" />
+                                                            <Label fx:id="latestBidderLabel" styleClass="bidder-name" text="Latest bid" GridPane.columnIndex="0" />
+                                                            <Label fx:id="latestBidAmountLabel" styleClass="bid-amount right" text="Live value shown above" GridPane.columnIndex="1" />
+                                                            <Label fx:id="latestBidTimeLabel" styleClass="bid-time right" text="Waiting for server data" GridPane.columnIndex="2" />
                                                         </GridPane>
                                                         <Separator />
                                                         <GridPane styleClass="activity-row">
@@ -214,9 +214,9 @@
                                                                 <RowConstraints />
                                                             </rowConstraints>
 
-                                                            <Label styleClass="bidder-name" text="Starting price" GridPane.columnIndex="0" />
-                                                            <Label styleClass="bid-amount right" text="Opening value shown above" GridPane.columnIndex="1" />
-                                                            <Label styleClass="bid-time right" text="Opening bid" GridPane.columnIndex="2" />
+                                                            <Label fx:id="openingBidderLabel" styleClass="bidder-name" text="Starting price" GridPane.columnIndex="0" />
+                                                            <Label fx:id="openingBidAmountLabel" styleClass="bid-amount right" text="Opening value shown above" GridPane.columnIndex="1" />
+                                                            <Label fx:id="openingBidTimeLabel" styleClass="bid-time right" text="Opening bid" GridPane.columnIndex="2" />
                                                         </GridPane>
                                                     </VBox>
                                                 </content>

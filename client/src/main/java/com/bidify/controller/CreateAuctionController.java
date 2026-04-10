@@ -78,7 +78,7 @@ public class CreateAuctionController {
     @FXML
     private VBox sidebarContent;
 
-    private boolean sidebarVisible = true;
+    private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
     @FXML
@@ -89,6 +89,8 @@ public class CreateAuctionController {
         clip.widthProperty().bind(sidebarContainer.widthProperty());
         clip.heightProperty().bind(sidebarContainer.heightProperty());
         sidebarContainer.setClip(clip);
+
+        initializeSidebarState();
 
         if (categoryComboBox != null) {
             categoryComboBox.getItems().setAll(
@@ -264,5 +266,13 @@ public class CreateAuctionController {
         } catch (NumberFormatException e) {
             throw new NumberFormatException(fieldName + " must be a number");
         }
+    }
+
+    private void initializeSidebarState() {
+        sidebarContainer.setPrefWidth(0.0);
+        sidebarContainer.setMinWidth(0.0);
+        sidebarContainer.setMaxWidth(0.0);
+        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
+        sidebarContent.setMouseTransparent(true);
     }
 }

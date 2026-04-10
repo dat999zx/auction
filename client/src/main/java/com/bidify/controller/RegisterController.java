@@ -66,8 +66,11 @@ public class RegisterController {
                 Response response = client.send(request);
                 System.out.println(response.getMessage());
                 switch (response.getStatus()) {
-                    case SUCCESS -> showMessage("Register successfully, please login", true);
-                    default -> throw new AuthException(response.getMessage());
+                    case SUCCESS:
+                        showMessage("Register successfully, please login", true);
+                        break;
+                    default:
+                        throw new AuthException(response.getMessage());
                 }
             } catch (AuthException e) {
                 showMessage(e.getMessage(), false);
