@@ -32,6 +32,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
@@ -76,6 +77,12 @@ public class CreateAuctionController {
     private TextField endTimeField;
 
     @FXML
+    private HBox topBar;
+
+    @FXML
+    private SharedTopBarController topBarController;
+
+    @FXML
     private Button auctionsButton;
 
     @FXML
@@ -92,7 +99,11 @@ public class CreateAuctionController {
 
     @FXML
     private void initialize() {
+        bindTopBar();
         createAuctionButton.getStyleClass().removeAll("top-link");
+        if (!createAuctionButton.getStyleClass().contains("top-link-active")) {
+            createAuctionButton.getStyleClass().add("top-link-active");
+        }
 
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(sidebarContainer.widthProperty());
@@ -304,5 +315,21 @@ public class CreateAuctionController {
         sidebarContainer.setMaxWidth(0.0);
         sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
         sidebarContent.setMouseTransparent(true);
+    }
+
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
+        }
+
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+
+        topBarController.setShowExplore(true);
+        topBarController.setShowSearch(false);
+        topBarController.setUseInlineLogout(true);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setExploreHandler(event -> toggleSidebar());
+        topBarController.setLogoutHandler(event -> handleLogout());
     }
 }

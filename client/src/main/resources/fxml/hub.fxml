@@ -4,7 +4,6 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
@@ -17,40 +16,7 @@
     <BorderPane prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
         <top>
-            <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
-                <padding>
-                    <Insets bottom="16.0" left="32.0" right="32.0" top="16.0" />
-                </padding>
-
-                <HBox alignment="CENTER_LEFT" spacing="16.0">
-                    <Button fx:id="exploreButton" onAction="#toggleSidebar" styleClass="ghost-nav-button" text="☰ Explore" />
-                </HBox>
-
-                <Region HBox.hgrow="ALWAYS" />
-
-                <HBox alignment="CENTER_LEFT" maxWidth="420.0" prefHeight="46.0" prefWidth="331.0" spacing="8.0" styleClass="search-bar">
-                    <Label styleClass="search-icon" text="⌕" />
-                    <TextField fx:id="searchBar" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
-                </HBox>
-
-                <Region HBox.hgrow="ALWAYS" />
-
-                <HBox alignment="CENTER_LEFT" spacing="24.0">
-                    <HBox alignment="CENTER_LEFT" spacing="18.0">
-                        <Button fx:id="auctionsButton" onAction="#handleSelection" styleClass="top-link-active" text="Auctions" />
-                        <Button fx:id="createAuctionButton" onAction="#handleSelection" styleClass="top-link" text="Create Auction" />
-                    </HBox>
-
-                    <HBox alignment="CENTER_LEFT" spacing="12.0">
-                        <Button onAction="#handleLogout" styleClass="ghost-nav-button" text="Logout" />
-                        <Button styleClass="icon-button" text="🔔" />
-                        <Button styleClass="icon-button" text="⟲" />
-                        <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
-                            <Label styleClass="avatar-text" text="U" />
-                        </StackPane>
-                    </HBox>
-                </HBox>
-            </HBox>
+            <fx:include fx:id="topBar" source="includes/shared-top-bar.fxml" />
         </top>
 
         <left>

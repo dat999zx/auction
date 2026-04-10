@@ -36,8 +36,14 @@ public class HubController {
     private static final double SIDEBAR_VISIBLE_ROW_GAP = 24.0;
     private static final double SIDEBAR_HIDDEN_ROW_GAP = 56.0;
 
-    @FXML 
-    private TextField searchBar; 
+    @FXML
+    private HBox topBar;
+
+    @FXML
+    private SharedTopBarController topBarController;
+
+    @FXML
+    private TextField searchBar;
 
     @FXML
     private Button auctionsButton;
@@ -63,7 +69,11 @@ public class HubController {
 
     @FXML
     private void initialize() {
+        bindTopBar();
         auctionsButton.getStyleClass().removeAll("top-link");
+        if (!auctionsButton.getStyleClass().contains("top-link-active")) {
+            auctionsButton.getStyleClass().add("top-link-active");
+        }
 
         Rectangle clip = new Rectangle();
         clip.widthProperty().bind(sidebarContainer.widthProperty());
@@ -261,6 +271,23 @@ public class HubController {
 
     private void handleCreateAuction() {
         SceneManager.switchScene("create-auction.fxml");
+    }
+
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
+        }
+
+        searchBar = topBarController.getSearchBar();
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+
+        topBarController.setShowExplore(true);
+        topBarController.setShowSearch(true);
+        topBarController.setUseInlineLogout(true);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setExploreHandler(event -> toggleSidebar());
+        topBarController.setLogoutHandler(event -> handleLogout());
     }
 
 }
