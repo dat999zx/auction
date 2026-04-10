@@ -1,17 +1,12 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.LogoutRequest;
-import com.bidify.common.model.Request;
-import com.bidify.common.model.Response;
-import com.bidify.common.utility.JsonUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.service.AuctionClientService;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
 import javafx.animation.KeyFrame;
@@ -66,6 +61,8 @@ public class HubController {
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
     private AuctionDto[] currentAuctions = new AuctionDto[0];
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
@@ -129,8 +126,7 @@ public class HubController {
 
     @FXML
     private void handleLogout() {
-        SocketClient client = SocketClient.getClient();
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
@@ -138,11 +134,9 @@ public class HubController {
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
-            Response response = client.send(request);
+            var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                client.setCurrentUsername(null);
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml");
                 return;
@@ -156,13 +150,7 @@ public class HubController {
 
     private void loadLiveAuctions() {
         try {
-            Response response = SocketClient.getClient().send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
-            if (response.getStatus() != RequestStatus.SUCCESS) {
-                showEmptyState("Cannot load live auctions.");
-                return;
-            }
-
-            AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+            AuctionDto[] auctions = auctionClientService.getLiveAuctions();
             if (auctions == null || auctions.length == 0) {
                 showEmptyState("No live auctions right now.");
                 return;
@@ -175,6 +163,8 @@ public class HubController {
         } catch (IOException e) {
             showEmptyState("Cannot connect to server.");
             e.printStackTrace();
+        } catch (AuctionException e) {
+            showEmptyState(e.getMessage());
         }
     }
 
@@ -215,28 +205,6 @@ public class HubController {
 
             liveAuctionsContainer.getChildren().add(row);
         }
-    }
-
-    private String formatRemainingTime(String endTime) {
-        if (endTime == null || endTime.isBlank()) {
-            return "Unknown";
-        }
-        try {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
-            if (duration.isNegative() || duration.isZero()) {
-                return "Ended";
-            }
-            long hours = duration.toHours();
-            long minutes = duration.toMinutesPart();
-            long seconds = duration.toSecondsPart();
-            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        } catch (DateTimeParseException e) {
-            return endTime;
-        }
-    }
-
-    private String defaultText(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
     }
 
     private AnchorPane loadAuctionCard(AuctionDto auction) {
