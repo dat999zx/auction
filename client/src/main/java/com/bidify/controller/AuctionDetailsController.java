@@ -24,13 +24,18 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 
-    public class AuctionDetailsController {
+public class AuctionDetailsController {
     private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
 
     private static String selectedAuctionId;
 
+    @FXML
+    private HBox topBar;
+    @FXML
+    private SharedTopBarController topBarController;
     @FXML
     private Button auctionsButton;
     @FXML
@@ -78,6 +83,7 @@ import javafx.scene.image.ImageView;
 
     @FXML
     private void initialize() {
+        bindTopBar();
         setActiveTopNav(auctionsButton);
         setPreviewImage(DEFAULT_PREVIEW_IMAGE);
         resetView();
@@ -373,5 +379,21 @@ import javafx.scene.image.ImageView;
             }
         }
         return latest;
+    }
+
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
+        }
+
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+        logoutButton = topBarController.getLogoutLinkButton();
+
+        topBarController.setShowExplore(false);
+        topBarController.setShowSearch(false);
+        topBarController.setUseInlineLogout(false);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setLogoutHandler(event -> handleLogout());
     }
 }

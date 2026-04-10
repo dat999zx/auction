@@ -20,6 +20,10 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
+import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -28,10 +32,15 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 public class CreateAuctionController {
+    private static final Duration SIDEBAR_ANIMATION_DURATION = Duration.millis(160);
+    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @FXML
@@ -68,17 +77,40 @@ public class CreateAuctionController {
     private TextField endTimeField;
 
     @FXML
+    private HBox topBar;
+
+    @FXML
+    private SharedTopBarController topBarController;
+
+    @FXML
     private Button auctionsButton;
 
     @FXML
     private Button createAuctionButton;
 
     @FXML
-    private SidebarController sharedSidebarController;
+    private StackPane sidebarContainer;
+
+    @FXML
+    private VBox sidebarContent;
+
+    private boolean sidebarVisible = false;
+    private boolean sidebarAnimating = false;
 
     @FXML
     private void initialize() {
+        bindTopBar();
         createAuctionButton.getStyleClass().removeAll("top-link");
+        if (!createAuctionButton.getStyleClass().contains("top-link-active")) {
+            createAuctionButton.getStyleClass().add("top-link-active");
+        }
+
+        Rectangle clip = new Rectangle();
+        clip.widthProperty().bind(sidebarContainer.widthProperty());
+        clip.heightProperty().bind(sidebarContainer.heightProperty());
+        sidebarContainer.setClip(clip);
+
+        initializeSidebarState();
 
         if (categoryComboBox != null) {
             categoryComboBox.getItems().setAll(
@@ -103,9 +135,34 @@ public class CreateAuctionController {
 
     @FXML
     private void toggleSidebar() {
-        if (sharedSidebarController != null) {
-            sharedSidebarController.toggleSidebar();
+        if (sidebarAnimating) {
+            return;
         }
+
+        sidebarAnimating = true;
+        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
+        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
+
+        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
+        slideTransition.setToX(targetTranslateX);
+
+        Timeline resizeTimeline = new Timeline(
+            new KeyFrame(
+                SIDEBAR_ANIMATION_DURATION,
+                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
+                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
+            )
+        );
+
+        slideTransition.setOnFinished(event -> {
+            sidebarVisible = !sidebarVisible;
+            sidebarAnimating = false;
+        });
+
+        sidebarContent.setMouseTransparent(sidebarVisible);
+        slideTransition.play();
+        resizeTimeline.play();
     }
 
     @FXML
@@ -252,4 +309,27 @@ public class CreateAuctionController {
         }
     }
 
+    private void initializeSidebarState() {
+        sidebarContainer.setPrefWidth(0.0);
+        sidebarContainer.setMinWidth(0.0);
+        sidebarContainer.setMaxWidth(0.0);
+        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
+        sidebarContent.setMouseTransparent(true);
+    }
+
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
+        }
+
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+
+        topBarController.setShowExplore(true);
+        topBarController.setShowSearch(false);
+        topBarController.setUseInlineLogout(true);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setExploreHandler(event -> toggleSidebar());
+        topBarController.setLogoutHandler(event -> handleLogout());
+    }
 }
