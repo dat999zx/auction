@@ -101,6 +101,10 @@
     -fx-font-weight: 800;
 }
 
+.sidebar-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.18);
+}
+
 .side-bar {
     -fx-background-color: #f0f3ff;
 }
@@ -129,10 +133,9 @@
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 14 22;
-    -fx-background-radius: 12 0 0 12;
+    -fx-background-radius: 14;
     -fx-cursor: hand;
     -fx-max-width: 100000;
-    -fx-translate-x: 16;
 }
 
 .side-nav-button:hover {
