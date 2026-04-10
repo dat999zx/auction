@@ -1,13 +1,10 @@
 package com.bidify.controller;
 
-import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.model.RegisterRequest;
-import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;
 import javafx.event.ActionEvent;
@@ -36,6 +33,7 @@ public class RegisterController {
     private ImageView passwordEyeCloseIcon;
 
     private boolean showingPassword;
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     public void initialize() {
@@ -58,26 +56,16 @@ public class RegisterController {
                 throw new ValidationException("Password confirmation does not match");
             }
 
-            SocketClient client = SocketClient.getClient();
-            RegisterRequest data = new RegisterRequest(username, password);
-            Request request = new Request(RequestType.REGISTER, data);
-
-            try {
-                Response response = client.send(request);
-                System.out.println(response.getMessage());
-                switch (response.getStatus()) {
-                    case SUCCESS:
-                        showMessage("Register successfully, please login", true);
-                        break;
-                    default:
-                        throw new AuthException(response.getMessage());
-                }
-            } catch (AuthException e) {
-                showMessage(e.getMessage(), false);
-            } catch (IOException e) {
-                showMessage("Cannot connect to server", false);
-                e.printStackTrace();
+            Response response = authClientService.register(username, password);
+            System.out.println(response.getMessage());
+            if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
+                showMessage("Register successfully, please login", true);
             }
+        } catch (AuthException e) {
+            showMessage(e.getMessage(), false);
+        } catch (IOException e) {
+            showMessage("Cannot connect to server", false);
+            e.printStackTrace();
         } catch (ValidationException e) {
             showMessage(e.getMessage(), false);
         }

@@ -18,6 +18,7 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
+import com.bidify.model.ClientSession;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -30,12 +31,12 @@ SocketClient client = SocketClient.getClient(); để lấy client
 Response response = client.send(request) để gửi request đến server và nhận về response
 */
 public class SocketClient {
-    private static SocketClient client = new SocketClient();
+    private static SocketClient client = new SocketClient(); // singleton
+    private final ClientSession clientSession = ClientSession.getInstance(); // session hiện tại
 
     private final Object connectionLock = new Object(); // khóa method (connect, close, send)
 
     private volatile Socket socket;
-    private volatile String currentUsername; // username hiện tại đã đăng nhập
     private volatile BufferedReader in; // nhận data từ server
     private volatile PrintWriter out; // gửi data đến server
     private volatile Thread listenerThread; // lắng nghe server
@@ -72,11 +73,15 @@ public class SocketClient {
     }
 
     public String getCurrentUsername() { // lấy username hiện tại
-        return currentUsername;
+        return clientSession.getCurrentUsername();
+    }
+
+    public ClientSession getClientSession() { // lấy session hiện tại
+        return clientSession;
     }
 
     public void setCurrentUsername(String currentUsername) { // set username hiện tại
-        this.currentUsername = currentUsername;
+        clientSession.setCurrentUsername(currentUsername);
     }
 
     // gửi request đến server và nhận về response
@@ -149,7 +154,7 @@ public class SocketClient {
             in = null;
             out = null;
             listenerThread = null;
-            currentUsername = null;
+            clientSession.clear();
         }
     }
 }

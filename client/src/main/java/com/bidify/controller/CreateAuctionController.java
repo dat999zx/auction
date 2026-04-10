@@ -9,15 +9,13 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
-import com.bidify.common.model.LogoutRequest;
-import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.service.AuctionClientService;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
 import javafx.animation.KeyFrame;
@@ -96,6 +94,8 @@ public class CreateAuctionController {
 
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
@@ -177,8 +177,7 @@ public class CreateAuctionController {
 
     @FXML
     private void handleLogout() {
-        SocketClient client = SocketClient.getClient();
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
@@ -186,11 +185,9 @@ public class CreateAuctionController {
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
-            Response response = client.send(request);
+            Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                client.setCurrentUsername(null);
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml");
                 return;
@@ -218,8 +215,6 @@ public class CreateAuctionController {
             LocalDateTime startDateTime;
             LocalDateTime endDateTime;
 
-            SocketClient client = SocketClient.getClient();
-
             ValidationUtil.requiresNonBlank(productName, "Product name");
             ValidationUtil.requiresNonBlank(description, "Description");
             ValidationUtil.requiresNonBlank(category, "Category");
@@ -237,7 +232,7 @@ public class CreateAuctionController {
             if (!endDateTime.isAfter(startDateTime)) throw new ValidationException("End time must be after start time!");
 
             CreateAuctionRequest data = new CreateAuctionRequest(
-                client.getCurrentUsername(),
+                com.bidify.network.SocketClient.getClient().getCurrentUsername(),
                 productName,
                 description,
                 category,
@@ -247,18 +242,13 @@ public class CreateAuctionController {
                 startDateTime.toString(),
                 endDateTime.toString()
             );
-            Request request = new Request(RequestType.CREATE_AUCTION, data);
 
-            Response response = client.send(request);
+            Response response = auctionClientService.createAuction(data);
             System.out.println(response.getMessage());
-            switch (response.getStatus()) {
-                case SUCCESS:
-                    showMessage("Create new Auction successfully", true);
-                    SceneManager.clearCache("create-auction.fxml");
-                    SceneManager.switchScene("hub.fxml");
-                    break;    
-                default:
-                    throw new AuctionException(response.getMessage());
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                showMessage("Create new Auction successfully", true);
+                SceneManager.clearCache("create-auction.fxml");
+                SceneManager.switchScene("hub.fxml");
             }
         }
         catch (AuctionException e) {
