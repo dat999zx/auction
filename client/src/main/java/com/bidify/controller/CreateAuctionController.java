@@ -27,7 +27,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 
 public class CreateAuctionController {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -66,10 +65,7 @@ public class CreateAuctionController {
     private TextField endTimeField;
 
     @FXML
-    private HBox topBar;
-
-    @FXML
-    private SharedTopBarController topBarController;
+    private MissionBarController missionBarController;
 
     @FXML
     private Button auctionsButton;
@@ -78,12 +74,12 @@ public class CreateAuctionController {
     private Button createAuctionButton;
 
     @FXML
-    private SidebarController sharedSidebarController;
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
         bindTopBar();
-        createAuctionButton.getStyleClass().removeAll("top-link");
 
         if (categoryComboBox != null) {
             categoryComboBox.getItems().setAll(
@@ -108,8 +104,8 @@ public class CreateAuctionController {
 
     @FXML
     private void toggleSidebar() {
-        if (sharedSidebarController != null) {
-            sharedSidebarController.toggleSidebar();
+        if (missionBarController != null) {
+            missionBarController.toggleSidebar();
         }
     }
 
@@ -245,6 +241,23 @@ public class CreateAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format");
         }
+    }
+
+    private void bindTopBar() {
+        if (missionBarController == null) {
+            throw new IllegalStateException("Mission bar was not loaded.");
+        }
+
+        auctionsButton = missionBarController.getAuctionsButton();
+        createAuctionButton = missionBarController.getCreateAuctionButton();
+
+        missionBarController.setShowExplore(true);
+        missionBarController.setShowSearch(false);
+        missionBarController.setUseInlineLogout(true);
+        missionBarController.setSelectionHandler(this::handleSelection);
+        missionBarController.setExploreHandler(event -> toggleSidebar());
+        missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setActiveNavigation(createAuctionButton);
     }
 
 }

@@ -38,7 +38,7 @@ public class HubController {
     private Label emptyStateLabel;
 
     @FXML
-    private SidebarController sharedSidebarController;
+    private MissionBarController missionBarController;
 
     private AuctionDto[] currentAuctions = new AuctionDto[0];
     private final AuctionClientService auctionClientService = new AuctionClientService();
@@ -47,14 +47,13 @@ public class HubController {
     @FXML
     private void initialize() {
         bindTopBar();
-        auctionsButton.getStyleClass().removeAll("top-link");
         loadLiveAuctions();
     }
 
     @FXML
     private void toggleSidebar() {
-        if (sharedSidebarController != null) {
-            sharedSidebarController.toggleSidebar();
+        if (missionBarController != null) {
+            missionBarController.toggleSidebar();
         }
     }
 
@@ -166,20 +165,21 @@ public class HubController {
     }
 
     private void bindTopBar() {
-        if (topBarController == null) {
-            throw new IllegalStateException("Shared top bar was not loaded.");
+        if (missionBarController == null) {
+            throw new IllegalStateException("Mission bar was not loaded.");
         }
 
-        searchBar = topBarController.getSearchBar();
-        auctionsButton = topBarController.getAuctionsButton();
-        createAuctionButton = topBarController.getCreateAuctionButton();
+        searchBar = missionBarController.getSearchBar();
+        auctionsButton = missionBarController.getAuctionsButton();
+        createAuctionButton = missionBarController.getCreateAuctionButton();
 
-        topBarController.setShowExplore(true);
-        topBarController.setShowSearch(true);
-        topBarController.setUseInlineLogout(true);
-        topBarController.setSelectionHandler(this::handleSelection);
-        topBarController.setExploreHandler(event -> toggleSidebar());
-        topBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setShowExplore(true);
+        missionBarController.setShowSearch(true);
+        missionBarController.setUseInlineLogout(true);
+        missionBarController.setSelectionHandler(this::handleSelection);
+        missionBarController.setExploreHandler(event -> toggleSidebar());
+        missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setActiveNavigation(auctionsButton);
     }
 
 }

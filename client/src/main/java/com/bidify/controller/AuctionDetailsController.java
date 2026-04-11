@@ -26,9 +26,7 @@ public class AuctionDetailsController {
     private static String selectedAuctionId;
 
     @FXML
-    private HBox topBar;
-    @FXML
-    private SharedTopBarController topBarController;
+    private MissionBarController missionBarController;
     @FXML
     private Button auctionsButton;
     @FXML
@@ -79,7 +77,7 @@ public class AuctionDetailsController {
     @FXML
     private void initialize() {
         bindTopBar();
-        setActiveTopNav(auctionsButton);
+        missionBarController.setActiveNavigation(auctionsButton);
         setPreviewImage(DEFAULT_PREVIEW_IMAGE);
         resetView();
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
@@ -141,13 +139,13 @@ public class AuctionDetailsController {
         }
 
         if (selectedButton == auctionsButton) {
-            setActiveTopNav(auctionsButton);
+            missionBarController.setActiveNavigation(auctionsButton);
             tomenu();
             return;
         }
 
         if (selectedButton == createAuctionButton) {
-            setActiveTopNav(createAuctionButton);
+            missionBarController.setActiveNavigation(createAuctionButton);
             SceneManager.switchScene("create-auction.fxml");
             return;
         }
@@ -251,18 +249,6 @@ public class AuctionDetailsController {
         placebid.setDisable(true);
     }
 
-    private void setActiveTopNav(Button activeButton) {
-        Button[] topNavButtons = { auctionsButton, createAuctionButton, logoutButton };
-
-        for (Button button : topNavButtons) {
-            if (button == null) {
-                continue;
-            }
-            button.getStyleClass().removeAll("top-link", "top-link-active");
-            button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
-        }
-    }
-
     private void setPreviewImage(String imagePath) {
         if (previewimage == null) {
             return;
@@ -297,18 +283,19 @@ public class AuctionDetailsController {
     }
 
     private void bindTopBar() {
-        if (topBarController == null) {
-            throw new IllegalStateException("Shared top bar was not loaded.");
+        if (missionBarController == null) {
+            throw new IllegalStateException("Mission bar was not loaded.");
         }
 
-        auctionsButton = topBarController.getAuctionsButton();
-        createAuctionButton = topBarController.getCreateAuctionButton();
-        logoutButton = topBarController.getLogoutLinkButton();
+        auctionsButton = missionBarController.getAuctionsButton();
+        createAuctionButton = missionBarController.getCreateAuctionButton();
+        logoutButton = missionBarController.getLogoutLinkButton();
 
-        topBarController.setShowExplore(false);
-        topBarController.setShowSearch(false);
-        topBarController.setUseInlineLogout(false);
-        topBarController.setSelectionHandler(this::handleSelection);
-        topBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setShowExplore(false);
+        missionBarController.setShowSearch(false);
+        missionBarController.setUseInlineLogout(false);
+        missionBarController.setSelectionHandler(this::handleSelection);
+        missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setActiveNavigation(auctionsButton);
     }
 }

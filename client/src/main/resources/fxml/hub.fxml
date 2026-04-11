@@ -16,7 +16,7 @@
     <BorderPane prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
         <top>
-            <fx:include fx:id="topBar" source="includes/shared-top-bar.fxml" />
+            <Region prefHeight="78.0" />
         </top>
 
         <center>
@@ -53,7 +53,7 @@
         </center>
     </BorderPane>
 
-    <fx:include fx:id="sharedSidebar" source="common-sidebar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="78.0" />
+    <fx:include fx:id="missionBar" source="includes/mission-bar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
     <Button styleClass="fab" text="💬" AnchorPane.bottomAnchor="32.0" AnchorPane.rightAnchor="32.0" />
 </AnchorPane>
