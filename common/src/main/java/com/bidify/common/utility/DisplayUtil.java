@@ -7,7 +7,7 @@ import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
 public final class DisplayUtil {
-    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
+    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US); // định dạng USD
 
     private DisplayUtil() {}
 
@@ -15,11 +15,11 @@ public final class DisplayUtil {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    public static String formatCurrency(double amount) {
+    public static String formatCurrency(double amount) { // định dạng tiền tệ
         return CURRENCY_FORMAT.format(amount);
     }
 
-    public static String formatRemainingTime(String endTime) {
+    public static String formatRemainingTime(String endTime) { // định dạng thời gian còn lại
         if (endTime == null || endTime.isBlank()) return "Unknown";
         try {
             Duration duration = Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
@@ -34,7 +34,7 @@ public final class DisplayUtil {
         }
     }
 
-    public static String formatDateTime(String rawDate, String fallback) {
+    public static String formatDateTime(String rawDate, String fallback) { // định dạng thời gian
         if (rawDate == null || rawDate.isBlank() || "Unknown".equals(rawDate)) return fallback;
         try {
             return LocalDateTime.parse(rawDate).toString().replace('T', ' ');
