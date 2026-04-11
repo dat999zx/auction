@@ -98,6 +98,22 @@
     -fx-text-fill: #001e40;
 }
 
+.avatar-circle {
+    -fx-background-color: #d8e3fb;
+    -fx-background-radius: 999;
+    -fx-border-color: #d8e3fb;
+    -fx-border-radius: 999;
+    -fx-min-width: 40;
+    -fx-min-height: 40;
+    -fx-max-width: 40;
+    -fx-max-height: 40;
+}
+
+.avatar-text {
+    -fx-text-fill: #001e40;
+    -fx-font-weight: 800;
+}
+
 .avatar-frame {
     -fx-background-color: white;
     -fx-background-radius: 999px;
@@ -108,6 +124,68 @@
 
 .avatar-placeholder {
     -fx-fill: #c3c6d1;
+}
+
+.sidebar-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.18);
+}
+
+.side-bar {
+    -fx-background-color: #f0f3ff;
+}
+
+.sidebar-brand-box {
+    -fx-padding: 0 0 8 0;
+}
+
+.sidebar-brand {
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #001e40;
+}
+
+.sidebar-subtitle {
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+    -fx-letter-spacing: 1.2px;
+    -fx-text-fill: #515f74;
+}
+
+.side-nav-button,
+.side-nav-button-active {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5f6c7b;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 14 22;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+    -fx-max-width: 100000;
+}
+
+.side-nav-button:hover {
+    -fx-background-color: rgba(222, 232, 255, 0.7);
+    -fx-text-fill: #001e40;
+}
+
+.side-nav-button-active {
+    -fx-background-color: white;
+    -fx-text-fill: #001e40;
+    -fx-font-weight: 700;
+}
+
+.primary-gradient-button {
+    -fx-background-color: linear-gradient(to right, #001e40, #003366);
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 14 18;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+}
+
+.primary-gradient-button:hover {
+    -fx-opacity: 0.95;
 }
 
 .main-content {
