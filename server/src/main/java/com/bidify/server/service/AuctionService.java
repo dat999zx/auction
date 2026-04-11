@@ -84,6 +84,18 @@ public class AuctionService {
             auctionDao.create(auction);
             RealtimeDatabase.addLiveAuction(auction);
 
+            AuctionDto auctionDto = new AuctionDto(
+                auction.getId(),
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getBidCount()
+            );
+            RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_CREATED, "New auction created", auctionDto));
+
             return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
         }
         catch (ValidationException e) {
@@ -144,7 +156,7 @@ public class AuctionService {
             auctionDao.save(auction);
             
             AuctionDto auctionDto = new AuctionDto(
-                auctionId,
+                auction.getId(),
                 auction.getAuctionName(),
                 auction.getDescription(),
                 auction.getSellerUsername(),
@@ -153,6 +165,8 @@ public class AuctionService {
                 auction.getCurrentBid(),
                 auction.getBidCount()
             );
+            RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_UPDATED, "Auction updated", auctionDto));
+
             return new Response(RequestStatus.SUCCESS, "Auction updated successfully!", auctionDto);
         }
         catch (ValidationException e) {
@@ -193,6 +207,9 @@ public class AuctionService {
 
             auctionDao.deleteById(auctionId);
             RealtimeDatabase.removeLiveAuction(auctionId);
+
+            RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_DELETED, "Auction deleted", auctionId));
+
             return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
         }
         catch (ValidationException e) {
