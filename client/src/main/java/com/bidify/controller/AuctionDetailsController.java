@@ -1,20 +1,14 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.Locale;
-import java.util.Map;
 
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.GetAuctionDetailRequest;
-import com.bidify.common.model.LogoutRequest;
-import com.bidify.common.model.PlaceBidRequest;
-import com.bidify.common.model.Request;
+import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Response;
-import com.bidify.network.SocketClient;
+import com.bidify.common.utility.DisplayUtil;
+import com.bidify.service.AuctionClientService;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
 import javafx.event.ActionEvent;
@@ -24,13 +18,17 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 
-    public class AuctionDetailsController {
-    private static final NumberFormat CURRENCY_FORMAT = NumberFormat.getCurrencyInstance(Locale.US);
+public class AuctionDetailsController {
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
 
     private static String selectedAuctionId;
 
+    @FXML
+    private HBox topBar;
+    @FXML
+    private SharedTopBarController topBarController;
     @FXML
     private Button auctionsButton;
     @FXML
@@ -69,6 +67,8 @@ import javafx.scene.image.ImageView;
     private Label openingBidTimeLabel;
 
     private double currentDisplayedPrice;
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     public static void openAuctionDetails(String auctionId) {
         selectedAuctionId = auctionId;
@@ -78,6 +78,7 @@ import javafx.scene.image.ImageView;
 
     @FXML
     private void initialize() {
+        bindTopBar();
         setActiveTopNav(auctionsButton);
         setPreviewImage(DEFAULT_PREVIEW_IMAGE);
         resetView();
@@ -111,10 +112,7 @@ import javafx.scene.image.ImageView;
         }
 
         try {
-            Response response = SocketClient.getClient().send(
-                new Request(RequestType.PLACE_BID, new PlaceBidRequest(selectedAuctionId, bidAmount))
-            );
-
+            Response response = auctionClientService.placeBid(selectedAuctionId, bidAmount);
             if (response.getStatus() != RequestStatus.SUCCESS) {
                 showMessage(response.getMessage() == null ? "Failed to place bid." : response.getMessage(), false);
                 return;
@@ -126,6 +124,8 @@ import javafx.scene.image.ImageView;
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
             e.printStackTrace();
+        } catch (AuctionException e) {
+            showMessage(e.getMessage(), false);
         }
     }
 
@@ -159,8 +159,7 @@ import javafx.scene.image.ImageView;
 
     @FXML
     private void handleLogout() {
-        SocketClient client = SocketClient.getClient();
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
@@ -168,11 +167,9 @@ import javafx.scene.image.ImageView;
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
-            Response response = client.send(request);
+            Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                client.setCurrentUsername(null);
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml");
                 return;
@@ -181,71 +178,51 @@ import javafx.scene.image.ImageView;
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
             e.printStackTrace();
+        } catch (com.bidify.common.exception.AuthException e) {
+            showMessage(e.getMessage(), false);
         }
     }
 
     private void loadAuctionDetails(String auctionId) {
         try {
-            Response response = SocketClient.getClient().send(
-                new Request(RequestType.GET_AUCTION_DETAIL, new GetAuctionDetailRequest(auctionId))
-            );
-
-            if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
-                showMessage(response.getMessage() == null ? "Cannot load auction details." : response.getMessage(), false);
-                placebid.setDisable(true);
-                return;
-            }
-
-            Map<?, ?> data = response.getData() instanceof Map<?, ?> map ? map : null;
-            if (data == null) {
-                showMessage("Auction details came back in an unexpected format.", false);
-                placebid.setDisable(true);
-                return;
-            }
-
-            bindAuctionData(data);
+            AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
+            bindAuctionData(auction);
             placebid.setDisable(false);
             showMessage("Auction loaded.", true);
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
             placebid.setDisable(true);
             e.printStackTrace();
+        } catch (AuctionException e) {
+            showMessage(e.getMessage(), false);
+            placebid.setDisable(true);
         }
     }
 
-    private void bindAuctionData(Map<?, ?> data) {
-        name.setText(stringValue(data.get("auctionName"), "Untitled auction"));
-        description.setText(stringValue(data.get("description"), "No description."));
+    private void bindAuctionData(AuctionDto data) {
+        name.setText(DisplayUtil.defaultText(data.getAuctionName(), "Untitled auction"));
+        description.setText(DisplayUtil.defaultText(data.getDescription(), "No description."));
 
-        double startingValue = doubleValue(data.get("startingPrice"));
-        double currentValue = doubleValue(data.get("currentBid"));
+        double startingValue = data.getStartingPrice();
+        double currentValue = data.getCurrentBid();
         currentDisplayedPrice = currentValue > 0 ? currentValue : startingValue;
 
-        startprice.setText(formatCurrency(startingValue));
-        currentprice.setText(formatCurrency(currentDisplayedPrice));
-        enddate.setText(formatDate(stringValue(data.get("endTime"), "Unknown")));
+        startprice.setText(DisplayUtil.formatCurrency(startingValue));
+        currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
+        enddate.setText(DisplayUtil.formatDateTime(data.getEndTime(), "Unknown"));
         bindActivity(data, startingValue);
-
-        Object imageValue = data.get("previewImage");
-        if (imageValue == null) {
-            imageValue = data.get("imageUrl");
-        }
-        setPreviewImage(stringValue(imageValue, DEFAULT_PREVIEW_IMAGE));
+        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
     }
 
-    private void bindActivity(Map<?, ?> data, double startingValue) {
-        Map<?, ?> latestBid = latestBid(data.get("bids"));
-        if (latestBid != null) {
+    private void bindActivity(AuctionDto data, double startingValue) {
+        if (data.getBidCount() > 0) {
             openingBidderLabel.setText("Opening price");
-            openingBidAmountLabel.setText(formatCurrency(startingValue));
-            openingBidTimeLabel.setText(formatDateTimeLabel(data.get("startTime"), "Auction opened"));
+            openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
+            openingBidTimeLabel.setText("Auction opened");
 
-            latestBidderLabel.setText(stringValue(
-                latestBid.get("bidderUsername") != null ? latestBid.get("bidderUsername") : latestBid.get("bidderUserName"),
-                "Latest bid"
-            ));
-            latestBidAmountLabel.setText(formatCurrency(doubleValue(latestBid.get("amount"))));
-            latestBidTimeLabel.setText(formatDateTimeLabel(latestBid.get("placeAt"), "Bid received"));
+            latestBidderLabel.setText("Latest bid");
+            latestBidAmountLabel.setText(DisplayUtil.formatCurrency(data.getCurrentBid()));
+            latestBidTimeLabel.setText("Bid received");
             return;
         }
 
@@ -253,15 +230,15 @@ import javafx.scene.image.ImageView;
         latestBidAmountLabel.setText("Waiting for first bid");
         latestBidTimeLabel.setText("Live auction");
         openingBidderLabel.setText("Starting price");
-        openingBidAmountLabel.setText(formatCurrency(startingValue));
-        openingBidTimeLabel.setText(formatDateTimeLabel(data.get("startTime"), "Opening bid"));
+        openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
+        openingBidTimeLabel.setText("Opening bid");
     }
 
     private void resetView() {
         name.setText("Loading auction...");
         description.setText("Please wait while the auction details are fetched.");
-        startprice.setText(formatCurrency(0));
-        currentprice.setText(formatCurrency(0));
+        startprice.setText(DisplayUtil.formatCurrency(0));
+        currentprice.setText(DisplayUtil.formatCurrency(0));
         enddate.setText("Loading...");
         messageLabel.setText("");
         latestBidderLabel.setText("Latest bid");
@@ -319,59 +296,19 @@ import javafx.scene.image.ImageView;
         }
     }
 
-    private String stringValue(Object value, String fallback) {
-        if (value == null) {
-            return fallback;
-        }
-        String text = String.valueOf(value);
-        return text.isBlank() ? fallback : text;
-    }
-
-    private double doubleValue(Object value) {
-        if (value instanceof Number number) {
-            return number.doubleValue();
-        }
-        if (value == null) {
-            return 0;
-        }
-        try {
-            return Double.parseDouble(String.valueOf(value));
-        } catch (NumberFormatException e) {
-            return 0;
-        }
-    }
-
-    private String formatCurrency(double amount) {
-        return CURRENCY_FORMAT.format(amount);
-    }
-
-    private String formatDate(String rawDate) {
-        if (rawDate == null || rawDate.isBlank() || "Unknown".equals(rawDate)) {
-            return "Unknown";
-        }
-        try {
-            return LocalDateTime.parse(rawDate).toString().replace('T', ' ');
-        } catch (DateTimeParseException e) {
-            return rawDate;
-        }
-    }
-
-    private String formatDateTimeLabel(Object rawDate, String fallback) {
-        String value = stringValue(rawDate, fallback);
-        return "Unknown".equals(formatDate(value)) ? fallback : formatDate(value);
-    }
-
-    private Map<?, ?> latestBid(Object bidsValue) {
-        if (!(bidsValue instanceof Iterable<?> bids)) {
-            return null;
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
         }
 
-        Map<?, ?> latest = null;
-        for (Object bid : bids) {
-            if (bid instanceof Map<?, ?> bidMap) {
-                latest = bidMap;
-            }
-        }
-        return latest;
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+        logoutButton = topBarController.getLogoutLinkButton();
+
+        topBarController.setShowExplore(false);
+        topBarController.setShowSearch(false);
+        topBarController.setUseInlineLogout(false);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setLogoutHandler(event -> handleLogout());
     }
 }

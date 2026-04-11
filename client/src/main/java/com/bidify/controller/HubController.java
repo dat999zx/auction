@@ -4,12 +4,9 @@ import java.io.IOException;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.LogoutRequest;
-import com.bidify.common.model.Request;
-import com.bidify.common.model.Response;
-import com.bidify.common.utility.JsonUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.service.AuctionClientService;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
 import javafx.event.ActionEvent;
@@ -25,8 +22,8 @@ import javafx.scene.layout.VBox;
 public class HubController {
     private static final double AUCTION_ROW_GAP = 56.0;
 
-    @FXML 
-    private TextField searchBar; 
+    @FXML
+    private TextField searchBar;
 
     @FXML
     private Button auctionsButton;
@@ -44,9 +41,12 @@ public class HubController {
     private SidebarController sharedSidebarController;
 
     private AuctionDto[] currentAuctions = new AuctionDto[0];
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
+        bindTopBar();
         auctionsButton.getStyleClass().removeAll("top-link");
         loadLiveAuctions();
     }
@@ -71,8 +71,7 @@ public class HubController {
 
     @FXML
     private void handleLogout() {
-        SocketClient client = SocketClient.getClient();
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
@@ -80,11 +79,9 @@ public class HubController {
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
-            Response response = client.send(request);
+            var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                client.setCurrentUsername(null);
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml");
                 return;
@@ -98,13 +95,7 @@ public class HubController {
 
     private void loadLiveAuctions() {
         try {
-            Response response = SocketClient.getClient().send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
-            if (response.getStatus() != RequestStatus.SUCCESS) {
-                showEmptyState("Cannot load live auctions.");
-                return;
-            }
-
-            AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+            AuctionDto[] auctions = auctionClientService.getLiveAuctions();
             if (auctions == null || auctions.length == 0) {
                 showEmptyState("No live auctions right now.");
                 return;
@@ -117,6 +108,8 @@ public class HubController {
         } catch (IOException e) {
             showEmptyState("Cannot connect to server.");
             e.printStackTrace();
+        } catch (AuctionException e) {
+            showEmptyState(e.getMessage());
         }
     }
 
@@ -170,6 +163,23 @@ public class HubController {
 
     private void handleCreateAuction() {
         SceneManager.switchScene("create-auction.fxml");
+    }
+
+    private void bindTopBar() {
+        if (topBarController == null) {
+            throw new IllegalStateException("Shared top bar was not loaded.");
+        }
+
+        searchBar = topBarController.getSearchBar();
+        auctionsButton = topBarController.getAuctionsButton();
+        createAuctionButton = topBarController.getCreateAuctionButton();
+
+        topBarController.setShowExplore(true);
+        topBarController.setShowSearch(true);
+        topBarController.setUseInlineLogout(true);
+        topBarController.setSelectionHandler(this::handleSelection);
+        topBarController.setExploreHandler(event -> toggleSidebar());
+        topBarController.setLogoutHandler(event -> handleLogout());
     }
 
 }

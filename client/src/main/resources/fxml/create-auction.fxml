@@ -17,7 +17,6 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -27,33 +26,7 @@
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
     <top>
-        <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar">
-            <padding>
-                <Insets bottom="16.0" left="32.0" right="32.0" top="16.0" />
-            </padding>
-
-            <HBox alignment="CENTER_LEFT" spacing="16.0">
-                <Button fx:id="exploreButton" onAction="#toggleSidebar" styleClass="ghost-nav-button" text="☰ Explore" />
-            </HBox>
-
-            <Region HBox.hgrow="ALWAYS" />
-
-            <HBox alignment="CENTER_LEFT" spacing="24.0">
-                <HBox alignment="CENTER_LEFT" spacing="18.0">
-                    <Button fx:id="auctionsButton" onAction="#handleSelection" styleClass="top-link" text="Auctions" />
-                    <Button fx:id="createAuctionButton" onAction="#handleSelection" styleClass="top-link-active" text="Create Auction" />
-                </HBox>
-
-                <HBox alignment="CENTER_LEFT" spacing="12.0">
-                    <Button onAction="#handleLogout" styleClass="ghost-nav-button" text="Logout" />
-                    <Button styleClass="icon-button" text="🔔" />
-                    <Button styleClass="icon-button" text="⟲" />
-                    <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
-                        <Label styleClass="avatar-text" text="U" />
-                    </StackPane>
-                </HBox>
-            </HBox>
-        </HBox>
+        <fx:include fx:id="topBar" source="includes/shared-top-bar.fxml" />
     </top>
 
     <center>
@@ -235,7 +208,7 @@
                     <Separator />
 
                     <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                  <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
+                        <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
                         <Button mnemonicParsing="false" onAction="#createAuction" styleClass="primary-button-large" text="Create Auction" />
                     </HBox>
 
