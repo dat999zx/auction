@@ -7,5 +7,5 @@ public enum EventType {
     BID_PLACED,
     USER_JOINED_AUCTION,
     SERVER_NOTICE,
-    ERROR
+    ERROR, AUCTION_DELETED
 }
