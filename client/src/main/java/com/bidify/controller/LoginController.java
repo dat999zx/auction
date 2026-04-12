@@ -53,7 +53,7 @@ public class LoginController {
             if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
                 showMessage("Logged in", true);
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("hub.fxml");
+                SceneManager.switchScene("hub.fxml", false, true);
             }
         } catch (AuthException e) {
             showMessage(e.getMessage(), false);
@@ -97,7 +97,7 @@ public class LoginController {
 
     @FXML
     private void toRegister() {
-        SceneManager.switchScene("register.fxml");
+        SceneManager.switchScene("register.fxml", true, false);
     }
 
     @FXML

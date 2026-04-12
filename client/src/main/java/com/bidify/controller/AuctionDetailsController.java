@@ -25,7 +25,6 @@ public class AuctionDetailsController {
 
     private static String selectedAuctionId;
 
-    @FXML
     private MissionBarController missionBarController;
     @FXML
     private Button auctionsButton;
@@ -71,7 +70,7 @@ public class AuctionDetailsController {
     public static void openAuctionDetails(String auctionId) {
         selectedAuctionId = auctionId;
         SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false);
+        SceneManager.switchScene("auctiondetail.fxml", false, true);
     }
 
     @FXML
@@ -129,7 +128,7 @@ public class AuctionDetailsController {
 
     @FXML
     private void tomenu() {
-        SceneManager.switchScene("hub.fxml");
+        SceneManager.switchScene("hub.fxml", false, true);
     }
 
     @FXML
@@ -146,7 +145,7 @@ public class AuctionDetailsController {
 
         if (selectedButton == createAuctionButton) {
             missionBarController.setActiveNavigation(createAuctionButton);
-            SceneManager.switchScene("create-auction.fxml");
+            SceneManager.switchScene("create-auction.fxml", false, true);
             return;
         }
 
@@ -161,7 +160,7 @@ public class AuctionDetailsController {
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml");
+            SceneManager.switchScene("login.fxml", true, false);
             return;
         }
 
@@ -169,7 +168,7 @@ public class AuctionDetailsController {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml");
+                SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
             showMessage(response.getMessage() == null ? "Logout failed." : response.getMessage(), false);
@@ -283,6 +282,7 @@ public class AuctionDetailsController {
     }
 
     private void bindTopBar() {
+        missionBarController = SceneManager.getMissionBarController();
         if (missionBarController == null) {
             throw new IllegalStateException("Mission bar was not loaded.");
         }

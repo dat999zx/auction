@@ -37,7 +37,6 @@ public class HubController {
     @FXML
     private Label emptyStateLabel;
 
-    @FXML
     private MissionBarController missionBarController;
 
     private AuctionDto[] currentAuctions = new AuctionDto[0];
@@ -74,7 +73,7 @@ public class HubController {
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml");
+            SceneManager.switchScene("login.fxml", true, false);
             return;
         }
 
@@ -82,7 +81,7 @@ public class HubController {
             var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml");
+                SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
             System.err.println("Logout failed: " + response.getMessage());
@@ -161,10 +160,11 @@ public class HubController {
     }
 
     private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml");
+        SceneManager.switchScene("create-auction.fxml", false, true);
     }
 
     private void bindTopBar() {
+        missionBarController = SceneManager.getMissionBarController();
         if (missionBarController == null) {
             throw new IllegalStateException("Mission bar was not loaded.");
         }

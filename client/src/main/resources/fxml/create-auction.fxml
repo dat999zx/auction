@@ -26,10 +26,6 @@
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
-    <top>
-        <Region prefHeight="78.0" />
-    </top>
-
     <center>
         <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
             <content>
@@ -220,5 +216,4 @@
     </center>
 </BorderPane>
 
-<fx:include fx:id="missionBar" source="includes/mission-bar.fxml" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 </AnchorPane>

@@ -109,6 +109,6 @@ public class RegisterController {
 
     @FXML
     private void toLogin(ActionEvent event) {
-        SceneManager.switchScene("login.fxml");
+        SceneManager.switchScene("login.fxml", true, false);
     }
 }

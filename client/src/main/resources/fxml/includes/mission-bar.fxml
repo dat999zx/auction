@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
+<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -72,13 +72,6 @@
                         <Button styleClass="side-nav-button" text="Ended" />
                         <Button styleClass="side-nav-button" text="My Bids" />
                         <Button styleClass="side-nav-button" text="Watchlist" />
-                    </VBox>
-
-                    <VBox>
-                        <padding>
-                            <Insets bottom="0.0" left="16.0" right="16.0" top="0.0" />
-                        </padding>
-                        <Button styleClass="primary-gradient-button" text="Place a Consignment" />
                     </VBox>
                 </VBox>
             </children>

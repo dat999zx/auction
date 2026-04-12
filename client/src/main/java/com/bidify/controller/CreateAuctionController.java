@@ -64,7 +64,6 @@ public class CreateAuctionController {
     @FXML
     private TextField endTimeField;
 
-    @FXML
     private MissionBarController missionBarController;
 
     @FXML
@@ -115,7 +114,7 @@ public class CreateAuctionController {
             return;
         }
         if (selectedButton == auctionsButton) {
-            SceneManager.switchScene("hub.fxml");
+            SceneManager.switchScene("hub.fxml", false, true);
         }
     }
 
@@ -125,7 +124,7 @@ public class CreateAuctionController {
 
         if (currentUsername == null || currentUsername.isBlank()) {
             SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml");
+            SceneManager.switchScene("login.fxml", true, false);
             return;
         }
 
@@ -133,7 +132,7 @@ public class CreateAuctionController {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml");
+                SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
             System.err.println("Logout failed: " + response.getMessage());
@@ -192,7 +191,7 @@ public class CreateAuctionController {
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 showMessage("Create new Auction successfully", true);
                 SceneManager.clearCache("create-auction.fxml");
-                SceneManager.switchScene("hub.fxml");
+                SceneManager.switchScene("hub.fxml", false, true);
             }
         }
         catch (AuctionException e) {
@@ -244,6 +243,7 @@ public class CreateAuctionController {
     }
 
     private void bindTopBar() {
+        missionBarController = SceneManager.getMissionBarController();
         if (missionBarController == null) {
             throw new IllegalStateException("Mission bar was not loaded.");
         }

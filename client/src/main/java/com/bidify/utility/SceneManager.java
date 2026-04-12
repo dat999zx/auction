@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import com.bidify.controller.MissionBarController;
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
@@ -36,6 +37,7 @@ mục đích của việc ghi nhớ là để lần sau nếu có mở lại sce
 */
 public final class SceneManager {
     private static final long LOADING_DELAY_MS = 150;
+    private static final double MISSION_BAR_HEIGHT = 78.0;
 
     private static Stage stage;
     private static final Map<String, Parent> cache = new ConcurrentHashMap<>(); // lưu các scene đã load
@@ -44,27 +46,35 @@ public final class SceneManager {
     private static final StackPane contentLayer = new StackPane(); // chứa nội dung
     private static final StackPane overlayLayer = new StackPane(); // chứa loading
     private static final StackPane loadingNode = new StackPane(); // spinner loading
+    private static Parent missionBarRoot;
+    private static MissionBarController missionBarController;
+    private static boolean showMissionBar;
 
     private static final AtomicLong navigationToken = new AtomicLong(); // giúp xác định đúng scene đang load
     private static final AtomicBoolean isSwitchingScene = new AtomicBoolean(false); // khóa switchScene khi có scene đang load
     private static RotateTransition spinAnimation;
 
-    private SceneManager() {
-    }
+    private SceneManager() {}
 
     public static void setStage(Stage s) { // chỉ gọi 1 lần ở MainApp để thiết lập stage chính
         if (stage != null) return;
         stage = s;
         initOverlay();
+        initShell();
     }
 
-    public static void switchScene(String fxml) { // đổi scene mặc định tự ghi nhớ
-        switchScene(fxml, true);
+    public static void switchScene(String fxml) { // đổi scene mặc định tự ghi nhớ, ko hiển thị bar
+        switchScene(fxml, true, false);
     }
 
-    public static void switchScene(String fxml, boolean remember) { // đổi scene
+    public static void switchScene(String fxml, boolean remember) { // đổi scene mặc định, ko hiển thị bar
+        switchScene(fxml, remember, false);
+    }
+
+    public static void switchScene(String fxml, boolean remember, boolean showBar) { // đổi scene
         if (!isSwitchingScene.compareAndSet(false, true)) return; // kiểm tra có scene nào đang load không, nếu ko thì cho thành có để khóa hàm
         Platform.runLater(() -> setInputBlocked(true)); // khóa chuột
+        showMissionBar = showBar;
 
         long token = navigationToken.incrementAndGet(); // lấy token của scene hiện tại
         AtomicBoolean completed = new AtomicBoolean(false);
@@ -98,6 +108,7 @@ public final class SceneManager {
                     Scene scene = stage.getScene();
                     if (scene == null) {
                         contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
                         stage.setScene(new Scene(shell));
                         scene = stage.getScene();
                     }
@@ -108,6 +119,7 @@ public final class SceneManager {
                             scene.setRoot(shell);
                         }
                         contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
                     }
 
                     loadCss(scene, fxml);
@@ -163,6 +175,10 @@ public final class SceneManager {
 
     public static void clearAllCache() { cache.clear(); } // xóa toàn bộ scene khỏi cache
 
+    public static MissionBarController getMissionBarController() {
+        return missionBarController;
+    }
+
     private static Parent loadFxml(String fxml, boolean remember) throws Exception { // load fxml
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
@@ -216,12 +232,40 @@ public final class SceneManager {
         overlayLayer.setVisible(false);
         overlayLayer.setManaged(false);
 
-        shell.getChildren().setAll(contentLayer, overlayLayer);
+        contentLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        overlayLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         spinAnimation = new RotateTransition(Duration.millis(850), loadingNode);
         spinAnimation.setByAngle(360);
         spinAnimation.setCycleCount(RotateTransition.INDEFINITE);
         spinAnimation.setInterpolator(Interpolator.LINEAR);
+    }
+
+    private static void initShell() {
+        if (missionBarRoot == null) {
+            try {
+                FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/fxml/includes/mission-bar.fxml"));
+                missionBarRoot = loader.load();
+                missionBarController = loader.getController();
+            }
+            catch (Exception e) {
+                throw new IllegalStateException("FXML not found: /fxml/includes/mission-bar.fxml", e);
+            }
+        }
+
+        updateShellLayout();
+    }
+
+    private static void updateShellLayout() {
+        if (missionBarRoot == null) {
+            shell.getChildren().setAll(contentLayer, overlayLayer);
+            return;
+        }
+
+        missionBarRoot.setVisible(showMissionBar);
+        missionBarRoot.setManaged(showMissionBar);
+        StackPane.setMargin(contentLayer, new Insets(showMissionBar ? MISSION_BAR_HEIGHT : 0.0, 0.0, 0.0, 0.0));
+        shell.getChildren().setAll(contentLayer, missionBarRoot, overlayLayer);
     }
 
     private static void showLoading(boolean visible) { // hiển thị loading
