@@ -144,7 +144,7 @@ public class AuctionService {
             auction = auctionDao.findById(auctionId);
             if (auction == null) 
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found");
-
+             
             if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Cannot delete auction after it has started");
 
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
