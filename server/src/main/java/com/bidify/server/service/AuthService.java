@@ -27,13 +27,15 @@ public class AuthService {
 
     // đăng kí
     public Response register(Request request) {
-        RegisterRequest data = JsonUtil.fromMap(request, RegisterRequest.class);
+        RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         return handleAuthRequest(() -> {
             String username = data.getUsername();
             String nickname = data.getNickname();
             String password = data.getPassword();
+
+            System.out.println(username + " " + nickname + " " + password);
 
             ValidationUtil.validateUsername(username);
             ValidationUtil.validateNickname(nickname);
@@ -51,7 +53,7 @@ public class AuthService {
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
-        LoginRequest data = JsonUtil.fromMap(request, LoginRequest.class);
+        LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
         return handleAuthRequest(() -> {
