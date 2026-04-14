@@ -4,39 +4,38 @@ import java.time.LocalDateTime; // dùng để theo dõi thời điểm mà acco
 
 import com.bidify.common.enums.UserStatus;
 
-public class User {
-    private final String createdAt;
-    private String nickname, username, password, email, phoneNumber, lastLogin;
+public class User extends Entity {
+    private String nickname, username, password, email, phoneNumber;
+    private LocalDateTime lastLogin;
     private UserStatus status;
     private double wallet;
 
     // Đăng kí tài khoản
-    public User(String username, String nickname, String password){
+    public User(String username, String nickname, String password) {
         this.username = username;
         this.nickname = nickname;
         this.password = password;
         this.status = UserStatus.ACTIVE;
-        this.createdAt = LocalDateTime.now().toString();
+        this.setCreatedAt(LocalDateTime.now());
         this.lastLogin = null;
         this.wallet = 0;
     }
 
     // load lại dữ liệu người dùng
-     public User(String username, String nickname, String password, String email, String phone, UserStatus status, String createdAt, String lastLogin, double wallet){
+     public User(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double wallet) {
         this.nickname = nickname;
         this.username = username;
         this.password = password;
         this.email = email;
         this.phoneNumber = phone;
         this.status = status;
-        this.createdAt = createdAt;
+        this.setCreatedAt(createdAt);
         this.lastLogin = lastLogin;
         this.wallet = wallet;
     }
 
-    public String getCreatedAt() { return createdAt; }
-    public String getLastLogin() { return lastLogin; }
-    public void setLastLogin(String lastLogin) { this.lastLogin = lastLogin; }
+    public LocalDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
     public String getNickname() { return nickname; }
     public void setNickname(String nickname) { this.nickname = nickname; }
     public String getUsername() { return username; }

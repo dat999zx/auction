@@ -7,8 +7,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Auction {
-    private final String id; 
+public class Auction extends Entity {
     private String auctionName, productType, category, description;
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
@@ -16,10 +15,10 @@ public class Auction {
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
 
-    public Auction(String id){ this.id = id; } // dùng khi load từ sql database
+    public Auction(String id) { super(id); } // dùng khi load từ sql database
 
-    public Auction(String sellerUsername, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
-        this.id = IdGenerator.genAuctionId();
+    public Auction(String sellerUsername, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        super(IdGenerator.genAuctionId());
         this.sellerUsername = sellerUsername;
         this.auctionName = name;
         this.description = description;
@@ -28,20 +27,18 @@ public class Auction {
         this.endTime = endTime;
     }
     
-    public synchronized boolean placeBid(Bid bid){
+    public synchronized boolean placeBid(Bid bid) {
         if (bid == null || !isActive()) return false;
 
         double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
         if (bid.getAmount() < minAllowed) return false;
 
         this.currentBid = bid.getAmount();
-        this.currentBidderUsername = bid.getBidderUserName();
+        this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
 
         return true;
     }
-
-    public String getId(){ return id; }
     
     public String getAuctionName() { return auctionName; }
     public void setAuctionName(String name) {this.auctionName = name; }

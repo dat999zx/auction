@@ -178,10 +178,11 @@ public class AuctionService {
 
     public Response getAllLiveAuctions(ClientHandler client, Request request){ // lấy danh sách các auction đang diễn ra
         List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
-        if (auctions == null || auctions.size() == 0)
-            return new Response(RequestStatus.SUCCESS, "No live auctions", auctions);
-
         List<AuctionDto> summaries = new ArrayList<AuctionDto>();
+
+        if (auctions == null || auctions.size() == 0)
+            return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
+
         for (Auction auction : auctions) 
             summaries.add(AuctionMapper.toDto(auction));
 
@@ -250,7 +251,7 @@ public class AuctionService {
                 return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
             if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
 
-            Bid bid = new Bid(auction, username, bidAmount);
+            Bid bid = new Bid(auction.getId(), username, bidAmount);
             if (!auction.placeBid(bid))
                 return new Response(RequestStatus.FAILED, "Failed to place bid");
 

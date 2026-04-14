@@ -31,8 +31,8 @@ public class UserDao implements ImplementUserDao {
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
                         UserStatus.valueOf(rs.getString("status")),
-                        rs.getString("createdAt"),
-                        rs.getString("lastLogin"),
+                        LocalDateTime.parse(rs.getString("createdAt")),
+                        LocalDateTime.parse(rs.getString("lastLogin")),
                         rs.getDouble("wallet")
                     );
                     return user;
@@ -54,7 +54,28 @@ public class UserDao implements ImplementUserDao {
     }
 
     public void save(User user, boolean saveLastLogin) throws DatabaseException { // lưu user data
-        // TODO: save user data
+        SQLiteHelper.update(
+            """
+            UPDATE Users SET 
+                nickname = ?, 
+                password = ?, 
+                email = ?, 
+                phoneNumber = ?, 
+                status = ?, 
+                createdAt = ?, 
+                wallet = ? 
+            WHERE username = ?
+            """,
+            user.getNickname(),
+            user.getPassword(),
+            user.getEmail(),
+            user.getPhoneNumber(),
+            user.getStatus().toString(),
+            user.getCreatedAt().toString(),
+            user.getWallet(),
+            user.getUsername()
+        );
+        
         if (saveLastLogin){
             SQLiteHelper.update(
                 "UPDATE Users SET lastLogin = ? WHERE username = ?",
