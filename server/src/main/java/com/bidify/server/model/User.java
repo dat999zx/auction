@@ -12,24 +12,24 @@ public class User extends Entity {
 
     // Đăng kí tài khoản
     public User(String username, String nickname, String password) {
+        super(username, LocalDateTime.now());
         this.username = username;
         this.nickname = nickname;
         this.password = password;
         this.status = UserStatus.ACTIVE;
-        this.setCreatedAt(LocalDateTime.now());
         this.lastLogin = null;
         this.wallet = 0;
     }
 
     // load lại dữ liệu người dùng
      public User(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double wallet) {
+        super(username, createdAt);
         this.nickname = nickname;
         this.username = username;
         this.password = password;
         this.email = email;
         this.phoneNumber = phone;
         this.status = status;
-        this.setCreatedAt(createdAt);
         this.lastLogin = lastLogin;
         this.wallet = wallet;
     }

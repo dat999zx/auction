@@ -5,12 +5,13 @@ CREATE TABLE IF NOT EXISTS Users (
     email TEXT,
     phoneNumber TEXT,
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
-    createdAt TEXT,
+    createdAt TEXT NOT NULL,
     lastLogin TEXT,
     wallet REAL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS Auctions (
     id TEXT PRIMARY KEY,
+    createdAt TEXT NOT NULL,
     auctionName TEXT NOT NULL,
     description TEXT NOT NULL,
     category TEXT,

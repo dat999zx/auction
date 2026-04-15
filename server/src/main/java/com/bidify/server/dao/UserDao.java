@@ -24,6 +24,8 @@ public class UserDao implements ImplementUserDao {
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
                 if (rs != null && rs.next()){
+                    String createdAt = rs.getString("createdAt");
+                    String lastLogin = rs.getString("lastLogin");
                     User user = new User(
                         rs.getString("username"),
                         rs.getString("nickname"),
@@ -31,8 +33,8 @@ public class UserDao implements ImplementUserDao {
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
                         UserStatus.valueOf(rs.getString("status")),
-                        LocalDateTime.parse(rs.getString("createdAt")),
-                        LocalDateTime.parse(rs.getString("lastLogin")),
+                        createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
+                        lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin),
                         rs.getDouble("wallet")
                     );
                     return user;
@@ -45,8 +47,14 @@ public class UserDao implements ImplementUserDao {
 
     public void create(User user) throws DatabaseException { // đăng kí
         SQLiteHelper.update(
-            "INSERT INTO Users(username, nickname, password) VALUES (?, ?, ?)",
-            user.getUsername(), user.getNickname(), user.getPassword());
+            "INSERT INTO Users(username, nickname, password, createdAt, lastLogin, wallet) VALUES (?, ?, ?, ?, ?, ?)",
+            user.getUsername(),
+            user.getNickname(),
+            user.getPassword(),
+            user.getCreatedAt() == null ? null : user.getCreatedAt().toString(),
+            user.getLastLogin() == null ? null : user.getLastLogin().toString(),
+            user.getWallet()
+        );
     }
 
     public void save(User user) throws DatabaseException { // lưu user data mặc định cập nhật last login

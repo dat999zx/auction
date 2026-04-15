@@ -67,7 +67,7 @@ public class AuctionService {
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
             validateAuctionTime(startTime, endTime);
             
-            Auction auction = new Auction(sellerUsername, auctionName, description, startingPrice, startTime, endTime);
+            Auction auction = new Auction(auctionName, description, sellerUsername, startingPrice, startTime, endTime);
             auction.setCategory(category);
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);

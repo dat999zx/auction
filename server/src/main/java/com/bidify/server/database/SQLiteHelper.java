@@ -50,7 +50,8 @@ public class SQLiteHelper {
             statement.executeUpdate();
         }
         catch (SQLException e) {
-            throw new DatabaseException("Failed to execute update", e);
+            e.printStackTrace();
+            throw new DatabaseException("Failed to execute update");
         }
     }
 
@@ -66,7 +67,8 @@ public class SQLiteHelper {
             }
         }
         catch (SQLException e) {
-            throw new DatabaseException("Failed to execute query", e);
+            e.printStackTrace();
+            throw new DatabaseException("Failed to execute query");
         }
     }
 

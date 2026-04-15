@@ -8,21 +8,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Auction extends Entity {
-    private String auctionName, productType, category, description;
+    private String auctionName, description, sellerUsername, currentBidderUsername, category, productType;
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
-    private String sellerUsername, currentBidderUsername;
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
 
-    public Auction(String id) { super(id); } // dùng khi load từ sql database
-
-    public Auction(String sellerUsername, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
-        super(IdGenerator.genAuctionId());
-        this.sellerUsername = sellerUsername;
-        this.auctionName = name;
+    public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        super(IdGenerator.genAuctionId(), LocalDateTime.now());
+        this.auctionName = auctionName;
         this.description = description;
+        this.sellerUsername = sellerUsername;
         this.startingPrice = startingPrice;
+        this.startTime = startTime;
+        this.endTime = endTime;
+    }
+    
+    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String currentBidderUsername, String category, String productType, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime) {
+        super(id, createdAt);
+        this.auctionName = auctionName;
+        this.description = description;
+        this.sellerUsername = sellerUsername;
+        this.currentBidderUsername = currentBidderUsername;
+        this.category = category;
+        this.productType = productType;
+        this.startingPrice = startingPrice;
+        this.minIncrement = minIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
     }

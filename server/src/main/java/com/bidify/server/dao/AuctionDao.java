@@ -19,19 +19,20 @@ public class AuctionDao implements ImplementAuctionDao{
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
             while (rs.next()) {
-                Auction auction = new Auction(rs.getString("id"));
-                auction.setAuctionName(rs.getString("auctionName"));
-                auction.setDescription(rs.getString("description"));
-                auction.setCategory(rs.getString("category"));
-                auction.setProductType(rs.getString("type"));
-                auction.setStartingPrice(rs.getDouble("startingPrice"));
-                auction.setMinIncrement(rs.getDouble("minIncrement"));
-                auction.setSellerUsername(rs.getString("seller"));
-                auction.setCurrentBid(rs.getDouble("currentBid"));
-                auction.setCurrentBidderUsername(rs.getString("currentBidder"));
-                auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-                auction.setStartTime(LocalDateTime.parse(rs.getString("startAt")));
-                auction.setEndTime(LocalDateTime.parse(rs.getString("endTime")));
+                Auction auction = new Auction(
+                    rs.getString("id"),
+                    LocalDateTime.parse(rs.getString("createdAt")),
+                    rs.getString("auctionName"),
+                    rs.getString("description"),
+                    rs.getString("seller"),
+                    rs.getString("currentBidder"),
+                    rs.getString("category"),
+                    rs.getString("type"),
+                    rs.getDouble("startingPrice"),
+                    rs.getDouble("minIncrement"),
+                    LocalDateTime.parse(rs.getString("startAt")),
+                    LocalDateTime.parse(rs.getString("endTime"))
+                );
                 auctions.add(auction);
             }
             return auctions;
@@ -42,27 +43,30 @@ public class AuctionDao implements ImplementAuctionDao{
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
-            Auction auction = new Auction(rs.getString("id"));
-            auction.setAuctionName(rs.getString("auctionName"));
-            auction.setDescription(rs.getString("description"));
-            auction.setCategory(rs.getString("category"));
-            auction.setProductType(rs.getString("type"));
-            auction.setStartingPrice(rs.getDouble("startingPrice"));
-            auction.setMinIncrement(rs.getDouble("minIncrement"));
-            auction.setSellerUsername(rs.getString("seller"));
-            auction.setCurrentBid(rs.getDouble("currentBid"));
-            auction.setCurrentBidderUsername(rs.getString("currentBidder"));
-            auction.setStatus(AuctionStatus.valueOf(rs.getString("status")));
-            auction.setStartTime(LocalDateTime.parse(rs.getString("startAt")));
-            auction.setEndTime(LocalDateTime.parse(rs.getString("endTime")));
+            Auction auction = new Auction(
+                rs.getString("id"),
+                LocalDateTime.parse(rs.getString("createdAt")),
+                rs.getString("auctionName"),
+                rs.getString("description"),
+                rs.getString("seller"),
+                rs.getString("currentBidder"),
+                rs.getString("category"),
+                rs.getString("type"),
+                rs.getDouble("startingPrice"),
+                rs.getDouble("minIncrement"),
+                LocalDateTime.parse(rs.getString("startAt")),
+                LocalDateTime.parse(rs.getString("endTime"))
+            );
             return auction;
         }, id);
     }
 
     public void create(Auction auction) throws DatabaseException { // tạo auction
+        LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
         String sql = """
             INSERT INTO Auctions(
             id,
+            createdAt,
             auctionName,
             description,
             category,
@@ -75,22 +79,25 @@ public class AuctionDao implements ImplementAuctionDao{
             status,
             startAt,
             endTime
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """;
 
-        SQLiteHelper.update(sql, auction.getId(), 
-                                    auction.getAuctionName(),
-                                auction.getDescription(),
-                            auction.getCategory(),
-                        auction.getProductType(),
-                    auction.getStartingPrice(),
-                auction.getMinIncrement(),
-                    auction.getSellerUsername(),
-                        auction.getCurrentBid(),                              
-                            auction.getCurrentBidderUsername(),
-                                auction.getStatus().toString(),
-                                    auction.getStartTime().toString(),
-                                        auction.getEndTime().toString());
+        SQLiteHelper.update(sql,
+            auction.getId(),
+            createdAt.toString(),
+            auction.getAuctionName(),
+            auction.getDescription(),
+            auction.getCategory(),
+            auction.getProductType(),
+            auction.getStartingPrice(),
+            auction.getMinIncrement(),
+            auction.getSellerUsername(),
+            auction.getCurrentBid(),
+            auction.getCurrentBidderUsername(),
+            auction.getStatus().toString(),
+            auction.getStartTime().toString(),
+            auction.getEndTime().toString()
+        );
     }
 
     public void deleteById(String id) throws DatabaseException { // xóa auction theo id
@@ -99,9 +106,11 @@ public class AuctionDao implements ImplementAuctionDao{
     }
 
     public void save(Auction auction) throws DatabaseException { // lưu auction
+        LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
         SQLiteHelper.update(
             """
                                     UPDATE Auctions SET 
+                                createdAt = ?,
                                 auctionName = ?,
                             description = ?,
                         category = ?,
@@ -116,19 +125,20 @@ public class AuctionDao implements ImplementAuctionDao{
                                     endTime = ?
                                         WHERE id = ?
             """,
-                                        auction.getAuctionName(),
-                                    auction.getDescription(),
-                            auction.getCategory(),
-                        auction.getProductType(),
-                    auction.getStartingPrice(),
-                auction.getMinIncrement(),
-                auction.getSellerUsername(),
-                auction.getCurrentBid(),
-                    auction.getCurrentBidderUsername(),
-                        auction.getStatus().toString(),
-                            auction.getStartTime().toString(),
-                                    auction.getEndTime().toString(),
-                                        auction.getId()
+            createdAt.toString(),
+            auction.getAuctionName(),
+            auction.getDescription(),
+            auction.getCategory(),
+            auction.getProductType(),
+            auction.getStartingPrice(),
+            auction.getMinIncrement(),
+            auction.getSellerUsername(),
+            auction.getCurrentBid(),
+            auction.getCurrentBidderUsername(),
+            auction.getStatus().toString(),
+            auction.getStartTime().toString(),
+            auction.getEndTime().toString(),
+            auction.getId()
         );
     }
 }

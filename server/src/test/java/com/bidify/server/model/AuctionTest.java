@@ -13,7 +13,7 @@ import com.bidify.common.enums.AuctionStatus;
 public class AuctionTest {
     @Test
     void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
         auction.setMinIncrement(100);
 
         Bid bid = new Bid(auction.getId(), "user1", 1100);
@@ -26,7 +26,7 @@ public class AuctionTest {
 
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
         auction.setMinIncrement(100);
 
         Bid bid = new Bid(auction.getId(), "user1", 1050);
@@ -39,7 +39,7 @@ public class AuctionTest {
 
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
         auction.setStatus(AuctionStatus.ENDED);
 
         Bid bid = new Bid(auction.getId(), "user1", 1200);
@@ -52,7 +52,7 @@ public class AuctionTest {
 
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
 
         int n_threads = 3; // số lượng thread muốn test
         
