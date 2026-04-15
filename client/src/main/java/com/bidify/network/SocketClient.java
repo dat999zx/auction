@@ -2,11 +2,13 @@ package com.bidify.network;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ConnectException;
-import java.net.Socket;
 import java.net.SocketException;
+import java.security.KeyStore;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
@@ -24,6 +26,11 @@ import com.google.gson.JsonParser;
 
 import javafx.application.Platform;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+
 /*
 kết nối client và server
 gọi connect() ở MainApp để nối server và client
@@ -36,14 +43,17 @@ public class SocketClient {
 
     private final Object connectionLock = new Object(); // khóa method (connect, close, send)
 
-    private volatile Socket socket;
+    private volatile SSLSocket socket;
     private volatile BufferedReader in; // nhận data từ server
     private volatile PrintWriter out; // gửi data đến server
     private volatile Thread listenerThread; // lắng nghe server
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
-    private SocketClient(){} // tránh tạo object từ ngoài -> singleton
+    private static final String TRUSTSTORE_PATH = "/truststore/client-truststore.jks";
+    private static final char[] TRUSTSTORE_PASSWORD = "blablablabidifyclient".toCharArray();
+
+    private SocketClient() {} // tránh tạo object từ ngoài -> singleton
 
     // kết nối đến server
     public void connect(String host, int port) throws IOException {
@@ -53,7 +63,10 @@ public class SocketClient {
                 return;
             }
             try {
-                socket = new Socket(host, port);
+                SSLSocketFactory factory = createSocketFactory();
+                socket = (SSLSocket) factory.createSocket(host, port);
+                socket.startHandshake();
+
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
                 startListening();
@@ -64,6 +77,9 @@ public class SocketClient {
             }
             catch (IOException e) {
                 System.out.println(e.getMessage());
+            }
+            catch (Exception e) {
+                throw new IOException("Failed to initialize TLS", e);
             }
         }
     }
@@ -156,5 +172,21 @@ public class SocketClient {
             listenerThread = null;
             clientSession.clear();
         }
+    }
+
+    private SSLSocketFactory createSocketFactory() throws Exception {
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+
+        try (InputStream in = SocketClient.class.getResourceAsStream(TRUSTSTORE_PATH)) {
+            if (in == null) throw new IOException("Missing resource: " + TRUSTSTORE_PATH);
+            trustStore.load(in, TRUSTSTORE_PASSWORD);
+        }
+
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(trustStore);
+
+        SSLContext context = SSLContext.getInstance("TLS");
+        context.init(null, tmf.getTrustManagers(), new SecureRandom());
+        return context.getSocketFactory();
     }
 }
