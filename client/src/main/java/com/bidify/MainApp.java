@@ -20,7 +20,7 @@ public class MainApp extends Application {
         stage.setMaxHeight(800);
         SceneManager.setStage(stage);
 
-        SceneManager.preloadScenes("login.fxml", "register.fxml");
+        SceneManager.preloadScenes("login.fxml", "register.fxml", "hub.fxml", "user-profile.fxml");
 
         SceneManager.switchScene("login.fxml");
         stage.show();
