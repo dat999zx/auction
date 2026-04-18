@@ -11,7 +11,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
 public class MissionBarController {
@@ -41,6 +43,9 @@ public class MissionBarController {
 
     @FXML
     private Label avatarText;
+
+    @FXML
+    private StackPane avatarContainer;
 
     @FXML
     private AnchorPane sidebarLayer;
@@ -94,6 +99,10 @@ public class MissionBarController {
         logoutLinkButton.setOnAction(handler);
     }
 
+    public void setAvatarHandler(EventHandler<MouseEvent> handler) {
+        avatarContainer.setOnMouseClicked(handler);
+    }
+
     public void setExploreHandler(EventHandler<ActionEvent> handler) {
         exploreButton.setOnAction(handler);
     }
@@ -110,6 +119,10 @@ public class MissionBarController {
         updateNavButtonStyle(auctionsButton, activeButton == auctionsButton);
         updateNavButtonStyle(createAuctionButton, activeButton == createAuctionButton);
         updateNavButtonStyle(logoutLinkButton, activeButton == logoutLinkButton);
+    }
+
+    @FXML
+    private void handleAvatarClick(MouseEvent event) {
     }
 
     public void toggleSidebar() {

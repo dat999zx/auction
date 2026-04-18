@@ -92,6 +92,14 @@ public class CreateAuctionController {
             );
         }
 
+        if (startDatePicker != null) {
+            startDatePicker.setEditable(false);
+        }
+
+        if (endDatePicker != null) {
+            endDatePicker.setEditable(false);
+        }
+
         if (startTimeField != null) {
             startTimeField.setText("09:00");
         }
@@ -115,7 +123,9 @@ public class CreateAuctionController {
         }
         if (selectedButton == auctionsButton) {
             SceneManager.switchScene("hub.fxml", false, true);
+            return;
         }
+
     }
 
     @FXML
@@ -250,14 +260,23 @@ public class CreateAuctionController {
 
         auctionsButton = missionBarController.getAuctionsButton();
         createAuctionButton = missionBarController.getCreateAuctionButton();
-
         missionBarController.setShowExplore(true);
         missionBarController.setShowSearch(false);
         missionBarController.setUseInlineLogout(true);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setExploreHandler(event -> toggleSidebar());
         missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
+        missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(createAuctionButton);
+    }
+
+    private String resolveAvatarLetter() {
+        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return "U";
+        }
+        return username.substring(0, 1).toUpperCase();
     }
 
 }
