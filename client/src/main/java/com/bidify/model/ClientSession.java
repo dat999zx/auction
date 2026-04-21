@@ -1,9 +1,12 @@
 package com.bidify.model;
 
+import com.bidify.common.dto.UserDto;
+
 public final class ClientSession {
     private static final ClientSession instance = new ClientSession();
 
     private String currentUsername;
+    private UserDto currentUser;
 
     private ClientSession() {}
 
@@ -19,7 +22,17 @@ public final class ClientSession {
         this.currentUsername = currentUsername;
     }
 
+    public UserDto getCurrentUser() {
+        return currentUser;
+    }
+
+    public void setCurrentUser(UserDto currentUser) {
+        this.currentUser = currentUser;
+        this.currentUsername = currentUser == null ? null : currentUser.getUsername();
+    }
+
     public void clear() {
         currentUsername = null;
+        currentUser = null;
     }
 }

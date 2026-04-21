@@ -296,6 +296,16 @@ public class AuctionDetailsController {
         missionBarController.setUseInlineLogout(false);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
+        missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(auctionsButton);
+    }
+
+    private String resolveAvatarLetter() {
+        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return "U";
+        }
+        return username.substring(0, 1).toUpperCase();
     }
 }

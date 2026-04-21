@@ -64,7 +64,9 @@ public class HubController {
 
         if (selectedButton == createAuctionButton) {
             handleCreateAuction();
+            return;
         }
+
     }
 
     @FXML
@@ -172,14 +174,23 @@ public class HubController {
         searchBar = missionBarController.getSearchBar();
         auctionsButton = missionBarController.getAuctionsButton();
         createAuctionButton = missionBarController.getCreateAuctionButton();
-
         missionBarController.setShowExplore(true);
         missionBarController.setShowSearch(true);
         missionBarController.setUseInlineLogout(true);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setExploreHandler(event -> toggleSidebar());
         missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
+        missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(auctionsButton);
+    }
+
+    private String resolveAvatarLetter() {
+        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return "U";
+        }
+        return username.substring(0, 1).toUpperCase();
     }
 
 }

@@ -1,6 +1,7 @@
 package com.bidify.utility;
 
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -183,13 +184,45 @@ public final class SceneManager {
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
 
+        Parent root = loadFxmlOnFxThread(fxml);
+        if (remember) cache.put(fxml, root);
+        return root;
+    }
+
+    private static Parent loadFxmlOnFxThread(String fxml) throws Exception {
+        if (Platform.isFxApplicationThread()) {
+            return doLoadFxml(fxml);
+        }
+
+        CountDownLatch latch = new CountDownLatch(1);
+        final Parent[] rootHolder = new Parent[1];
+        final Exception[] errorHolder = new Exception[1];
+
+        Platform.runLater(() -> {
+            try {
+                rootHolder[0] = doLoadFxml(fxml);
+            }
+            catch (Exception e) {
+                errorHolder[0] = e;
+            }
+            finally {
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+        if (errorHolder[0] != null) {
+            throw errorHolder[0];
+        }
+        return rootHolder[0];
+    }
+
+    private static Parent doLoadFxml(String fxml) throws Exception {
         var location = SceneManager.class.getResource("/fxml/" + fxml);
         if (location == null) throw new IllegalArgumentException("FXML not found: /fxml/" + fxml);
 
         FXMLLoader loader = new FXMLLoader(location);
-        Parent root = loader.load();
-        if (remember) cache.put(fxml, root);
-        return root;
+        return loader.load();
     }
 
     private static void loadCss(Scene scene, String fxml) { // load css

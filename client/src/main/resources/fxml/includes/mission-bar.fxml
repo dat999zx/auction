@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
+<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -39,7 +39,7 @@
                     <Button fx:id="logoutButton" styleClass="ghost-nav-button" text="Logout" />
                     <Button styleClass="icon-button" text="🔔" />
                     <Button styleClass="icon-button" text="⟲" />
-                    <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
+                    <StackPane fx:id="avatarContainer" onMouseClicked="#handleAvatarClick" prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
                         <Label fx:id="avatarText" styleClass="avatar-text" text="U" />
                     </StackPane>
                 </HBox>

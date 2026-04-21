@@ -12,18 +12,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.net.SocketException;
+
+import javax.net.ssl.SSLSocket;
 
 // lắng nghe client
 public class ClientHandler implements Runnable, Observer {
-    private final Socket socket;
+    private final SSLSocket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
     private String currentUsername;
     private BufferedReader in;
     private PrintWriter out;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(SSLSocket socket) {
         this.socket = socket;
     }
 
@@ -80,8 +81,7 @@ public class ClientHandler implements Runnable, Observer {
 
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
         System.out.println("Client disconnected: " + socket.getInetAddress());
-        if (currentUsername == null)
-            return;
+        if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         dispatcher.dispatch(this, request);
     }
