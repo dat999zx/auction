@@ -158,7 +158,7 @@ public class AuctionService {
         });
     }
 
-    public Response getDetail(ClientHandler client, Request request){ // lấy chi tiết của auction
+    public Response getDetail(Request request){ // lấy chi tiết của auction
         GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
         if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -176,11 +176,11 @@ public class AuctionService {
         });
     }
 
-    public Response getAllLiveAuctions(ClientHandler client, Request request){ // lấy danh sách các auction đang diễn ra
+    public Response getAllLiveAuctions(){ // lấy danh sách các auction đang diễn ra
         List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
-        List<AuctionDto> summaries = new ArrayList<AuctionDto>();
+        List<AuctionDto> summaries = new ArrayList<>();
 
-        if (auctions == null || auctions.size() == 0)
+        if (auctions == null || auctions.isEmpty())
             return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
 
         for (Auction auction : auctions) 
@@ -277,10 +277,7 @@ public class AuctionService {
         catch (DateTimeParseException e) {
             return new Response(RequestStatus.FAILED, "Invalid date time format");
         }
-        catch (ValidationException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
-        catch (DatabaseException e) {
+        catch (ValidationException | DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
     }

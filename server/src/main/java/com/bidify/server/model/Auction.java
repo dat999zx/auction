@@ -36,6 +36,7 @@ public class Auction extends Entity {
         this.minIncrement = minIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
+        refreshStatus();
     }
     
     public synchronized boolean placeBid(Bid bid) {
@@ -49,6 +50,20 @@ public class Auction extends Entity {
         this.bids.add(bid);
 
         return true;
+    }
+
+    public void refreshStatus() {
+        if (status == AuctionStatus.ENDED || status == AuctionStatus.BANNED) return;
+
+        LocalDateTime now = LocalDateTime.now();
+        AuctionStatus next;
+
+        if (now.isAfter(endTime)) next = AuctionStatus.ENDED;
+        else if (now.isBefore(startTime)) next = AuctionStatus.UPCOMING;
+        else next = AuctionStatus.ACTIVE;
+
+        if (next == status) return;
+        status = next;
     }
     
     public String getAuctionName() { return auctionName; }
@@ -72,10 +87,13 @@ public class Auction extends Entity {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
-    public AuctionStatus getStatus() { return status; }
+    public AuctionStatus getStatus() {
+        refreshStatus();
+        return status;
+    }
     public void setStatus(AuctionStatus status) { this.status = status; }
-    public boolean isActive(){ return this.status == AuctionStatus.ACTIVE; }
-    public boolean isEnded() { return this.status == AuctionStatus.ENDED; }
+    public boolean isActive(){ return getStatus() == AuctionStatus.ACTIVE; }
+    public boolean isEnded() { return getStatus() == AuctionStatus.ENDED; }
 
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String username) { this.sellerUsername = username; }
