@@ -22,6 +22,8 @@ out/
 *.lst
 *.SNAPSHOT
 **/*-SNAPSHOT.jar
+.m2/
+**/.m2/
 
 # OS
 .DS_Store
