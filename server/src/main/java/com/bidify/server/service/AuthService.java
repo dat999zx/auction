@@ -35,7 +35,9 @@ public class AuthService {
             String nickname = data.getNickname();
             String password = data.getPassword();
 
-            System.out.println(username + " " + nickname + " " + password);
+            // Không in thẳng password ra
+            System.out.println("Register attempt: username=" + username + ", nickname=" + nickname + ", password=[REDACTED]");
+
 
             ValidationUtil.validateUsername(username);
             ValidationUtil.validateNickname(nickname);

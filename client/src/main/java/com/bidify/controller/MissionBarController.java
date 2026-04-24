@@ -18,7 +18,6 @@ import javafx.util.Duration;
 
 public class MissionBarController {
     private static final Duration ANIMATION_DURATION = Duration.millis(180);
-    private static final double SIDEBAR_WIDTH = 250.0;
 
     @FXML
     private HBox searchContainer;
@@ -61,11 +60,12 @@ public class MissionBarController {
 
     @FXML
     private void initialize() {
+        double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
         sidebarLayer.setMouseTransparent(true);
         sidebarOverlay.setOpacity(0.0);
-        sidebarContent.setTranslateX(-SIDEBAR_WIDTH);
+        sidebarContent.setTranslateX(-hiddenOffset);
     }
 
     // thêm các getter để sử dụng cho các file fxml có missionbar controller
@@ -146,6 +146,7 @@ public class MissionBarController {
 
     private void showSidebar() {
         sidebarAnimating = true;
+        double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(true);
         sidebarLayer.setManaged(true);
         sidebarLayer.setMouseTransparent(false);
@@ -155,7 +156,7 @@ public class MissionBarController {
         overlayFade.setToValue(1.0);
 
         TranslateTransition sidebarSlide = new TranslateTransition(ANIMATION_DURATION, sidebarContent);
-        sidebarSlide.setFromX(-SIDEBAR_WIDTH);
+        sidebarSlide.setFromX(-hiddenOffset);
         sidebarSlide.setToX(0.0);
 
         sidebarSlide.setOnFinished(event -> {
@@ -169,6 +170,7 @@ public class MissionBarController {
 
     private void hideSidebar() {
         sidebarAnimating = true;
+        double hiddenOffset = getSidebarWidth();
 
         FadeTransition overlayFade = new FadeTransition(ANIMATION_DURATION, sidebarOverlay);
         overlayFade.setFromValue(sidebarOverlay.getOpacity());
@@ -176,7 +178,7 @@ public class MissionBarController {
 
         TranslateTransition sidebarSlide = new TranslateTransition(ANIMATION_DURATION, sidebarContent);
         sidebarSlide.setFromX(sidebarContent.getTranslateX());
-        sidebarSlide.setToX(-SIDEBAR_WIDTH);
+        sidebarSlide.setToX(-hiddenOffset);
 
         sidebarSlide.setOnFinished(event -> {
             sidebarVisible = false;
@@ -197,5 +199,18 @@ public class MissionBarController {
 
         button.getStyleClass().removeAll("top-link", "top-link-active");
         button.getStyleClass().add(active ? "top-link-active" : "top-link");
+    }
+
+    private double getSidebarWidth() {
+        if (sidebarContent == null) {
+            return 340.0;
+        }
+
+        double width = sidebarContent.getPrefWidth();
+        if (width <= 0 && sidebarContent.getWidth() > 0) {
+            width = sidebarContent.getWidth();
+        }
+
+        return width > 0 ? width : 340.0;
     }
 }
