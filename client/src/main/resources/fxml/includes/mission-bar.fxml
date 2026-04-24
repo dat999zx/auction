@@ -50,7 +50,7 @@
             <children>
                 <Region fx:id="sidebarOverlay" onMouseClicked="#handleOverlayClick" styleClass="sidebar-overlay" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
 
-                <VBox fx:id="sidebarContent" prefWidth="250.0" spacing="20.0" styleClass="side-bar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
+                <VBox fx:id="sidebarContent" minWidth="320.0" prefWidth="340.0" spacing="20.0" styleClass="side-bar" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <padding>
                         <Insets bottom="24.0" left="0.0" right="0.0" top="24.0" />
                     </padding>
