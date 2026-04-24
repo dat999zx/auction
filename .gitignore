@@ -18,6 +18,7 @@ out/
 *.db-wal
 
 # Maven / build cache
+.m2/
 *.lst
 *.SNAPSHOT
 **/*-SNAPSHOT.jar
