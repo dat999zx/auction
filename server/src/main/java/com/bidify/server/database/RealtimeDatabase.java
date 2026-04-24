@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.runtime.AuctionChannel;
@@ -14,7 +15,7 @@ import com.bidify.server.network.ClientHandler;
 // database được lưu trong ram, giúp truy cập nhanh trong thời gian thực. chỉ có hiệu lực khi server chạy
 public class RealtimeDatabase {
     private static final ConcurrentHashMap<String, ClientSession> activeUsers = new ConcurrentHashMap<>(); // người dùng đang kết nối server
-    private static final ConcurrentHashMap<String, Auction> liveAuctions = new ConcurrentHashMap<>(); // các cuộc đấu giá đang chạy
+    private static final ConcurrentHashMap<String, Auction> runtimeAuctions = new ConcurrentHashMap<>(); // các cuộc đấu giá UPCOMING / ACTIVE trong RAM
     private static final ConcurrentHashMap<String, AuctionChannel> auctionChannels = new ConcurrentHashMap<>(); // các channel của các cuộc đấu giá
     private static final GlobalChannel globalChannel = new GlobalChannel(); // channel chung của hệ thống
 
@@ -87,24 +88,36 @@ public class RealtimeDatabase {
             channel.unsubscribe(client);
     }
 
-    public static void addLiveAuction(Auction auction){ // thêm cuộc đấu giá vào database
+    public static void addRuntimeAuction(Auction auction){ // thêm cuộc đấu giá UPCOMING / ACTIVE vào runtime
         if (auction == null) return;
-        liveAuctions.put(auction.getId(), auction);
+        AuctionStatus status = auction.getStatus();
+        if (status != AuctionStatus.UPCOMING && status != AuctionStatus.ACTIVE) return;
+        runtimeAuctions.put(auction.getId(), auction);
         auctionChannels.putIfAbsent(auction.getId(), new AuctionChannel(auction.getId()));
     }
 
-    public static Auction getLiveAuction(String auctionId){ // lấy cuộc đấu giá từ database
+    public static Auction getRuntimeAuction(String auctionId){ // lấy cuộc đấu giá từ runtime
         if (auctionId == null) return null;
-        return liveAuctions.get(auctionId);
+        return runtimeAuctions.get(auctionId);
     }
 
-    public static List<Auction> getAllLiveAuctions(){ // lấy tất cả cuộc đấu giá đang chạy
-        return new ArrayList<>(liveAuctions.values());
+    public static List<Auction> getAllRuntimeAuctions(){ // lấy tất cả cuộc đấu giá UPCOMING / ACTIVE trong runtime
+        return new ArrayList<>(runtimeAuctions.values());
     }
 
-    public static void removeLiveAuction(String auctionId){ // xóa cuộc đấu giá khỏi database
+    public static List<Auction> getRuntimeAuctionsByStatus(AuctionStatus status){ // lấy các cuộc đấu giá trong runtime theo status
+        List<Auction> auctions = new ArrayList<>();
+        if (status == null) return auctions;
+        for (Auction auction : runtimeAuctions.values()) {
+            if (auction != null && auction.getStatus() == status)
+                auctions.add(auction);
+        }
+        return auctions;
+    }
+
+    public static void removeRuntimeAuction(String auctionId){ // xóa cuộc đấu giá khỏi runtime
         if (auctionId == null) return;
-        liveAuctions.remove(auctionId);
+        runtimeAuctions.remove(auctionId);
         auctionChannels.remove(auctionId);
     }
 
@@ -135,7 +148,7 @@ public class RealtimeDatabase {
 
     public static void clearAll(){ // xóa tất cả dữ liệu trong database
         activeUsers.clear();
-        liveAuctions.clear();
+        runtimeAuctions.clear();
         for (AuctionChannel channel : auctionChannels.values())
             channel.clear();
         auctionChannels.clear();

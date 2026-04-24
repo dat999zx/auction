@@ -7,18 +7,19 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
 public class RealtimeDatabaseTest {
-    @AfterEach // tự động chạy sau mỗi test
-    void cleanup() { // reset lại sau mỗi test
+    @AfterEach
+    void cleanup() {
         RealtimeDatabase.clearAll();
     }
 
     @Test
-    void addActiveUserShouldStoreUserAndClient() { // test thêm user và client
+    void addActiveUserShouldStoreUserAndClient() {
         ClientHandler client = new ClientHandler(null);
         client.setCurrentUsername("test");
         User user = new User("test", "test nickname", "hashed");
@@ -32,40 +33,62 @@ public class RealtimeDatabaseTest {
     }
 
     @Test
-    void addLiveAuction() { // test thêm live auction
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+    void addRuntimeAuctionShouldStoreUpcomingAuction() {
+        Auction auction = new Auction(
+            "test",
+            "testing auction",
+            "seller",
+            1000,
+            LocalDateTime.now().plusHours(1),
+            LocalDateTime.now().plusDays(1)
+        );
 
-        RealtimeDatabase.addLiveAuction(auction);
+        RealtimeDatabase.addRuntimeAuction(auction);
 
-        assertSame(auction, RealtimeDatabase.getLiveAuction(auction.getId()));
+        assertSame(auction, RealtimeDatabase.getRuntimeAuction(auction.getId()));
         assertNotNull(RealtimeDatabase.getAuctionChannel(auction.getId()));
-        assertEquals(1, RealtimeDatabase.getAllLiveAuctions().size());
+        assertEquals(1, RealtimeDatabase.getAllRuntimeAuctions().size());
+        assertEquals(1, RealtimeDatabase.getRuntimeAuctionsByStatus(AuctionStatus.UPCOMING).size());
     }
 
     @Test
-    void testSubscribedUserWatchingAuction() { // user đã subscribe vào auction đang xem auction
+    void subscribeAuctionChannelShouldMarkUserWatchingAuction() {
         ClientHandler client = new ClientHandler(null);
         client.setCurrentUsername("user");
         User user = new User("user", "test user", "hashed");
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction(
+            "test",
+            "testing auction",
+            "seller",
+            1000,
+            LocalDateTime.now(),
+            LocalDateTime.now().plusDays(1)
+        );
 
         RealtimeDatabase.addActiveUser(client, user);
-        RealtimeDatabase.addLiveAuction(auction);
+        RealtimeDatabase.addRuntimeAuction(auction);
         RealtimeDatabase.subscribeAuctionChannel(auction.getId(), "user");
 
         assertTrue(RealtimeDatabase.isWatchingAuction("user", auction.getId()));
     }
 
     @Test
-    void removeActiveUser() { // xóa user
+    void removeActiveUserShouldUnsubscribeUserFromAuctionChannel() {
         ClientHandler client = new ClientHandler(null);
         client.setCurrentUsername("user");
         User user = new User("user", "test user", "hashed");
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction(
+            "test",
+            "testing auction",
+            "seller",
+            1000,
+            LocalDateTime.now(),
+            LocalDateTime.now().plusDays(1)
+        );
 
         RealtimeDatabase.addActiveUser(client, user);
-        RealtimeDatabase.addLiveAuction(auction);
-        RealtimeDatabase.subscribeAuctionChannel(auction.getId(), "alice");
+        RealtimeDatabase.addRuntimeAuction(auction);
+        RealtimeDatabase.subscribeAuctionChannel(auction.getId(), "user");
 
         RealtimeDatabase.removeActiveUser("user");
 

@@ -31,7 +31,8 @@ public class AuctionDao implements ImplementAuctionDao{
                     rs.getDouble("startingPrice"),
                     rs.getDouble("minIncrement"),
                     LocalDateTime.parse(rs.getString("startAt")),
-                    LocalDateTime.parse(rs.getString("endTime"))
+                    LocalDateTime.parse(rs.getString("endTime")),
+                    AuctionStatus.valueOf(rs.getString("status"))
                 );
                 auctions.add(auction);
             }
@@ -55,7 +56,8 @@ public class AuctionDao implements ImplementAuctionDao{
                 rs.getDouble("startingPrice"),
                 rs.getDouble("minIncrement"),
                 LocalDateTime.parse(rs.getString("startAt")),
-                LocalDateTime.parse(rs.getString("endTime"))
+                LocalDateTime.parse(rs.getString("endTime")),
+                AuctionStatus.valueOf(rs.getString("status"))
             );
         }, id);
     }

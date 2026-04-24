@@ -40,8 +40,15 @@ public class AuctionService {
 
     // load live auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
     public void loadToRuntime(){
-        List<Auction> liveAuctions = auctionDao.findByStatus(AuctionStatus.ACTIVE);
-        for (Auction auction : liveAuctions) RealtimeDatabase.addLiveAuction(auction);
+        List<Auction> runtimeAuctions = new ArrayList<>();
+        runtimeAuctions.addAll(auctionDao.findByStatus(AuctionStatus.UPCOMING));
+        runtimeAuctions.addAll(auctionDao.findByStatus(AuctionStatus.ACTIVE));
+
+        for (Auction auction : runtimeAuctions) {
+            syncAuctionStatus(auction);
+            if (isRuntimeAuction(auction))
+                RealtimeDatabase.addRuntimeAuction(auction);
+        }
     }
 
     public Response create(ClientHandler client, Request request){ // tạo auction
@@ -71,8 +78,9 @@ public class AuctionService {
             auction.setCategory(category);
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);
+            syncAuctionStatus(auction);
             auctionDao.create(auction);
-            RealtimeDatabase.addLiveAuction(auction);
+            RealtimeDatabase.addRuntimeAuction(auction);
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);
             RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_CREATED, "New auction created", auctionDto));
@@ -93,6 +101,7 @@ public class AuctionService {
 
             Auction auction = auctionDao.findById(auctionId);
             if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            syncAuctionStatus(auction);
             
             requireSeller(auction, client.getCurrentUsername(), "You don't have permission to update this auction");
 
@@ -125,8 +134,8 @@ public class AuctionService {
         });
     }
     
-    public void saveAllLiveAuctions(){ // lưu tất cả auction data
-        for (Auction auction : RealtimeDatabase.getAllLiveAuctions())
+    public void saveAllRuntimeAuctions(){ // lưu tất cả auction data
+        for (Auction auction : RealtimeDatabase.getAllRuntimeAuctions())
             auctionDao.save(auction);
     }
 
@@ -144,13 +153,14 @@ public class AuctionService {
             auction = auctionDao.findById(auctionId);
             if (auction == null) 
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            syncAuctionStatus(auction);
              
             if (auction.getStatus() != AuctionStatus.UPCOMING) return new Response(RequestStatus.FAILED, "Cannot delete auction after it has started");
 
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
 
             auctionDao.deleteById(auctionId);
-            RealtimeDatabase.removeLiveAuction(auctionId);
+            RealtimeDatabase.removeRuntimeAuction(auctionId);
 
             RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_DELETED, "Auction deleted", auctionId));
 
@@ -169,6 +179,7 @@ public class AuctionService {
             Auction auction = auctionDao.findById(auctionId);
             if (auction == null)
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            syncAuctionStatus(auction);
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);
 
@@ -177,14 +188,18 @@ public class AuctionService {
     }
 
     public Response getAllLiveAuctions(){ // lấy danh sách các auction đang diễn ra
-        List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
+        List<Auction> auctions = RealtimeDatabase.getAllRuntimeAuctions();
         List<AuctionDto> summaries = new ArrayList<>();
 
         if (auctions == null || auctions.isEmpty())
             return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
 
-        for (Auction auction : auctions) 
+        for (Auction auction : auctions) {
+            syncAuctionStatus(auction);
+            if (!isRuntimeAuction(auction))
+                continue;
             summaries.add(AuctionMapper.toDto(auction));
+        }
 
         return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
     }
@@ -200,8 +215,11 @@ public class AuctionService {
             String username = client.getCurrentUsername();
 
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-            Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
+            syncAuctionStatus(auction);
+            if (!isRuntimeAuction(auction))
+                return new Response(RequestStatus.NOT_FOUND, "Auction not found");
 
             if (RealtimeDatabase.isWatchingAuction(username, auctionId))
                 return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
@@ -241,15 +259,22 @@ public class AuctionService {
             ValidationUtil.requiresNonBlank(auctionId, "Invalid auction ID");
             ValidationUtil.validatePositiveAmount(bidAmount, "Bid amount must be positive");
 
-            Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             User user = RealtimeDatabase.getActiveUser(username);
 
             if (auction == null)
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
-            if (user == null) return new Response(RequestStatus.FAILED, "User not found");
+
+            syncAuctionStatus(auction);
+
+            if (!auction.isActive())
+                return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
+            if (user == null)
+                return new Response(RequestStatus.FAILED, "User not found");
             if (auction.getSellerUsername().equals(username))
                 return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
-            if (user.getWallet() < bidAmount) return new Response(RequestStatus.FAILED, "Insufficient balance");
+            if (user.getWallet() < bidAmount)
+                return new Response(RequestStatus.FAILED, "Insufficient balance");
 
             Bid bid = new Bid(auction.getId(), username, bidAmount);
             if (!auction.placeBid(bid))
@@ -319,6 +344,22 @@ public class AuctionService {
     // chuyển String thành LocalDateTime
     private LocalDateTime parseDateTime(String value) {
         return LocalDateTime.parse(value);
+    }
+
+    private void syncAuctionStatus(Auction auction) {
+        if (auction == null) return;
+
+        boolean changed = auction.refreshStatus();
+        if (changed) auctionDao.save(auction);
+
+        if (!isRuntimeAuction(auction)) RealtimeDatabase.removeRuntimeAuction(auction.getId());
+        else RealtimeDatabase.addRuntimeAuction(auction);
+    }
+
+    private boolean isRuntimeAuction(Auction auction) {
+        if (auction == null) return false;
+        AuctionStatus status = auction.getStatus();
+        return status == AuctionStatus.UPCOMING || status == AuctionStatus.ACTIVE;
     }
 }
 // CREATE_AUCTION, // tạo đấu giá
