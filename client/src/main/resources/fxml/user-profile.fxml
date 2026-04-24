@@ -16,8 +16,8 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="profile-root" stylesheets="@../css/user-profile.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.UserProfileController">
-    <BorderPane prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+<AnchorPane styleClass="profile-root" stylesheets="@../css/user-profile.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.UserProfileController">
+    <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <center>
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
                 <content>
@@ -41,14 +41,14 @@
                             </StackPane>
                         </HBox>
 
-                        <HBox spacing="18.0">
-                            <VBox prefWidth="270.0" spacing="16.0" styleClass="profile-card">
+                        <HBox spacing="24.0">
+                            <VBox minWidth="320.0" prefWidth="360.0" spacing="16.0" styleClass="profile-card">
                                 <padding>
                                     <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
                                 </padding>
 
                                 <VBox spacing="12.0" alignment="CENTER">
-                                    <StackPane prefHeight="120.0" prefWidth="120.0" styleClass="profile-avatar-ring">
+                                    <StackPane minHeight="120.0" minWidth="120.0" prefHeight="120.0" prefWidth="120.0" styleClass="profile-avatar-ring">
                                         <Label fx:id="profileImageHintLabel" styleClass="profile-avatar-icon" text="Add photo" />
                                     </StackPane>
                                     <Button onAction="#handleProfileImagePlaceholder" styleClass="secondary-action-button" text="Change Profile Image" />
@@ -75,8 +75,8 @@
                             <VBox spacing="18.0" HBox.hgrow="ALWAYS">
                                 <GridPane hgap="18.0" vgap="18.0">
                                     <columnConstraints>
-                                        <ColumnConstraints percentWidth="50.0" />
-                                        <ColumnConstraints percentWidth="50.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="260.0" percentWidth="50.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="260.0" percentWidth="50.0" />
                                     </columnConstraints>
 
                                     <VBox spacing="14.0" styleClass="section-card" GridPane.columnIndex="0">
@@ -128,9 +128,9 @@
 
                                     <GridPane hgap="14.0" vgap="14.0">
                                         <columnConstraints>
-                                            <ColumnConstraints percentWidth="33.33" />
-                                            <ColumnConstraints percentWidth="33.33" />
-                                            <ColumnConstraints percentWidth="33.33" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
                                         </columnConstraints>
 
                                         <VBox spacing="6.0" GridPane.columnIndex="0">
