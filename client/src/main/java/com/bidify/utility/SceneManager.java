@@ -1,7 +1,6 @@
 package com.bidify.utility;
 
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,7 +36,7 @@ SceneManager.switchScene(fxml, false) để đổi sang scene mới mà không g
 mục đích của việc ghi nhớ là để lần sau nếu có mở lại scene đó thì load nhanh hơn
 */
 public final class SceneManager {
-    private static final long LOADING_DELAY_MS = 150;
+    private static final long LOADING_DELAY_MS = 250;
     private static final double MISSION_BAR_HEIGHT = 78.0;
 
     private static Stage stage;
@@ -184,37 +183,9 @@ public final class SceneManager {
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
 
-        Parent root = loadFxmlOnFxThread(fxml);
+        Parent root = doLoadFxml(fxml);
         if (remember) cache.put(fxml, root);
         return root;
-    }
-
-    private static Parent loadFxmlOnFxThread(String fxml) throws Exception {
-        if (Platform.isFxApplicationThread()) {
-            return doLoadFxml(fxml);
-        }
-
-        CountDownLatch latch = new CountDownLatch(1);
-        final Parent[] rootHolder = new Parent[1];
-        final Exception[] errorHolder = new Exception[1];
-
-        Platform.runLater(() -> {
-            try {
-                rootHolder[0] = doLoadFxml(fxml);
-            }
-            catch (Exception e) {
-                errorHolder[0] = e;
-            }
-            finally {
-                latch.countDown();
-            }
-        });
-
-        latch.await();
-        if (errorHolder[0] != null) {
-            throw errorHolder[0];
-        }
-        return rootHolder[0];
     }
 
     private static Parent doLoadFxml(String fxml) throws Exception {
