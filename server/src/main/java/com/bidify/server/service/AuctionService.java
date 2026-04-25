@@ -38,7 +38,7 @@ import com.bidify.common.model.Response;
 public class AuctionService {
     private final AuctionDao auctionDao = new AuctionDao();
 
-    // load live auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
+    // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
     public void loadToRuntime(){
         List<Auction> runtimeAuctions = new ArrayList<>();
         runtimeAuctions.addAll(auctionDao.findByStatus(AuctionStatus.UPCOMING));
@@ -99,7 +99,9 @@ public class AuctionService {
             String auctionId = data.getAuctionId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
 
-            Auction auction = auctionDao.findById(auctionId);
+            Auction auction = RealtimeDatabase.getUpcomingAuction(auctionId);
+            if (auction == null)
+                auction = auctionDao.findById(auctionId);
             if (auction == null) return new Response(RequestStatus.NOT_FOUND, "Auction not found");
             syncAuctionStatus(auction);
             
@@ -149,8 +151,8 @@ public class AuctionService {
             String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
 
-            Auction auction;
-            auction = auctionDao.findById(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
+            if (auction == null) auction = auctionDao.findById(auctionId);
             if (auction == null) 
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found");
             syncAuctionStatus(auction);
@@ -187,8 +189,8 @@ public class AuctionService {
         });
     }
 
-    public Response getAllLiveAuctions(){ // lấy danh sách các auction đang diễn ra
-        List<Auction> auctions = RealtimeDatabase.getAllRuntimeAuctions();
+    public Response getAllLiveAuctions(){ // lấy danh sách các auction đang ACTIVE
+        List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
         List<AuctionDto> summaries = new ArrayList<>();
 
         if (auctions == null || auctions.isEmpty())
@@ -196,8 +198,7 @@ public class AuctionService {
 
         for (Auction auction : auctions) {
             syncAuctionStatus(auction);
-            if (!isRuntimeAuction(auction))
-                continue;
+            if (!auction.isActive()) continue;
             summaries.add(AuctionMapper.toDto(auction));
         }
 
@@ -259,7 +260,7 @@ public class AuctionService {
             ValidationUtil.requiresNonBlank(auctionId, "Invalid auction ID");
             ValidationUtil.validatePositiveAmount(bidAmount, "Bid amount must be positive");
 
-            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
+            Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
             User user = RealtimeDatabase.getActiveUser(username);
 
             if (auction == null)
@@ -267,7 +268,8 @@ public class AuctionService {
 
             syncAuctionStatus(auction);
 
-            if (!auction.isActive())
+            auction = RealtimeDatabase.getLiveAuction(auctionId);
+            if (auction == null)
                 return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
             if (user == null)
                 return new Response(RequestStatus.FAILED, "User not found");
@@ -346,6 +348,7 @@ public class AuctionService {
         return LocalDateTime.parse(value);
     }
 
+    // cập nhật trạng thái runtime của auction trong RealtimeDatabase
     private void syncAuctionStatus(Auction auction) {
         if (auction == null) return;
 
