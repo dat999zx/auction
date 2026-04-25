@@ -188,7 +188,6 @@ public class AuctionDetailsController {
     private void loadAuctionDetails(String auctionId) {
         try {
             AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
-            joinAuctionChannel(auctionId);
             bindAuctionData(auction);
             placebid.setDisable(false);
             showMessage("Auction loaded.", true);
@@ -199,16 +198,6 @@ public class AuctionDetailsController {
         } catch (AuctionException e) {
             showMessage(e.getMessage(), false);
             placebid.setDisable(true);
-        }
-    }
-
-    private void joinAuctionChannel(String auctionId) {
-        try {
-            auctionClientService.join(auctionId);
-        } catch (IOException e) {
-            showMessage("Auction loaded, but live bid updates could not be joined.", false);
-        } catch (AuctionException e) {
-            // Being already joined should not block the detail screen.
         }
     }
 
