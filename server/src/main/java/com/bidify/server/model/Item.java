@@ -7,14 +7,14 @@ import com.bidify.common.utility.IdGenerator;
 public abstract class Item extends Entity {
     private String name, owner, imageUrl;
 
-    public Item(String name, String owner, String imageUrl) {
+    protected Item(String name, String owner, String imageUrl) {
         super(IdGenerator.genItemId(), LocalDateTime.now());
         this.name = name;
         this.owner = owner;
         this.imageUrl = imageUrl;
     }
 
-    public Item(String id, LocalDateTime createdAt, String name, String owner, String imageUrl) {
+    protected Item(String id, LocalDateTime createdAt, String name, String owner, String imageUrl) {
         super(id, createdAt);
         this.name = name;
         this.owner = owner;
