@@ -24,8 +24,8 @@ public class RequestDispatcher {
                 case LEAVE_AUCTION -> response = auctionService.leave(client, request);
                 case CREATE_AUCTION -> response = auctionService.create(client, request);
                 case UPDATE_AUCTION -> response = auctionService.update(client, request);
-                case GET_LIVE_AUCTIONS -> response = auctionService.getAllLiveAuctions(client, request);
-                case GET_AUCTION_DETAIL -> response = auctionService.getDetail(client, request);
+                case GET_LIVE_AUCTIONS -> response = auctionService.getAllLiveAuctions();
+                case GET_AUCTION_DETAIL -> response = auctionService.getDetail(request);
                 case DELETE_AUCTION -> response = auctionService.delete(client, request);
                 case PLACE_BID -> response = auctionService.placeBid(client, request);
                 default -> response = new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
@@ -39,10 +39,6 @@ public class RequestDispatcher {
         catch (StackOverflowError e) {
             e.printStackTrace();
             return new Response(RequestStatus.ERROR, "Stack overflow error");
-        }
-        catch (Error e) {
-            e.printStackTrace();
-            return new Response(RequestStatus.ERROR, "Unknown error");
         }
     }
 }

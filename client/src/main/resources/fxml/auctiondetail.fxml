@@ -190,10 +190,10 @@
                                     <VBox spacing="12.0">
                                         <HBox alignment="CENTER_LEFT" styleClass="bid-input-wrap">
                                             <Label styleClass="bid-currency" text="\$" />
-                                            <TextField fx:id="inputprice" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="inputprice" onAction="#handlePlaceBid" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
                                         </HBox>
 
-                                        <Button fx:id="placebid" onAction="#attemptplacebid" styleClass="place-bid-button" text="Place Bid" />
+                                        <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
 
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
                                         <Label fx:id="messageLabel" styleClass="footnote-text" wrapText="true" />

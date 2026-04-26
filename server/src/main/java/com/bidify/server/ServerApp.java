@@ -1,6 +1,7 @@
 package com.bidify.server;
 
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.AuctionSchedulerService;
 import com.bidify.server.service.AuctionService;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.database.SQLiteHelper;
@@ -28,12 +29,17 @@ public class ServerApp {
             e.printStackTrace();
             System.exit(1);
         }
-        new AuctionService().loadToRuntime();
+        AuctionService auctionService = new AuctionService();
+        AuctionSchedulerService auctionSchedulerService = new AuctionSchedulerService();
+
+        auctionService.loadToRuntime();
+        auctionSchedulerService.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             System.out.println("Server is shutting down, saving all data...");
             new AuthService().saveAllUsers();
-            new AuctionService().saveAllLiveAuctions();
+            auctionSchedulerService.stop();
+            auctionService.saveAllRuntimeAuctions();
             RealtimeDatabase.clearAll();
         }));
 

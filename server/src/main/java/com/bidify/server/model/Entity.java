@@ -6,9 +6,9 @@ public abstract class Entity {
     private String id;
     private LocalDateTime createdAt;
     
-    public Entity() {}
-    public Entity(String id) { this.id = id; }
-    public Entity(String id, LocalDateTime createdAt) {
+    protected Entity() {}
+    protected Entity(String id) { this.id = id; }
+    protected Entity(String id, LocalDateTime createdAt) {
         this.id = id;
         this.createdAt = createdAt;
     }
