@@ -119,9 +119,12 @@ public class UserProfileController {
     @FXML
     private void handleSaveProfile() {
         try {
-            UserDto updatedUser = userProfileClientService.updateProfilePreview(nicknameField.getText());
+            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
             refreshProfile(updatedUser);
-            showMessage("Profile preview updated on client. Add GET_PROFILE/UPDATE_PROFILE server handling to persist it.", true);
+            showMessage("Profile updated successfully.", true);
+        }
+        catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
         }
         catch (ValidationException e) {
             showMessage(e.getMessage(), false);
@@ -131,10 +134,13 @@ public class UserProfileController {
     @FXML
     private void handleTopUp() {
         try {
-            UserDto updatedUser = userProfileClientService.addWalletBalancePreview(parseAmount(topUpAmountField.getText(), "Top up amount"));
+            UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Top up amount"));
             topUpAmountField.clear();
             refreshProfile(updatedUser);
-            showMessage("Wallet preview increased on client for testing. Add a server wallet endpoint to persist it.", true);
+            showMessage("Wallet updated successfully.", true);
+        }
+        catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
         }
         catch (ValidationException e) {
             showMessage(e.getMessage(), false);
@@ -144,10 +150,13 @@ public class UserProfileController {
     @FXML
     private void handleWithdraw() {
         try {
-            UserDto updatedUser = userProfileClientService.withdrawWalletBalancePreview(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
+            UserDto updatedUser = userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
             withdrawAmountField.clear();
             refreshProfile(updatedUser);
-            showMessage("Wallet preview decreased on client for testing. Add a server wallet endpoint to persist it.", true);
+            showMessage("Wallet updated successfully.", true);
+        }
+        catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
         }
         catch (ValidationException e) {
             showMessage(e.getMessage(), false);
@@ -178,9 +187,18 @@ public class UserProfileController {
     }
 
     private void populateProfile() {
-        refreshProfile(userProfileClientService.getCurrentProfile());
+        try {
+            refreshProfile(userProfileClientService.getCurrentProfile());
+            showMessage("Profile loaded successfully.", true);
+        } catch (IOException e) {
+            refreshProfile(userProfileClientService.getCachedProfile());
+            showMessage("Cannot connect to server.", false);
+        } catch (ValidationException e) {
+            refreshProfile(userProfileClientService.getCachedProfile());
+            showMessage(e.getMessage(), false);
+        }
+
         profileImageHintLabel.setText("Profile image upload placeholder");
-        showMessage("This page is wired on the client. Wallet and password actions currently update preview state only.", true);
     }
 
     private void refreshProfile(UserDto user) {

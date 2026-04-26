@@ -72,13 +72,17 @@ public class SocketClient {
                 startListening();
             }
             catch (ConnectException e) {
+                cleanupConnectionState();
                 System.out.println("Server has not started");
                 Platform.exit();
+                throw new IOException("Server has not started", e);
             }
             catch (IOException e) {
-                System.out.println(e.getMessage());
+                cleanupConnectionState();
+                throw e;
             }
             catch (Exception e) {
+                cleanupConnectionState();
                 throw new IOException("Failed to initialize TLS", e);
             }
         }
@@ -172,6 +176,13 @@ public class SocketClient {
             listenerThread = null;
             clientSession.clear();
         }
+    }
+
+    private void cleanupConnectionState() {
+        socket = null;
+        in = null;
+        out = null;
+        listenerThread = null;
     }
 
     private SSLSocketFactory createSocketFactory() throws Exception {

@@ -5,11 +5,13 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.service.AuctionService;
+import com.bidify.server.service.UserProfileService;
 
 // chuyển hướng request đúng vào các service tương ứng
 public class RequestDispatcher {
     private final AuthService authService = new AuthService();
     private final AuctionService auctionService = new AuctionService();
+    private final UserProfileService userProfileService = new UserProfileService();
 
     public Response dispatch(ClientHandler client, Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
@@ -20,6 +22,8 @@ public class RequestDispatcher {
                 case REGISTER -> response = authService.register(request);
                 case LOGIN -> response = authService.login(client, request);
                 case LOGOUT -> response = authService.logout(client, request);
+                case GET_PROFILE -> response = userProfileService.getProfile(client);
+                case UPDATE_PROFILE -> response = userProfileService.updateProfile(client, request);
                 case JOIN_AUCTION -> response = auctionService.join(client, request);
                 case LEAVE_AUCTION -> response = auctionService.leave(client, request);
                 case CREATE_AUCTION -> response = auctionService.create(client, request);
