@@ -6,7 +6,7 @@ out/
 # IntelliJ
 .idea/
 *.iml
-.vscode
+.vscode/
 
 # Logs
 *.log
@@ -31,3 +31,4 @@ Thumbs.db
 
 # Agent handoff
 AGENT.md
+GEMINI.md
