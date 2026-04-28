@@ -79,55 +79,55 @@ public final class SceneManager {
 
     public static void switchScene(String fxml, boolean remember, boolean showBar) {
         if (!isSwitchingScene.compareAndSet(false, true)) return;
+        Platform.runLater(() -> setInputBlocked(true));
+        showMissionBar = showBar;
 
-        Platform.runLater(() -> {
-            setInputBlocked(true);
-            showMissionBar = showBar;
+        long token = navigationToken.incrementAndGet();
+        AtomicBoolean completed = new AtomicBoolean(false);
 
-            long token = navigationToken.incrementAndGet();
-            AtomicBoolean completed = new AtomicBoolean(false);
-
-            Thread loadingDelayThread = new Thread(() -> {
-                try {
-                    Thread.sleep(LOADING_DELAY_MS);
-                    if (!completed.get() && token == navigationToken.get()) {
-                        Platform.runLater(() -> {
-                            if (!completed.get() && token == navigationToken.get()) {
-                                showLoading(true);
-                            }
-                        });
-                    }
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
+        Thread loadingDelayThread = new Thread(() -> {
+            try {
+                Thread.sleep(LOADING_DELAY_MS);
+                if (!completed.get() && token == navigationToken.get()) {
+                    Platform.runLater(() -> {
+                        if (!completed.get() && token == navigationToken.get()) showLoading(true);
+                    });
                 }
-            });
-            loadingDelayThread.setDaemon(true);
-            loadingDelayThread.start();
+            }
+            catch (InterruptedException e) {
+                logger.warn("Exception occurred", e);
+                Thread.currentThread().interrupt();
+            }
+        });
+        loadingDelayThread.setDaemon(true);
+        loadingDelayThread.start();
 
+        Thread loaderThread = new Thread(() -> {
             try {
                 Parent root = loadFxml(fxml, remember);
-                if (token != navigationToken.get()) return;
-                completed.set(true);
 
-                Scene scene = stage.getScene();
-                if (scene == null) {
-                    contentLayer.getChildren().setAll(root);
-                    updateShellLayout();
-                    stage.setScene(new Scene(shell));
-                    scene = stage.getScene();
-                } else {
-                    if (scene.getRoot() != shell) {
-                        Parent currentRoot = scene.getRoot();
-                        contentLayer.getChildren().setAll(currentRoot);
-                        scene.setRoot(shell);
-                    }
-                    contentLayer.getChildren().setAll(root);
-                    updateShellLayout();
-                }
-
-                final Scene finalScene = scene;
                 Platform.runLater(() -> {
-                    loadCss(finalScene, fxml);
+                    if (token != navigationToken.get()) return;
+                    completed.set(true);
+
+                    Scene scene = stage.getScene();
+                    if (scene == null) {
+                        contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
+                        stage.setScene(new Scene(shell));
+                        scene = stage.getScene();
+                    }
+                    else {
+                        if (scene.getRoot() != shell) {
+                            Parent currentRoot = scene.getRoot();
+                            contentLayer.getChildren().setAll(currentRoot);
+                            scene.setRoot(shell);
+                        }
+                        contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
+                    }
+
+                    loadCss(scene, fxml);
                     showLoading(false);
                 });
             }
@@ -140,6 +140,8 @@ public final class SceneManager {
                 });
             }
         });
+        loaderThread.setDaemon(true);
+        loaderThread.start();
     }
 
     private static void setInputBlocked(boolean blocked) {
@@ -157,7 +159,8 @@ public final class SceneManager {
 
         for (String fxml : fxmls) {
             if (fxml == null || fxml.isBlank() || cache.containsKey(fxml)) continue;
-            Platform.runLater(() -> {
+
+            Thread preloadThread = new Thread(() -> {
                 try {
                     loadFxml(fxml, true);
                 }
@@ -165,6 +168,8 @@ public final class SceneManager {
                     logger.error("Exception occurred", e);
                 }
             });
+            preloadThread.setDaemon(true);
+            preloadThread.start();
         }
     }
 
