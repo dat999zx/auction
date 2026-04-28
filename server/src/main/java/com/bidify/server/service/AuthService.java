@@ -22,7 +22,11 @@ import com.bidify.server.network.ClientHandler;
 import java.util.function.Supplier;
 
 // xử lí phần bề mặt của thông tin người dùng (định dạng, xác thực, ...) đưa cho UserDao xử lí với database
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AuthService {
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserDao userDao = new UserDao();
 
     // đăng kí
@@ -36,7 +40,7 @@ public class AuthService {
             String password = data.getPassword();
 
             // Không in thẳng password ra
-            System.out.println("Register attempt: username=" + username + ", nickname=" + nickname + ", password=[REDACTED]");
+            logger.debug("Register attempt: username={}, nickname={}", username , nickname);
 
 
             ValidationUtil.validateUsername(username);
@@ -90,7 +94,7 @@ public class AuthService {
     }
 
     // đăng kí
-    public Response logout(ClientHandler client, Request request){
+    public Response logout(ClientHandler client){
         String username = client.getCurrentUsername();
 
         return handleAuthRequest(() -> {
@@ -123,10 +127,7 @@ public class AuthService {
         try {
             return action.get();
         }
-        catch (ValidationException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
-        catch (DatabaseException e) {
+        catch (ValidationException | DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
     }

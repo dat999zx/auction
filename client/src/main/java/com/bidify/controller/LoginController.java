@@ -9,13 +9,18 @@ import com.bidify.utility.SceneManager;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class LoginController {
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML
     private TextField usernameField;
     @FXML
@@ -34,8 +39,10 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML
@@ -49,19 +56,17 @@ public class LoginController {
             ValidationUtil.validatePassword(password);
 
             Response response = authClientService.login(username, password);
-            System.out.println(response.getMessage());
+            logger.info(response.getMessage());
             if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
                 showMessage("Logged in", true);
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("hub.fxml", false, true);
             }
-        } catch (AuthException e) {
+        } catch (AuthException | ValidationException e) {
             showMessage(e.getMessage(), false);
         } catch (IOException e) {
             showMessage("Cannot connect to server", false);
-            e.printStackTrace();
-        } catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            logger.error("Exception occurred", e);
         }
     }
 
@@ -106,11 +111,10 @@ public class LoginController {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
                 showMessage("", true);
-                return;
             }
         }
         catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
     }
 }

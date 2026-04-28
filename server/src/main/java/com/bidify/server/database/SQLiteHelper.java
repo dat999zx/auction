@@ -11,7 +11,11 @@ import java.sql.Statement;
 
 import com.bidify.server.exception.DatabaseException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SQLiteHelper {
+    private static final Logger logger = LoggerFactory.getLogger(SQLiteHelper.class);
     private static final String SCHEMA_PATH = "/database/schema.sql";
 
     private SQLiteHelper() {}
@@ -52,7 +56,7 @@ public class SQLiteHelper {
             statement.executeUpdate();
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
             throw new DatabaseException("Failed to execute update");
         }
     }
@@ -69,7 +73,7 @@ public class SQLiteHelper {
             }
         }
         catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
             throw new DatabaseException("Failed to execute query");
         }
     }

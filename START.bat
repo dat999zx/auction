@@ -6,18 +6,10 @@ set "SERVER_DIR=%ROOT%server"
 set "CLIENT_DIR=%ROOT%client"
 set "SERVER_PID=%ROOT%server.pid"
 set "CLIENT_PID=%ROOT%client.pid"
-set "SERVER_LOG=%ROOT%server.out.log"
-set "SERVER_ERR=%ROOT%server.err.log"
-set "CLIENT_LOG=%ROOT%client.out.log"
-set "CLIENT_ERR=%ROOT%client.err.log"
 set "SERVER_PORT=5000"
 
 if exist "%SERVER_PID%" del "%SERVER_PID%"
 if exist "%CLIENT_PID%" del "%CLIENT_PID%"
-if exist "%SERVER_LOG%" del "%SERVER_LOG%"
-if exist "%SERVER_ERR%" del "%SERVER_ERR%"
-if exist "%CLIENT_LOG%" del "%CLIENT_LOG%"
-if exist "%CLIENT_ERR%" del "%CLIENT_ERR%"
 
 echo Building common module...
 call mvn -q -pl common -am install
@@ -30,7 +22,7 @@ cmd /c "netstat -an | find ":%SERVER_PORT%" >nul"
 if not errorlevel 1 goto startclient
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q exec:java -Dexec.mainClass=com.bidify.server.ServerApp' -WorkingDirectory '%SERVER_DIR%' -RedirectStandardOutput '%SERVER_LOG%' -RedirectStandardError '%SERVER_ERR%' -PassThru; $p.Id | Out-File -Encoding ascii '%SERVER_PID%'"
+  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q exec:java -Dexec.mainClass=com.bidify.server.ServerApp' -WorkingDirectory '%SERVER_DIR%' -PassThru; $p.Id | Out-File -Encoding ascii '%SERVER_PID%'"
 if errorlevel 1 (
   echo Failed to start the server process.
   exit /b 1
@@ -73,13 +65,10 @@ goto waitloop
 
 :startclient
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q javafx:run' -WorkingDirectory '%CLIENT_DIR%' -RedirectStandardOutput '%CLIENT_LOG%' -RedirectStandardError '%CLIENT_ERR%' -PassThru; $p.Id | Out-File -Encoding ascii '%CLIENT_PID%'"
+  "$p = Start-Process 'cmd.exe' -ArgumentList '/c','mvn -q javafx:run' -WorkingDirectory '%CLIENT_DIR%' -PassThru; $p.Id | Out-File -Encoding ascii '%CLIENT_PID%'"
 if errorlevel 1 (
   echo Failed to start the client process.
   exit /b 1
 )
 
-echo Server log: "%SERVER_LOG%"
-echo Server error log: "%SERVER_ERR%"
-echo Client log: "%CLIENT_LOG%"
-echo Client error log: "%CLIENT_ERR%"
+echo Server and client started.

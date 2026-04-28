@@ -6,9 +6,10 @@ out/
 # IntelliJ
 .idea/
 *.iml
-.vscode
+.vscode/
 
 # Logs
+logs/
 *.log
 *.pid
 
@@ -28,3 +29,7 @@ out/
 # OS
 .DS_Store
 Thumbs.db
+
+# Agent handoff
+AGENT.md
+GEMINI.md

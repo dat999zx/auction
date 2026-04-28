@@ -105,6 +105,26 @@ public class RealtimeDatabase {
         return new ArrayList<>(runtimeAuctions.values());
     }
 
+    public static Auction getLiveAuction(String auctionId){ // lấy cuộc đấu giá ACTIVE từ runtime
+        Auction auction = getRuntimeAuction(auctionId);
+        if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE) return null;
+        return auction;
+    }
+
+    public static Auction getUpcomingAuction(String auctionId){ // lấy cuộc đấu giá UPCOMING từ runtime
+        Auction auction = getRuntimeAuction(auctionId);
+        if (auction == null || auction.getStatus() != AuctionStatus.UPCOMING) return null;
+        return auction;
+    }
+
+    public static List<Auction> getAllLiveAuctions(){ // lấy tất cả cuộc đấu giá ACTIVE trong runtime
+        return getRuntimeAuctionsByStatus(AuctionStatus.ACTIVE);
+    }
+
+    public static List<Auction> getAllUpcomingAuctions(){ // lấy tất cả cuộc đấu giá UPCOMING trong runtime
+        return getRuntimeAuctionsByStatus(AuctionStatus.UPCOMING);
+    }
+
     public static List<Auction> getRuntimeAuctionsByStatus(AuctionStatus status){ // lấy các cuộc đấu giá trong runtime theo status
         List<Auction> auctions = new ArrayList<>();
         if (status == null) return auctions;
