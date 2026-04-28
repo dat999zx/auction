@@ -9,7 +9,11 @@ import com.bidify.server.contract.ImplementUserDao;
 import com.bidify.server.model.User;
 
 // giao tiếp với SQLite database về bảng Users
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UserDao implements ImplementUserDao {
+    private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
     public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
@@ -26,7 +30,7 @@ public class UserDao implements ImplementUserDao {
                 if (rs != null && rs.next()){
                     String createdAt = rs.getString("createdAt");
                     String lastLogin = rs.getString("lastLogin");
-                    User user = new User(
+                    return new User(
                         rs.getString("username"),
                         rs.getString("nickname"),
                         rs.getString("password"),
@@ -37,7 +41,6 @@ public class UserDao implements ImplementUserDao {
                         lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin),
                         rs.getDouble("wallet")
                     );
-                    return user;
                 }
                 return null;
             },
@@ -91,6 +94,6 @@ public class UserDao implements ImplementUserDao {
                 user.getUsername()
             );
         }
-        System.out.println("saved user: " + user.getUsername());
+        logger.debug("saved user: {}", user.getUsername());
     }
 }

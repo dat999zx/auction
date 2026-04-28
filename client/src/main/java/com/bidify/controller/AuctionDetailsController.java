@@ -19,7 +19,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class AuctionDetailsController {
+    private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
 
     private static String selectedAuctionId;
@@ -125,7 +129,7 @@ public class AuctionDetailsController {
             loadAuctionDetails(selectedAuctionId);
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         } catch (AuctionException e) {
             showMessage(e.getMessage(), false);
         }
@@ -179,7 +183,7 @@ public class AuctionDetailsController {
             showMessage(response.getMessage() == null ? "Logout failed." : response.getMessage(), false);
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         } catch (com.bidify.common.exception.AuthException e) {
             showMessage(e.getMessage(), false);
         }
@@ -195,7 +199,7 @@ public class AuctionDetailsController {
         } catch (IOException e) {
             showMessage("Cannot connect to server.", false);
             placebid.setDisable(true);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         } catch (AuctionException e) {
             showMessage(e.getMessage(), false);
             placebid.setDisable(true);

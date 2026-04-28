@@ -19,7 +19,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class HubController {
+    private static final Logger logger = LoggerFactory.getLogger(HubController.class);
     private static final double AUCTION_ROW_GAP = 56.0;
 
     @FXML
@@ -64,7 +68,6 @@ public class HubController {
 
         if (selectedButton == createAuctionButton) {
             handleCreateAuction();
-            return;
         }
 
     }
@@ -86,10 +89,10 @@ public class HubController {
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            System.err.println("Logout failed: " + response.getMessage());
+            logger.error("Logout failed: {}", response.getMessage());
         }
         catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
     }
 
@@ -107,7 +110,7 @@ public class HubController {
             renderAuctionRows();
         } catch (IOException e) {
             showEmptyState("Cannot connect to server.");
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         } catch (AuctionException e) {
             showEmptyState(e.getMessage());
         }

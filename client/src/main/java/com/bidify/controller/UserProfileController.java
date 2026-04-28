@@ -18,7 +18,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UserProfileController {
+    private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
     @FXML
     private Button auctionsButton;
 
@@ -109,7 +113,7 @@ public class UserProfileController {
         }
         catch (IOException e) {
             showMessage("Cannot connect to server.", false);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
         catch (com.bidify.common.exception.AuthException e) {
             showMessage(e.getMessage(), false);

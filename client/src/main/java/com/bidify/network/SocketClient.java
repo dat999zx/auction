@@ -37,7 +37,11 @@ gọi connect() ở MainApp để nối server và client
 SocketClient client = SocketClient.getClient(); để lấy client
 Response response = client.send(request) để gửi request đến server và nhận về response
 */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SocketClient {
+    private static final Logger logger = LoggerFactory.getLogger(SocketClient.class);
     private static SocketClient client = new SocketClient(); // singleton
     private final ClientSession clientSession = ClientSession.getInstance(); // session hiện tại
 
@@ -59,7 +63,7 @@ public class SocketClient {
     public void connect(String host, int port) throws IOException {
         synchronized (connectionLock) {
             if (socket != null) {
-                System.out.println("Already connected to server");
+                logger.debug("Already connected to server");
                 return;
             }
             try {
@@ -72,11 +76,11 @@ public class SocketClient {
                 startListening();
             }
             catch (ConnectException e) {
-                System.out.println("Server has not started");
+                logger.error("Server has not started");
                 Platform.exit();
             }
             catch (IOException e) {
-                System.out.println(e.getMessage());
+                logger.error(e.getMessage());
             }
             catch (Exception e) {
                 throw new IOException("Failed to initialize TLS", e);
@@ -143,16 +147,22 @@ public class SocketClient {
                     }
                     else if (json.has("type")) {
                         Event event = JsonUtil.fromJson(line, Event.class);
-                        System.out.println("Received: " + event.getType());
+                        logger.debug("Received: {}", event.getType());
                         Platform.runLater(() -> EventManager.getInstance().publish(event));
                     }
                 }
             }
-            catch (SocketException e) {
-                e.printStackTrace();
-            }
             catch (IOException e) {
-                e.printStackTrace();
+                logger.warn("Exception occurred", e);
+                try {
+                    close();
+                }
+                catch (IOException ex) {
+                    logger.warn("Failed to close client", ex);
+                }
+                finally {
+                    Platform.exit();
+                }
             }
         });
         listenerThread.setDaemon(true);
@@ -171,6 +181,9 @@ public class SocketClient {
             out = null;
             listenerThread = null;
             clientSession.clear();
+            pendingResponses.clear();
+            logger.info("Disconnected from server");
+            Platform.exit();
         }
     }
 

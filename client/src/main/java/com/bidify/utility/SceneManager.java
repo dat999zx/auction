@@ -35,7 +35,11 @@ SceneManager.switchScene(fxml) để đổi sang scene mới và tự ghi nhớ
 SceneManager.switchScene(fxml, false) để đổi sang scene mới mà không ghi nhớ lại
 mục đích của việc ghi nhớ là để lần sau nếu có mở lại scene đó thì load nhanh hơn
 */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class SceneManager {
+    private static final Logger logger = LoggerFactory.getLogger(SceneManager.class);
     private static final long LOADING_DELAY_MS = 250;
     private static final double MISSION_BAR_HEIGHT = 78.0;
 
@@ -131,7 +135,7 @@ public final class SceneManager {
                     if (token != navigationToken.get()) return;
                     completed.set(true);
                     showLoading(false);
-                    e.printStackTrace();
+                    logger.warn("Exception occurred", e);
                 });
             }
         });
@@ -160,7 +164,7 @@ public final class SceneManager {
                     loadFxml(fxml, true);
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Exception occurred", e);
                 }
             });
             preloadThread.setDaemon(true);

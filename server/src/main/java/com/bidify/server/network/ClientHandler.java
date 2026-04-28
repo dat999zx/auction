@@ -17,7 +17,11 @@ import java.net.SocketException;
 import javax.net.ssl.SSLSocket;
 
 // lắng nghe client
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ClientHandler implements Runnable, Observer {
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private final SSLSocket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
     private String currentUsername;
@@ -36,7 +40,7 @@ public class ClientHandler implements Runnable, Observer {
             
             String line;
             while ((line = in.readLine()) != null) {
-                System.out.println("Received: " + line);
+                logger.debug("Received: {}", line);
 
                 Request request = JsonUtil.fromJson(line, Request.class);
                 Response response = dispatcher.dispatch(this, request);
@@ -44,9 +48,9 @@ public class ClientHandler implements Runnable, Observer {
                 sendResponse(response);
             }
         } catch (SocketException e2) {
-            System.out.println("Client disconnected: " + socket.getInetAddress());
+            logger.info("Client disconnected: {}", socket.getInetAddress());
         } catch (IOException e2) {
-            e2.printStackTrace();
+            logger.warn("Exception occurred", e2);
         } finally {
             handleDisconnect();
         }
@@ -80,7 +84,7 @@ public class ClientHandler implements Runnable, Observer {
     }
 
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
-        System.out.println("Client disconnected: " + socket.getInetAddress());
+        logger.info("Client disconnected: {}", socket.getInetAddress());
         if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         dispatcher.dispatch(this, request);
