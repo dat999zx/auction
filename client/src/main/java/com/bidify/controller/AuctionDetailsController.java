@@ -13,6 +13,7 @@ import com.bidify.utility.SceneManager;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
@@ -78,13 +79,17 @@ public class AuctionDetailsController {
 
     @FXML
     private void initialize() {
-        bindTopBar();
-        missionBarController.setActiveNavigation(auctionsButton);
-        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-        resetView();
+        Platform.runLater(() -> {
+            bindTopBar();
+            missionBarController.setActiveNavigation(auctionsButton);
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+            resetView();
+        });
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
-            showMessage("No auction selected.", false);
-            placebid.setDisable(true);
+            Platform.runLater(() -> {
+                showMessage("No auction selected.", false);
+                placebid.setDisable(true);
+            });
             return;
         }
         loadAuctionDetails(selectedAuctionId);
@@ -190,27 +195,37 @@ public class AuctionDetailsController {
     }
 
     private void loadAuctionDetails(String auctionId) {
-        try {
-            AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
-            joinAuctionChannel(auctionId);
-            bindAuctionData(auction);
-            placebid.setDisable(false);
-            showMessage("Auction loaded.", true);
-        } catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
-            placebid.setDisable(true);
-            logger.error("Exception occurred", e);
-        } catch (AuctionException e) {
-            showMessage(e.getMessage(), false);
-            placebid.setDisable(true);
-        }
+        Thread loader = new Thread(() -> {
+            try {
+                AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
+                joinAuctionChannel(auctionId);
+                Platform.runLater(() -> {
+                    bindAuctionData(auction);
+                    placebid.setDisable(false);
+                    showMessage("Auction loaded.", true);
+                });
+            } catch (IOException e) {
+                logger.error("Exception occurred", e);
+                Platform.runLater(() -> {
+                    showMessage("Cannot connect to server.", false);
+                    placebid.setDisable(true);
+                });
+            } catch (AuctionException e) {
+                Platform.runLater(() -> {
+                    showMessage(e.getMessage(), false);
+                    placebid.setDisable(true);
+                });
+            }
+        });
+        loader.setDaemon(true);
+        loader.start();
     }
 
     private void joinAuctionChannel(String auctionId) {
         try {
             auctionClientService.join(auctionId);
         } catch (IOException e) {
-            showMessage("Auction loaded, but live bid updates could not be joined.", false);
+            Platform.runLater(() -> showMessage("Auction loaded, but live bid updates could not be joined.", false));
         } catch (AuctionException e) {
             // Being already joined should not block the detail screen.
         }

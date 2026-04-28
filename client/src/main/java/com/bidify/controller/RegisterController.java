@@ -7,6 +7,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -41,9 +42,11 @@ public class RegisterController {
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML

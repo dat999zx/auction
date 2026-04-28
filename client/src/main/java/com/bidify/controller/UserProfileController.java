@@ -11,6 +11,7 @@ import com.bidify.service.AuthClientService;
 import com.bidify.service.UserProfileClientService;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -72,8 +73,10 @@ public class UserProfileController {
 
     @FXML
     private void initialize() {
-        bindTopBar();
-        populateProfile();
+        Platform.runLater(() -> {
+            bindTopBar();
+            populateProfile();
+        });
     }
 
     @FXML

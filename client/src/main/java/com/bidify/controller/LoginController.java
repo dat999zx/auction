@@ -9,6 +9,7 @@ import com.bidify.utility.SceneManager;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -38,8 +39,10 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML

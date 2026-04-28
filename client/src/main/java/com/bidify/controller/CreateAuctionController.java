@@ -18,6 +18,7 @@ import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -81,35 +82,37 @@ public class CreateAuctionController {
 
     @FXML
     private void initialize() {
-        bindTopBar();
+        Platform.runLater(() -> {
+            bindTopBar();
 
-        if (categoryComboBox != null) {
-            categoryComboBox.getItems().setAll(
-                List.of("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other")
-            );
-        }
+            if (categoryComboBox != null) {
+                categoryComboBox.getItems().setAll(
+                    List.of("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other")
+                );
+            }
 
-        if (productTypeComboBox != null) {
-            productTypeComboBox.getItems().setAll(
-                List.of("New", "Used", "Rare", "Vintage", "Limited")
-            );
-        }
+            if (productTypeComboBox != null) {
+                productTypeComboBox.getItems().setAll(
+                    List.of("New", "Used", "Rare", "Vintage", "Limited")
+                );
+            }
 
-        if (startDatePicker != null) {
-            startDatePicker.setEditable(false);
-        }
+            if (startDatePicker != null) {
+                startDatePicker.setEditable(false);
+            }
 
-        if (endDatePicker != null) {
-            endDatePicker.setEditable(false);
-        }
+            if (endDatePicker != null) {
+                endDatePicker.setEditable(false);
+            }
 
-        if (startTimeField != null) {
-            startTimeField.setText("09:00");
-        }
+            if (startTimeField != null) {
+                startTimeField.setText("09:00");
+            }
 
-        if (endTimeField != null) {
-            endTimeField.setText("18:00");
-        }
+            if (endTimeField != null) {
+                endTimeField.setText("18:00");
+            }
+        });
     }
 
     @FXML
