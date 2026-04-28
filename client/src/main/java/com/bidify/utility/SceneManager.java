@@ -125,7 +125,9 @@ public final class SceneManager {
                     updateShellLayout();
                 }
 
-                    loadCss(scene, fxml);
+                final Scene finalScene = scene;
+                Platform.runLater(() -> {
+                    loadCss(finalScene, fxml);
                     showLoading(false);
                 });
             }

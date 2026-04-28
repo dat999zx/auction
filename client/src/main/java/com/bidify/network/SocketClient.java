@@ -51,6 +51,7 @@ public class SocketClient {
     private volatile BufferedReader in; // nhận data từ server
     private volatile PrintWriter out; // gửi data đến server
     private volatile Thread listenerThread; // lắng nghe server
+    private volatile boolean closing;
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
@@ -67,6 +68,7 @@ public class SocketClient {
                 return;
             }
             try {
+                closing = false;
                 SSLSocketFactory factory = createSocketFactory();
                 socket = (SSLSocket) factory.createSocket(host, port);
                 socket.startHandshake();
@@ -79,14 +81,12 @@ public class SocketClient {
                 throw new IOException("Server has not started", e);
             }
             catch (IOException e) {
-                logger.error(e.getMessage());
+                logger.error("Exception occurred", e);
+                close();
             }
             catch (Exception e) {
                 logger.error("Failed to initialize TLS", e);
-            }
-            finally {
-               cleanupConnectionState();
-               Platform.exit();
+                close();
             }
         }
     }
@@ -139,7 +139,7 @@ public class SocketClient {
         listenerThread = new Thread(() -> {
             try {
                 String line;
-                while (socket != null && in != null && (line = in.readLine()) != null) {
+                while (!closing && socket != null && in != null && (line = in.readLine()) != null) {
                     JsonObject json = JsonParser.parseString(line).getAsJsonObject();
 
                     if (json.has("status")) {
@@ -155,16 +155,14 @@ public class SocketClient {
                     }
                 }
             }
+            catch (SocketException e) {
+                if (!closing) {
+                    logger.warn("Exception occurred", e);
+                }
+            }
             catch (IOException e) {
-                logger.warn("Exception occurred", e);
-                try {
-                    close();
-                }
-                catch (IOException ex) {
-                    logger.warn("Failed to close client", ex);
-                }
-                finally {
-                    Platform.exit();
+                if (!closing) {
+                    logger.warn("Exception occurred", e);
                 }
             }
         });
@@ -175,8 +173,9 @@ public class SocketClient {
     // đóng kết nối
     public void close() throws IOException {
         synchronized (connectionLock) {
-            if (socket != null) socket.close();
+            closing = true;
             if (listenerThread != null) listenerThread.interrupt();
+            if (socket != null) socket.close();
             if (in != null) in.close();
             if (out != null) out.close();
             socket = null;
@@ -188,13 +187,6 @@ public class SocketClient {
             logger.info("Disconnected from server");
             Platform.exit();
         }
-    }
-
-    private void cleanupConnectionState() {
-        socket = null;
-        in = null;
-        out = null;
-        listenerThread = null;
     }
 
     private SSLSocketFactory createSocketFactory() throws Exception {
