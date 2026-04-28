@@ -18,6 +18,7 @@ import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -26,9 +27,12 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CreateAuctionController {
+    private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     @FXML
@@ -78,35 +82,37 @@ public class CreateAuctionController {
 
     @FXML
     private void initialize() {
-        bindTopBar();
+        Platform.runLater(() -> {
+            bindTopBar();
 
-        if (categoryComboBox != null) {
-            categoryComboBox.getItems().setAll(
-                List.of("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other")
-            );
-        }
+            if (categoryComboBox != null) {
+                categoryComboBox.getItems().setAll(
+                    List.of("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other")
+                );
+            }
 
-        if (productTypeComboBox != null) {
-            productTypeComboBox.getItems().setAll(
-                List.of("New", "Used", "Rare", "Vintage", "Limited")
-            );
-        }
+            if (productTypeComboBox != null) {
+                productTypeComboBox.getItems().setAll(
+                    List.of("New", "Used", "Rare", "Vintage", "Limited")
+                );
+            }
 
-        if (startDatePicker != null) {
-            startDatePicker.setEditable(false);
-        }
+            if (startDatePicker != null) {
+                startDatePicker.setEditable(false);
+            }
 
-        if (endDatePicker != null) {
-            endDatePicker.setEditable(false);
-        }
+            if (endDatePicker != null) {
+                endDatePicker.setEditable(false);
+            }
 
-        if (startTimeField != null) {
-            startTimeField.setText("09:00");
-        }
+            if (startTimeField != null) {
+                startTimeField.setText("09:00");
+            }
 
-        if (endTimeField != null) {
-            endTimeField.setText("18:00");
-        }
+            if (endTimeField != null) {
+                endTimeField.setText("18:00");
+            }
+        });
     }
 
     @FXML
@@ -123,7 +129,6 @@ public class CreateAuctionController {
         }
         if (selectedButton == auctionsButton) {
             SceneManager.switchScene("hub.fxml", false, true);
-            return;
         }
 
     }
@@ -145,10 +150,10 @@ public class CreateAuctionController {
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            System.err.println("Logout failed: " + response.getMessage());
+            logger.error("Logout failed: {}", response.getMessage());
         } catch (IOException e) {
-            System.err.println("Cannot connect to server while logging out");
-            e.printStackTrace();
+            logger.error("Cannot connect to server while logging out");
+            logger.error("Exception occurred", e);
         }
     }
     @FXML
@@ -197,7 +202,7 @@ public class CreateAuctionController {
             );
 
             Response response = auctionClientService.createAuction(data);
-            System.out.println(response.getMessage());
+            logger.info(response.getMessage());
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 showMessage("Create new Auction successfully", true);
                 SceneManager.clearCache("create-auction.fxml");
@@ -209,12 +214,9 @@ public class CreateAuctionController {
         }
         catch (IOException e) {
             showMessage("Cannot connect to server", false);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
-        catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
-        }
-        catch (NumberFormatException e) {
+        catch (ValidationException | NumberFormatException e) {
             showMessage(e.getMessage(), false);
         }
     }

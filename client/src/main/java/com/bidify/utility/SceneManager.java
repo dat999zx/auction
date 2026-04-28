@@ -37,7 +37,11 @@ SceneManager.switchScene(fxml) để đổi sang scene mới và tự ghi nhớ
 SceneManager.switchScene(fxml, false) để đổi sang scene mới mà không ghi nhớ lại
 mục đích của việc ghi nhớ là để lần sau nếu có mở lại scene đó thì load nhanh hơn
 */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class SceneManager {
+    private static final Logger logger = LoggerFactory.getLogger(SceneManager.class);
     private static final long LOADING_DELAY_MS = 250;
     private static final double MISSION_BAR_HEIGHT = 78.0;
 
@@ -75,61 +79,69 @@ public final class SceneManager {
 
     public static void switchScene(String fxml, boolean remember, boolean showBar) {
         if (!isSwitchingScene.compareAndSet(false, true)) return;
+        Platform.runLater(() -> setInputBlocked(true));
+        showMissionBar = showBar;
 
-        Platform.runLater(() -> {
-            setInputBlocked(true);
-            showMissionBar = showBar;
+        long token = navigationToken.incrementAndGet();
+        AtomicBoolean completed = new AtomicBoolean(false);
 
-            long token = navigationToken.incrementAndGet();
-            AtomicBoolean completed = new AtomicBoolean(false);
-
-            Thread loadingDelayThread = new Thread(() -> {
-                try {
-                    Thread.sleep(LOADING_DELAY_MS);
-                    if (!completed.get() && token == navigationToken.get()) {
-                        Platform.runLater(() -> {
-                            if (!completed.get() && token == navigationToken.get()) {
-                                showLoading(true);
-                            }
-                        });
-                    }
-                } catch (InterruptedException ignored) {
-                    Thread.currentThread().interrupt();
-                }
-            });
-            loadingDelayThread.setDaemon(true);
-            loadingDelayThread.start();
-
+        Thread loadingDelayThread = new Thread(() -> {
             try {
-                Parent root = loadFxml(fxml, remember);
-                if (token != navigationToken.get()) return;
-                completed.set(true);
-
-                Scene scene = stage.getScene();
-                if (scene == null) {
-                    contentLayer.getChildren().setAll(root);
-                    updateShellLayout();
-                    stage.setScene(new Scene(shell));
-                    scene = stage.getScene();
-                } else {
-                    if (scene.getRoot() != shell) {
-                        Parent currentRoot = scene.getRoot();
-                        contentLayer.getChildren().setAll(currentRoot);
-                        scene.setRoot(shell);
-                    }
-                    contentLayer.getChildren().setAll(root);
-                    updateShellLayout();
+                Thread.sleep(LOADING_DELAY_MS);
+                if (!completed.get() && token == navigationToken.get()) {
+                    Platform.runLater(() -> {
+                        if (!completed.get() && token == navigationToken.get()) showLoading(true);
+                    });
                 }
-
-                loadCss(scene, fxml);
-                showLoading(false);
-            } catch (Exception e) {
-                if (token != navigationToken.get()) return;
-                completed.set(true);
-                showLoading(false);
-                e.printStackTrace();
+            }
+            catch (InterruptedException e) {
+                logger.warn("Exception occurred", e);
+                Thread.currentThread().interrupt();
             }
         });
+        loadingDelayThread.setDaemon(true);
+        loadingDelayThread.start();
+
+        Thread loaderThread = new Thread(() -> {
+            try {
+                Parent root = loadFxml(fxml, remember);
+
+                Platform.runLater(() -> {
+                    if (token != navigationToken.get()) return;
+                    completed.set(true);
+
+                    Scene scene = stage.getScene();
+                    if (scene == null) {
+                        contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
+                        stage.setScene(new Scene(shell));
+                        scene = stage.getScene();
+                    }
+                    else {
+                        if (scene.getRoot() != shell) {
+                            Parent currentRoot = scene.getRoot();
+                            contentLayer.getChildren().setAll(currentRoot);
+                            scene.setRoot(shell);
+                        }
+                        contentLayer.getChildren().setAll(root);
+                        updateShellLayout();
+                    }
+
+                    loadCss(scene, fxml);
+                    showLoading(false);
+                });
+            }
+            catch (Exception e) {
+                Platform.runLater(() -> {
+                    if (token != navigationToken.get()) return;
+                    completed.set(true);
+                    showLoading(false);
+                    logger.warn("Exception occurred", e);
+                });
+            }
+        });
+        loaderThread.setDaemon(true);
+        loaderThread.start();
     }
 
     private static void setInputBlocked(boolean blocked) {
@@ -147,13 +159,17 @@ public final class SceneManager {
 
         for (String fxml : fxmls) {
             if (fxml == null || fxml.isBlank() || cache.containsKey(fxml)) continue;
-            Platform.runLater(() -> {
+
+            Thread preloadThread = new Thread(() -> {
                 try {
                     loadFxml(fxml, true);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                }
+                catch (Exception e) {
+                    logger.error("Exception occurred", e);
                 }
             });
+            preloadThread.setDaemon(true);
+            preloadThread.start();
         }
     }
 

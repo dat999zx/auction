@@ -11,6 +11,7 @@ import com.bidify.service.AuthClientService;
 import com.bidify.service.UserProfileClientService;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,7 +19,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class UserProfileController {
+    private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
     @FXML
     private Button auctionsButton;
 
@@ -68,8 +73,10 @@ public class UserProfileController {
 
     @FXML
     private void initialize() {
-        bindTopBar();
-        populateProfile();
+        Platform.runLater(() -> {
+            bindTopBar();
+            populateProfile();
+        });
     }
 
     @FXML
@@ -109,7 +116,7 @@ public class UserProfileController {
         }
         catch (IOException e) {
             showMessage("Cannot connect to server.", false);
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
         catch (com.bidify.common.exception.AuthException e) {
             showMessage(e.getMessage(), false);

@@ -196,10 +196,7 @@ class AuthServiceTest {
     @Test
     void logoutFailsWhenClientHasNotLoggedIn() {
         // Client chưa có currentUsername => không có session hợp lệ để logout.
-        Response response = authService.logout(
-            new TestClientHandler(),
-            new Request(RequestType.LOGOUT, null)
-        );
+        Response response = authService.logout(new TestClientHandler());
 
         assertEquals(RequestStatus.UNAUTHORIZED, response.getStatus());
         assertEquals("Invalid session", response.getMessage());
@@ -214,10 +211,7 @@ class AuthServiceTest {
         // ...nhưng RealtimeDatabase không có session tương ứng.
         // Đây là case lệch trạng thái giữa client và runtime database.
 
-        Response response = authService.logout(
-            client,
-            new Request(RequestType.LOGOUT, null)
-        );
+        Response response = authService.logout(client);
 
         assertEquals(RequestStatus.FAILED, response.getStatus());
         assertEquals("Session is inactive", response.getMessage());
