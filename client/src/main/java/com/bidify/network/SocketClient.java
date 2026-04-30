@@ -37,7 +37,11 @@ gọi connect() ở MainApp để nối server và client
 SocketClient client = SocketClient.getClient(); để lấy client
 Response response = client.send(request) để gửi request đến server và nhận về response
 */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SocketClient {
+    private static final Logger logger = LoggerFactory.getLogger(SocketClient.class);
     private static SocketClient client = new SocketClient(); // singleton
     private final ClientSession clientSession = ClientSession.getInstance(); // session hiện tại
 
@@ -47,6 +51,7 @@ public class SocketClient {
     private volatile BufferedReader in; // nhận data từ server
     private volatile PrintWriter out; // gửi data đến server
     private volatile Thread listenerThread; // lắng nghe server
+    private volatile boolean closing;
 
     private final Map<String, BlockingQueue<Response>> pendingResponses = new ConcurrentHashMap<>();
 
@@ -59,10 +64,11 @@ public class SocketClient {
     public void connect(String host, int port) throws IOException {
         synchronized (connectionLock) {
             if (socket != null) {
-                System.out.println("Already connected to server");
+                logger.debug("Already connected to server");
                 return;
             }
             try {
+                closing = false;
                 SSLSocketFactory factory = createSocketFactory();
                 socket = (SSLSocket) factory.createSocket(host, port);
                 socket.startHandshake();
@@ -72,14 +78,15 @@ public class SocketClient {
                 startListening();
             }
             catch (ConnectException e) {
-                System.out.println("Server has not started");
-                Platform.exit();
+                throw new IOException("Server has not started", e);
             }
             catch (IOException e) {
-                System.out.println(e.getMessage());
+                logger.error("Exception occurred", e);
+                close();
             }
             catch (Exception e) {
-                throw new IOException("Failed to initialize TLS", e);
+                logger.error("Failed to initialize TLS", e);
+                close();
             }
         }
     }
@@ -132,7 +139,7 @@ public class SocketClient {
         listenerThread = new Thread(() -> {
             try {
                 String line;
-                while (socket != null && in != null && (line = in.readLine()) != null) {
+                while (!closing && socket != null && in != null && (line = in.readLine()) != null) {
                     JsonObject json = JsonParser.parseString(line).getAsJsonObject();
 
                     if (json.has("status")) {
@@ -143,16 +150,20 @@ public class SocketClient {
                     }
                     else if (json.has("type")) {
                         Event event = JsonUtil.fromJson(line, Event.class);
-                        System.out.println("Received: " + event.getType());
+                        logger.debug("Received: {}", event.getType());
                         Platform.runLater(() -> EventManager.getInstance().publish(event));
                     }
                 }
             }
             catch (SocketException e) {
-                e.printStackTrace();
+                if (!closing) {
+                    logger.warn("Exception occurred", e);
+                }
             }
             catch (IOException e) {
-                e.printStackTrace();
+                if (!closing) {
+                    logger.warn("Exception occurred", e);
+                }
             }
         });
         listenerThread.setDaemon(true);
@@ -162,8 +173,9 @@ public class SocketClient {
     // đóng kết nối
     public void close() throws IOException {
         synchronized (connectionLock) {
-            if (socket != null) socket.close();
+            closing = true;
             if (listenerThread != null) listenerThread.interrupt();
+            if (socket != null) socket.close();
             if (in != null) in.close();
             if (out != null) out.close();
             socket = null;
@@ -171,6 +183,9 @@ public class SocketClient {
             out = null;
             listenerThread = null;
             clientSession.clear();
+            pendingResponses.clear();
+            logger.info("Disconnected from server");
+            Platform.exit();
         }
     }
 

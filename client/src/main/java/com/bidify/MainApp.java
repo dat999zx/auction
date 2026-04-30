@@ -6,10 +6,15 @@ import javafx.stage.Stage;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MainApp extends Application {
+    private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
+
     @Override
     public void start(Stage stage) throws Exception {
-        System.out.println("Connecting to server...");
+        logger.info("Connecting to server...");
         SocketClient client = SocketClient.getClient();
         client.connect("localhost", 5000);
         
@@ -20,7 +25,8 @@ public class MainApp extends Application {
         stage.setMaxHeight(800);
         SceneManager.setStage(stage);
 
-        SceneManager.preloadScenes("login.fxml", "register.fxml", "hub.fxml", "user-profile.fxml");
+        // Only preload anonymous screens. Authenticated screens run network calls in initialize().
+        SceneManager.preloadScenes("login.fxml", "register.fxml");
 
         SceneManager.switchScene("login.fxml");
         stage.show();

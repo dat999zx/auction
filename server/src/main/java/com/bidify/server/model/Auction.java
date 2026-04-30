@@ -22,9 +22,10 @@ public class Auction extends Entity {
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        refreshStatus();
     }
     
-    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String currentBidderUsername, String category, String productType, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String currentBidderUsername, String category, String productType, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
         super(id, createdAt);
         this.auctionName = auctionName;
         this.description = description;
@@ -36,6 +37,8 @@ public class Auction extends Entity {
         this.minIncrement = minIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.status = status == null ? AuctionStatus.UPCOMING : status;
+        refreshStatus();
     }
     
     public synchronized boolean placeBid(Bid bid) {
@@ -48,6 +51,21 @@ public class Auction extends Entity {
         this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
 
+        return true;
+    }
+
+    public boolean refreshStatus() {
+        if (status == AuctionStatus.PAID || status == AuctionStatus.BANNED) return false;
+
+        LocalDateTime now = LocalDateTime.now();
+        AuctionStatus next;
+
+        if (!now.isBefore(endTime)) next = AuctionStatus.ENDED;
+        else if (now.isBefore(startTime)) next = AuctionStatus.UPCOMING;
+        else next = AuctionStatus.ACTIVE;
+
+        if (next == status) return false;
+        status = next;
         return true;
     }
     
@@ -72,10 +90,14 @@ public class Auction extends Entity {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
-    public AuctionStatus getStatus() { return status; }
+    public AuctionStatus getStatus() {
+        refreshStatus();
+        return status;
+    }
     public void setStatus(AuctionStatus status) { this.status = status; }
-    public boolean isActive(){ return this.status == AuctionStatus.ACTIVE; }
-    public boolean isEnded() { return this.status == AuctionStatus.ENDED; }
+    public boolean isActive(){ return getStatus() == AuctionStatus.ACTIVE; }
+    public boolean isEnded() { return getStatus() == AuctionStatus.ENDED; }
+    public boolean isUpcoming() { return getStatus() == AuctionStatus.UPCOMING; }
 
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String username) { this.sellerUsername = username; }

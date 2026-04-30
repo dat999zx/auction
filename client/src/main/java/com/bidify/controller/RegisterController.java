@@ -7,6 +7,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -14,7 +15,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RegisterController {
+    private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
     @FXML
     private TextField usernameField;
     @FXML
@@ -37,9 +42,11 @@ public class RegisterController {
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML
@@ -57,17 +64,15 @@ public class RegisterController {
             }
 
             Response response = authClientService.register(username, password);
-            System.out.println(response.getMessage());
+            logger.info(response.getMessage());
             if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
                 showMessage("Register successfully, please login", true);
             }
-        } catch (AuthException e) {
+        } catch (AuthException | ValidationException e) {
             showMessage(e.getMessage(), false);
         } catch (IOException e) {
             showMessage("Cannot connect to server", false);
-            e.printStackTrace();
-        } catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            logger.error("Exception occurred", e);
         }
     }
 

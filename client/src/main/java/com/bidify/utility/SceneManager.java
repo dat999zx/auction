@@ -4,7 +4,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
 import com.bidify.controller.MissionBarController;
+
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
@@ -35,51 +37,54 @@ SceneManager.switchScene(fxml) để đổi sang scene mới và tự ghi nhớ
 SceneManager.switchScene(fxml, false) để đổi sang scene mới mà không ghi nhớ lại
 mục đích của việc ghi nhớ là để lần sau nếu có mở lại scene đó thì load nhanh hơn
 */
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public final class SceneManager {
+    private static final Logger logger = LoggerFactory.getLogger(SceneManager.class);
     private static final long LOADING_DELAY_MS = 250;
     private static final double MISSION_BAR_HEIGHT = 78.0;
 
     private static Stage stage;
-    private static final Map<String, Parent> cache = new ConcurrentHashMap<>(); // lưu các scene đã load
+    private static final Map<String, Parent> cache = new ConcurrentHashMap<>();
 
-    private static final StackPane shell = new StackPane(); // gốc chứa
-    private static final StackPane contentLayer = new StackPane(); // chứa nội dung
-    private static final StackPane overlayLayer = new StackPane(); // chứa loading
-    private static final StackPane loadingNode = new StackPane(); // spinner loading
+    private static final StackPane shell = new StackPane();
+    private static final StackPane contentLayer = new StackPane();
+    private static final StackPane overlayLayer = new StackPane();
+    private static final StackPane loadingNode = new StackPane();
     private static Parent missionBarRoot;
     private static MissionBarController missionBarController;
     private static boolean showMissionBar;
 
-    private static final AtomicLong navigationToken = new AtomicLong(); // giúp xác định đúng scene đang load
-    private static final AtomicBoolean isSwitchingScene = new AtomicBoolean(false); // khóa switchScene khi có scene đang load
+    private static final AtomicLong navigationToken = new AtomicLong();
+    private static final AtomicBoolean isSwitchingScene = new AtomicBoolean(false);
     private static RotateTransition spinAnimation;
 
     private SceneManager() {}
 
-    public static void setStage(Stage s) { // chỉ gọi 1 lần ở MainApp để thiết lập stage chính
+    public static void setStage(Stage s) {
         if (stage != null) return;
         stage = s;
         initOverlay();
         initShell();
     }
 
-    public static void switchScene(String fxml) { // đổi scene mặc định tự ghi nhớ, ko hiển thị bar
+    public static void switchScene(String fxml) {
         switchScene(fxml, true, false);
     }
 
-    public static void switchScene(String fxml, boolean remember) { // đổi scene mặc định, ko hiển thị bar
+    public static void switchScene(String fxml, boolean remember) {
         switchScene(fxml, remember, false);
     }
 
-    public static void switchScene(String fxml, boolean remember, boolean showBar) { // đổi scene
-        if (!isSwitchingScene.compareAndSet(false, true)) return; // kiểm tra có scene nào đang load không, nếu ko thì cho thành có để khóa hàm
-        Platform.runLater(() -> setInputBlocked(true)); // khóa chuột
+    public static void switchScene(String fxml, boolean remember, boolean showBar) {
+        if (!isSwitchingScene.compareAndSet(false, true)) return;
+        Platform.runLater(() -> setInputBlocked(true));
         showMissionBar = showBar;
 
-        long token = navigationToken.incrementAndGet(); // lấy token của scene hiện tại
+        long token = navigationToken.incrementAndGet();
         AtomicBoolean completed = new AtomicBoolean(false);
 
-        // thread chờ loading (nếu chờ lâu hơn LOADING_DELAY_MS thì hiện ra màn hình loading)
         Thread loadingDelayThread = new Thread(() -> {
             try {
                 Thread.sleep(LOADING_DELAY_MS);
@@ -89,14 +94,14 @@ public final class SceneManager {
                     });
                 }
             }
-            catch (InterruptedException ignored) {
+            catch (InterruptedException e) {
+                logger.warn("Exception occurred", e);
                 Thread.currentThread().interrupt();
             }
         });
         loadingDelayThread.setDaemon(true);
         loadingDelayThread.start();
 
-        // thread load scene
         Thread loaderThread = new Thread(() -> {
             try {
                 Parent root = loadFxml(fxml, remember);
@@ -131,7 +136,7 @@ public final class SceneManager {
                     if (token != navigationToken.get()) return;
                     completed.set(true);
                     showLoading(false);
-                    e.printStackTrace();
+                    logger.warn("Exception occurred", e);
                 });
             }
         });
@@ -139,17 +144,17 @@ public final class SceneManager {
         loaderThread.start();
     }
 
-    private static void setInputBlocked(boolean blocked){ // khóa/mở chuột tránh spam khi switchScene
+    private static void setInputBlocked(boolean blocked) {
         if (stage == null || stage.getScene() == null) return;
         stage.getScene().getRoot().setMouseTransparent(blocked);
     }
 
-    private static void finishSwitchScene() { // kết thúc switchScene
-        Platform.runLater(() -> setInputBlocked(false)); // mở khóa chuột
-        isSwitchingScene.set(false); // mở khóa switchScene
+    private static void finishSwitchScene() {
+        Platform.runLater(() -> setInputBlocked(false));
+        isSwitchingScene.set(false);
     }
 
-    public static void preloadScenes(String... fxmls) { // load các scene trước dưới nền
+    public static void preloadScenes(String... fxmls) {
         if (fxmls == null) return;
 
         for (String fxml : fxmls) {
@@ -160,7 +165,7 @@ public final class SceneManager {
                     loadFxml(fxml, true);
                 }
                 catch (Exception e) {
-                    e.printStackTrace();
+                    logger.error("Exception occurred", e);
                 }
             });
             preloadThread.setDaemon(true);
@@ -168,18 +173,20 @@ public final class SceneManager {
         }
     }
 
-    public static void clearCache(String fxml) { // xóa 1 scene khỏi cache
+    public static void clearCache(String fxml) {
         if (fxml == null) return;
         cache.remove(fxml);
     }
 
-    public static void clearAllCache() { cache.clear(); } // xóa toàn bộ scene khỏi cache
+    public static void clearAllCache() {
+        cache.clear();
+    }
 
     public static MissionBarController getMissionBarController() {
         return missionBarController;
     }
 
-    private static Parent loadFxml(String fxml, boolean remember) throws Exception { // load fxml
+    private static Parent loadFxml(String fxml, boolean remember) throws Exception {
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
 
@@ -196,7 +203,7 @@ public final class SceneManager {
         return loader.load();
     }
 
-    private static void loadCss(Scene scene, String fxml) { // load css
+    private static void loadCss(Scene scene, String fxml) {
         String cssName = fxml.replace(".fxml", ".css");
         var cssUrl = SceneManager.class.getResource("/css/" + cssName);
 
@@ -204,19 +211,19 @@ public final class SceneManager {
         if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
     }
 
-    private static void initOverlay() { // khởi tạo loading
-        Circle baseRing = new Circle(12); // vòng tròn mờ ở sau vòng loading
+    private static void initOverlay() {
+        Circle baseRing = new Circle(12);
         baseRing.setFill(Color.TRANSPARENT);
         baseRing.setStroke(Color.web("#000666", 0.14));
         baseRing.setStrokeWidth(2);
 
-        Arc spinner = new Arc(0, 0, 12, 12, 18, 230); // vòng loading
+        Arc spinner = new Arc(0, 0, 12, 12, 18, 230);
         spinner.setType(ArcType.OPEN);
         spinner.setFill(Color.TRANSPARENT);
         spinner.setStroke(new LinearGradient(
-                0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
-                new Stop(0, Color.web("#000666")),
-                new Stop(1, Color.web("#0048d8"))
+            0, 0, 1, 1, true, CycleMethod.NO_CYCLE,
+            new Stop(0, Color.web("#000666")),
+            new Stop(1, Color.web("#0048d8"))
         ));
         spinner.setStrokeWidth(2.5);
         spinner.setStrokeLineCap(StrokeLineCap.ROUND);
@@ -251,8 +258,7 @@ public final class SceneManager {
                 FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/fxml/includes/mission-bar.fxml"));
                 missionBarRoot = loader.load();
                 missionBarController = loader.getController();
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new IllegalStateException("FXML not found: /fxml/includes/mission-bar.fxml", e);
             }
         }
@@ -272,16 +278,17 @@ public final class SceneManager {
         shell.getChildren().setAll(contentLayer, missionBarRoot, overlayLayer);
     }
 
-    private static void showLoading(boolean visible) { // hiển thị loading
+    private static void showLoading(boolean visible) {
         if (stage == null) return;
-        if (visible) animateShowLoading();
-        else {
+        if (visible) {
+            animateShowLoading();
+        } else {
             if (overlayLayer.isVisible()) animateHideLoading();
             else finishSwitchScene();
         }
     }
 
-    private static void animateShowLoading() { // hiện vòng loading
+    private static void animateShowLoading() {
         overlayLayer.setVisible(true);
         overlayLayer.setManaged(true);
         loadingNode.setVisible(true);
@@ -301,7 +308,7 @@ public final class SceneManager {
         new ParallelTransition(fade, drop).play();
     }
 
-    private static void animateHideLoading() { // giấu vòng loading
+    private static void animateHideLoading() {
         if (!overlayLayer.isVisible()) return;
 
         FadeTransition fade = new FadeTransition(Duration.millis(50), loadingNode);

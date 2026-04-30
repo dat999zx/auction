@@ -39,8 +39,7 @@ public class AuctionTest {
 
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
-        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        auction.setStatus(AuctionStatus.ENDED);
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now().plusDays(1), LocalDateTime.now());
 
         Bid bid = new Bid(auction.getId(), "user1", 1200);
 
