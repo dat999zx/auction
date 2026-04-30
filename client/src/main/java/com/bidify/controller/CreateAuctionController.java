@@ -14,6 +14,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
@@ -173,21 +174,8 @@ public class CreateAuctionController {
             LocalDateTime startDateTime;
             LocalDateTime endDateTime;
 
-            ValidationUtil.requiresNonBlank(productName, "Product name");
-            ValidationUtil.requiresNonBlank(description, "Description");
-            ValidationUtil.requiresNonBlank(category, "Category");
-            ValidationUtil.requiresNonBlank(productType, "Product type");
-            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
-            ValidationUtil.validateMaxLength("description", description, 2000);
-            if (startDate == null) throw new ValidationException("Start date cannot be empty");
-            if (endDate == null) throw new ValidationException("End date cannot be empty");
-
-            if (minIncrement < 0) throw new ValidationException("min increment should be non-negative");
             startDateTime = LocalDateTime.of(startDate, startTime);
             endDateTime = LocalDateTime.of(endDate, endTime);
-
-            if (startDateTime.isBefore(LocalDateTime.now())) throw new ValidationException("Start time must be after current time!");
-            if (!endDateTime.isAfter(startDateTime)) throw new ValidationException("End time must be after start time!");
 
             CreateAuctionRequest data = new CreateAuctionRequest(
                 com.bidify.network.SocketClient.getClient().getCurrentUsername(),
@@ -274,9 +262,9 @@ public class CreateAuctionController {
     }
 
     private String resolveAvatarLetter() {
-        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        String username = SocketClient.getClient().getCurrentUsername();
         if (username == null || username.isBlank()) {
-            return "U";
+            return "Nig";
         }
         return username.substring(0, 1).toUpperCase();
     }

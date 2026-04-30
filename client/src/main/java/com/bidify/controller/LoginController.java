@@ -109,7 +109,7 @@ public class LoginController {
     private void suprise() {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=9BalEldzE8o"));
                 showMessage("", true);
             }
         }
