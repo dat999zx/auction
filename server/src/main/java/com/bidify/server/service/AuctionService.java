@@ -18,6 +18,7 @@ import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.BidDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
@@ -39,6 +40,7 @@ public class AuctionService {
     private static AuctionService instance = new AuctionService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
+    private final BidDao bidDao = BidDao.getInstance();
 
     private AuctionService() {}
 
@@ -267,6 +269,7 @@ public class AuctionService {
             if (!auction.placeBid(bid))
                 return new Response(RequestStatus.FAILED, "Failed to place bid");
 
+            bidDao.save(bid);
             auctionDao.save(auction);
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);

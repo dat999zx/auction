@@ -40,6 +40,8 @@ public class AuctionDao implements ImplementAuctionDao{
                     LocalDateTime.parse(rs.getString("endTime")),
                     AuctionStatus.valueOf(rs.getString("status"))
                 );
+                auction.setCurrentBid(rs.getDouble("currentBid"));
+                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
                 auctions.add(auction);
             }
             return auctions;
@@ -50,7 +52,7 @@ public class AuctionDao implements ImplementAuctionDao{
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
-            return new Auction(
+            Auction auction = new Auction(
                 rs.getString("id"),
                 LocalDateTime.parse(rs.getString("createdAt")),
                 rs.getString("auctionName"),
@@ -65,6 +67,9 @@ public class AuctionDao implements ImplementAuctionDao{
                 LocalDateTime.parse(rs.getString("endTime")),
                 AuctionStatus.valueOf(rs.getString("status"))
             );
+            auction.setCurrentBid(rs.getDouble("currentBid"));
+            auction.getBids().addAll(BidDao.getInstance().findByAuctionId(id));
+            return auction;
         }, id);
     }
 
