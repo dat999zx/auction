@@ -13,7 +13,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class UserDao implements ImplementUserDao {
+    private static UserDao instance = new UserDao();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
+    private UserDao() {}
+
+    public static UserDao getInstance() { return instance; }
+
     public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",

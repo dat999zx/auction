@@ -35,7 +35,12 @@ import java.util.function.Supplier;
 
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
-    private final AuctionDao auctionDao = new AuctionDao();
+    private static AuctionService instance = new AuctionService();
+    private final AuctionDao auctionDao = AuctionDao.getInstance();
+
+    private AuctionService() {}
+
+    public static AuctionService getInstance() { return instance; }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
     public void loadToRuntime(){

@@ -13,6 +13,12 @@ import java.time.LocalDateTime;
 
 // giao tiếp với SQLite database về bảng Auctions
 public class AuctionDao implements ImplementAuctionDao{
+    private static AuctionDao instance = new AuctionDao();
+
+    private AuctionDao() {}
+
+    public static AuctionDao getInstance() { return instance; }
+
     // tạm thêm cái này để về sau seller tìm lại các auction theo trạng thái của mình
     public List<Auction> findByStatus(AuctionStatus status) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE status = ?";
