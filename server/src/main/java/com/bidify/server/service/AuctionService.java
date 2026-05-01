@@ -308,12 +308,16 @@ public class AuctionService {
         ValidationUtil.requiresNonBlank(description, "Description");
         ValidationUtil.requiresNonBlank(category, "Category");
         ValidationUtil.requiresNonBlank(productType, "Product type");
-        ValidationUtil.validateMaxLength("Description", description, 200);
+        ValidationUtil.validateMaxLength("Description", description, 2000);
         ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
     }
 
     private void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null) 
+            throw new ValidationException("Start date cannot be empty");
+        if (endTime == null) 
+            throw new ValidationException("End date cannot be empty");
         if (startTime.isAfter(endTime))
             throw new ValidationException("End time must be after start time");
         if (LocalDateTime.now().isAfter(startTime))
