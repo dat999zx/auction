@@ -20,6 +20,7 @@ public class AuctionSchedulerService {
 
     private static AuctionSchedulerService instance = new AuctionSchedulerService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final AuctionService auctionService = AuctionService.getInstance();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     private AuctionSchedulerService() {}
@@ -50,6 +51,7 @@ public class AuctionSchedulerService {
 
             if (after == AuctionStatus.ENDED) {
                 RealtimeDatabase.removeRuntimeAuction(auction.getId());
+                auctionService.settleAuction(auction);
                 publishStatusEvent(EventType.AUCTION_ENDED, "Auction ended", auction);
                 continue;
             }

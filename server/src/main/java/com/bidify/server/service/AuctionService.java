@@ -18,6 +18,7 @@ import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
@@ -37,6 +38,7 @@ import java.util.function.Supplier;
 public class AuctionService {
     private static AuctionService instance = new AuctionService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final UserDao userDao = UserDao.getInstance();
 
     private AuctionService() {}
 
@@ -330,5 +332,48 @@ public class AuctionService {
         if (auction == null) return false;
         AuctionStatus status = auction.getStatus();
         return status == AuctionStatus.UPCOMING || status == AuctionStatus.ACTIVE;
+    }
+
+    // khi auction chuyển từ ACTIVE -> ENDED thì chuyển tiền...
+    public void settleAuction(Auction auction) {
+        String sellerUsername = auction.getSellerUsername();
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        if (winnerUsername != null) {
+            User winner = getOrLoadUser(winnerUsername);
+            User seller = getOrLoadUser(sellerUsername);
+
+            winner.setWallet(winner.getWallet() - finalBid);
+            seller.setWallet(seller.getWallet() + finalBid);
+
+            auction.setStatus(AuctionStatus.PAID);
+
+            userDao.save(winner, false);
+            userDao.save(seller, false);
+
+            publishWalletChange(winnerUsername, -finalBid);
+            publishWalletChange(sellerUsername, finalBid);
+        }
+        else {
+            auction.setStatus(AuctionStatus.CANCELED);
+        }
+        
+        auctionDao.save(auction);
+    }
+
+    // lấy user từ realtime database nếu có, nếu không thì load từ database, dùng khi cần cập nhật wallet sau khi đấu giá kết thúc
+    private User getOrLoadUser(String username) {
+        User user = RealtimeDatabase.getActiveUser(username);
+        if (user == null) user = userDao.findByUsername(username);
+        return user;
+    }
+
+    // Event cập nhật wallet của User
+    private void publishWalletChange(String username, double diff) {
+        ClientHandler userClient = RealtimeDatabase.getUserClient(username);
+        if (userClient == null) return;
+        Event event = new Event(EventType.WALLET_CHANGED, "Wallet changed " + diff);
+        userClient.sendEvent(event);
     }
 }
