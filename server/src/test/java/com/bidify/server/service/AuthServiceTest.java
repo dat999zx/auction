@@ -32,9 +32,9 @@ import com.bidify.server.utility.PasswordUtil;
 
 class AuthServiceTest {
     // Service thật cần test.
-    private final AuthService authService = new AuthService();
+    private final AuthService authService = AuthService.getInstance();
     // Dùng để kiểm tra dữ liệu user đã được ghi xuống SQLite đúng hay chưa.
-    private final UserDao userDao = new UserDao();
+    private final UserDao userDao = UserDao.getInstance();
     // Lưu lại username do test tạo ra để dọn sạch sau mỗi test, tránh làm bẩn DB thật của project.
     private final List<String> createdUsernames = new ArrayList<>();
 

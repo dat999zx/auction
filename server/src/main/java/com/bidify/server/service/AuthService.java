@@ -26,8 +26,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthService {
+    private static AuthService instance = new AuthService();
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
-    private final UserDao userDao = new UserDao();
+    private final UserDao userDao = UserDao.getInstance();
+
+    private AuthService() {}
+
+    public static AuthService getInstance() { return instance; }
 
     // đăng kí
     public Response register(Request request) {

@@ -33,15 +33,15 @@ public class ServerApp {
             logger.error("Exception occurred", e);
             System.exit(1);
         }
-        AuctionService auctionService = new AuctionService();
-        AuctionSchedulerService auctionSchedulerService = new AuctionSchedulerService();
-
+        AuctionService auctionService = AuctionService.getInstance();
+        AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
+        
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Server is shutting down, saving all data...");
-            new AuthService().saveAllUsers();
+            AuthService.getInstance().saveAllUsers();
             auctionSchedulerService.stop();
             auctionService.saveAllRuntimeAuctions();
             RealtimeDatabase.clearAll();

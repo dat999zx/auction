@@ -18,7 +18,12 @@ import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.UserMapper;
 
 public class UserProfileService {
-    private final UserDao userDao = new UserDao();
+    private static UserProfileService instance = new UserProfileService();
+    private final UserDao userDao = UserDao.getInstance();
+
+    private UserProfileService() {}
+
+    public static UserProfileService getInstance() { return instance; }
 
     public Response getProfile(ClientHandler client) {
         return handleProfileRequest(() -> {
