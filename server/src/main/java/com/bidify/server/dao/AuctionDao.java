@@ -153,8 +153,14 @@ public class AuctionDao implements ImplementAuctionDao{
             auction.getId()
         );
     }
+
+    // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user
+    // là lockedWallet
+    public double sumWinningBidsForUser(String username) throws DatabaseException {
+        String sql = "SELECT SUM(currentBid) FROM Auctions WHERE currentBidder = ? AND status = 'ACTIVE'";
+        return SQLiteHelper.query(sql, rs -> {
+            if (!rs.next()) return 0.0;
+            return rs.getDouble(1);
+        }, username);
+    }
 }
-// CREATE_AUCTION, // tạo đấu giá
-// GET_AUCTIONS, // xem list các cuột đấu giá
-// GET_AUCTION_DETAIL, // xem chi tiết cuộc đấu giá
-// DELETE_AUCTION, // xóa cuộc đấu giá

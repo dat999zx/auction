@@ -1,14 +1,17 @@
 package com.bidify.server.model;
 
 import org.junit.jupiter.api.Test;
+
+import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.BidException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-
-import com.bidify.common.enums.AuctionStatus;
 
 public class AuctionTest {
     @Test
@@ -18,7 +21,7 @@ public class AuctionTest {
 
         Bid bid = new Bid(auction.getId(), "user1", 1100);
 
-        assertTrue(auction.placeBid(bid));
+        assertDoesNotThrow(() -> auction.placeBid(bid));
         assertEquals(1100, auction.getCurrentBid());
         assertEquals("user1", auction.getCurrentBidderUsername());
         assertEquals(1, auction.getBidCount());
@@ -27,11 +30,12 @@ public class AuctionTest {
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
         Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        auction.setStatus(AuctionStatus.ACTIVE);
         auction.setMinIncrement(100);
 
         Bid bid = new Bid(auction.getId(), "user1", 1050);
 
-        assertFalse(auction.placeBid(bid));
+        assertThrows(BidException.class, () -> auction.placeBid(bid));
         assertEquals(0, auction.getCurrentBid());
         assertNull(auction.getCurrentBidderUsername());
         assertEquals(0, auction.getBidCount());
@@ -43,7 +47,7 @@ public class AuctionTest {
 
         Bid bid = new Bid(auction.getId(), "user1", 1200);
 
-        assertFalse(auction.placeBid(bid));
+        assertThrows(AuctionException.class, () -> auction.placeBid(bid));
         assertEquals(0, auction.getCurrentBid());
         assertNull(auction.getCurrentBidderUsername());
         assertEquals(0, auction.getBidCount());
