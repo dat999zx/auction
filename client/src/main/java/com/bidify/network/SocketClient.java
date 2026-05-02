@@ -1,6 +1,7 @@
 package com.bidify.network;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -156,14 +157,10 @@ public class SocketClient {
                 }
             }
             catch (SocketException e) {
-                if (!closing) {
-                    logger.warn("Exception occurred", e);
-                }
+                if (!closing) logger.warn("Exception occurred", e);
             }
             catch (IOException e) {
-                if (!closing) {
-                    logger.warn("Exception occurred", e);
-                }
+                if (!closing) logger.warn("Exception occurred", e);
             }
         });
         listenerThread.setDaemon(true);
@@ -193,7 +190,7 @@ public class SocketClient {
         KeyStore trustStore = KeyStore.getInstance("JKS");
 
         try (InputStream in = SocketClient.class.getResourceAsStream(TRUSTSTORE_PATH)) {
-            if (in == null) throw new IOException("Missing resource: " + TRUSTSTORE_PATH);
+            if (in == null) throw new FileNotFoundException("Missing resource: " + TRUSTSTORE_PATH);
             trustStore.load(in, TRUSTSTORE_PASSWORD);
         }
 
