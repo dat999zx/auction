@@ -8,8 +8,11 @@ import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.SecureRandom;
 
 import javax.net.ssl.*;
@@ -54,11 +57,11 @@ public class ServerApp {
             try (SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(PORT)) {
                 logger.info("Server running on port: " + PORT);
 
-                while (true) {
+                while (!serverSocket.isClosed()) {
                     SSLSocket socket = (SSLSocket) serverSocket.accept();
-                    logger.info("Client connected: " + socket.getInetAddress());
+                    logger.info("Client connected: {}", socket.getInetAddress());
 
-                    new Thread(new ClientHandler(socket)).start();
+                    new Thread(new ClientHandler(socket), socket.getInetAddress().toString()).start();
                 }
             }
         }
@@ -71,7 +74,7 @@ public class ServerApp {
     private static SSLContext createServerSslContext() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");
         try (InputStream in = ServerApp.class.getResourceAsStream(KEYSTORE_PATH)) {
-            if (in == null) throw new Exception("Missing resource: " + KEYSTORE_PATH);
+            if (in == null) throw new FileNotFoundException("Missing resource: " + KEYSTORE_PATH);
             keyStore.load(in, KEYSTORE_PASSWORD);
         }
 
