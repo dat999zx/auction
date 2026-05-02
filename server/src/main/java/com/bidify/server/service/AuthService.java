@@ -12,6 +12,7 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.utility.UserMapper;
+import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
@@ -29,6 +30,7 @@ public class AuthService {
     private static AuthService instance = new AuthService();
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserDao userDao = UserDao.getInstance();
+    private final AuctionDao auctionDao = AuctionDao.getInstance();
 
     private AuthService() {}
 
@@ -89,6 +91,9 @@ public class AuthService {
 
             if (RealtimeDatabase.getUserClient(username) != null)
                 return new Response(RequestStatus.FAILED, "Another session is already active");
+
+            double lockedWallet = auctionDao.sumWinningBidsForUser(username);
+            user.setLockedWallet(lockedWallet);
 
             client.setCurrentUsername(username);
             RealtimeDatabase.addActiveUser(client, user);

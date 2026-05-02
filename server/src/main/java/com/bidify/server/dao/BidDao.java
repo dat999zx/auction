@@ -15,7 +15,7 @@ public class BidDao {
 
     public static BidDao getInstance() { return instance; }
 
-    public void save(Bid bid) throws DatabaseException {
+    public void create(Bid bid) throws DatabaseException {
         String sql = "INSERT INTO Bids (id, auctionId, bidder, amount, bidTime) VALUES (?, ?, ?, ?, ?)";
         SQLiteHelper.update(sql,
                 bid.getId(),

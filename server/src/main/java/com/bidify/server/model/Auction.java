@@ -1,6 +1,8 @@
 package com.bidify.server.model;
 
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
 
 import java.time.LocalDateTime;
@@ -41,17 +43,19 @@ public class Auction extends Entity {
         refreshStatus();
     }
     
-    public synchronized boolean placeBid(Bid bid) {
-        if (bid == null || !isActive()) return false;
+    public synchronized void placeBid(Bid bid) {
+        if (bid == null)
+            throw new BidException("Invalid bid");
+        if (!isActive())
+            throw new AuctionException("Inactive Auction");
 
         double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
-        if (bid.getAmount() < minAllowed) return false;
+        if (bid.getAmount() < minAllowed)
+            throw new BidException("Bid must be at least " + minAllowed);
 
         this.currentBid = bid.getAmount();
         this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
-
-        return true;
     }
 
     public boolean refreshStatus() {
