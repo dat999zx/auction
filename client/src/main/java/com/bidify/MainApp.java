@@ -25,7 +25,6 @@ public class MainApp extends Application {
         stage.setMaxHeight(800);
         SceneManager.setStage(stage);
 
-        // Only preload anonymous screens. Authenticated screens run network calls in initialize().
         SceneManager.preloadScenes("login.fxml", "register.fxml");
 
         SceneManager.switchScene("login.fxml");

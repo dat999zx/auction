@@ -18,8 +18,14 @@ import com.bidify.server.utility.AuctionMapper;
 public class AuctionSchedulerService {
     private static final long SYNC_INTERVAL_SECONDS = 1; // số giây mỗi lần đồng bộ
 
-    private final AuctionDao auctionDao = new AuctionDao();
+    private static AuctionSchedulerService instance = new AuctionSchedulerService();
+    private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final AuctionService auctionService = AuctionService.getInstance();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+    private AuctionSchedulerService() {}
+
+    public static AuctionSchedulerService getInstance() { return instance; }
 
     public void start() {
         scheduler.scheduleAtFixedRate(this::syncRuntimeAuctions, 0, SYNC_INTERVAL_SECONDS, TimeUnit.SECONDS); // chạy method này mỗi SYNC_INTERVAL_SECONDS giây
@@ -45,6 +51,7 @@ public class AuctionSchedulerService {
 
             if (after == AuctionStatus.ENDED) {
                 RealtimeDatabase.removeRuntimeAuction(auction.getId());
+                auctionService.settleAuction(auction);
                 publishStatusEvent(EventType.AUCTION_ENDED, "Auction ended", auction);
                 continue;
             }

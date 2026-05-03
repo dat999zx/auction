@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 
 public class RequestDispatcher {
     private static final Logger logger = LoggerFactory.getLogger(RequestDispatcher.class);
-    private final AuthService authService = new AuthService();
-    private final AuctionService auctionService = new AuctionService();
-    private final UserProfileService userProfileService = new UserProfileService();
+    private final AuthService authService = AuthService.getInstance();
+    private final AuctionService auctionService = AuctionService.getInstance();
+    private final UserProfileService userProfileService = UserProfileService.getInstance();
 
     public Response dispatch(ClientHandler client, Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");

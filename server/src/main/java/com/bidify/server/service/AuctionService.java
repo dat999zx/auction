@@ -4,6 +4,8 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.BidException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
@@ -18,6 +20,8 @@ import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.BidDao;
+import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
@@ -35,7 +39,14 @@ import java.util.function.Supplier;
 
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
-    private final AuctionDao auctionDao = new AuctionDao();
+    private static AuctionService instance = new AuctionService();
+    private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final UserDao userDao = UserDao.getInstance();
+    private final BidDao bidDao = BidDao.getInstance();
+
+    private AuctionService() {}
+
+    public static AuctionService getInstance() { return instance; }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
     public void loadToRuntime(){
@@ -248,18 +259,36 @@ public class AuctionService {
             User user = RealtimeDatabase.getActiveUser(username);
 
             if (auction == null)
-                return new Response(RequestStatus.NOT_FOUND, "Auction not found or not active");
+                return new Response(RequestStatus.NOT_FOUND, "Auction not found");
             if (user == null)
                 return new Response(RequestStatus.FAILED, "User not found");
             if (auction.getSellerUsername().equals(username))
                 return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
-            if (user.getWallet() < bidAmount)
+            
+            if (user.getAvailableBalance() < bidAmount)
                 return new Response(RequestStatus.FAILED, "Insufficient balance");
 
-            Bid bid = new Bid(auction.getId(), username, bidAmount);
-            if (!auction.placeBid(bid))
-                return new Response(RequestStatus.FAILED, "Failed to place bid");
+            String prevBidderUsername = auction.getCurrentBidderUsername();
+            double prevBid = auction.getCurrentBid();
+            if (prevBidderUsername != null && prevBidderUsername.equals(username))
+                return new Response(RequestStatus.FAILED, "You are already the highest bidder");
 
+            Bid bid = new Bid(auction.getId(), username, bidAmount);
+            try {
+                auction.placeBid(bid);
+            }
+            catch (AuctionException | BidException e) {
+                return new Response(RequestStatus.FAILED, e.getMessage());
+            }
+
+            user.lockBalance(bidAmount);
+            User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
+            if (prevBidder != null) {
+                prevBidder.unlockBalance(prevBid);
+                publishLockedWalletChange(prevBidderUsername, prevBid);
+            }
+
+            bidDao.create(bid);
             auctionDao.save(auction);
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);
@@ -301,12 +330,16 @@ public class AuctionService {
         ValidationUtil.requiresNonBlank(description, "Description");
         ValidationUtil.requiresNonBlank(category, "Category");
         ValidationUtil.requiresNonBlank(productType, "Product type");
-        ValidationUtil.validateMaxLength("Description", description, 200);
+        ValidationUtil.validateMaxLength("Description", description, 2000);
         ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
     }
 
     private void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null) 
+            throw new ValidationException("Start date cannot be empty");
+        if (endTime == null) 
+            throw new ValidationException("End date cannot be empty");
         if (startTime.isAfter(endTime))
             throw new ValidationException("End time must be after start time");
         if (LocalDateTime.now().isAfter(startTime))
@@ -321,5 +354,63 @@ public class AuctionService {
         if (auction == null) return false;
         AuctionStatus status = auction.getStatus();
         return status == AuctionStatus.UPCOMING || status == AuctionStatus.ACTIVE;
+    }
+
+    // chuyển auction từ ACTIVE -> ENDED, chuyển tiền các thứ...
+    public void settleAuction(Auction auction) {
+        String sellerUsername = auction.getSellerUsername();
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        if (winnerUsername != null) {
+            User winner = getOrLoadUser(winnerUsername);
+            User seller = getOrLoadUser(sellerUsername);
+            
+            winner.payWinAuction(finalBid);
+            seller.deposit(finalBid);
+
+            auction.setStatus(AuctionStatus.ENDED);
+
+            userDao.save(winner, false);
+            userDao.save(seller, false);
+
+            publishWalletChange(winnerUsername, -finalBid);
+            publishWalletChange(sellerUsername, finalBid);
+        }
+        else {
+            
+
+            auction.setEndTime(LocalDateTime.now());
+            auction.setStatus(AuctionStatus.CANCELED);
+        }
+        
+        auctionDao.save(auction);
+    }
+
+    // lấy user từ realtime database nếu có, nếu không thì load từ database, dùng khi cần cập nhật wallet sau khi đấu giá kết thúc
+    private User getOrLoadUser(String username) {
+        User user = RealtimeDatabase.getActiveUser(username);
+        if (user != null) return user;
+
+        user = userDao.findByUsername(username);
+        double lockedWallet = auctionDao.sumWinningBidsForUser(username);
+        user.setLockedWallet(lockedWallet);
+        return user;
+    }
+
+    // Event cập nhật wallet của User
+    private void publishWalletChange(String username, double diff) {
+        ClientHandler userClient = RealtimeDatabase.getUserClient(username);
+        if (userClient == null) return;
+        Event event = new Event(EventType.WALLET_CHANGED, "Wallet changed: " + diff);
+        userClient.sendEvent(event);
+    }
+
+    // Event cập nhật lockedWallet của User
+    private void publishLockedWalletChange(String username, double diff) {
+        ClientHandler userClient = RealtimeDatabase.getUserClient(username);
+        if (userClient == null) return;
+        Event event = new Event(EventType.SERVER_NOTICE, "Locked balance changed: " + diff);
+        userClient.sendEvent(event);
     }
 }

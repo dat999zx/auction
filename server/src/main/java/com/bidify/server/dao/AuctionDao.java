@@ -13,6 +13,12 @@ import java.time.LocalDateTime;
 
 // giao tiếp với SQLite database về bảng Auctions
 public class AuctionDao implements ImplementAuctionDao{
+    private static AuctionDao instance = new AuctionDao();
+
+    private AuctionDao() {}
+
+    public static AuctionDao getInstance() { return instance; }
+
     // tạm thêm cái này để về sau seller tìm lại các auction theo trạng thái của mình
     public List<Auction> findByStatus(AuctionStatus status) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE status = ?";
@@ -34,6 +40,8 @@ public class AuctionDao implements ImplementAuctionDao{
                     LocalDateTime.parse(rs.getString("endTime")),
                     AuctionStatus.valueOf(rs.getString("status"))
                 );
+                auction.setCurrentBid(rs.getDouble("currentBid"));
+                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
                 auctions.add(auction);
             }
             return auctions;
@@ -44,7 +52,7 @@ public class AuctionDao implements ImplementAuctionDao{
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
-            return new Auction(
+            Auction auction = new Auction(
                 rs.getString("id"),
                 LocalDateTime.parse(rs.getString("createdAt")),
                 rs.getString("auctionName"),
@@ -59,6 +67,9 @@ public class AuctionDao implements ImplementAuctionDao{
                 LocalDateTime.parse(rs.getString("endTime")),
                 AuctionStatus.valueOf(rs.getString("status"))
             );
+            auction.setCurrentBid(rs.getDouble("currentBid"));
+            auction.getBids().addAll(BidDao.getInstance().findByAuctionId(id));
+            return auction;
         }, id);
     }
 
@@ -142,8 +153,14 @@ public class AuctionDao implements ImplementAuctionDao{
             auction.getId()
         );
     }
+
+    // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user
+    // là lockedWallet
+    public double sumWinningBidsForUser(String username) throws DatabaseException {
+        String sql = "SELECT SUM(currentBid) FROM Auctions WHERE currentBidder = ? AND status = 'ACTIVE'";
+        return SQLiteHelper.query(sql, rs -> {
+            if (!rs.next()) return 0.0;
+            return rs.getDouble(1);
+        }, username);
+    }
 }
-// CREATE_AUCTION, // tạo đấu giá
-// GET_AUCTIONS, // xem list các cuột đấu giá
-// GET_AUCTION_DETAIL, // xem chi tiết cuộc đấu giá
-// DELETE_AUCTION, // xóa cuộc đấu giá
