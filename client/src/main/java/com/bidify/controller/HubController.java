@@ -2,6 +2,7 @@ package com.bidify.controller;
 
 import java.io.IOException;
 
+import com.bidify.network.SocketClient;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
@@ -163,7 +164,8 @@ public class HubController {
 
     private void search(){
         if (searchBar.getText() == null || searchBar.getText().isBlank()) return;
-        //TODO: search key AuctionName, AuctionId, Auction Category
+        //TODO: search key AuctionName, AuctionId
+        
 
     }
 
@@ -192,7 +194,7 @@ public class HubController {
     }
 
     private String resolveAvatarLetter() {
-        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        String username = SocketClient.getClient().getCurrentUsername();
         if (username == null || username.isBlank()) {
             return "U";
         }

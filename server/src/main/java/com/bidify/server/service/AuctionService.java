@@ -286,7 +286,6 @@ public class AuctionService {
             }
 
             user.lockBalance(bidAmount);
-
             User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
             if (prevBidder != null) {
                 prevBidder.unlockBalance(prevBid);
