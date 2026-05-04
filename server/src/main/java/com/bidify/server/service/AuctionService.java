@@ -7,6 +7,7 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.enums.TransactionType;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.Event;
@@ -21,11 +22,13 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
+import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
+import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
@@ -43,6 +46,7 @@ public class AuctionService {
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
     private final BidDao bidDao = BidDao.getInstance();
+    private final TransactionDao transactionDao = TransactionDao.getInstance();
 
     private AuctionService() {}
 
@@ -282,6 +286,7 @@ public class AuctionService {
             }
 
             user.lockBalance(bidAmount);
+
             User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
             if (prevBidder != null) {
                 prevBidder.unlockBalance(prevBid);
@@ -367,7 +372,10 @@ public class AuctionService {
             User seller = getOrLoadUser(sellerUsername);
             
             winner.payWinAuction(finalBid);
+            transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_PAY, finalBid, auction.getId()));
+
             seller.deposit(finalBid);
+            transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
 
             auction.setStatus(AuctionStatus.ENDED);
 
