@@ -5,6 +5,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,6 +53,11 @@ public class Auction extends Entity {
         double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
         if (bid.getAmount() < minAllowed)
             throw new BidException("Bid must be at least " + minAllowed);
+
+        Duration remaining = Duration.between(LocalDateTime.now(), endTime);
+        if (remaining.toSeconds() < 30)
+            this.endTime = this.endTime.plusSeconds(60);
+
 
         this.currentBid = bid.getAmount();
         this.currentBidderUsername = bid.getBidderUsername();

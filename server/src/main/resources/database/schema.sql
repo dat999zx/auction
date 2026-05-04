@@ -51,6 +51,18 @@ CREATE TABLE IF NOT EXISTS Bids (
     FOREIGN KEY (bidder) REFERENCES Users(username)
 );
 
+-- TABLE Transactions
+CREATE TABLE IF NOT EXISTS Transactions (
+    id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
+    username TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('DEPOSIT', 'WITHDRAW', 'AUCTION_PAY', 'AUCTION_PROFIT')),
+    amount REAL NOT NULL,
+    auctionId TEXT,
+    FOREIGN KEY (username) REFERENCES Users(username),
+    FOREIGN KEY (auctionId) REFERENCES Auctions(id)
+);
+
 -- CREATE INDEX dùng để tạo index ở cột đó -> tăng tốc độ truy vấn khi gọi WHERE
 -- những cột là PRIMARY KEY thì mặc định đã có INDEX sẵn nên ko cần tạo nữa
 
@@ -62,3 +74,6 @@ CREATE INDEX IF NOT EXISTS bid_auction_id_idx ON Bids(auctionId);
 
 -- tìm kiếm những sản phẩm mà một User đã từng tham gia bid (dùng cho profile)
 CREATE INDEX IF NOT EXISTS bid_bidder_idx ON Bids(bidder);
+
+-- tìm kiếm lịch sử giao dịch theo username
+CREATE INDEX IF NOT EXISTS transaction_username_idx ON Transactions(username);
