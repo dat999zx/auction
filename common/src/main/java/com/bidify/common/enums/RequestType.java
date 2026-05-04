@@ -13,6 +13,7 @@ public enum RequestType {
     GET_LIVE_AUCTIONS,
     GET_AUCTION_DETAIL,
     DELETE_AUCTION,
+    SEARCH_AUCTION,
 
     PLACE_BID,
     GET_BID_HISTORY,

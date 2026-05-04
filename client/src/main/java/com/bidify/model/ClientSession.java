@@ -1,5 +1,9 @@
 package com.bidify.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.UserDto;
 
 public final class ClientSession {
@@ -7,6 +11,7 @@ public final class ClientSession {
 
     private String currentUsername;
     private UserDto currentUser;
+    private List<AuctionDto> auctions = new ArrayList<>();
 
     private ClientSession() {}
 
