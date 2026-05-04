@@ -173,6 +173,17 @@ public class CreateAuctionController {
             LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime startDateTime;
             LocalDateTime endDateTime;
+            
+            
+            // Validate startDate,Time
+            if (startDate == null || startTime == null || 
+                LocalDateTime.of(startDate, startTime).isBefore(LocalDateTime.now())) {
+                // Set to current date and time if invalid
+                startDate = LocalDate.now();
+                startDatePicker.setValue(startDate); // Update the DatePicker
+                startTime = LocalTime.now();
+                startTimeField.setText(startTime.format(TIME_FORMATTER)); // Update the TextField
+            }
 
             startDateTime = LocalDateTime.of(startDate, startTime);
             endDateTime = LocalDateTime.of(endDate, endTime);
