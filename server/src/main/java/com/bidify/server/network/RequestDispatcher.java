@@ -36,6 +36,10 @@ public class RequestDispatcher {
                 case GET_AUCTION_DETAIL -> response = auctionService.getDetail(request);
                 case DELETE_AUCTION -> response = auctionService.delete(client, request);
                 case PLACE_BID -> response = auctionService.placeBid(client, request);
+                case DEPOSIT -> response = userProfileService.deposit(client, request);
+                case WITHDRAW -> response = userProfileService.withdraw(client, request);
+                case GET_TRANSACTIONS -> response = userProfileService.getTransactions(client);
+                
                 default -> response = new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
             }
             return response;

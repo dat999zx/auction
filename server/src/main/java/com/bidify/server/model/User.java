@@ -63,13 +63,17 @@ public class User extends Entity {
             throw new ValidationException("Deposit amount must be positive");
         wallet += amount;
     }
+    public synchronized void withdraw(double amount) {
+        if (amount <= 0)
+            throw new ValidationException("Withdraw amount must be positive");
+        wallet -= amount;
+    }
 
     public LocalDateTime getLastLogin() { return lastLogin; }
     public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
     public String getNickname() { return nickname; }
     public void setNickname(String nickname) { this.nickname = nickname; }
     public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
     public String getEmail() { return email; }
@@ -79,7 +83,6 @@ public class User extends Entity {
     public UserStatus getStatus() { return status; }
     public void setStatus(UserStatus status) { this.status = status; }
     public double getWallet() { return wallet; }
-    public void setWallet(double wallet) { this.wallet = wallet; }
     public void setLockedWallet(double lockedWallet) { this.lockedWallet = lockedWallet; }
     public double getLockedWallet() { return lockedWallet; }
 }

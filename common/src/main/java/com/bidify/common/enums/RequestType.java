@@ -18,5 +18,9 @@ public enum RequestType {
     GET_BID_HISTORY,
 
     JOIN_AUCTION,
-    LEAVE_AUCTION
+    LEAVE_AUCTION,
+
+    DEPOSIT,
+    WITHDRAW,
+    GET_TRANSACTIONS
 }
