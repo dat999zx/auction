@@ -286,7 +286,6 @@ public class AuctionService {
             }
 
             user.lockBalance(bidAmount);
-
             User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
             if (prevBidder != null) {
                 prevBidder.unlockBalance(prevBid);
@@ -347,7 +346,7 @@ public class AuctionService {
             throw new ValidationException("End date cannot be empty");
         if (startTime.isAfter(endTime))
             throw new ValidationException("End time must be after start time");
-        if (LocalDateTime.now().isAfter(startTime))
+        if (LocalDateTime.now().minusMinutes(1).isAfter(startTime))
             throw new ValidationException("Start time must be in the future");
     }
 

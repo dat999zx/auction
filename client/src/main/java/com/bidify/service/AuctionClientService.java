@@ -19,6 +19,11 @@ import com.bidify.network.SocketClient;
 public class AuctionClientService {
     private final SocketClient client = SocketClient.getClient();
 
+
+    // public AuctionDto[] getAuction() throws IOException {
+    //     Response response = 
+    // }
+
     public AuctionDto[] getLiveAuctions() throws IOException {
         Response response = client.send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {

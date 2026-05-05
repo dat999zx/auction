@@ -58,6 +58,7 @@ public class Auction extends Entity {
         if (remaining.toSeconds() < 30)
             this.endTime = this.endTime.plusSeconds(60);
 
+
         this.currentBid = bid.getAmount();
         this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
