@@ -43,4 +43,22 @@ public class BidDao {
             return bids;
         }, auctionId);
     }
+
+    public List<Bid> findByUsername(String username) throws DatabaseException {
+        String sql = "SELECT * FROM Bids WHERE bidder = ? ORDER BY bidTime DESC";
+        return SQLiteHelper.query(sql, rs -> {
+            List<Bid> bids = new ArrayList<>();
+            while (rs.next()) {
+                Bid bid = new Bid(
+                        rs.getString("auctionId"),
+                        rs.getString("bidder"),
+                        rs.getDouble("amount")
+                );
+                bid.setId(rs.getString("id"));
+                bid.setCreatedAt(LocalDateTime.parse(rs.getString("bidTime")));
+                bids.add(bid);
+            }
+            return bids;
+        }, username);
+    }
 }
