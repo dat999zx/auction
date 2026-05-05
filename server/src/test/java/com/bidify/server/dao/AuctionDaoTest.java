@@ -99,8 +99,11 @@ class AuctionDaoTest {
         Auction auction = auctionDao.findById(testAuctionId);
         assertEquals(AuctionStatus.UPCOMING, auction.getStatus());
 
-        // Cập nhật status thành ACTIVE và lưu
-        auction.setStatus(AuctionStatus.ACTIVE);
+        // Để status thành ACTIVE, thời gian bắt đầu phải ở quá khứ
+        auction.setStartTime(LocalDateTime.now().minusMinutes(1));
+        auction.refreshStatus(); 
+        assertEquals(AuctionStatus.ACTIVE, auction.getStatus());
+        
         auctionDao.save(auction);
 
         // Đọc lại và kiểm tra status đã thay đổi
