@@ -61,6 +61,22 @@ public class SocketClient {
 
     private SocketClient() {} // tránh tạo object từ ngoài -> singleton
 
+    public static SocketClient getClient() { // lấy client
+        return client;
+    }
+
+    public String getCurrentUsername() { // lấy username hiện tại
+        return clientSession.getCurrentUsername();
+    }
+
+    public ClientSession getClientSession() { // lấy session hiện tại
+        return clientSession;
+    }
+
+    public void setCurrentUsername(String currentUsername) { // set username hiện tại
+        clientSession.setCurrentUsername(currentUsername);
+    }
+
     // kết nối đến server
     public void connect(String host, int port) throws IOException {
         synchronized (connectionLock) {
@@ -90,22 +106,6 @@ public class SocketClient {
                 close();
             }
         }
-    }
-
-    public static SocketClient getClient() { // lấy client
-        return client;
-    }
-
-    public String getCurrentUsername() { // lấy username hiện tại
-        return clientSession.getCurrentUsername();
-    }
-
-    public ClientSession getClientSession() { // lấy session hiện tại
-        return clientSession;
-    }
-
-    public void setCurrentUsername(String currentUsername) { // set username hiện tại
-        clientSession.setCurrentUsername(currentUsername);
     }
 
     // gửi request đến server và nhận về response

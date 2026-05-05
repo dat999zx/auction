@@ -23,11 +23,20 @@ public class RequestDispatcher {
         Response response;
         try {
             switch (request.getType()) {
+                // TODO: REFACTOR THIS BS code
+                // AuthService
                 case REGISTER -> response = authService.register(request);
                 case LOGIN -> response = authService.login(client, request);
+                case LOGOUT -> response = authService.logout(client);
+
+                //userProfileService
                 case GET_PROFILE -> response = userProfileService.getProfile(client);
                 case UPDATE_PROFILE -> response = userProfileService.updateProfile(client, request);
-                case LOGOUT -> response = authService.logout(client);
+                case DEPOSIT -> response = userProfileService.deposit(client, request);
+                case WITHDRAW -> response = userProfileService.withdraw(client, request);
+                case GET_TRANSACTIONS -> response = userProfileService.getTransactions(client);
+
+                //AuctionService
                 case JOIN_AUCTION -> response = auctionService.join(client, request);
                 case LEAVE_AUCTION -> response = auctionService.leave(client, request);
                 case CREATE_AUCTION -> response = auctionService.create(client, request);
@@ -36,10 +45,8 @@ public class RequestDispatcher {
                 case GET_AUCTION_DETAIL -> response = auctionService.getDetail(request);
                 case DELETE_AUCTION -> response = auctionService.delete(client, request);
                 case PLACE_BID -> response = auctionService.placeBid(client, request);
-                case DEPOSIT -> response = userProfileService.deposit(client, request);
-                case WITHDRAW -> response = userProfileService.withdraw(client, request);
-                case GET_TRANSACTIONS -> response = userProfileService.getTransactions(client);
-                
+                case SEARCH_AUCTIONS -> response = auctionService.search(request); 
+
                 default -> response = new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
             }
             return response;

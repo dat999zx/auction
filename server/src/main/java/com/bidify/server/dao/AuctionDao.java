@@ -121,21 +121,21 @@ public class AuctionDao implements ImplementAuctionDao{
         LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
         SQLiteHelper.update(
             """
-                                    UPDATE Auctions SET 
-                                createdAt = ?,
-                                auctionName = ?,
-                            description = ?,
-                        category = ?,
-                    type = ?,
-                startingPrice = ?,
+            UPDATE Auctions SET 
+            createdAt = ?,
+            auctionName = ?,
+            description = ?,
+            category = ?,
+            type = ?,
+            startingPrice = ?,
             minIncrement = ?,
-                seller = ?,
-                    currentBid = ?,
-                        currentBidder = ?,
-                            status = ?,
-                                startAt = ?,
-                                    endTime = ?
-                                        WHERE id = ?
+            seller = ?,
+            currentBid = ?,
+            currentBidder = ?,
+            status = ?,
+            startAt = ?,
+            endTime = ?
+            WHERE id = ?
             """,
             createdAt.toString(),
             auction.getAuctionName(),
