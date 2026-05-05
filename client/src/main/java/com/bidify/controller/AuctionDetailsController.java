@@ -3,10 +3,14 @@ package com.bidify.controller;
 import java.io.IOException;
 
 import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
+import com.bidify.common.model.Event;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.JsonUtil;
+import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
@@ -85,6 +89,11 @@ public class AuctionDetailsController {
             setPreviewImage(DEFAULT_PREVIEW_IMAGE);
             resetView();
         });
+
+        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
+
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
             Platform.runLater(() -> {
                 showMessage("No auction selected.", false);
@@ -93,6 +102,44 @@ public class AuctionDetailsController {
             return;
         }
         loadAuctionDetails(selectedAuctionId);
+    }
+
+    private void handleLiveUpdate(Event event) {
+        if (selectedAuctionId == null || event.getData() == null) return;
+
+        AuctionDto updatedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
+        if (updatedAuction != null && selectedAuctionId.equals(updatedAuction.getId())) {
+            Platform.runLater(() -> {
+                bindAuctionData(updatedAuction);
+                showMessage(event.getMessage(), true);
+            });
+        }
+    }
+
+    private void handleAuctionEnded(Event event) {
+        if (selectedAuctionId == null || event.getData() == null) return;
+
+        AuctionDto endedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
+        if (endedAuction != null && selectedAuctionId.equals(endedAuction.getId())) {
+            Platform.runLater(() -> {
+                bindAuctionData(endedAuction);
+                placebid.setDisable(true);
+                showMessage("Auction has ended.", false);
+            });
+        }
+    }
+
+    public void cleanup() {
+        if (selectedAuctionId != null) {
+            try {
+                auctionClientService.leave(selectedAuctionId);
+            } catch (Exception e) {
+                logger.warn("Failed to leave auction channel: {}", e.getMessage());
+            }
+        }
+        EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleLiveUpdate);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
     }
 
     @FXML
@@ -142,6 +189,7 @@ public class AuctionDetailsController {
 
     @FXML
     private void tomenu() {
+        cleanup();
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
@@ -159,6 +207,7 @@ public class AuctionDetailsController {
 
         if (selectedButton == createAuctionButton) {
             missionBarController.setActiveNavigation(createAuctionButton);
+            cleanup();
             SceneManager.switchScene("create-auction.fxml", false, true);
             return;
         }
@@ -173,6 +222,7 @@ public class AuctionDetailsController {
         String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
+            cleanup();
             SceneManager.clearAllCache();
             SceneManager.switchScene("login.fxml", true, false);
             return;
@@ -181,6 +231,7 @@ public class AuctionDetailsController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
@@ -331,7 +382,10 @@ public class AuctionDetailsController {
         missionBarController.setUseInlineLogout(false);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
+        missionBarController.setAvatarHandler(event -> {
+            cleanup();
+            SceneManager.switchScene("user-profile.fxml", false, true);
+        });
         missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(auctionsButton);
     }

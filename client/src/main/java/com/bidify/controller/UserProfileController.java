@@ -3,10 +3,13 @@ package com.bidify.controller;
 import java.io.IOException;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.Event;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.event.EventManager;
 import com.bidify.service.AuthClientService;
 import com.bidify.service.UserProfileClientService;
 import com.bidify.utility.SceneManager;
@@ -77,6 +80,22 @@ public class UserProfileController {
             bindTopBar();
             populateProfile();
         });
+
+        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
+        EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
+    }
+
+    private void handleWalletChanged(Event event) {
+        Platform.runLater(this::populateProfile);
+    }
+
+    private void handleServerNotice(Event event) {
+        Platform.runLater(() -> showMessage(event.getMessage(), true));
+    }
+
+    public void cleanup() {
+        EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
+        EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
     }
 
     @FXML
@@ -86,11 +105,13 @@ public class UserProfileController {
         }
 
         if (selectedButton == auctionsButton) {
+            cleanup();
             SceneManager.switchScene("hub.fxml", false, true);
             return;
         }
 
         if (selectedButton == createAuctionButton) {
+            cleanup();
             SceneManager.switchScene("create-auction.fxml", false, true);
         }
     }
@@ -100,6 +121,7 @@ public class UserProfileController {
         String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
+            cleanup();
             SceneManager.clearAllCache();
             SceneManager.switchScene("login.fxml", true, false);
             return;
@@ -108,6 +130,7 @@ public class UserProfileController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;

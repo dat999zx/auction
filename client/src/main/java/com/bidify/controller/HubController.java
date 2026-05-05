@@ -4,8 +4,11 @@ import java.io.IOException;
 
 import com.bidify.network.SocketClient;
 import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
+import com.bidify.common.model.Event;
+import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
@@ -53,6 +56,24 @@ public class HubController {
     private void initialize() {
         Platform.runLater(this::bindTopBar);
         loadLiveAuctions();
+
+        EventManager.getInstance().subscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleAuctionEvent);
+    }
+
+    private void handleAuctionEvent(Event event) {
+        Platform.runLater(this::loadLiveAuctions);
+    }
+
+    public void cleanup() {
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleAuctionEvent);
     }
 
     @FXML
@@ -69,6 +90,7 @@ public class HubController {
         }
 
         if (selectedButton == createAuctionButton) {
+            cleanup();
             handleCreateAuction();
         }
 
@@ -79,6 +101,7 @@ public class HubController {
         String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
+            cleanup();
             SceneManager.clearAllCache();
             SceneManager.switchScene("login.fxml", true, false);
             return;
@@ -87,6 +110,7 @@ public class HubController {
         try {
             var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
@@ -188,7 +212,10 @@ public class HubController {
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setExploreHandler(event -> toggleSidebar());
         missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
+        missionBarController.setAvatarHandler(event -> {
+            cleanup();
+            SceneManager.switchScene("user-profile.fxml", false, true);
+        });
         missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(auctionsButton);
     }
