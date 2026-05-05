@@ -43,10 +43,10 @@ CREATE TABLE IF NOT EXISTS Auctions (
 -- TABLE Bids
 CREATE TABLE IF NOT EXISTS Bids (
     id TEXT UNIQUE NOT NULL PRIMARY KEY, 
+    createdAt TEXT NOT NULL,
     auctionId TEXT NOT NULL,
     bidder TEXT NOT NULL,
     amount REAL NOT NULL CHECK(amount > 0), -- phải là số dương
-    createdAt TEXT NOT NULL,
     FOREIGN KEY (auctionId) REFERENCES Auctions(id),
     FOREIGN KEY (bidder) REFERENCES Users(username)
 );
