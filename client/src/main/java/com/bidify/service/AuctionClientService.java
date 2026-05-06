@@ -11,6 +11,7 @@ import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
+import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
@@ -23,6 +24,16 @@ public class AuctionClientService {
     // public AuctionDto[] getAuction() throws IOException {
     //     Response response = 
     // }
+
+    public AuctionDto[] searchAuctions(String query) throws IOException {
+        Response response = client.send(new Request(RequestType.SEARCH_AUCTIONS, new SearchAuctionRequest(query)));
+        if (response.getStatus() != RequestStatus.SUCCESS) {
+            throw new AuctionException(response.getMessage() == null ? "No result" : response.getMessage());
+        }
+
+        AuctionDto[] results = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        return (results != null) ? results : new AuctionDto[0];
+    }
 
     public AuctionDto[] getLiveAuctions() throws IOException {
         Response response = client.send(new Request(RequestType.GET_LIVE_AUCTIONS, null));

@@ -17,6 +17,7 @@ import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
@@ -60,6 +61,32 @@ public class AuctionService {
 
         for (Auction auction : runtimeAuctions)
             RealtimeDatabase.addRuntimeAuction(auction);
+    }
+
+    public Response search(Request request) {
+        SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
+        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+
+        // Xử lý query để tiện hơn trong việc đối chiếu
+        String query = data.getQuery();
+        if (query == null) query = "";
+        String finalQuery = query.toLowerCase().trim();
+
+        List<Auction> allAuctions = RealtimeDatabase.getAllRuntimeAuctions();
+        List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
+
+        for (Auction auction : allAuctions) {
+            // lấy các auction thỏa mãn 3 điều kiện: chứa tên / description / category
+            boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
+            boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
+            boolean matchesCategory = auction.getCategory() != null && auction.getCategory().toLowerCase().contains(finalQuery);
+            
+            if (matchesName || matchesDesc || matchesCategory) {
+                results.add(AuctionMapper.toDto(auction));
+            }
+        }
+
+        return new Response(RequestStatus.SUCCESS, "Search completed", results);
     }
 
     public Response create(ClientHandler client, Request request){

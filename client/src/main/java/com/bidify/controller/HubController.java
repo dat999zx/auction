@@ -186,11 +186,32 @@ public class HubController {
         }
     }
 
-    private void search(){
-        if (searchBar.getText() == null || searchBar.getText().isBlank()) return;
-        //TODO: search key AuctionName, AuctionId
-        
+    private void search() {
+        String query = searchBar.getText();
+        if (query == null || query.isBlank()) {
+            loadLiveAuctions();
+            return;
+        }
 
+        try {
+            AuctionDto[] results = auctionClientService.searchAuctions(query);
+            if (results == null || results.length == 0) {
+                Platform.runLater(() -> showEmptyState("No auctions found matching '" + query + "'."));
+                return;
+            }
+
+            currentAuctions = results;
+            Platform.runLater(() -> {
+                emptyStateLabel.setVisible(false);
+                emptyStateLabel.setManaged(false);
+                renderAuctionRows();
+            });
+        } catch (IOException e) {
+            logger.error("Search failed", e);
+            Platform.runLater(() -> showEmptyState("Search failed: Network error."));
+        } catch (AuctionException e) {
+            Platform.runLater(() -> showEmptyState(e.getMessage()));
+        }
     }
 
     private void handleCreateAuction() {
@@ -218,6 +239,7 @@ public class HubController {
         });
         missionBarController.setAvatarText(resolveAvatarLetter());
         missionBarController.setActiveNavigation(auctionsButton);
+        searchBar.setOnAction(event -> search());
     }
 
     private String resolveAvatarLetter() {
