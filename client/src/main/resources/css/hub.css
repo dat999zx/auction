@@ -155,6 +155,21 @@
     -fx-font-weight: 700;
 }
 
+.side-nav-sub-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.side-nav-sub-button:hover {
+    -fx-background-color: rgba(222, 232, 255, 0.4);
+    -fx-text-fill: #001e40;
+}
+
 .primary-gradient-button {
     -fx-background-color: linear-gradient(to right, #001e40, #003366);
     -fx-text-fill: white;

@@ -76,13 +76,13 @@ public class AuctionDetailsController {
     public static void openAuctionDetails(String auctionId) {
         selectedAuctionId = auctionId;
         SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false, true);
+        SceneManager.switchScene("auctiondetail.fxml", false, false);
     }
 
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
-            bindTopBar();
+            // bindTopBar();
             missionBarController.setActiveNavigation(auctionsButton);
             setPreviewImage(DEFAULT_PREVIEW_IMAGE);
             resetView();
@@ -372,34 +372,34 @@ public class AuctionDetailsController {
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
-    private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
+    // private void bindTopBar() {
+    //     missionBarController = SceneManager.getMissionBarController();
+    //     if (missionBarController == null) {
+    //         throw new IllegalStateException("Mission bar was not loaded.");
+    //     }
 
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        logoutButton = missionBarController.getLogoutLinkButton();
+    //     auctionsButton = missionBarController.getAuctionsButton();
+    //     createAuctionButton = missionBarController.getCreateAuctionButton();
+    //     logoutButton = missionBarController.getLogoutLinkButton();
 
-        missionBarController.setShowExplore(false);
-        missionBarController.setShowSearch(false);
-        missionBarController.setUseInlineLogout(false);
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> {
-            cleanup();
-            SceneManager.switchScene("user-profile.fxml", false, true);
-        });
-        missionBarController.setAvatarText(resolveAvatarLetter());
-        missionBarController.setActiveNavigation(auctionsButton);
-    }
+    //     missionBarController.setShowExplore(false);
+    //     missionBarController.setShowSearch(false);
+    //     missionBarController.setUseInlineLogout(false);
+    //     missionBarController.setSelectionHandler(this::handleSelection);
+    //     missionBarController.setLogoutHandler(event -> handleLogout());
+    //     missionBarController.setAvatarHandler(event -> {
+    //         cleanup();
+    //         SceneManager.switchScene("user-profile.fxml", false, true);
+    //     });
+    //     missionBarController.setAvatarText(resolveAvatarLetter());
+    //     missionBarController.setActiveNavigation(auctionsButton);
+    // }
 
-    private String resolveAvatarLetter() {
-        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
-        if (username == null || username.isBlank()) {
-            return "U";
-        }
-        return username.substring(0, 1).toUpperCase();
-    }
+    // private String resolveAvatarLetter() {
+    //     String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+    //     if (username == null || username.isBlank()) {
+    //         return "U";
+    //     }
+    //     return username.substring(0, 1).toUpperCase();
+    // }
 }

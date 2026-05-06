@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
+<AnchorPane pickOnBounds="false" stylesheets="@../../css/hub.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -22,8 +22,8 @@
             <Region HBox.hgrow="ALWAYS" />
 
             <HBox fx:id="searchContainer" alignment="CENTER_LEFT" maxWidth="420.0" prefHeight="46.0" prefWidth="331.0" spacing="8.0" styleClass="search-bar">
-                <Label styleClass="search-icon" text="⌕" />
-                <TextField fx:id="searchBar" prefHeight="26.0" prefWidth="294.0" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
+                <Label prefHeight="26.0" prefWidth="22.0" styleClass="search-icon" text="⌕" />
+                <TextField fx:id="searchBar" prefHeight="29.0" prefWidth="279.0" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
             </HBox>
 
             <Region HBox.hgrow="ALWAYS" />
@@ -67,11 +67,32 @@
                         <padding>
                             <Insets bottom="0.0" left="16.0" right="16.0" top="0.0" />
                         </padding>
-                        <Button styleClass="side-nav-button-active" text="Live Auctions" />
-                        <Button styleClass="side-nav-button" text="Upcoming" />
-                        <Button styleClass="side-nav-button" text="Ended" />
-                        <Button styleClass="side-nav-button" text="My Bids" />
-                        <Button styleClass="side-nav-button" text="Watchlist" />
+                        <Button fx:id="homeButton" onAction="#handleSidebarClick" styleClass="side-nav-button-active" text="Home " />
+                        
+                        <VBox spacing="2.0">
+                            <Button fx:id="categoryButton" onAction="#handleCategoryToggle" styleClass="side-nav-button" text="Category" maxWidth="Infinity" />
+                            <VBox fx:id="categorySubMenu" visible="false" managed="false" spacing="2.0">
+                                <padding>
+                                    <Insets left="20.0" />
+                                </padding>
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Electronics" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Art &amp; Collectibles" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Fashion" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Vehicle" maxWidth="Infinity" />
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="2.0">
+                            <Button fx:id="myActivitiesButton" onAction="#handleActivitiesToggle" styleClass="side-nav-button" text="My Activities" maxWidth="Infinity" />
+                            <VBox fx:id="myActivitiesSubMenu" visible="false" managed="false" spacing="2.0">
+                                <padding>
+                                    <Insets left="20.0" />
+                                </padding>
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Bids" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Auctions" maxWidth="Infinity" />
+                            </VBox>
+                        </VBox>
                     </VBox>
                 </VBox>
             </children>

@@ -155,6 +155,7 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
+    // chia để cho mỗi hàng có tối đa 2 auction card, căn giữa và có khoảng cách đều nhau
     private void renderAuctionRows() {
         liveAuctionsContainer.getChildren().clear();
         if (currentAuctions == null || currentAuctions.length == 0) {
@@ -174,6 +175,7 @@ public class HubController {
         }
     }
 
+    // Lấy auction card từ auction_card.fxml và bind dữ liệu vào
     private AnchorPane loadAuctionCard(AuctionDto auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
