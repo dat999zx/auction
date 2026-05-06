@@ -30,6 +30,16 @@ public class AuctionClientService {
         return (results != null) ? results : new AuctionDto[0];
     }
 
+    public AuctionDto[] searchAuctions(String query) throws IOException {
+        Response response = client.send(new Request(RequestType.SEARCH_AUCTIONS, new SearchAuctionRequest(query)));
+        if (response.getStatus() != RequestStatus.SUCCESS) {
+            throw new AuctionException(response.getMessage() == null ? "No result" : response.getMessage());
+        }
+
+        AuctionDto[] results = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        return (results != null) ? results : new AuctionDto[0];
+    }
+
     public AuctionDto[] getLiveAuctions() throws IOException {
         Response response = client.send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
