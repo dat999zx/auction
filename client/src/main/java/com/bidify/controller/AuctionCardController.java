@@ -18,7 +18,7 @@ public class AuctionCardController {
     @FXML
     private Label currentBidValue;
     @FXML
-    private Label bidCountValue;
+    private Label currentBidder;
     @FXML
     private Label sellerLabel;
 
@@ -30,9 +30,16 @@ public class AuctionCardController {
         lotPill.setText(DisplayUtil.defaultText(auction.getId(), "Auction"));
         title.setText(DisplayUtil.defaultText(auction.getAuctionName(), "Untitled auction"));
         subtitle.setText(DisplayUtil.defaultText(auction.getDescription(), "No description."));
-        currentBidValue.setText(DisplayUtil.formatCurrency(auction.getCurrentBid()));
-        bidCountValue.setText(Integer.toString(auction.getBidCount()));
-        sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSeller(), "Unknown"));
+
+        //dealing with no one bidded yet case
+        if (auction.getCurrentBid() == 0) {
+            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getStartingPrice()));
+            currentBidder.setText("No bids yet");
+        } else {
+            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getCurrentBid()));
+            currentBidder.setText(auction.getCurrentBidderUsername());
+        }
+        sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSellerUsername(), "Unknown"));
     }
 
     @FXML

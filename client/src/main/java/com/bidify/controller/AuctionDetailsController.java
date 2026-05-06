@@ -2,6 +2,9 @@ package com.bidify.controller;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
@@ -15,17 +18,14 @@ import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
@@ -44,8 +44,6 @@ public class AuctionDetailsController {
     private Label name;
     @FXML
     private Label description;
-    @FXML
-    private Label startprice;
     @FXML
     private Label currentprice;
     @FXML
@@ -69,7 +67,7 @@ public class AuctionDetailsController {
     @FXML
     private Label openingBidAmountLabel;
     @FXML
-    private Label openingBidTimeLabel;
+    private Label opendate;
 
     private double currentDisplayedPrice;
     private final AuctionClientService auctionClientService = new AuctionClientService();
@@ -142,6 +140,8 @@ public class AuctionDetailsController {
         EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
     }
 
+    //bid placing
+
     @FXML
     private void handlePlaceBid() {
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
@@ -188,12 +188,6 @@ public class AuctionDetailsController {
     }
 
     @FXML
-    private void tomenu() {
-        cleanup();
-        SceneManager.switchScene("hub.fxml", false, true);
-    }
-
-    @FXML
     private void handleSelection(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) {
             return;
@@ -217,33 +211,7 @@ public class AuctionDetailsController {
         }
     }
 
-    @FXML
-    private void handleLogout() {
-        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
-
-        if (currentUsername == null || currentUsername.isBlank()) {
-            cleanup();
-            SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml", true, false);
-            return;
-        }
-
-        try {
-            Response response = authClientService.logout();
-            if (response.getStatus() == RequestStatus.SUCCESS) {
-                cleanup();
-                SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml", true, false);
-                return;
-            }
-            showMessage(response.getMessage() == null ? "Logout failed." : response.getMessage(), false);
-        } catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
-            logger.error("Exception occurred", e);
-        } catch (com.bidify.common.exception.AuthException e) {
-            showMessage(e.getMessage(), false);
-        }
-    }
+    //loader
 
     private void loadAuctionDetails(String auctionId) {
         Thread loader = new Thread(() -> {
@@ -282,57 +250,60 @@ public class AuctionDetailsController {
         }
     }
 
+    //binding
+
     private void bindAuctionData(AuctionDto data) {
+        //auction name, seller and description
         name.setText(DisplayUtil.defaultText(data.getAuctionName(), "Untitled auction"));
+        openingBidderLabel.setText(DisplayUtil.defaultText(data.getSellerUsername(), "Unknown seller"));
         description.setText(DisplayUtil.defaultText(data.getDescription(), "No description."));
 
+        // bid values and date
         double startingValue = data.getStartingPrice();
         double currentValue = data.getCurrentBid();
         currentDisplayedPrice = currentValue > 0 ? currentValue : startingValue;
-
-        startprice.setText(DisplayUtil.formatCurrency(startingValue));
+        
+        openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
         currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
+        opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
         enddate.setText(DisplayUtil.formatDateTime(data.getEndTime(), "Unknown"));
-        bindActivity(data, startingValue);
-        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-    }
 
-    private void bindActivity(AuctionDto data, double startingValue) {
-        if (data.getBidCount() > 0) {
-            openingBidderLabel.setText("Opening price");
-            openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
-            openingBidTimeLabel.setText("Auction opened");
-
-            latestBidderLabel.setText("Latest bid");
+        // validate and display latest bid info     
+        if (currentValue == 0) {
+            latestBidderLabel.setText("No bids placed yet.");
+            latestBidAmountLabel.setText("");
+            latestBidTimeLabel.setText("");
+        } else {
+            latestBidderLabel.setText(data.getCurrentBidderUsername()); 
             latestBidAmountLabel.setText(DisplayUtil.formatCurrency(data.getCurrentBid()));
-            latestBidTimeLabel.setText("Bid received");
-            return;
+            latestBidTimeLabel.setText(DisplayUtil.formatDateTime(data.getCreatedAt(), "Unknown"));
         }
 
-        latestBidderLabel.setText("No bids yet");
-        latestBidAmountLabel.setText("Waiting for first bid");
-        latestBidTimeLabel.setText("Live auction");
-        openingBidderLabel.setText("Starting price");
-        openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
-        openingBidTimeLabel.setText("Opening bid");
+        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
     }
 
     private void resetView() {
         name.setText("Loading auction...");
         description.setText("Please wait while the auction details are fetched.");
-        startprice.setText(DisplayUtil.formatCurrency(0));
-        currentprice.setText(DisplayUtil.formatCurrency(0));
+
+        openingBidAmountLabel.setText("Loading...");
+        currentprice.setText("Loading...");
+
         enddate.setText("Loading...");
         messageLabel.setText("");
+
         latestBidderLabel.setText("Latest bid");
         latestBidAmountLabel.setText("Live value shown above");
         latestBidTimeLabel.setText("Waiting for server data");
+
         openingBidderLabel.setText("Starting price");
-        openingBidAmountLabel.setText("Opening value shown above");
-        openingBidTimeLabel.setText("Opening bid");
+        opendate.setText("Opening bid");
+
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
     }
+
+    // top bar handlers and miscellaneous
 
     private void setPreviewImage(String imagePath) {
         if (previewimage == null) {
@@ -365,6 +336,40 @@ public class AuctionDetailsController {
         if (!message.isBlank()) {
             messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
         }
+    }
+
+    @FXML
+    private void handleLogout() {
+        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+
+        if (currentUsername == null || currentUsername.isBlank()) {
+            cleanup();
+            SceneManager.clearAllCache();
+            SceneManager.switchScene("login.fxml", true, false);
+            return;
+        }
+
+        try {
+            Response response = authClientService.logout();
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                cleanup();
+                SceneManager.clearAllCache();
+                SceneManager.switchScene("login.fxml", true, false);
+                return;
+            }
+            showMessage(response.getMessage() == null ? "Logout failed." : response.getMessage(), false);
+        } catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
+            logger.error("Exception occurred", e);
+        } catch (com.bidify.common.exception.AuthException e) {
+            showMessage(e.getMessage(), false);
+        }
+    }
+
+    @FXML
+    private void tomenu() {
+        cleanup();
+        SceneManager.switchScene("hub.fxml", false, true);
     }
 
     private void bindTopBar() {

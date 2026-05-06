@@ -9,14 +9,20 @@ public class AuctionMapper {
     public static AuctionDto toDto(Auction auction) {
         if (auction == null) return null;
         return new AuctionDto(
-            auction.getId(),
-            auction.getAuctionName(),
-            auction.getDescription(),
-            auction.getSellerUsername(),
-            auction.getEndTime() == null ? "" : auction.getEndTime().toString(),
-            auction.getStartingPrice(),
-            auction.getCurrentBid(),
-            auction.getBidCount()
+                auction.getId(),
+                auction.getCreatedAt().toString(),
+                auction.getAuctionName(),
+                auction.getDescription(),
+                auction.getSellerUsername(),
+                auction.getCurrentBidderUsername(),
+                auction.getCategory(),
+                auction.getProductType(),
+                auction.getStartingPrice(),
+                auction.getCurrentBid(),
+                auction.getMinIncrement(),
+                auction.getStartTime().toString(),
+                auction.getEndTime().toString(),
+                auction.getStatus().name()
         );
     }
 }

@@ -193,14 +193,15 @@
 }
 
 .back-link {
-    -fx-background-color: transparent;
+    -fx-background-color: #ffddb8;
     -fx-text-fill: #515f74;
-    -fx-font-size: 12px;
+    -fx-font-size: 16px;
     -fx-font-weight: 800;
     -fx-padding: 0;
 }
 
 .back-link:hover {
+    -fx-background-color: #ccaa85;
     -fx-text-fill: #001e40;
 }
 
