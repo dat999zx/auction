@@ -20,11 +20,6 @@ import com.bidify.network.SocketClient;
 public class AuctionClientService {
     private final SocketClient client = SocketClient.getClient();
 
-
-    // public AuctionDto[] getAuction() throws IOException {
-    //     Response response = 
-    // }
-
     public AuctionDto[] searchAuctions(String query) throws IOException {
         Response response = client.send(new Request(RequestType.SEARCH_AUCTIONS, new SearchAuctionRequest(query)));
         if (response.getStatus() != RequestStatus.SUCCESS) {
