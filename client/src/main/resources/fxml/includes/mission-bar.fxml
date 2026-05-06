@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
+<AnchorPane pickOnBounds="false" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -23,7 +23,7 @@
 
             <HBox fx:id="searchContainer" alignment="CENTER_LEFT" maxWidth="420.0" prefHeight="46.0" prefWidth="331.0" spacing="8.0" styleClass="search-bar">
                 <Label styleClass="search-icon" text="⌕" />
-                <TextField fx:id="searchBar" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
+                <TextField fx:id="searchBar" prefHeight="26.0" prefWidth="294.0" promptText="Search auctions, brands, or categories..." styleClass="search-field" />
             </HBox>
 
             <Region HBox.hgrow="ALWAYS" />

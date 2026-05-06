@@ -98,7 +98,7 @@ public class HubController {
 
     @FXML
     private void handleLogout() {
-        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        String currentUsername = SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             cleanup();
