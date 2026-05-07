@@ -18,6 +18,7 @@ import javafx.util.Duration;
 
 public class MissionBarController {
     private static final Duration ANIMATION_DURATION = Duration.millis(180);
+    private Button leftSideActiveButton; 
 
     @FXML
     private HBox searchContainer;
@@ -55,17 +56,112 @@ public class MissionBarController {
     @FXML
     private VBox sidebarContent;
 
+    @FXML
+    private Button homeButton;
+
+    @FXML
+    private Button categoryButton;
+
+    @FXML
+    private Button myActivitiesButton;
+
+    @FXML
+    private VBox categorySubMenu;
+
+    @FXML
+    private VBox myActivitiesSubMenu;
+
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
     @FXML
     private void initialize() {
+        leftSideActiveButton = homeButton; // Mặc định active home
         double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
         sidebarLayer.setMouseTransparent(true);
         sidebarOverlay.setOpacity(0.0);
         sidebarContent.setTranslateX(-hiddenOffset);
+    }
+    
+    @FXML
+    private void handleAvatarClick(MouseEvent event) {
+    }
+
+    public void toggleSidebar() {
+        if (sidebarAnimating) { return; }
+        if (sidebarVisible) {
+            hideSidebar();
+            return;
+        }
+        showSidebar();
+    }
+
+    public void closeSidebar() {
+        if (!sidebarVisible || sidebarAnimating) { return; }
+        hideSidebar();
+    }
+
+    @FXML
+    private void handleOverlayClick() {
+        closeSidebar();
+    }
+
+    @FXML
+    private void handleSidebarClick(ActionEvent event) {
+        if (!(event.getSource() instanceof Button clickedButton)) return;
+        updateSidebarButtonStyle(clickedButton);
+    }
+
+    @FXML
+    private void handleCategoryToggle(ActionEvent event) {
+        boolean isVisible = categorySubMenu.isVisible();
+        categorySubMenu.setVisible(!isVisible);
+        categorySubMenu.setManaged(!isVisible);
+        updateSidebarButtonStyle(categoryButton);
+    }
+
+    @FXML
+    private void handleActivitiesToggle(ActionEvent event) {
+        boolean isVisible = myActivitiesSubMenu.isVisible();
+        myActivitiesSubMenu.setVisible(!isVisible);
+        myActivitiesSubMenu.setManaged(!isVisible);
+        updateSidebarButtonStyle(myActivitiesButton);
+    }
+
+    // check xem nếu như button nào được click thì sẽ đổi style của button đó thành active, còn lại sẽ là normal
+    private void updateSidebarButtonStyle(Button activeButton) {
+        if (leftSideActiveButton == activeButton) return;
+        leftSideActiveButton.getStyleClass().removeAll("side-nav-button", "side-nav-button-active");
+        leftSideActiveButton.getStyleClass().add("side-nav-button");
+        leftSideActiveButton = activeButton;
+        leftSideActiveButton.getStyleClass().add("side-nav-button-active");
+    }
+    
+
+    private void showSidebar() {
+        sidebarAnimating = true;
+        double hiddenOffset = getSidebarWidth();
+        sidebarLayer.setVisible(true);
+        sidebarLayer.setManaged(true);
+        sidebarLayer.setMouseTransparent(false);
+
+        FadeTransition overlayFade = new FadeTransition(ANIMATION_DURATION, sidebarOverlay);
+        overlayFade.setFromValue(0.0);
+        overlayFade.setToValue(1.0);
+
+        TranslateTransition sidebarSlide = new TranslateTransition(ANIMATION_DURATION, sidebarContent);
+        sidebarSlide.setFromX(-hiddenOffset);
+        sidebarSlide.setToX(0.0);
+
+        sidebarSlide.setOnFinished(event -> {
+            sidebarVisible = true;
+            sidebarAnimating = false;
+        });
+
+        overlayFade.play();
+        sidebarSlide.play();
     }
 
     // thêm các getter để sử dụng cho các file fxml có missionbar controller
@@ -121,53 +217,6 @@ public class MissionBarController {
         updateNavButtonStyle(logoutLinkButton, activeButton == logoutLinkButton);
     }
 
-    @FXML
-    private void handleAvatarClick(MouseEvent event) {
-    }
-
-    public void toggleSidebar() {
-        if (sidebarAnimating) { return; }
-        if (sidebarVisible) {
-            hideSidebar();
-            return;
-        }
-        showSidebar();
-    }
-
-    public void closeSidebar() {
-        if (!sidebarVisible || sidebarAnimating) { return; }
-        hideSidebar();
-    }
-
-    @FXML
-    private void handleOverlayClick() {
-        closeSidebar();
-    }
-
-    private void showSidebar() {
-        sidebarAnimating = true;
-        double hiddenOffset = getSidebarWidth();
-        sidebarLayer.setVisible(true);
-        sidebarLayer.setManaged(true);
-        sidebarLayer.setMouseTransparent(false);
-
-        FadeTransition overlayFade = new FadeTransition(ANIMATION_DURATION, sidebarOverlay);
-        overlayFade.setFromValue(0.0);
-        overlayFade.setToValue(1.0);
-
-        TranslateTransition sidebarSlide = new TranslateTransition(ANIMATION_DURATION, sidebarContent);
-        sidebarSlide.setFromX(-hiddenOffset);
-        sidebarSlide.setToX(0.0);
-
-        sidebarSlide.setOnFinished(event -> {
-            sidebarVisible = true;
-            sidebarAnimating = false;
-        });
-
-        overlayFade.play();
-        sidebarSlide.play();
-    }
-
     private void hideSidebar() {
         sidebarAnimating = true;
         double hiddenOffset = getSidebarWidth();
@@ -193,9 +242,7 @@ public class MissionBarController {
     }
 
     private void updateNavButtonStyle(Button button, boolean active) {
-        if (button == null) {
-            return;
-        }
+        if (button == null) return;
 
         button.getStyleClass().removeAll("top-link", "top-link-active");
         button.getStyleClass().add(active ? "top-link-active" : "top-link");

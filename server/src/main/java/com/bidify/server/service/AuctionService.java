@@ -76,12 +76,11 @@ public class AuctionService {
         List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
 
         for (Auction auction : allAuctions) {
-            // lấy các auction thỏa mãn 3 điều kiện: chứa tên / description / category
+            // lấy các auction thỏa mãn 2 điều kiện: chứa tên / description
             boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
             boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
-            boolean matchesCategory = auction.getCategory() != null && auction.getCategory().toLowerCase().contains(finalQuery);
             
-            if (matchesName || matchesDesc || matchesCategory) {
+            if (matchesName || matchesDesc) {
                 results.add(AuctionMapper.toDto(auction));
             }
         }
