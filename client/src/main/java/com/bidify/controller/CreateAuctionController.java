@@ -88,7 +88,6 @@ public class CreateAuctionController {
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
-            bindTopBar();
 
             if (categoryComboBox != null) {
                 categoryComboBox.getItems().setAll(
@@ -125,17 +124,6 @@ public class CreateAuctionController {
         if (missionBarController != null) {
             missionBarController.toggleSidebar();
         }
-    }
-
-    @FXML
-    private void handleSelection(ActionEvent event) {
-        if (!(event.getSource() instanceof Button selectedButton)) {
-            return;
-        }
-        if (selectedButton == auctionsButton) {
-            SceneManager.switchScene("hub.fxml", false, true);
-        }
-
     }
 
     @FXML
@@ -281,25 +269,6 @@ public class CreateAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format");
         }
-    }
-
-    private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
-
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        missionBarController.setShowExplore(true);
-        missionBarController.setShowSearch(false);
-        missionBarController.setUseInlineLogout(true);
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setExploreHandler(event -> toggleSidebar());
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
-        missionBarController.setAvatarText(resolveAvatarLetter());
-        missionBarController.setActiveNavigation(createAuctionButton);
     }
 
     private String resolveAvatarLetter() {
