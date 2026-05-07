@@ -6,6 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
@@ -43,6 +46,7 @@ import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.AuctionMapper;
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
+    private static Logger logger = LoggerFactory.getLogger(AuctionService.class);
     private static AuctionService instance = new AuctionService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
@@ -331,6 +335,9 @@ public class AuctionService {
             //save changes to database after placing bid.
             if (prevBidder != null)
                 userDao.save(prevBidder, false);
+
+            logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
+
             return new Response(RequestStatus.SUCCESS, "Place bid successfully");
         });
     }
@@ -416,13 +423,13 @@ public class AuctionService {
             publishLockedBalanceChange(winnerUsername, -finalBid);
         }
         else {
-            
-
             auction.setEndTime(LocalDateTime.now());
             auction.setStatus(AuctionStatus.CANCELED);
         }
         
         auctionDao.save(auction);
+
+        logger.info("auction settled: {} - {}", auction.getAuctionName(), auction.getId());
     }
 
     // lấy user từ realtime database nếu có, nếu không thì load từ database, dùng khi cần cập nhật wallet sau khi đấu giá kết thúc

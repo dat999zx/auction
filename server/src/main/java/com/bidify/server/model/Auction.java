@@ -100,8 +100,9 @@ public class Auction extends Entity {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
-    public AuctionStatus getStatus() {
-        refreshStatus();
+    public AuctionStatus getStatus() { return getStatus(true); }
+    public AuctionStatus getStatus(boolean refreshStatus) {
+        if (refreshStatus) refreshStatus();
         return status;
     }
     public void setStatus(AuctionStatus status) { this.status = status; }
