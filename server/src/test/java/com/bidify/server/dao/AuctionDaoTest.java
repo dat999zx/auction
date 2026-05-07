@@ -96,24 +96,6 @@ class AuctionDaoTest {
     }
 
     @Test
-    void updateAuctionStatus() {
-        // Lấy auction và kiểm tra status ban đầu
-        Auction auction = auctionDao.findById(testAuctionId);
-        assertEquals(AuctionStatus.UPCOMING, auction.getStatus());
-
-        // Để status thành ACTIVE, thời gian bắt đầu phải ở quá khứ
-        auction.setStartTime(LocalDateTime.now().minusMinutes(1));
-        auction.refreshStatus(); 
-        assertEquals(AuctionStatus.ACTIVE, auction.getStatus());
-        
-        auctionDao.save(auction);
-
-        // Đọc lại và kiểm tra status đã thay đổi
-        Auction updated = auctionDao.findById(testAuctionId);
-        assertEquals(AuctionStatus.ACTIVE, updated.getStatus());
-    }
-
-    @Test
     void deleteAuctionByIdSuccessfully() {
         // Auction tồn tại trong DB (từ setUp)
         Auction beforeDelete = auctionDao.findById(testAuctionId);

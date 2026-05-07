@@ -1,5 +1,6 @@
 package com.bidify.server.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -42,34 +43,32 @@ public class AuctionSchedulerService {
     // đồng bộ tất cả các auction đang chạy trong runtime với database, cập nhật status của chúng nếu cần thiết, và phát Event nếu có thay đổi status
     private void syncRuntimeAuctions() {
         List<Auction> runtimeAuctions = RealtimeDatabase.getAllRuntimeAuctions();
+        LocalDateTime now = LocalDateTime.now();
+
         for (Auction auction : runtimeAuctions) {
             if (auction == null) continue;
 
-            AuctionStatus before = auction.getStatus(false);
-            AuctionStatus after = auction.getStatus();
+            AuctionStatus before = auction.getStatus();
+            
+            // kiểm tra xem Auction đang ACTIVE đã hết giờ chưa
+            if (before == AuctionStatus.ACTIVE && now.isAfter(auction.getEndTime())) {
+                logger.info("Auction expired: {} - {}. Settling...", auction.getAuctionName(), auction.getId());
 
-            if (before == after) continue;
-
-            auctionDao.save(auction);
-
-            logger.info("new auction state: {} - {}: {} -> {}", auction.getAuctionName(), auction.getId(), before, after);
-
-            if (after == AuctionStatus.ENDED) {
                 auctionService.settleAuction(auction);
+
                 RealtimeDatabase.removeRuntimeAuction(auction.getId());
                 publishStatusEvent(EventType.AUCTION_ENDED, "Auction ended", auction);
                 continue;
             }
 
-            if (after == AuctionStatus.ACTIVE && before == AuctionStatus.UPCOMING) {
-                RealtimeDatabase.addRuntimeAuction(auction);
-                publishStatusEvent(EventType.AUCTION_UPDATED, "Auction is now active", auction);
-                continue;
-            }
+            // kiểm tra các transition khác (UPCOMING -> ACTIVE)
+            if (before == AuctionStatus.UPCOMING && !now.isBefore(auction.getStartTime())) {
+                auction.setStatus(AuctionStatus.ACTIVE);
 
-            if (after == AuctionStatus.UPCOMING || after == AuctionStatus.ACTIVE) {
-                RealtimeDatabase.addRuntimeAuction(auction);
-                publishStatusEvent(EventType.AUCTION_UPDATED, "Auction status updated", auction);
+                auctionDao.save(auction);
+                
+                logger.info("Auction started: {} - {}", auction.getAuctionName(), auction.getId());
+                publishStatusEvent(EventType.AUCTION_UPDATED, "Auction is now active", auction);
             }
         }
     }
