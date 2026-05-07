@@ -87,7 +87,7 @@
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• History" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Analytics" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Auctions" maxWidth="Infinity" />
                             </VBox>

@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
     @FXML
     private Label messageLabel;
 
@@ -72,10 +71,16 @@ public class CreateAuctionController {
     private MissionBarController missionBarController;
 
     @FXML
-    private Button auctionsButton;
+    private Button backButton;
 
     @FXML
-    private Button createAuctionButton;
+    private Button managementButton;
+
+    @FXML
+    private Button subCreateAuctionButton;
+
+    @FXML
+    private Button historyButton;
 
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
@@ -131,6 +136,32 @@ public class CreateAuctionController {
             SceneManager.switchScene("hub.fxml", false, true);
         }
 
+    }
+
+    @FXML
+    private void handleSubNavClick(ActionEvent event) {
+        if (!(event.getSource() instanceof Button clickedButton)) return;
+
+        if (clickedButton == backButton) {
+            SceneManager.switchScene("hub.fxml", false, true);
+        } else if (clickedButton == managementButton) {
+            // Future logic for management dashboard
+        } else if (clickedButton == subCreateAuctionButton) {
+            
+        } else if (clickedButton == historyButton) {
+            showMessage("History feature is coming soon!", true);
+        }
+        updateSubNavButtonStyle(clickedButton);
+    }
+
+    private void updateSubNavButtonStyle(Button activeButton) {
+        if (activeButton == null) return;
+        Button[] buttons = {backButton, managementButton, subCreateAuctionButton, historyButton};
+        for (Button button : buttons) {
+            button.getStyleClass().removeAll("top-link-active", "top-link");
+            button.getStyleClass().add("top-link");
+        }
+        activeButton.getStyleClass().add("top-link-active");
     }
 
     @FXML
