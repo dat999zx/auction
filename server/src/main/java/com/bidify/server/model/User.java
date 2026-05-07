@@ -1,72 +1,88 @@
 package com.bidify.server.model;
 
-import java.time.LocalDateTime; // dùng để theo dõi thời điểm mà account được khởi tạo, đăng nhập -> quản lý account
+import java.time.LocalDateTime;
 
 import com.bidify.common.enums.UserStatus;
-import com.bidify.common.exception.ValidationException;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.exception.InsufficientBalanceException;
 
 public class User extends Entity {
-    private String nickname, username, password, email, phoneNumber;
+    private String nickname;
+    private String username;
+    private String password;
+    private String email;
+    private String phoneNumber;
+
     private LocalDateTime lastLogin;
     private UserStatus status;
-    private double wallet; // tổng tiền đang có
-    private double lockedWallet; // số tiền bị đóng băng khi đã dùng để bid
+
+    // số tiền hiện có trong tài khoản
+    private double wallet;
+
+    // số tiền đang bị khóa do đặt bid (CHỈ CHO MỤC ĐÍCH HIỂN THỊ THÔNG TIN, KHÔNG LIÊN QUAN ĐẾN LOGIC)
+    private double lockedWallet;
 
     // Đăng kí tài khoản
     public User(String username, String nickname, String password) {
         super(username, LocalDateTime.now());
+
         this.username = username;
         this.nickname = nickname;
         this.password = password;
+
         this.status = UserStatus.ACTIVE;
         this.lastLogin = null;
         this.wallet = 0;
     }
 
-    // load lại dữ liệu người dùng
-     public User(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double wallet) {
+    // Load dữ liệu người dùng từ database
+    public User(
+        String username,
+        String nickname,
+        String password,
+        String email,
+        String phone,
+        UserStatus status,
+        LocalDateTime createdAt,
+        LocalDateTime lastLogin,
+        double wallet
+    ) {
         super(username, createdAt);
-        this.nickname = nickname;
+
         this.username = username;
+        this.nickname = nickname;
         this.password = password;
         this.email = email;
         this.phoneNumber = phone;
+
         this.status = status;
         this.lastLogin = lastLogin;
         this.wallet = wallet;
     }
 
-    public synchronized double getAvailableBalance() { return wallet - lockedWallet; }
-    public synchronized void lockBalance(double amount) {
-        ValidationUtil.validatePositiveAmount(amount, "Lock balance amount");
-        if (amount > getAvailableBalance())
-            throw new InsufficientBalanceException("Insufficient available balance");
-        lockedWallet += amount;
-    }
-    public synchronized void unlockBalance(double amount) {
-        ValidationUtil.validatePositiveAmount(amount, "Unlock balance amount");
-        if (amount > lockedWallet)
-            throw new InsufficientBalanceException("Insufficient locked balance");
-        lockedWallet -= amount;
-    }
-    public synchronized void payWinAuction(double amount) {
-        ValidationUtil.validatePositiveAmount(amount, "Pay amount");
-        if (lockedWallet < amount)
-            throw new InsufficientBalanceException("Insufficient locked balance");
-        wallet -= amount;
-        lockedWallet -= amount;
-    }
-    public synchronized void deposit(double amount) {
-        if (amount <= 0)
-            throw new ValidationException("Deposit amount must be positive");
+    public synchronized void addWallet(double amount) {
+        ValidationUtil.validatePositiveAmount(amount, "Wallet amount");
         wallet += amount;
     }
-    public synchronized void withdraw(double amount) {
-        if (amount <= 0)
-            throw new ValidationException("Withdraw amount must be positive");
+
+    public synchronized void subtractWallet(double amount) {
+        ValidationUtil.validatePositiveAmount(amount, "Wallet amount");
+
+        if (amount > wallet)
+            throw new InsufficientBalanceException("Insufficient balance");
         wallet -= amount;
+    }
+
+    public synchronized void modifyLockedWallet(double lockedWallet) {
+        this.lockedWallet += lockedWallet;
+    }
+
+    public synchronized void deposit(double amount) {
+        addWallet(amount);
+    }
+
+    public synchronized void withdraw(double amount) {
+        subtractWallet(amount);
     }
 
     public LocalDateTime getLastLogin() { return lastLogin; }
@@ -83,6 +99,6 @@ public class User extends Entity {
     public UserStatus getStatus() { return status; }
     public void setStatus(UserStatus status) { this.status = status; }
     public double getWallet() { return wallet; }
-    public void setLockedWallet(double lockedWallet) { this.lockedWallet = lockedWallet; }
     public double getLockedWallet() { return lockedWallet; }
+    public void setLockedWallet(double lockedWallet) { this.lockedWallet = lockedWallet; }
 }

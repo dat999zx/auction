@@ -1,7 +1,10 @@
 package com.bidify.server.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 import com.bidify.common.dto.TransactionDto;
-import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
@@ -19,10 +22,6 @@ import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.UserMapper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
 
 public class UserProfileService {
     private static UserProfileService instance = new UserProfileService();
@@ -92,7 +91,7 @@ public class UserProfileService {
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
 
-            if (user.getAvailableBalance() < amount)
+            if (user.getWallet() < amount)
                 throw new ValidationException("Insufficient available balance");
 
             user.withdraw(amount);

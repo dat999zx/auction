@@ -2,15 +2,14 @@ package com.bidify.server.dao;
 
 import java.time.LocalDateTime;
 
-import com.bidify.common.enums.UserStatus;
-import com.bidify.server.database.SQLiteHelper;
-import com.bidify.server.exception.DatabaseException;
-import com.bidify.server.contract.ImplementUserDao;
-import com.bidify.server.model.User;
-
-// giao tiếp với SQLite database về bảng Users
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.bidify.common.enums.UserStatus;
+import com.bidify.server.contract.ImplementUserDao;
+import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.model.User;
 
 public class UserDao implements ImplementUserDao {
     private static UserDao instance = new UserDao();

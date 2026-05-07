@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane styleClass="profile-root" stylesheets="@../css/user-profile.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.UserProfileController">
+<AnchorPane styleClass="profile-root" stylesheets="@../css/user-profile.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.UserProfileController">
     <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <center>
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
@@ -74,6 +74,12 @@
                                     <Label styleClass="meta-label" text="AVAILABLE WALLET" />
                                     <Label fx:id="walletBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
                                 </VBox>
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label prefHeight="15.0" prefWidth="192.0" styleClass="meta-label" text="LOCKED BALANCE (Pending for auction)" />
+                              <Label fx:id="lockedWalletLabel" styleClass="wallet-figure" text="\$0.00" />
+                           </children>
+                        </VBox>
                         <HBox.margin>
                            <Insets />
                         </HBox.margin>
