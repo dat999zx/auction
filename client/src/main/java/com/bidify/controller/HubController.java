@@ -1,43 +1,38 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
-import com.bidify.common.dto.AuctionDto;
-import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.RequestType;
-import com.bidify.common.model.LogoutRequest;
-import com.bidify.common.model.Request;
-import com.bidify.common.model.Response;
-import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
+import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.model.Event;
+import com.bidify.event.EventManager;
+import com.bidify.service.AuctionClientService;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
-import javafx.animation.Timeline;
-import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.application.Platform;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
-public class HubController {
-    private static final javafx.util.Duration SIDEBAR_ANIMATION_DURATION = javafx.util.Duration.millis(160);
-    private static final double SIDEBAR_EXPANDED_WIDTH = 250.0;
-    private static final double SIDEBAR_VISIBLE_ROW_GAP = 24.0;
-    private static final double SIDEBAR_HIDDEN_ROW_GAP = 56.0;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-    @FXML 
-    private TextField searchBar; 
+public class HubController {
+    private static final Logger logger = LoggerFactory.getLogger(HubController.class);
+    private static final double AUCTION_ROW_GAP = 56.0;
+
+    @FXML
+    private TextField searchBar;
 
     @FXML
     private Button auctionsButton;
@@ -51,120 +46,101 @@ public class HubController {
     @FXML
     private Label emptyStateLabel;
 
-    @FXML
-    private StackPane sidebarContainer;
+    private MissionBarController missionBarController;
 
-    @FXML
-    private VBox sidebarContent;
-
-    private boolean sidebarVisible = false;
-    private boolean sidebarAnimating = false;
     private AuctionDto[] currentAuctions = new AuctionDto[0];
+    private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
-        auctionsButton.getStyleClass().removeAll("top-link");
-
-        Rectangle clip = new Rectangle();
-        clip.widthProperty().bind(sidebarContainer.widthProperty());
-        clip.heightProperty().bind(sidebarContainer.heightProperty());
-        sidebarContainer.setClip(clip);
-
-        initializeSidebarState();
+        Platform.runLater(this::bindTopBar);
         loadLiveAuctions();
+
+        EventManager.getInstance().subscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEvent);
+        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleAuctionEvent);
+    }
+
+    private void handleAuctionEvent(Event event) {
+        Platform.runLater(this::loadLiveAuctions);
+    }
+
+    public void cleanup() {
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEvent);
+        EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleAuctionEvent);
     }
 
     @FXML
     private void toggleSidebar() {
-        if (sidebarAnimating) {
-            return;
+        if (missionBarController != null) {
+            missionBarController.toggleSidebar();
         }
-
-        sidebarAnimating = true;
-        double targetWidth = sidebarVisible ? 0.0 : SIDEBAR_EXPANDED_WIDTH;
-        double targetTranslateX = sidebarVisible ? -SIDEBAR_EXPANDED_WIDTH : 0.0;
-
-        TranslateTransition slideTransition = new TranslateTransition(SIDEBAR_ANIMATION_DURATION, sidebarContent);
-        slideTransition.setToX(targetTranslateX);
-
-        Timeline resizeTimeline = new Timeline(
-            new KeyFrame(
-                SIDEBAR_ANIMATION_DURATION,
-                new KeyValue(sidebarContainer.prefWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.minWidthProperty(), targetWidth),
-                new KeyValue(sidebarContainer.maxWidthProperty(), targetWidth)
-            )
-        );
-
-        slideTransition.setOnFinished(event -> {
-            sidebarVisible = !sidebarVisible;
-            sidebarAnimating = false;
-            renderAuctionRows();
-        });
-
-        sidebarContent.setMouseTransparent(sidebarVisible);
-        slideTransition.play();
-        resizeTimeline.play();
     }
 
     @FXML
     private void handleSelection(ActionEvent event) {
-        if (event.getSource() instanceof Button selectedButton) {
-            if (selectedButton == createAuctionButton) {
-                handleCreateAuction();
-            }
-                
+        if (!(event.getSource() instanceof Button selectedButton)) {
+            return;
         }
+
+        if (selectedButton == createAuctionButton) {
+            cleanup();
+            handleCreateAuction();
+        }
+
     }
 
     @FXML
     private void handleLogout() {
-        SocketClient client = SocketClient.getClient();
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
+            cleanup();
             SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml");
+            SceneManager.switchScene("login.fxml", true, false);
             return;
         }
 
-        Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         try {
-            Response response = client.send(request);
+            var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                client.setCurrentUsername(null);
+                cleanup();
                 SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml");
+                SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            System.err.println("Logout failed: " + response.getMessage());
+            logger.error("Logout failed: {}", response.getMessage());
         }
         catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
     }
 
     private void loadLiveAuctions() {
         try {
-            Response response = SocketClient.getClient().send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
-            if (response.getStatus() != RequestStatus.SUCCESS) {
-                showEmptyState("Cannot load live auctions.");
-                return;
-            }
-
-            AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+            AuctionDto[] auctions = auctionClientService.getLiveAuctions();
             if (auctions == null || auctions.length == 0) {
-                showEmptyState("No live auctions right now.");
+                Platform.runLater(() -> showEmptyState("No live auctions right now."));
                 return;
             }
 
             currentAuctions = auctions;
-            emptyStateLabel.setVisible(false);
-            emptyStateLabel.setManaged(false);
-            renderAuctionRows();
+            Platform.runLater(() -> {
+                emptyStateLabel.setVisible(false);
+                emptyStateLabel.setManaged(false);
+                renderAuctionRows();
+            });
         } catch (IOException e) {
-            showEmptyState("Cannot connect to server.");
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
+            Platform.runLater(() -> showEmptyState("Cannot connect to server."));
+        } catch (AuctionException e) {
+            Platform.runLater(() -> showEmptyState(e.getMessage()));
         }
     }
 
@@ -179,14 +155,7 @@ public class HubController {
         emptyStateLabel.setVisible(true);
     }
 
-    private void initializeSidebarState() {
-        sidebarContainer.setPrefWidth(0.0);
-        sidebarContainer.setMinWidth(0.0);
-        sidebarContainer.setMaxWidth(0.0);
-        sidebarContent.setTranslateX(-SIDEBAR_EXPANDED_WIDTH);
-        sidebarContent.setMouseTransparent(true);
-    }
-
+    // chia để cho mỗi hàng có tối đa 2 auction card, căn giữa và có khoảng cách đều nhau
     private void renderAuctionRows() {
         liveAuctionsContainer.getChildren().clear();
         if (currentAuctions == null || currentAuctions.length == 0) {
@@ -194,9 +163,8 @@ public class HubController {
         }
 
         int cardsPerRow = 2;
-        double rowGap = sidebarVisible ? SIDEBAR_VISIBLE_ROW_GAP : SIDEBAR_HIDDEN_ROW_GAP;
         for (int i = 0; i < currentAuctions.length; i += cardsPerRow) {
-            HBox row = new HBox(rowGap);
+            HBox row = new HBox(AUCTION_ROW_GAP);
             row.setAlignment(Pos.TOP_CENTER);
 
             for (int j = 0; j < cardsPerRow && i + j < currentAuctions.length; j++) {
@@ -207,28 +175,7 @@ public class HubController {
         }
     }
 
-    private String formatRemainingTime(String endTime) {
-        if (endTime == null || endTime.isBlank()) {
-            return "Unknown";
-        }
-        try {
-            java.time.Duration duration = java.time.Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
-            if (duration.isNegative() || duration.isZero()) {
-                return "Ended";
-            }
-            long hours = duration.toHours();
-            long minutes = duration.toMinutesPart();
-            long seconds = duration.toSecondsPart();
-            return String.format("%02d:%02d:%02d", hours, minutes, seconds);
-        } catch (DateTimeParseException e) {
-            return endTime;
-        }
-    }
-
-    private String defaultText(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
-    }
-
+    // Lấy auction card từ auction_card.fxml và bind dữ liệu vào
     private AnchorPane loadAuctionCard(AuctionDto auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
@@ -241,26 +188,68 @@ public class HubController {
         }
     }
 
-    // private void setActiveTopNav(Button activeButton) {
-    //     Button[] topNavButtons = { auctionsButton, createAuctionButton };
+    private void search() {
+        String query = searchBar.getText();
+        if (query == null || query.isBlank()) {
+            loadLiveAuctions();
+            return;
+        }
 
-    //     for (Button button : topNavButtons) {
-    //         if (button == null) {
-    //             continue;
-    //         }
-    //         button.getStyleClass().removeAll("top-link", "top-link-active");
-    //         button.getStyleClass().add(button == activeButton ? "top-link-active" : "top-link");
-    //     }
-    // }
+        try {
+            AuctionDto[] results = auctionClientService.searchAuctions(query);
+            if (results == null || results.length == 0) {
+                Platform.runLater(() -> showEmptyState("No auctions found matching '" + query + "'."));
+                return;
+            }
 
-    private void search(){
-        if (searchBar.getText() == null || searchBar.getText().isBlank()) return;
-        //TODO: search key AuctionName, AuctionId, Auction Category
-
+            currentAuctions = results;
+            Platform.runLater(() -> {
+                emptyStateLabel.setVisible(false);
+                emptyStateLabel.setManaged(false);
+                renderAuctionRows();
+            });
+        } catch (IOException e) {
+            logger.error("Search failed", e);
+            Platform.runLater(() -> showEmptyState("Search failed: Network error."));
+        } catch (AuctionException e) {
+            Platform.runLater(() -> showEmptyState(e.getMessage()));
+        }
     }
 
     private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml");
+        SceneManager.switchScene("create-auction.fxml", false, false);
+    }
+
+    private void bindTopBar() {
+        missionBarController = SceneManager.getMissionBarController();
+        if (missionBarController == null) {
+            throw new IllegalStateException("Mission bar was not loaded.");
+        }
+
+        searchBar = missionBarController.getSearchBar();
+        auctionsButton = missionBarController.getAuctionsButton();
+        createAuctionButton = missionBarController.getCreateAuctionButton();
+        missionBarController.setShowExplore(true);
+        missionBarController.setShowSearch(true);
+        missionBarController.setUseInlineLogout(true);
+        missionBarController.setSelectionHandler(this::handleSelection);
+        missionBarController.setExploreHandler(event -> toggleSidebar());
+        missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setAvatarHandler(event -> {
+            cleanup();
+            SceneManager.switchScene("user-profile.fxml", false, true);
+        });
+        missionBarController.setAvatarText(resolveAvatarLetter());
+        missionBarController.setActiveNavigation(auctionsButton);
+        searchBar.setOnAction(event -> search());
+    }
+
+    private String resolveAvatarLetter() {
+        String username = SocketClient.getClient().getCurrentUsername();
+        if (username == null || username.isBlank()) {
+            return "U";
+        }
+        return username.substring(0, 1).toUpperCase();
     }
 
 }

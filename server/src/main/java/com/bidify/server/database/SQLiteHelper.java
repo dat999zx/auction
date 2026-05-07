@@ -11,17 +11,23 @@ import java.sql.Statement;
 
 import com.bidify.server.exception.DatabaseException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class SQLiteHelper {
-    private SQLiteHelper(){}
+    private static final Logger logger = LoggerFactory.getLogger(SQLiteHelper.class);
+    private static final String SCHEMA_PATH = "/database/schema.sql";
+
+    private SQLiteHelper() {}
 
     // tạo bảng nếu chưa tồn tại
     public static void init() throws DatabaseException { // chỉ chạy 1 lần khi server start
         try (
             Connection connection = SQLiteConnection.connect();
-            InputStream in = SQLiteHelper.class.getResourceAsStream("/schema.sql")
+            InputStream in = SQLiteHelper.class.getResourceAsStream(SCHEMA_PATH);
         ) {
             if (in == null)
-                throw new DatabaseException("Missing resource: /schema.sql");
+                throw new DatabaseException("Missing resource: " + SCHEMA_PATH);
 
             String sqlScript = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             try (Statement statement = connection.createStatement()) {
@@ -50,7 +56,8 @@ public class SQLiteHelper {
             statement.executeUpdate();
         }
         catch (SQLException e) {
-            throw new DatabaseException("Failed to execute update", e);
+            logger.error("Exception occurred", e);
+            throw new DatabaseException("Failed to execute update");
         }
     }
 
@@ -66,7 +73,8 @@ public class SQLiteHelper {
             }
         }
         catch (SQLException e) {
-            throw new DatabaseException("Failed to execute query", e);
+            logger.error("Exception occurred", e);
+            throw new DatabaseException("Failed to execute query");
         }
     }
 

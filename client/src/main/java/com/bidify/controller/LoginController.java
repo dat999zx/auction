@@ -1,24 +1,26 @@
 package com.bidify.controller;
 
-import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.model.LoginRequest;
-import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 import java.awt.Desktop;
 import java.io.IOException;
 import java.net.URI;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class LoginController {
+    private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML
     private TextField usernameField;
     @FXML
@@ -33,11 +35,14 @@ public class LoginController {
     private ImageView passwordEyeCloseIcon;
 
     private boolean showingPassword;
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML
@@ -50,31 +55,18 @@ public class LoginController {
             ValidationUtil.validateUsername(username);
             ValidationUtil.validatePassword(password);
 
-            SocketClient client = SocketClient.getClient();
-            LoginRequest data = new LoginRequest(username, password);
-            Request request = new Request(RequestType.LOGIN, data);
-
-            try {
-                Response response = client.send(request);
-                System.out.println(response.getMessage());
-                switch (response.getStatus()) {
-                    case SUCCESS -> {
-                        client.setCurrentUsername(username);
-                        showMessage("Logged in", true);
-                        SceneManager.clearAllCache();
-                        SceneManager.switchScene("hub.fxml");
-                        break;
-                    }
-                    default -> throw new AuthException(response.getMessage());
-                }
-            } catch (AuthException e) {
-                showMessage(e.getMessage(), false);
-            } catch (IOException e) {
-                showMessage("Cannot connect to server", false);
-                e.printStackTrace();
+            Response response = authClientService.login(username, password);
+            logger.info(response.getMessage());
+            if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
+                showMessage("Logged in", true);
+                SceneManager.clearAllCache();
+                SceneManager.switchScene("hub.fxml", false, true);
             }
-        } catch (ValidationException e) {
+        } catch (AuthException | ValidationException e) {
             showMessage(e.getMessage(), false);
+        } catch (IOException e) {
+            showMessage("Cannot connect to server", false);
+            logger.error("Exception occurred", e);
         }
     }
 
@@ -110,20 +102,19 @@ public class LoginController {
 
     @FXML
     private void toRegister() {
-        SceneManager.switchScene("register.fxml");
+        SceneManager.switchScene("register.fxml", true, false);
     }
 
     @FXML
     private void suprise() {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+                Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=9BalEldzE8o"));
                 showMessage("", true);
-                return;
             }
         }
         catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Exception occurred", e);
         }
     }
 }

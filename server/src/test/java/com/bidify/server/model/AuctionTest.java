@@ -1,6 +1,11 @@
 package com.bidify.server.model;
 
 import org.junit.jupiter.api.Test;
+
+import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.BidException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
@@ -8,17 +13,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import com.bidify.common.enums.AuctionStatus;
-
 public class AuctionTest {
     @Test
     void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
         auction.setMinIncrement(100);
 
-        Bid bid = new Bid(auction, "user1", 1100);
+        Bid bid = new Bid(auction.getId(), "user1", 1100);
 
-        assertTrue(auction.placeBid(bid));
+        assertDoesNotThrow(() -> auction.placeBid(bid));
         assertEquals(1100, auction.getCurrentBid());
         assertEquals("user1", auction.getCurrentBidderUsername());
         assertEquals(1, auction.getBidCount());
@@ -26,12 +29,13 @@ public class AuctionTest {
 
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        auction.setStatus(AuctionStatus.ACTIVE);
         auction.setMinIncrement(100);
 
-        Bid bid = new Bid(auction, "user1", 1050);
+        Bid bid = new Bid(auction.getId(), "user1", 1050);
 
-        assertFalse(auction.placeBid(bid));
+        assertThrows(BidException.class, () -> auction.placeBid(bid));
         assertEquals(0, auction.getCurrentBid());
         assertNull(auction.getCurrentBidderUsername());
         assertEquals(0, auction.getBidCount());
@@ -39,12 +43,11 @@ public class AuctionTest {
 
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
-        auction.setStatus(AuctionStatus.ENDED);
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now().plusDays(1), LocalDateTime.now());
 
-        Bid bid = new Bid(auction, "user1", 1200);
+        Bid bid = new Bid(auction.getId(), "user1", 1200);
 
-        assertFalse(auction.placeBid(bid));
+        assertThrows(AuctionException.class, () -> auction.placeBid(bid));
         assertEquals(0, auction.getCurrentBid());
         assertNull(auction.getCurrentBidderUsername());
         assertEquals(0, auction.getBidCount());
@@ -52,7 +55,7 @@ public class AuctionTest {
 
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
-        Auction auction = new Auction("seller", "test", "testing auction", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
 
         int n_threads = 3; // số lượng thread muốn test
         
@@ -68,7 +71,7 @@ public class AuctionTest {
             final int idx = i;
             executor.submit(() -> {
                 try {
-                    Bid bid = new Bid(auction, "user" + idx, amounts[idx]);
+                    Bid bid = new Bid(auction.getId(), "user" + idx, amounts[idx]);
 
                     ready.countDown(); // thread sẵn sàng
                     start.await(); // chờ lệnh xuất phát

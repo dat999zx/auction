@@ -6,12 +6,16 @@ import com.bidify.server.model.runtime.GlobalChannel;
 import com.bidify.server.contract.*;
 import com.bidify.server.network.ClientHandler;
 
+import java.time.LocalDateTime;
+
+import com.bidify.common.enums.UserStatus;
+
 public class Admin extends User implements CanManageUser, CanManageAuction, CanManageSystem {
     public Admin(String username, String nickname, String password) {
         super(username, nickname, password);
     }
 
-    public Admin(String username, String nickname, String password, String email, String phone, com.bidify.common.enums.UserStatus status, String createdAt, String lastLogin, double wallet) {
+    public Admin(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double wallet) {
         super(username, nickname, password, email, phone, status, createdAt, lastLogin, wallet);
     }
 

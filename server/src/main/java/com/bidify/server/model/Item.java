@@ -1,86 +1,31 @@
 package com.bidify.server.model;
 
+import java.time.LocalDateTime;
+
+import com.bidify.common.utility.IdGenerator;
+
 public abstract class Item extends Entity {
-    protected String name;
-    protected String description;
-    protected double startingPrice;
-    protected double estimatedValue;
-    protected String sellerId;
-    protected String category;
-    protected String condition;
-    protected String imageUrl;
+    private String name, owner, imageUrl;
 
-    public Item(String name, String description, double startingPrice, String sellerId) {
+    protected Item(String name, String owner, String imageUrl) {
+        super(IdGenerator.genItemId(), LocalDateTime.now());
         this.name = name;
-        this.description = description;
-        this.startingPrice = startingPrice;
-        this.sellerId = sellerId;
-    }
-
-    public abstract String getItemType();
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public double getStartingPrice() {
-        return startingPrice;
-    }
-
-    public void setStartingPrice(double startingPrice) {
-        this.startingPrice = startingPrice;
-    }
-
-    public double getEstimatedValue() {
-        return estimatedValue;
-    }
-
-    public void setEstimatedValue(double estimatedValue) {
-        this.estimatedValue = estimatedValue;
-    }
-
-    public String getSellerId() {
-        return sellerId;
-    }
-
-    public void setSellerId(String sellerId) {
-        this.sellerId = sellerId;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getCondition() {
-        return condition;
-    }
-
-    public void setCondition(String condition) {
-        this.condition = condition;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
+        this.owner = owner;
         this.imageUrl = imageUrl;
     }
+
+    protected Item(String id, LocalDateTime createdAt, String name, String owner, String imageUrl) {
+        super(id, createdAt);
+        this.name = name;
+        this.owner = owner;
+        this.imageUrl = imageUrl;
+    }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getOwner() { return owner; }
+    public void setOwner(String owner) { this.owner = owner; }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }
 

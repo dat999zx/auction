@@ -1,15 +1,13 @@
 package com.bidify.controller;
 
-import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.model.RegisterRequest;
-import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
+import com.bidify.service.AuthClientService;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -17,7 +15,11 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class RegisterController {
+    private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
     @FXML
     private TextField usernameField;
     @FXML
@@ -36,12 +38,15 @@ public class RegisterController {
     private ImageView passwordEyeCloseIcon;
 
     private boolean showingPassword;
+    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     public void initialize() {
-        passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
-        passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
-        setPasswordVisibility(false);
+        Platform.runLater(() -> {
+            passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
+            passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
+            setPasswordVisibility(false);
+        });
     }
 
     @FXML
@@ -58,28 +63,16 @@ public class RegisterController {
                 throw new ValidationException("Password confirmation does not match");
             }
 
-            SocketClient client = SocketClient.getClient();
-            RegisterRequest data = new RegisterRequest(username, password);
-            Request request = new Request(RequestType.REGISTER, data);
-
-            try {
-                Response response = client.send(request);
-                System.out.println(response.getMessage());
-                switch (response.getStatus()) {
-                    case SUCCESS:
-                        showMessage("Register successfully, please login", true);
-                        break;
-                    default:
-                        throw new AuthException(response.getMessage());
-                }
-            } catch (AuthException e) {
-                showMessage(e.getMessage(), false);
-            } catch (IOException e) {
-                showMessage("Cannot connect to server", false);
-                e.printStackTrace();
+            Response response = authClientService.register(username, password);
+            logger.info(response.getMessage());
+            if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
+                showMessage("Register successfully, please login", true);
             }
-        } catch (ValidationException e) {
+        } catch (AuthException | ValidationException e) {
             showMessage(e.getMessage(), false);
+        } catch (IOException e) {
+            showMessage("Cannot connect to server", false);
+            logger.error("Exception occurred", e);
         }
     }
 
@@ -121,6 +114,6 @@ public class RegisterController {
 
     @FXML
     private void toLogin(ActionEvent event) {
-        SceneManager.switchScene("login.fxml");
+        SceneManager.switchScene("login.fxml", true, false);
     }
 }

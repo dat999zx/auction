@@ -42,6 +42,14 @@ if exist "%SERVER_PID%" (
     powershell -NoProfile -Command "if (Get-Process -Id !SERVER_PID_VALUE! -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
     if errorlevel 1 (
       echo Server process exited before opening port %SERVER_PORT%.
+      if exist "%SERVER_LOG%" echo Server output log: "%SERVER_LOG%"
+      if exist "%SERVER_ERR%" (
+        echo Server error log: "%SERVER_ERR%"
+        type "%SERVER_ERR%"
+      ) else if exist "%SERVER_LOG%" (
+        echo Check "%SERVER_LOG%" for the startup error.
+        type "%SERVER_LOG%"
+      )
       exit /b 1
     )
   )
@@ -49,6 +57,8 @@ if exist "%SERVER_PID%" (
 
 if %WAIT_SECONDS% geq 60 (
   echo Timed out waiting for server port %SERVER_PORT%.
+  if exist "%SERVER_LOG%" echo Server output log: "%SERVER_LOG%"
+  if exist "%SERVER_ERR%" echo Server error log: "%SERVER_ERR%"
   exit /b 1
 )
 goto waitloop
@@ -60,3 +70,5 @@ if errorlevel 1 (
   echo Failed to start the client process.
   exit /b 1
 )
+
+echo Server and client started.

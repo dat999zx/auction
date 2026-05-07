@@ -6,10 +6,15 @@ import javafx.stage.Stage;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class MainApp extends Application {
+    private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
+
     @Override
     public void start(Stage stage) throws Exception {
-        System.out.println("Connecting to server...");
+        logger.info("Connecting to server...");
         SocketClient client = SocketClient.getClient();
         client.connect("localhost", 5000);
         

@@ -1,4 +1,4 @@
-name: Java CI
+name: Bidify CI
 
 on:
   push:
@@ -6,7 +6,11 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout code
@@ -19,8 +23,5 @@ jobs:
           java-version: '21'
           cache: maven
 
-      - name: Compile project
-        run: mvn -B clean compile
-
       - name: Run unit tests
-        run: mvn -B test
+        run: mvn -B clean test

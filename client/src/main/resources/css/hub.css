@@ -107,6 +107,10 @@
     -fx-font-weight: 800;
 }
 
+.sidebar-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.18);
+}
+
 .side-bar {
     -fx-background-color: #f0f3ff;
 }
@@ -135,10 +139,9 @@
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 14 22;
-    -fx-background-radius: 12 0 0 12;
+    -fx-background-radius: 14;
     -fx-cursor: hand;
     -fx-max-width: 100000;
-    -fx-translate-x: 16;
 }
 
 .side-nav-button:hover {
@@ -150,6 +153,21 @@
     -fx-background-color: white;
     -fx-text-fill: #001e40;
     -fx-font-weight: 700;
+}
+
+.side-nav-sub-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #64748b;
+    -fx-font-size: 13px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 18;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+}
+
+.side-nav-sub-button:hover {
+    -fx-background-color: rgba(222, 232, 255, 0.4);
+    -fx-text-fill: #001e40;
 }
 
 .primary-gradient-button {
@@ -367,4 +385,17 @@
 
 .fab:hover {
     -fx-background-color: #dee8ff;
+}
+
+.card-darken {
+    /* Base state: maybe a very subtle shadow or none */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
+    -fx-cursor: hand; /* Makes the mouse change to a pointer */
+    -fx-transition: 0.3s; /* Note: JavaFX transitions are usually done in Java/Kotlin code, not CSS */
+}
+
+.card-darken:hover {
+    /* The JavaFX version of a shadow */
+    /* dropshadow( <type>, <color>, <radius>, <spread>, <offset-x>, <offset-y> ) */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);
 }

@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane styleClass="profile-root" stylesheets="@../css/user-profile.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.UserProfileController">
+    <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <center>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
+                <content>
+                    <VBox spacing="24.0" styleClass="content-shell">
+                        <padding>
+                            <Insets bottom="32.0" left="36.0" right="36.0" top="28.0" />
+                        </padding>
+
+                        <HBox alignment="CENTER_LEFT" spacing="20.0">
+                            <VBox minWidth="850.0" spacing="6.0">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label styleClass="eyebrow-accent" text="ACCOUNT CENTER" />
+                                    <Label styleClass="eyebrow-muted" text="CLIENT PREVIEW" />
+                                </HBox>
+                                <Label styleClass="page-title" text="User Profile &amp; Wallet" />
+                                <Label maxWidth="860.0" minWidth="860.0" prefHeight="18.0" prefWidth="860.0" styleClass="page-subtitle" text="Manage your nickname and wallet balance. Password and profile image changes are still staged until those server routes are added." wrapText="true" />
+
+                                         <Label fx:id="messageLabel" styleClass="message-label" text="Status Label" wrapText="true" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane prefHeight="92.0" prefWidth="92.0" styleClass="hero-avatar">
+                                <Label fx:id="profileAvatarLabel" styleClass="hero-avatar-text" text="U" />
+                            </StackPane>
+                        </HBox>
+
+                        <HBox spacing="24.0">
+                            <VBox minWidth="250.0" spacing="16.0" styleClass="profile-card">
+                                <padding>
+                                    <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                </padding>
+
+                                <VBox alignment="CENTER" spacing="12.0">
+                                    <StackPane minHeight="120.0" minWidth="120.0" prefHeight="120.0" prefWidth="120.0" styleClass="profile-avatar-ring">
+                                        <Label fx:id="profileImageHintLabel" styleClass="profile-avatar-icon" text="Add photo" />
+                                    </StackPane>
+                                    <Button onAction="#handleProfileImagePlaceholder" styleClass="secondary-action-button" text="Change Profile Image" />
+                                </VBox>
+
+                                <Separator />
+
+                                <VBox spacing="10.0">
+                                    <Label styleClass="meta-label" text="STATUS" />
+                                    <Label fx:id="memberStatusLabel" styleClass="status-pill" text="Active bidder" />
+                                </VBox>
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="SIGNED-IN USER" />
+                                    <Label fx:id="usernameValueLabel" styleClass="profile-keyline" text="username" />
+                                </VBox>
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="AVAILABLE WALLET" />
+                                    <Label fx:id="walletBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
+                                </VBox>
+                        <VBox spacing="6.0">
+                           <children>
+                              <Label prefHeight="15.0" prefWidth="192.0" styleClass="meta-label" text="LOCKED BALANCE (Pending for auction)" />
+                              <Label fx:id="lockedWalletLabel" styleClass="wallet-figure" text="\$0.00" />
+                           </children>
+                        </VBox>
+                        <HBox.margin>
+                           <Insets />
+                        </HBox.margin>
+                            </VBox>
+
+                            <VBox spacing="10.0" HBox.hgrow="ALWAYS">
+                                <GridPane hgap="18.0" vgap="18.0">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="260.0" percentWidth="50.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" minWidth="260.0" percentWidth="50.0" />
+                                    </columnConstraints>
+
+                                    <VBox spacing="14.0" styleClass="section-card" GridPane.columnIndex="0">
+                                        <padding>
+                                            <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                        </padding>
+                                        <Label styleClass="section-title" text="Profile Details" />
+                                        <Label styleClass="section-copy" text="Update your display nickname and persist it to the server." wrapText="true" />
+                                        <VBox spacing="6.0">
+                                            <Label styleClass="field-label" text="DISPLAY NICKNAME" />
+                                            <TextField fx:id="nicknameField" promptText="Your display nickname" styleClass="text-input" />
+                                        </VBox>
+                                        <Button onAction="#handleSaveProfile" styleClass="primary-action-button" text="Save Profile" />
+                                    </VBox>
+
+                                    <VBox spacing="14.0" styleClass="section-card accent-card" GridPane.columnIndex="1">
+                                        <padding>
+                                            <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                        </padding>
+                                        <Label styleClass="section-title" text="Wallet Testing" />
+                                        <Label styleClass="section-copy" text="Use these controls to persist wallet balance changes to the server." wrapText="true" />
+
+                                        <VBox spacing="6.0">
+                                            <Label styleClass="field-label" text="ADD BALANCE" />
+                                            <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="inline-input-shell">
+                                                <Label styleClass="currency-chip" text="\$" />
+                                                <TextField fx:id="topUpAmountField" promptText="100.00" styleClass="inline-input" HBox.hgrow="ALWAYS" />
+                                                <Button onAction="#handleTopUp" prefHeight="40.0" prefWidth="98.0" text="Add">
+                                       <styleClass>
+                                          <String fx:value="compact-button" />
+                                          <String fx:value="secondary-action-button" />
+                                       </styleClass></Button>
+                                            </HBox>
+                                        </VBox>
+
+                                        <VBox spacing="6.0">
+                                            <Label styleClass="field-label" text="WITHDRAW BALANCE" />
+                                            <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="inline-input-shell">
+                                                <Label styleClass="currency-chip" text="\$" />
+                                                <TextField fx:id="withdrawAmountField" promptText="25.00" styleClass="inline-input" HBox.hgrow="ALWAYS" />
+                                                <Button onAction="#handleWithdraw" prefHeight="40.0" prefWidth="97.0" text="Withdraw">
+                                       <styleClass>
+                                          <String fx:value="secondary-action-button" />
+                                          <String fx:value="compact-button" />
+                                       </styleClass></Button>
+                                            </HBox>
+                                        </VBox>
+                                    </VBox>
+                           <rowConstraints>
+                              <RowConstraints />
+                           </rowConstraints>
+                                </GridPane>
+
+                                <VBox spacing="14.0" styleClass="section-card">
+                                    <padding>
+                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                    </padding>
+                                    <Label styleClass="section-title" text="Security" />
+                                    <Label styleClass="section-copy" text="Client-side validation is wired now so the flow is ready when you expose a password-change route on the server." wrapText="true" />
+
+                                    <GridPane hgap="14.0" vgap="14.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="33.33" />
+                                        </columnConstraints>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="CURRENT PASSWORD" />
+                                            <PasswordField fx:id="currentPasswordField" promptText="Current password" styleClass="text-input" />
+                                        </VBox>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="NEW PASSWORD" />
+                                            <PasswordField fx:id="newPasswordField" promptText="New password" styleClass="text-input" />
+                                        </VBox>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="2">
+                                            <Label styleClass="field-label" text="CONFIRM PASSWORD" />
+                                            <PasswordField fx:id="confirmPasswordField" promptText="Repeat new password" styleClass="text-input" />
+                                        </VBox>
+                              <rowConstraints>
+                                 <RowConstraints />
+                              </rowConstraints>
+                                    </GridPane>
+
+                                    <HBox alignment="CENTER_RIGHT">
+                                        <Button onAction="#handleChangePassword" styleClass="primary-action-button" text="Validate Password Change" />
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </content>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+</AnchorPane>

@@ -12,18 +12,23 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.Socket;
 import java.net.SocketException;
 
+import javax.net.ssl.SSLSocket;
+
 // lắng nghe client
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ClientHandler implements Runnable, Observer {
-    private final Socket socket;
+    private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
+    private final SSLSocket socket;
     private final RequestDispatcher dispatcher = new RequestDispatcher();
     private String currentUsername;
     private BufferedReader in;
     private PrintWriter out;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(SSLSocket socket) {
         this.socket = socket;
     }
 
@@ -35,17 +40,15 @@ public class ClientHandler implements Runnable, Observer {
             
             String line;
             while ((line = in.readLine()) != null) {
-                System.out.println("Received: " + line);
-
                 Request request = JsonUtil.fromJson(line, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 response.setId(request.getId());
                 sendResponse(response);
             }
         } catch (SocketException e2) {
-            System.out.println("Client disconnected: " + socket.getInetAddress());
+            logger.info("Client disconnected: {}", socket.getInetAddress());
         } catch (IOException e2) {
-            e2.printStackTrace();
+            logger.warn("Exception occurred", e2);
         } finally {
             handleDisconnect();
         }
@@ -79,9 +82,8 @@ public class ClientHandler implements Runnable, Observer {
     }
 
     private void handleDisconnect() { // xử lý khi client ngắt kết nối
-        System.out.println("Client disconnected: " + socket.getInetAddress());
-        if (currentUsername == null)
-            return;
+        logger.info("Client disconnected: {}", socket.getInetAddress());
+        if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());
         dispatcher.dispatch(this, request);
     }

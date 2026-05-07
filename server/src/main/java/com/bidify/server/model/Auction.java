@@ -1,47 +1,83 @@
 package com.bidify.server.model;
 
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Auction {
-    private final String id; 
-    private String auctionName, productType, category, description;
+public class Auction extends Entity {
+    private String auctionName, description, sellerUsername, currentBidderUsername, category, productType;
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
-    private String sellerUsername, currentBidderUsername;
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
 
-    public Auction(String id){ this.id = id; } // dùng khi load từ sql database
-
-    public Auction(String sellerUsername, String name, String description, double startingPrice, LocalDateTime startTime, LocalDateTime endTime){
-        this.id = IdGenerator.genAuctionId();
-        this.sellerUsername = sellerUsername;
-        this.auctionName = name;
+    public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        super(IdGenerator.genAuctionId(), LocalDateTime.now());
+        this.auctionName = auctionName;
         this.description = description;
+        this.sellerUsername = sellerUsername;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        refreshStatus();
     }
     
-    public synchronized boolean placeBid(Bid bid){
-        if (bid == null || !isActive()) return false;
+    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String currentBidderUsername, String category, String productType, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
+        super(id, createdAt);
+        this.auctionName = auctionName;
+        this.description = description;
+        this.sellerUsername = sellerUsername;
+        this.currentBidderUsername = currentBidderUsername;
+        this.category = category;
+        this.productType = productType;
+        this.startingPrice = startingPrice;
+        this.minIncrement = minIncrement;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.status = status == null ? AuctionStatus.UPCOMING : status;
+        refreshStatus();
+    }
+    
+    public synchronized void placeBid(Bid bid) {
+        if (bid == null)
+            throw new BidException("Invalid bid");
+        if (!isActive())
+            throw new AuctionException("Inactive Auction");
 
         double minAllowed = (currentBid > 0 ? currentBid : startingPrice) + minIncrement;
-        if (bid.getAmount() < minAllowed) return false;
+        if (bid.getAmount() < minAllowed)
+            throw new BidException("Bid must be at least " + minAllowed);
+
+        Duration remaining = Duration.between(LocalDateTime.now(), endTime);
+        if (remaining.toSeconds() < 30)
+            this.endTime = this.endTime.plusSeconds(60);
+
 
         this.currentBid = bid.getAmount();
-        this.currentBidderUsername = bid.getBidderUserName();
+        this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
-
-        return true;
     }
 
-    public String getId(){ return id; }
+    public boolean refreshStatus() {
+        if (status == AuctionStatus.PAID || status == AuctionStatus.BANNED) return false;
+
+        LocalDateTime now = LocalDateTime.now();
+        AuctionStatus next;
+
+        if (!now.isBefore(endTime)) next = AuctionStatus.ENDED;
+        else if (now.isBefore(startTime)) next = AuctionStatus.UPCOMING;
+        else next = AuctionStatus.ACTIVE;
+
+        if (next == status) return false;
+        status = next;
+        return true;
+    }
     
     public String getAuctionName() { return auctionName; }
     public void setAuctionName(String name) {this.auctionName = name; }
@@ -64,10 +100,15 @@ public class Auction {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
-    public AuctionStatus getStatus() { return status; }
+    public AuctionStatus getStatus() { return getStatus(true); }
+    public AuctionStatus getStatus(boolean refreshStatus) {
+        if (refreshStatus) refreshStatus();
+        return status;
+    }
     public void setStatus(AuctionStatus status) { this.status = status; }
-    public boolean isActive(){ return this.status == AuctionStatus.ACTIVE; }
-    public boolean isEnded() { return this.status == AuctionStatus.ENDED; }
+    public boolean isActive(){ return getStatus() == AuctionStatus.ACTIVE; }
+    public boolean isEnded() { return getStatus() == AuctionStatus.ENDED; }
+    public boolean isUpcoming() { return getStatus() == AuctionStatus.UPCOMING; }
 
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String username) { this.sellerUsername = username; }
