@@ -217,7 +217,7 @@ public class HubController {
     }
 
     private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml", false, true);
+        SceneManager.switchScene("create-auction.fxml", false, false);
     }
 
     private void bindTopBar() {

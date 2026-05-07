@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-
     @FXML
     private Label messageLabel;
 
@@ -72,19 +71,23 @@ public class CreateAuctionController {
     private MissionBarController missionBarController;
 
     @FXML
-    private Button auctionsButton;
+    private Button backButton;
 
     @FXML
-    private Button createAuctionButton;
+    private Button managementButton;
 
     @FXML
+    private Button subCreateAuctionButton;
+
+    @FXML
+    private Button historyButton;
+
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
-            bindTopBar();
 
             if (categoryComboBox != null) {
                 categoryComboBox.getItems().setAll(
@@ -124,14 +127,29 @@ public class CreateAuctionController {
     }
 
     @FXML
-    private void handleSelection(ActionEvent event) {
-        if (!(event.getSource() instanceof Button selectedButton)) {
-            return;
-        }
-        if (selectedButton == auctionsButton) {
-            SceneManager.switchScene("hub.fxml", false, true);
-        }
+    private void handleSubNavClick(ActionEvent event) {
+        if (!(event.getSource() instanceof Button clickedButton)) return;
 
+        if (clickedButton == backButton) {
+            SceneManager.switchScene("hub.fxml", false, true);
+        } else if (clickedButton == managementButton) {
+            // Future logic for management dashboard
+        } else if (clickedButton == subCreateAuctionButton) {
+            
+        } else if (clickedButton == historyButton) {
+            showMessage("History feature is coming soon!", true);
+        }
+        updateSubNavButtonStyle(clickedButton);
+    }
+
+    private void updateSubNavButtonStyle(Button activeButton) {
+        if (activeButton == null) return;
+        Button[] buttons = {backButton, managementButton, subCreateAuctionButton, historyButton};
+        for (Button button : buttons) {
+            button.getStyleClass().removeAll("top-link-active", "top-link");
+            button.getStyleClass().add("top-link");
+        }
+        activeButton.getStyleClass().add("top-link-active");
     }
 
     @FXML
@@ -251,25 +269,6 @@ public class CreateAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format");
         }
-    }
-
-    private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
-
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        missionBarController.setShowExplore(true);
-        missionBarController.setShowSearch(false);
-        missionBarController.setUseInlineLogout(true);
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setExploreHandler(event -> toggleSidebar());
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
-        missionBarController.setAvatarText(resolveAvatarLetter());
-        missionBarController.setActiveNavigation(createAuctionButton);
     }
 
     private String resolveAvatarLetter() {
