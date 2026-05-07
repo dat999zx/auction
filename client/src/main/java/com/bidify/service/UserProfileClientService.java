@@ -5,15 +5,16 @@ import java.io.IOException;
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.dto.WalletDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateProfileRequest;
+import com.bidify.common.model.WalletRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
 import com.bidify.model.ClientSession;
-import com.bidify.common.enums.RequestType;
+import com.bidify.network.SocketClient;
 
 public class UserProfileClientService {
     private final ClientSession clientSession = ClientSession.getInstance();
@@ -60,22 +61,13 @@ public class UserProfileClientService {
 
     public UserDto addWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Top up amount");
-        UserDto currentUser = getCurrentProfile();
-        double nextWallet = currentUser.getWallet().getBalance() + amount;
-
-        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(null, nextWallet)));
+        Response response = client.send(new Request(RequestType.DEPOSIT, new WalletRequest(amount)));
         return consumeProfileResponse(response, "Cannot update wallet.");
     }
 
     public UserDto withdrawWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
-        UserDto currentUser = getCurrentProfile();
-        if (amount > currentUser.getWallet().getBalance()) {
-            throw new ValidationException("Withdraw amount cannot exceed your current wallet balance");
-        }
-
-        double nextWallet = currentUser.getWallet().getBalance() - amount;
-        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(null, nextWallet)));
+        Response response = client.send(new Request(RequestType.WITHDRAW, new WalletRequest(amount)));
         return consumeProfileResponse(response, "Cannot update wallet.");
     }
 

@@ -9,5 +9,6 @@ public enum EventType {
     SERVER_NOTICE,
     ERROR,
     AUCTION_DELETED,
-    WALLET_CHANGED
+    WALLET_CHANGED,
+    LOCKED_WALLET_CHANGED
 }

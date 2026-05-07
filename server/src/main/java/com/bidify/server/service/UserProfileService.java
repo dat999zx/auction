@@ -1,7 +1,10 @@
 package com.bidify.server.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 import com.bidify.common.dto.TransactionDto;
-import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
@@ -20,10 +23,6 @@ import com.bidify.server.model.User;
 import com.bidify.server.model.Wallet;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.UserMapper;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
 
 public class UserProfileService {
     private static UserProfileService instance = new UserProfileService();

@@ -1,11 +1,16 @@
 package com.bidify.server.model;
 
-import java.time.LocalDateTime; // dùng để theo dõi thời điểm mà account được khởi tạo, đăng nhập -> quản lý account
+import java.time.LocalDateTime;
 
 import com.bidify.common.enums.UserStatus;
 
 public class User extends Entity {
-    private String nickname, username, password, email, phoneNumber;
+    private String nickname;
+    private String username;
+    private String password;
+    private String email;
+    private String phoneNumber;
+
     private LocalDateTime lastLogin;
     private UserStatus status;
     private Wallet wallet;
@@ -13,9 +18,11 @@ public class User extends Entity {
     // Đăng kí tài khoản
     public User(String username, String nickname, String password) {
         super(username, LocalDateTime.now());
+
         this.username = username;
         this.nickname = nickname;
         this.password = password;
+
         this.status = UserStatus.ACTIVE;
         this.lastLogin = null;
         this.wallet = new Wallet(0);
@@ -24,11 +31,13 @@ public class User extends Entity {
     // load lại dữ liệu người dùng
      public User(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
         super(username, createdAt);
-        this.nickname = nickname;
+
         this.username = username;
+        this.nickname = nickname;
         this.password = password;
         this.email = email;
         this.phoneNumber = phone;
+
         this.status = status;
         this.lastLogin = lastLogin;
         this.wallet = new Wallet(balance);

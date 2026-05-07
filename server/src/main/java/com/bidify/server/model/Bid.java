@@ -28,3 +28,4 @@ public class Bid extends Entity {
     public String getBidderUsername() { return bidderUsername; }
     public double getAmount() { return amount; }
 }
+
