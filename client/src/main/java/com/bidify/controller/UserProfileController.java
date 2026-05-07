@@ -2,6 +2,9 @@ package com.bidify.controller;
 
 import java.io.IOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
@@ -22,9 +25,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class UserProfileController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
     @FXML
@@ -41,6 +41,9 @@ public class UserProfileController {
 
     @FXML
     private Label walletBalanceLabel;
+
+    @FXML
+    private Label lockedWalletLabel;
 
     @FXML
     private Label memberStatusLabel;
@@ -81,11 +84,14 @@ public class UserProfileController {
             populateProfile();
         });
 
-        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
         EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
     }
 
     private void handleWalletChanged(Event event) {
+        Platform.runLater(this::populateProfile);
+    }
+
+    private void handleLockedWalletChanged(Event event) {
         Platform.runLater(this::populateProfile);
     }
 
@@ -95,6 +101,7 @@ public class UserProfileController {
 
     public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
+        EventManager.getInstance().unsubscribe(EventType.LOCKED_WALLET_CHANGED, this::handleLockedWalletChanged);
         EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
     }
 
@@ -234,7 +241,8 @@ public class UserProfileController {
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
-        walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet()));
+        walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
+        lockedWalletLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
         memberStatusLabel.setText("Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);

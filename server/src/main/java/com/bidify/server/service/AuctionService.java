@@ -1,13 +1,19 @@
 package com.bidify.server.service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.enums.TransactionType;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.Event;
@@ -31,16 +37,10 @@ import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
+import com.bidify.server.model.Wallet;
 import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.AuctionMapper;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
     private static AuctionService instance = new AuctionService();
@@ -294,8 +294,10 @@ public class AuctionService {
                 return new Response(RequestStatus.FAILED, "User not found");
             if (auction.getSellerUsername().equals(username))
                 return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
+
+            Wallet wallet = user.getWallet();
             
-            if (user.getAvailableBalance() < bidAmount)
+            if (wallet.getAvailableBalance() < bidAmount)
                 return new Response(RequestStatus.FAILED, "Insufficient balance");
 
             String prevBidderUsername = auction.getCurrentBidderUsername();
@@ -311,11 +313,11 @@ public class AuctionService {
                 return new Response(RequestStatus.FAILED, e.getMessage());
             }
 
-            user.lockBalance(bidAmount);
+            wallet.lockBalance(bidAmount);
             User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
             if (prevBidder != null) {
-                prevBidder.unlockBalance(prevBid);
-                publishLockedWalletChange(prevBidderUsername, prevBid);
+                prevBidder.getWallet().unlockBalance(prevBid);
+                publishLockedBalanceChange(prevBidderUsername, prevBid);
             }
 
             bidDao.create(bid);
@@ -326,6 +328,9 @@ public class AuctionService {
             if (auctionChannel != null)
                 auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
 
+            //save changes to database after placing bid.
+            if (prevBidder != null)
+                userDao.save(prevBidder, false);
             return new Response(RequestStatus.SUCCESS, "Place bid successfully");
         });
     }
@@ -396,10 +401,10 @@ public class AuctionService {
             User winner = getOrLoadUser(winnerUsername);
             User seller = getOrLoadUser(sellerUsername);
             
-            winner.payWinAuction(finalBid);
+            winner.getWallet().payWinAuction(finalBid);
             transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_PAY, finalBid, auction.getId()));
 
-            seller.deposit(finalBid);
+            seller.getWallet().deposit(finalBid);
             transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
 
             auction.setStatus(AuctionStatus.ENDED);
@@ -407,8 +412,8 @@ public class AuctionService {
             userDao.save(winner, false);
             userDao.save(seller, false);
 
-            publishWalletChange(winnerUsername, -finalBid);
-            publishWalletChange(sellerUsername, finalBid);
+            publishBalanceChange(winnerUsername, finalBid);
+            publishLockedBalanceChange(winnerUsername, -finalBid);
         }
         else {
             
@@ -426,21 +431,21 @@ public class AuctionService {
         if (user != null) return user;
 
         user = userDao.findByUsername(username);
-        double lockedWallet = auctionDao.sumWinningBidsForUser(username);
-        user.setLockedWallet(lockedWallet);
+        double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+        user.getWallet().setlockedBalance(lockedBalance);
         return user;
     }
 
     // Event cập nhật wallet của User
-    private void publishWalletChange(String username, double diff) {
+    private void publishBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
         Event event = new Event(EventType.WALLET_CHANGED, "Wallet changed: " + diff);
         userClient.sendEvent(event);
     }
 
-    // Event cập nhật lockedWallet của User
-    private void publishLockedWalletChange(String username, double diff) {
+    // Event cập nhật lockedBalance của User
+    private void publishLockedBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
         Event event = new Event(EventType.SERVER_NOTICE, "Locked balance changed: " + diff);

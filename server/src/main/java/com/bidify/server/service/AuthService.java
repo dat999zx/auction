@@ -1,5 +1,10 @@
 package com.bidify.server.service;
 
+import java.util.function.Supplier;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.UserStatus;
@@ -10,21 +15,14 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.server.utility.PasswordUtil;
-import com.bidify.server.utility.UserMapper;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
-
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
-
-import java.util.function.Supplier;
-
-// xử lí phần bề mặt của thông tin người dùng (định dạng, xác thực, ...) đưa cho UserDao xử lí với database
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
     private static AuthService instance = new AuthService();
@@ -92,8 +90,8 @@ public class AuthService {
             if (RealtimeDatabase.getUserClient(username) != null)
                 return new Response(RequestStatus.FAILED, "Another session is already active");
 
-            double lockedWallet = auctionDao.sumWinningBidsForUser(username);
-            user.setLockedWallet(lockedWallet);
+            double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+            user.getWallet().setlockedBalance(lockedBalance);
 
             client.setCurrentUsername(username);
             RealtimeDatabase.addActiveUser(client, user);
