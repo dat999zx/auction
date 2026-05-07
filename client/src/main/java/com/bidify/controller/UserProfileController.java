@@ -234,7 +234,7 @@ public class UserProfileController {
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
-        walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet()));
+        walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
         memberStatusLabel.setText("Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);

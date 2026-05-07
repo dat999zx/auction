@@ -11,7 +11,7 @@ public class UserMapper {
         return new UserDto(
             user.getUsername(),
             user.getNickname(),
-            user.getWallet()
+            WalletMapper.toDto(user.getWallet())
         );
     }
 }

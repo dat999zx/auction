@@ -155,7 +155,7 @@ public class AuctionDao implements ImplementAuctionDao{
     }
 
     // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user
-    // là lockedWallet
+    // là lockedBalance
     public double sumWinningBidsForUser(String username) throws DatabaseException {
         String sql = "SELECT SUM(currentBid) FROM Auctions WHERE currentBidder = ? AND status = 'ACTIVE'";
         return SQLiteHelper.query(sql, rs -> {

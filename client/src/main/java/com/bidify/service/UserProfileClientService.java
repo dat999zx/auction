@@ -3,6 +3,7 @@ package com.bidify.service;
 import java.io.IOException;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.dto.WalletDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
@@ -20,7 +21,7 @@ public class UserProfileClientService {
 
     public UserDto getCurrentProfile() throws IOException {
         if (clientSession.getCurrentUsername() == null || clientSession.getCurrentUsername().isBlank()) {
-            return new UserDto("Guest", "Guest", 0);
+            return new UserDto("Guest", "Guest", new WalletDto(0, 0));
         }
 
         Response response = client.send(new Request(RequestType.GET_PROFILE, null));
@@ -44,10 +45,10 @@ public class UserProfileClientService {
 
         String username = clientSession.getCurrentUsername();
         if (username == null || username.isBlank()) {
-            return new UserDto("Guest", "Guest", 0);
+            return new UserDto("Guest", "Guest", new WalletDto(0, 0));
         }
 
-        return new UserDto(username, username, 0);
+        return new UserDto(username, username, new WalletDto(0, 0));
     }
 
     public UserDto updateProfile(String nickname) throws IOException {
@@ -60,7 +61,7 @@ public class UserProfileClientService {
     public UserDto addWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Top up amount");
         UserDto currentUser = getCurrentProfile();
-        double nextWallet = currentUser.getWallet() + amount;
+        double nextWallet = currentUser.getWallet().getBalance() + amount;
 
         Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(null, nextWallet)));
         return consumeProfileResponse(response, "Cannot update wallet.");
@@ -69,11 +70,11 @@ public class UserProfileClientService {
     public UserDto withdrawWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
         UserDto currentUser = getCurrentProfile();
-        if (amount > currentUser.getWallet()) {
+        if (amount > currentUser.getWallet().getBalance()) {
             throw new ValidationException("Withdraw amount cannot exceed your current wallet balance");
         }
 
-        double nextWallet = currentUser.getWallet() - amount;
+        double nextWallet = currentUser.getWallet().getBalance() - amount;
         Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(null, nextWallet)));
         return consumeProfileResponse(response, "Cannot update wallet.");
     }

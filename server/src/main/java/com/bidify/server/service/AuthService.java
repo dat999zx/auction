@@ -92,8 +92,8 @@ public class AuthService {
             if (RealtimeDatabase.getUserClient(username) != null)
                 return new Response(RequestStatus.FAILED, "Another session is already active");
 
-            double lockedWallet = auctionDao.sumWinningBidsForUser(username);
-            user.setLockedWallet(lockedWallet);
+            double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+            user.getWallet().setlockedBalance(lockedBalance);
 
             client.setCurrentUsername(username);
             RealtimeDatabase.addActiveUser(client, user);
