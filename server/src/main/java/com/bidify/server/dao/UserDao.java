@@ -44,7 +44,7 @@ public class UserDao implements ImplementUserDao {
                         UserStatus.valueOf(rs.getString("status")),
                         createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
                         lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin),
-                        rs.getDouble("wallet")
+                        rs.getDouble("balance")
                     );
                 }
                 return null;
@@ -55,13 +55,13 @@ public class UserDao implements ImplementUserDao {
 
     public void create(User user) throws DatabaseException { // đăng kí
         SQLiteHelper.update(
-            "INSERT INTO Users(username, nickname, password, createdAt, lastLogin, wallet) VALUES (?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Users(username, nickname, password, createdAt, lastLogin, balance) VALUES (?, ?, ?, ?, ?, ?)",
             user.getUsername(),
             user.getNickname(),
             user.getPassword(),
             user.getCreatedAt() == null ? null : user.getCreatedAt().toString(),
             user.getLastLogin() == null ? null : user.getLastLogin().toString(),
-            user.getWallet()
+            user.getWallet().getBalance()
         );
     }
 
@@ -79,7 +79,7 @@ public class UserDao implements ImplementUserDao {
                 phoneNumber = ?, 
                 status = ?, 
                 createdAt = ?, 
-                wallet = ? 
+                balance = ? 
             WHERE username = ?
             """,
             user.getNickname(),
@@ -88,7 +88,7 @@ public class UserDao implements ImplementUserDao {
             user.getPhoneNumber(),
             user.getStatus().toString(),
             user.getCreatedAt().toString(),
-            user.getWallet(),
+            user.getWallet().getBalance(),
             user.getUsername()
         );
         
