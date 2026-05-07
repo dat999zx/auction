@@ -70,15 +70,14 @@
                         <Button fx:id="homeButton" onAction="#handleSidebarClick" styleClass="side-nav-button-active" text="Home " />
                         
                         <VBox spacing="2.0">
-                            <Button fx:id="categoryButton" onAction="#handleCategoryToggle" styleClass="side-nav-button" text="Category" maxWidth="Infinity" />
-                            <VBox fx:id="categorySubMenu" visible="false" managed="false" spacing="2.0">
+                            <Button fx:id="myAccountButton" onAction="#handleAccountToggle" styleClass="side-nav-button" text="My Account" maxWidth="Infinity" />
+                            <VBox fx:id="accountSubMenu" visible="false" managed="false" spacing="2.0">
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Electronics" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Art &amp; Collectibles" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Fashion" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Vehicle" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" maxWidth="Infinity" />
                             </VBox>
                         </VBox>
 
@@ -88,7 +87,7 @@
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Bids" maxWidth="Infinity" />
+                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• History" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Auctions" maxWidth="Infinity" />
                             </VBox>

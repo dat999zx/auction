@@ -60,13 +60,13 @@ public class MissionBarController {
     private Button homeButton;
 
     @FXML
-    private Button categoryButton;
+    private Button myAccountButton;
 
     @FXML
     private Button myActivitiesButton;
 
     @FXML
-    private VBox categorySubMenu;
+    private VBox accountSubMenu;
 
     @FXML
     private VBox myActivitiesSubMenu;
@@ -115,11 +115,11 @@ public class MissionBarController {
     }
 
     @FXML
-    private void handleCategoryToggle(ActionEvent event) {
-        boolean isVisible = categorySubMenu.isVisible();
-        categorySubMenu.setVisible(!isVisible);
-        categorySubMenu.setManaged(!isVisible);
-        updateSidebarButtonStyle(categoryButton);
+    private void handleAccountToggle(ActionEvent event) {
+        boolean isVisible = accountSubMenu.isVisible();
+        accountSubMenu.setVisible(!isVisible);
+        accountSubMenu.setManaged(!isVisible);
+        updateSidebarButtonStyle(myAccountButton);
     }
 
     @FXML

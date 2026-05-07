@@ -77,7 +77,6 @@ public class CreateAuctionController {
     @FXML
     private Button createAuctionButton;
 
-    @FXML
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
