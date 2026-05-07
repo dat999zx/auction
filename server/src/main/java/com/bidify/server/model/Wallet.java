@@ -47,6 +47,7 @@ public class Wallet {
         balance -= amount;
     }
     
+    public double getBalance() { return balance; }
     public double getAvailableBalance() { return balance - lockedBalance; }
     public void setlockedBalance(double amount) { this.lockedBalance = amount; }
     public double getLockedBalance() { return lockedBalance; }

@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS Users (
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     createdAt TEXT NOT NULL,
     lastLogin TEXT,
-    wallet REAL DEFAULT 0 CHECK(wallet >= 0)
+    balance REAL DEFAULT 0 CHECK(balance >= 0)
 );
 
 -- TABLE Auctions
