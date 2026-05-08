@@ -5,13 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.enums.AuctionStatus;
-import com.bidify.server.contract.ImplementAuctionDao;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 
 // giao tiếp với SQLite database về bảng Auctions
-public class AuctionDao implements ImplementAuctionDao{
+public class AuctionDao {
     private static AuctionDao instance = new AuctionDao();
 
     private AuctionDao() {}
