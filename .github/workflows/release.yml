@@ -3,7 +3,7 @@ name: Bidify CD
 on:
   push:
     tags:
-      - 'v*' # chỉ kích hoạt khi có tag mới bắt đầu bằng "v", vd: v1.0.0
+      - 'v*'
 
 permissions:
   contents: write
@@ -12,25 +12,39 @@ jobs:
   release:
     name: Build and Publish Release
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
 
-      - name: Build application
-        run: mvn -B clean package -DskipTests
+      - name: Prepare Version and Notes
+        run: |
+          TAG=${GITHUB_REF_NAME}
+          VER=${TAG#v}
+          echo "VERSION=$VER" >> $GITHUB_ENV
+          mvn versions:set -DnewVersion=$VER -DgenerateBackupPoms=false
+          sed -n "/# 🚀 Changelog - ${TAG}/,/---/p" changelog.md | sed '/---/d' > notes.txt
+          PREV=$(git describe --tags --abbrev=0 ${TAG}^ 2>/dev/null || echo "")
+          [ -n "$PREV" ] && echo -e "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${PREV}...${TAG}" >> notes.txt
 
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+      - run: mvn -B clean package -DskipTests
+
+      - name: Rename Artifacts
+        run: |
+          mv server/target/server-*-fat.jar server/target/server-${{ env.VERSION }}.jar
+          mv client/target/client-*-universal.jar client/target/client-${{ env.VERSION }}.jar
+
+      - uses: softprops/action-gh-release@v2
         with:
+          name: Bidify ${{ github.ref_name }}
+          body_path: notes.txt
           files: |
-            server/target/*-fat.jar
-            client/target/*-fat.jar
-          generate_release_notes: true
+            server/target/server-${{ env.VERSION }}.jar
+            client/target/client-${{ env.VERSION }}.jar
+          generate_release_notes: false
