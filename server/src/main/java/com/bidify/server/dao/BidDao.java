@@ -61,4 +61,9 @@ public class BidDao {
             return bids;
         }, username);
     }
+
+    public void deleteById(String bidId) throws DatabaseException {
+        String sql = "DELETE FROM Bids WHERE id = ?";
+        SQLiteHelper.update(sql, bidId);
+    }
 }
