@@ -11,7 +11,7 @@ import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,7 @@ public class BidService {
     }
 
     public Response getUserBids(ClientHandler client) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
             if (!client.isInSession() || username == null) return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");
 

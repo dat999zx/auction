@@ -1,7 +1,5 @@
 package com.bidify.server.service;
 
-import java.util.function.Supplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,7 +7,6 @@ import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserStatus;
-import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
@@ -20,11 +17,10 @@ import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
-import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
@@ -46,7 +42,7 @@ public class AuthService {
 
     // đăng kí
     public Response register(Request request) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -74,7 +70,7 @@ public class AuthService {
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -113,7 +109,7 @@ public class AuthService {
 
     // đăng kí
     public Response logout(ClientHandler client){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
 
             if (!client.isInSession())

@@ -35,7 +35,6 @@ import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
-import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Transaction;
@@ -44,7 +43,7 @@ import com.bidify.server.model.Wallet;
 import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.AuctionMapper;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
@@ -83,7 +82,7 @@ public class AuctionService {
     }
 
     public Response search(Request request) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -110,7 +109,7 @@ public class AuctionService {
     }
 
     public Response create(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -147,7 +146,7 @@ public class AuctionService {
     }
 
     public Response update(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
@@ -194,7 +193,7 @@ public class AuctionService {
     }
 
     public Response delete(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -223,7 +222,7 @@ public class AuctionService {
     }
 
     public Response getDetail(Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -240,7 +239,7 @@ public class AuctionService {
     }
 
     public Response getAllLiveAuctions(){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
             List<AuctionDto> summaries = new ArrayList<>();
 
@@ -255,7 +254,7 @@ public class AuctionService {
     }
 
     public Response join(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
@@ -281,7 +280,7 @@ public class AuctionService {
     }
 
     public Response leave(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
             if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
@@ -298,7 +297,7 @@ public class AuctionService {
     }
 
     public Response placeBid(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
             if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
