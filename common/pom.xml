@@ -5,9 +5,13 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.bidify</groupId>
+    <parent>
+        <groupId>com.bidify</groupId>
+        <artifactId>bidify</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>common</artifactId>
-    <version>1.0-SNAPSHOT</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

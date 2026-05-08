@@ -37,8 +37,8 @@ jobs:
 
       - name: Rename Artifacts
         run: |
-          mv server/target/server-${{ env.VERSION }}-fat.jar server/target/server-${{ env.VERSION }}.jar
-          mv client/target/client-${{ env.VERSION }}-universal.jar client/target/client-${{ env.VERSION }}.jar
+          mv server/target/server-*-fat.jar server/target/server-${{ env.VERSION }}.jar
+          mv client/target/client-*-universal.jar client/target/client-${{ env.VERSION }}.jar
 
       - uses: softprops/action-gh-release@v2
         with:
