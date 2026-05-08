@@ -6,12 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.enums.UserStatus;
-import com.bidify.server.contract.ImplementUserDao;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
 
-public class UserDao implements ImplementUserDao {
+public class UserDao  {
     private static UserDao instance = new UserDao();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
