@@ -4,6 +4,9 @@ import com.bidify.server.network.ClientHandler;
 import com.bidify.server.service.AuctionSchedulerService;
 import com.bidify.server.service.AuctionService;
 import com.bidify.server.service.AuthService;
+import com.bidify.server.service.UserProfileService;
+import com.bidify.server.service.BidService;
+import com.bidify.server.service.TransactionService;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
@@ -38,6 +41,13 @@ public class ServerApp {
         }
         AuctionService auctionService = AuctionService.getInstance();
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
+        
+        // Initialize services for request routing self-registration
+        AuthService.getInstance().initialize();
+        auctionService.initialize();
+        UserProfileService.getInstance().initialize();
+        BidService.getInstance().initialize();
+        TransactionService.getInstance().initialize();
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();

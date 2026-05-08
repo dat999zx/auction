@@ -3,18 +3,28 @@ package com.bidify.common.core;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-// chuyển hướng các loại Key K về các Handler H
 public abstract class Router<K, H> {
     protected final Map<K, H> routes = new ConcurrentHashMap<>();
 
-    public void subscribe(K key, H handler) {
+    public void register(K key, H handler) {
         if (key == null || handler == null) return;
-        routes.put(key, handler);
+        if (routes.putIfAbsent(key, handler) != null) {
+            throw new IllegalStateException("Duplicate route registered for: " + key);
+        }
     }
 
-    public void unsubscribe(K key) {
+    protected H getHandler(K key) {
+        if (key == null) return null;
+        return routes.get(key);
+    }
+
+    public void unregister(K key) {
         if (key == null) return;
         routes.remove(key);
+    }
+
+    public boolean hasRoute(K key) {
+        return routes.containsKey(key);
     }
 
     public void clear() {
