@@ -44,6 +44,8 @@ import com.bidify.server.model.Wallet;
 import com.bidify.server.model.runtime.AuctionChannel;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.AuctionMapper;
+import com.bidify.server.utility.ServiceUtil;
+
 // service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
     private static Logger logger = LoggerFactory.getLogger(AuctionService.class);
@@ -68,35 +70,37 @@ public class AuctionService {
     }
 
     public Response search(Request request) {
-        SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        // Xử lý query để tiện hơn trong việc đối chiếu
-        String query = data.getQuery();
-        if (query == null) query = "";
-        String finalQuery = query.toLowerCase().trim();
+            // Xử lý query để tiện hơn trong việc đối chiếu
+            String query = data.getQuery();
+            if (query == null) query = "";
+            String finalQuery = query.toLowerCase().trim();
 
-        List<Auction> allAuctions = RealtimeDatabase.getAllRuntimeAuctions();
-        List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
+            List<Auction> allAuctions = RealtimeDatabase.getAllRuntimeAuctions();
+            List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
 
-        for (Auction auction : allAuctions) {
-            // lấy các auction thỏa mãn 2 điều kiện: chứa tên / description
-            boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
-            boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
-            
-            if (matchesName || matchesDesc) {
-                results.add(AuctionMapper.toDto(auction));
+            for (Auction auction : allAuctions) {
+                // lấy các auction thỏa mãn 2 điều kiện: chứa tên / description
+                boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
+                boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
+                
+                if (matchesName || matchesDesc) {
+                    results.add(AuctionMapper.toDto(auction));
+                }
             }
-        }
 
-        return new Response(RequestStatus.SUCCESS, "Search completed", results);
+            return new Response(RequestStatus.SUCCESS, "Search completed", results);
+        });
     }
 
     public Response create(ClientHandler client, Request request){
-        CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuctionRequest(() -> {
             requireSession(client);
 
             String sellerUsername = data.getSeller();
@@ -130,10 +134,10 @@ public class AuctionService {
     }
 
     public Response update(ClientHandler client, Request request){
-        UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        return ServiceUtil.handleRequest(() -> {
+            UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
-        return handleAuctionRequest(() -> {
             requireSession(client);
 
             String auctionId = data.getAuctionId();
@@ -177,10 +181,10 @@ public class AuctionService {
     }
 
     public Response delete(ClientHandler client, Request request){
-        DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuctionRequest(() -> {
             requireSession(client);
 
             String auctionId = data.getId();
@@ -206,10 +210,10 @@ public class AuctionService {
     }
 
     public Response getDetail(Request request){
-        GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuctionRequest(() -> {
             String auctionId = data.getAuctionId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
 
@@ -223,23 +227,25 @@ public class AuctionService {
     }
 
     public Response getAllLiveAuctions(){
-        List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
-        List<AuctionDto> summaries = new ArrayList<>();
+        return ServiceUtil.handleRequest(() -> {
+            List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
+            List<AuctionDto> summaries = new ArrayList<>();
 
-        if (auctions == null || auctions.isEmpty())
-            return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
+            if (auctions == null || auctions.isEmpty())
+                return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
 
-        for (Auction auction : auctions)
-            summaries.add(AuctionMapper.toDto(auction));
+            for (Auction auction : auctions)
+                summaries.add(AuctionMapper.toDto(auction));
 
-        return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
+            return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
+        });
     }
 
     public Response join(ClientHandler client, Request request){
-        JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuctionRequest(() -> {
             requireSession(client);
 
             String auctionId = data.getAuctionId();
@@ -262,26 +268,28 @@ public class AuctionService {
     }
 
     public Response leave(ClientHandler client, Request request){
-        LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        return ServiceUtil.handleRequest(() -> {
+            LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        String auctionId = data.getAuctionId();
-        String username = client.getCurrentUsername();
+            String auctionId = data.getAuctionId();
+            String username = client.getCurrentUsername();
 
-        if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
-            return new Response(RequestStatus.FAILED, "You are not watching this auction");
+            if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
+                return new Response(RequestStatus.FAILED, "You are not watching this auction");
 
-        RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
-        return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
+            RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
+            return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
+        });
     }
 
     public Response placeBid(ClientHandler client, Request request){
-        PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-        if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+        return ServiceUtil.handleRequest(() -> {
+            PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+            if (!client.isInSession()) return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
-        return handleAuctionRequest(() -> {
             String auctionId = data.getAuctionId();
             double bidAmount = data.getBidAmount();
             String username = client.getCurrentUsername();
@@ -340,18 +348,6 @@ public class AuctionService {
 
             return new Response(RequestStatus.SUCCESS, "Place bid successfully");
         });
-    }
-
-    private Response handleAuctionRequest(Supplier<Response> action) {
-        try {
-            return action.get();
-        }
-        catch (DateTimeParseException e) {
-            return new Response(RequestStatus.FAILED, "Invalid date time format");
-        }
-        catch (ValidationException | DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
     }
 
     private void requireSession(ClientHandler client) {
