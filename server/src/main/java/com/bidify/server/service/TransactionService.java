@@ -9,10 +9,9 @@ import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Response;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dispatcher.RequestDispatcher;
-import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 
 public class TransactionService {
     private static TransactionService instance = new TransactionService();
@@ -28,7 +27,7 @@ public class TransactionService {
     }
 
     public Response getUserTransactions(ClientHandler client) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
             if (!client.isInSession() || username == null)
                 return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");

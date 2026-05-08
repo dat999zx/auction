@@ -1,7 +1,5 @@
 package com.bidify.server.service;
 
-import java.util.function.Supplier;
-
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
@@ -16,12 +14,11 @@ import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
-import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Wallet;
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class UserProfileService {
@@ -42,14 +39,14 @@ public class UserProfileService {
     }
 
     public Response getProfile(ClientHandler client) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
             return new Response(RequestStatus.SUCCESS, "Profile loaded successfully", UserMapper.toDto(user));
         });
     }
 
     public Response updateProfile(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
@@ -74,7 +71,7 @@ public class UserProfileService {
     }
 
     public Response deposit(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
@@ -92,7 +89,7 @@ public class UserProfileService {
     }
 
     public Response withdraw(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");

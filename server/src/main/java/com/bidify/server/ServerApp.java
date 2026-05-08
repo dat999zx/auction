@@ -12,10 +12,8 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.SecureRandom;
 
 import javax.net.ssl.*;
@@ -42,7 +40,6 @@ public class ServerApp {
         AuctionService auctionService = AuctionService.getInstance();
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
         
-        // Initialize services for request routing self-registration
         AuthService.getInstance().initialize();
         auctionService.initialize();
         UserProfileService.getInstance().initialize();

@@ -6,7 +6,7 @@ import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.network.ClientHandler;
-import com.bidify.server.utility.ServiceUtil;
+import com.bidify.server.utility.RequestUtil;
 
 public class RequestDispatcher extends Router<RequestType, RequestHandler> {
     private static final RequestDispatcher instance = new RequestDispatcher();
@@ -16,14 +16,13 @@ public class RequestDispatcher extends Router<RequestType, RequestHandler> {
     public static RequestDispatcher getInstance() { return instance; }
 
     public Response dispatch(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
-            if (request == null || request.getType() == null) {
+        return RequestUtil.handleRequest(() -> {
+            if (request == null || request.getType() == null)
                 return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
-            }
 
             RequestHandler handler = getHandler(request.getType());
             if (handler == null)
-                return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+                return new Response(RequestStatus.INVALID_REQUEST, "Unsupported request");
 
             return handler.handle(client, request);
         });

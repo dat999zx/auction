@@ -8,8 +8,8 @@ import com.bidify.server.exception.DatabaseException;
 import java.time.format.DateTimeParseException;
 import java.util.function.Supplier;
 
-public class ServiceUtil {
-    private ServiceUtil() {}
+public class RequestUtil {
+    private RequestUtil() {}
 
     public static Response handleRequest(Supplier<Response> action) {
         try {
