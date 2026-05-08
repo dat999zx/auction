@@ -10,6 +10,7 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.utility.ServiceUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +25,10 @@ public class BidService {
     public static BidService getInstance() { return instance; }
 
     public Response getUserBids(ClientHandler client) {
-        String username = client.getCurrentUsername();
-        if (!client.isInSession() || username == null) return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");
+        return ServiceUtil.handleRequest(() -> {
+            String username = client.getCurrentUsername();
+            if (!client.isInSession() || username == null) return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");
 
-        try {
-            
             List<Bid> bids = bidDao.findByUsername(username);
             List<BidDto> dtos = new ArrayList<>();
             
@@ -45,9 +45,6 @@ public class BidService {
                 ));
             }
             return new Response(RequestStatus.SUCCESS, "Bid history loaded", dtos);
-        }
-        catch (DatabaseException e) {
-            return new Response(RequestStatus.ERROR, "Database error");
-        }
+        });
     }
 }

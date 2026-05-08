@@ -22,6 +22,7 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
@@ -36,10 +37,10 @@ public class AuthService {
 
     // đăng kí
     public Response register(Request request) {
-        RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuthRequest(() -> {
             String username = data.getUsername();
             String nickname = data.getNickname();
             String password = data.getPassword();
@@ -64,10 +65,10 @@ public class AuthService {
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
-        LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return ServiceUtil.handleRequest(() -> {
+            LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuthRequest(() -> {
             String username = data.getUsername();
             String password = data.getPassword();
 
@@ -103,9 +104,9 @@ public class AuthService {
 
     // đăng kí
     public Response logout(ClientHandler client){
-        String username = client.getCurrentUsername();
+        return ServiceUtil.handleRequest(() -> {
+            String username = client.getCurrentUsername();
 
-        return handleAuthRequest(() -> {
             if (!client.isInSession())
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
@@ -128,15 +129,6 @@ public class AuthService {
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers()) {
             userDao.save(user, saveLastLogin);
-        }
-    }
-
-    private Response handleAuthRequest(Supplier<Response> action) {
-        try {
-            return action.get();
-        }
-        catch (ValidationException | DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
         }
     }
 }

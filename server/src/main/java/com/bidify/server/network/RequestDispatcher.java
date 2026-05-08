@@ -6,6 +6,8 @@ import com.bidify.common.model.Response;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.service.AuctionService;
 import com.bidify.server.service.UserProfileService;
+import com.bidify.server.service.TransactionService;
+import com.bidify.server.service.BidService;
 
 // chuyển hướng request đúng vào các service tương ứng
 import org.slf4j.Logger;
@@ -16,40 +18,44 @@ public class RequestDispatcher {
     private final AuthService authService = AuthService.getInstance();
     private final AuctionService auctionService = AuctionService.getInstance();
     private final UserProfileService userProfileService = UserProfileService.getInstance();
+    private final TransactionService transactionService = TransactionService.getInstance();
+    private final BidService bidService = BidService.getInstance();
 
     public Response dispatch(ClientHandler client, Request request){
         if (request == null || request.getType() == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        Response response;
         try {
-            switch (request.getType()) {
-                // TODO: REFACTOR THIS BS code
+            return switch (request.getType()) {
                 // AuthService
-                case REGISTER -> response = authService.register(request);
-                case LOGIN -> response = authService.login(client, request);
-                case LOGOUT -> response = authService.logout(client);
+                case REGISTER -> authService.register(request);
+                case LOGIN -> authService.login(client, request);
+                case LOGOUT -> authService.logout(client);
 
                 //userProfileService
-                case GET_PROFILE -> response = userProfileService.getProfile(client);
-                case UPDATE_PROFILE -> response = userProfileService.updateProfile(client, request);
-                case DEPOSIT -> response = userProfileService.deposit(client, request);
-                case WITHDRAW -> response = userProfileService.withdraw(client, request);
-                case GET_TRANSACTIONS -> response = userProfileService.getTransactions(client);
+                case GET_PROFILE -> userProfileService.getProfile(client);
+                case UPDATE_PROFILE -> userProfileService.updateProfile(client, request);
+                case DEPOSIT -> userProfileService.deposit(client, request);
+                case WITHDRAW -> userProfileService.withdraw(client, request);
+
+                // TransactionService
+                case GET_TRANSACTIONS -> transactionService.getUserTransactions(client);
+
+                // BidService
+                case GET_BID_HISTORY -> bidService.getUserBids(client);
 
                 //AuctionService
-                case JOIN_AUCTION -> response = auctionService.join(client, request);
-                case LEAVE_AUCTION -> response = auctionService.leave(client, request);
-                case CREATE_AUCTION -> response = auctionService.create(client, request);
-                case UPDATE_AUCTION -> response = auctionService.update(client, request);
-                case GET_LIVE_AUCTIONS -> response = auctionService.getAllLiveAuctions();
-                case GET_AUCTION_DETAIL -> response = auctionService.getDetail(request);
-                case DELETE_AUCTION -> response = auctionService.delete(client, request);
-                case PLACE_BID -> response = auctionService.placeBid(client, request);
-                case SEARCH_AUCTIONS -> response = auctionService.search(request); 
+                case JOIN_AUCTION -> auctionService.join(client, request);
+                case LEAVE_AUCTION -> auctionService.leave(client, request);
+                case CREATE_AUCTION -> auctionService.create(client, request);
+                case UPDATE_AUCTION -> auctionService.update(client, request);
+                case GET_LIVE_AUCTIONS -> auctionService.getAllLiveAuctions();
+                case GET_AUCTION_DETAIL -> auctionService.getDetail(request);
+                case DELETE_AUCTION -> auctionService.delete(client, request);
+                case PLACE_BID -> auctionService.placeBid(client, request);
+                case SEARCH_AUCTIONS -> auctionService.search(request); 
 
-                default -> response = new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
-            }
-            return response;
+                default -> new Response(RequestStatus.INVALID_REQUEST, "Invalid request type");
+            };
         }
         catch (Exception e) {
             logger.warn("Exception occurred", e);
