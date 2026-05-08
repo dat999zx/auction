@@ -40,8 +40,6 @@ public class ClientHandler implements Runnable, Observer {
             
             String line;
             while ((line = in.readLine()) != null) {
-                logger.debug("Received: {}", line);
-
                 Request request = JsonUtil.fromJson(line, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 response.setId(request.getId());

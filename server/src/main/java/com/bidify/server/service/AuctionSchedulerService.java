@@ -5,6 +5,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
@@ -17,6 +20,7 @@ import com.bidify.server.utility.AuctionMapper;
 // tự động chạy, update status của auction sau các khoảng thời gian nhất định, đảm bảo rằng auction sẽ được cập nhật đúng status khi đến thời điểm bắt đầu hoặc kết thúc
 public class AuctionSchedulerService {
     private static final long SYNC_INTERVAL_SECONDS = 1; // số giây mỗi lần đồng bộ
+    private static final Logger logger = LoggerFactory.getLogger(AuctionSchedulerService.class);
 
     private static AuctionSchedulerService instance = new AuctionSchedulerService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
@@ -41,17 +45,18 @@ public class AuctionSchedulerService {
         for (Auction auction : runtimeAuctions) {
             if (auction == null) continue;
 
-            AuctionStatus before = auction.getStatus();
-            boolean changed = auction.refreshStatus();
+            AuctionStatus before = auction.getStatus(false);
             AuctionStatus after = auction.getStatus();
 
-            if (!changed) continue;
+            if (before == after) continue;
 
             auctionDao.save(auction);
 
+            logger.info("new auction state: {} - {}: {} -> {}", auction.getAuctionName(), auction.getId(), before, after);
+
             if (after == AuctionStatus.ENDED) {
-                RealtimeDatabase.removeRuntimeAuction(auction.getId());
                 auctionService.settleAuction(auction);
+                RealtimeDatabase.removeRuntimeAuction(auction.getId());
                 publishStatusEvent(EventType.AUCTION_ENDED, "Auction ended", auction);
                 continue;
             }
