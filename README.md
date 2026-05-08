@@ -19,7 +19,7 @@ The system is designed using:
 
 ## System Design
 - Codebase diagram:
-  https://app.diagrams.net/#G1oCt8rJLRA6hcrzuhWr3rDcje_eJpodFE#%7B%22pageId%22%3A%22Y3nK-bs_gE9X0RKIRmcj%22%7D
+  https://mermaid.ai/d/8b65df02-73ad-478f-b330-718d6eb72ca5
 
 ---
 
