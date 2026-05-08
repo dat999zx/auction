@@ -3,6 +3,7 @@ package com.bidify.server.service;
 import java.util.function.Supplier;
 
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
@@ -14,6 +15,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
@@ -30,6 +32,14 @@ public class UserProfileService {
     private UserProfileService() {}
 
     public static UserProfileService getInstance() { return instance; }
+
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
+        router.register(RequestType.UPDATE_PROFILE, this::updateProfile);
+        router.register(RequestType.DEPOSIT, this::deposit);
+        router.register(RequestType.WITHDRAW, this::withdraw);
+    }
 
     public Response getProfile(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
@@ -65,10 +75,10 @@ public class UserProfileService {
 
     public Response deposit(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
+            User user = requireActiveUser(client);
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
-            User user = requireActiveUser(client);
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
 
@@ -83,10 +93,10 @@ public class UserProfileService {
 
     public Response withdraw(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
+            User user = requireActiveUser(client);
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
-            User user = requireActiveUser(client);
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
 

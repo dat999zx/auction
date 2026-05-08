@@ -2,11 +2,12 @@ package com.bidify.server.service;
 
 import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Response;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
 import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.network.ClientHandler;
@@ -23,6 +24,11 @@ public class BidService {
     private BidService() {}
 
     public static BidService getInstance() { return instance; }
+
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.GET_BID_HISTORY, (client, req) -> getUserBids(client));
+    }
 
     public Response getUserBids(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {

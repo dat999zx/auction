@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.LoginRequest;
@@ -18,6 +19,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
@@ -34,6 +36,13 @@ public class AuthService {
     private AuthService() {}
 
     public static AuthService getInstance() { return instance; }
+
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.REGISTER, (client, req) -> register(req));
+        router.register(RequestType.LOGIN, this::login);
+        router.register(RequestType.LOGOUT, (client, req) -> logout(client));
+    }
 
     // đăng kí
     public Response register(Request request) {

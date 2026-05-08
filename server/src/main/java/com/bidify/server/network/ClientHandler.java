@@ -7,6 +7,7 @@ import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.server.contract.Observer;
+import com.bidify.server.dispatcher.RequestDispatcher;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
 public class ClientHandler implements Runnable, Observer {
     private static final Logger logger = LoggerFactory.getLogger(ClientHandler.class);
     private final SSLSocket socket;
-    private final RequestDispatcher dispatcher = new RequestDispatcher();
+    private final RequestDispatcher dispatcher = RequestDispatcher.getInstance();
     private String currentUsername;
     private BufferedReader in;
     private PrintWriter out;

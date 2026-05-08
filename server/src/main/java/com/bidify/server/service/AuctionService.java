@@ -1,10 +1,8 @@
 package com.bidify.server.service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +11,7 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
@@ -35,6 +34,7 @@ import com.bidify.server.dao.BidDao;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
@@ -58,6 +58,19 @@ public class AuctionService {
     private AuctionService() {}
 
     public static AuctionService getInstance() { return instance; }
+
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.JOIN_AUCTION, this::join);
+        router.register(RequestType.LEAVE_AUCTION, this::leave);
+        router.register(RequestType.CREATE_AUCTION, this::create);
+        router.register(RequestType.UPDATE_AUCTION, this::update);
+        router.register(RequestType.GET_LIVE_AUCTIONS, (client, req) -> getAllLiveAuctions());
+        router.register(RequestType.GET_AUCTION_DETAIL, (client, req) -> getDetail(req));
+        router.register(RequestType.DELETE_AUCTION, this::delete);
+        router.register(RequestType.PLACE_BID, this::placeBid);
+        router.register(RequestType.SEARCH_AUCTIONS, (client, req) -> search(req));
+    }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
     public void loadToRuntime(){
