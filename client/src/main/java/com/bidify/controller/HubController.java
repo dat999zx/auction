@@ -44,6 +44,12 @@ public class HubController {
     private VBox liveAuctionsContainer;
 
     @FXML
+    private VBox header;
+
+    @FXML
+    private Label pageTitle;
+
+    @FXML
     private Label emptyStateLabel;
 
     private MissionBarController missionBarController;
@@ -125,8 +131,15 @@ public class HubController {
     private void loadLiveAuctions() {
         try {
             AuctionDto[] auctions = auctionClientService.getLiveAuctions();
+            
+            Platform.runLater(() -> {
+                header.setVisible(true);
+                header.setManaged(true);
+                pageTitle.setText("Live Running Auctions");
+            });
+
             if (auctions == null || auctions.length == 0) {
-                Platform.runLater(() -> showEmptyState("No live auctions right now."));
+                Platform.runLater(() -> showEmptyState("No live auctions right now.", false));
                 return;
             }
 
@@ -138,24 +151,28 @@ public class HubController {
             });
         } catch (IOException e) {
             logger.error("Exception occurred", e);
-            Platform.runLater(() -> showEmptyState("Cannot connect to server."));
+            Platform.runLater(() -> showEmptyState("Cannot connect to server.", true));
         } catch (AuctionException e) {
-            Platform.runLater(() -> showEmptyState(e.getMessage()));
+            Platform.runLater(() -> showEmptyState(e.getMessage(), true));
         }
     }
 
-    private void showEmptyState(String message) {
+    private void showEmptyState(String message, boolean hideHeader) {
         currentAuctions = new AuctionDto[0];
         liveAuctionsContainer.getChildren().clear();
-        emptyStateLabel.setText(message);
-        if (!emptyStateLabel.getStyleClass().contains("empty-state-label")) {
-            emptyStateLabel.getStyleClass().add("empty-state-label");
-        }
-        emptyStateLabel.setManaged(true);
-        emptyStateLabel.setVisible(true);
+        
+        Platform.runLater(() -> {
+            header.setVisible(!hideHeader);
+            header.setManaged(!hideHeader);
+            emptyStateLabel.setText(message);
+            if (!emptyStateLabel.getStyleClass().contains("empty-state-label")) {
+                emptyStateLabel.getStyleClass().add("empty-state-label");
+            }
+            emptyStateLabel.setManaged(true);
+            emptyStateLabel.setVisible(true);
+        });
     }
 
-    // chia để cho mỗi hàng có tối đa 2 auction card, căn giữa và có khoảng cách đều nhau
     private void renderAuctionRows() {
         liveAuctionsContainer.getChildren().clear();
         if (currentAuctions == null || currentAuctions.length == 0) {
@@ -175,7 +192,6 @@ public class HubController {
         }
     }
 
-    // Lấy auction card từ auction_card.fxml và bind dữ liệu vào
     private AnchorPane loadAuctionCard(AuctionDto auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
@@ -198,21 +214,25 @@ public class HubController {
         try {
             AuctionDto[] results = auctionClientService.searchAuctions(query);
             if (results == null || results.length == 0) {
-                Platform.runLater(() -> showEmptyState("No auctions found matching '" + query + "'."));
+                showEmptyState("No auctions or sellers found matching '" + query + "'.", true);
                 return;
             }
 
             currentAuctions = results;
             Platform.runLater(() -> {
+                header.setVisible(true);
+                header.setManaged(true);
+                pageTitle.setText("Results for '" + query + "'");
+                
                 emptyStateLabel.setVisible(false);
                 emptyStateLabel.setManaged(false);
                 renderAuctionRows();
             });
         } catch (IOException e) {
             logger.error("Search failed", e);
-            Platform.runLater(() -> showEmptyState("Search failed: Network error."));
+            Platform.runLater(() -> showEmptyState("Search failed: Network error.", true));
         } catch (AuctionException e) {
-            Platform.runLater(() -> showEmptyState(e.getMessage()));
+            Platform.runLater(() -> showEmptyState(e.getMessage(), true));
         }
     }
 

@@ -78,6 +78,7 @@ public final class SceneManager {
     }
 
     public static void switchScene(String fxml, boolean remember, boolean showBar) {
+
         if (!isSwitchingScene.compareAndSet(false, true)) return;
         Platform.runLater(() -> setInputBlocked(true));
         showMissionBar = showBar;

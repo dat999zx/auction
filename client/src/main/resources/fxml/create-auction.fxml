@@ -30,7 +30,7 @@
                 <Insets bottom="10.0" left="24.0" right="24.0" top="15.0" />
             </padding>
             <Button fx:id="backButton" onAction="#handleSubNavClick" styleClass="top-link" text="Back" />
-            <Button fx:id="subCreateAuctionButton" onAction="#handleSubNavClick" styleClass="top-link-active" text="Create Auction" />
+            <Button fx:id="CreateAuctionButton" onAction="#handleSubNavClick" styleClass="top-link-active" text="Create Auction" />
             <Button fx:id="managementButton" onAction="#handleSubNavClick" styleClass="top-link" text="Auction Management" />
             <Button fx:id="historyButton" onAction="#handleSubNavClick" styleClass="top-link" text="History" />
         </HBox>

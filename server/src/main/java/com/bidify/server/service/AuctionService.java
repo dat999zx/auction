@@ -83,8 +83,8 @@ public class AuctionService {
             // lấy các auction thỏa mãn 2 điều kiện: chứa tên / description
             boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
             boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
-            
-            if (matchesName || matchesDesc) {
+            boolean matchesSeller = auction.getSellerUsername() != null && auction.getSellerUsername().toLowerCase().contains(finalQuery);
+            if (matchesName || matchesDesc || matchesSeller) {
                 results.add(AuctionMapper.toDto(auction));
             }
         }

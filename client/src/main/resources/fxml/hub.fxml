@@ -23,12 +23,12 @@
                         </padding>
 
                         <HBox alignment="BOTTOM_LEFT">
-                            <VBox spacing="8.0">
+                            <VBox fx:id = "header" spacing="8.0">
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
                                     <Label styleClass="live-dot" text="●" />
                                     <Label styleClass="eyebrow" text="REAL-TIME FLOOR" />
                                 </HBox>
-                                <Label styleClass="page-title" text="Live Running Auctions" />
+                                <Label fx:id="pageTitle" styleClass="page-title" text="Live Running Auctions" />
                             </VBox>
 
                             <Region HBox.hgrow="ALWAYS" />
