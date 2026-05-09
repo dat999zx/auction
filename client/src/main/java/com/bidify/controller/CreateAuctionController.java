@@ -68,8 +68,6 @@ public class CreateAuctionController {
     @FXML
     private TextField endTimeField;
 
-    private MissionBarController missionBarController;
-
     @FXML
     private Button backButton;
 
@@ -77,7 +75,7 @@ public class CreateAuctionController {
     private Button managementButton;
 
     @FXML
-    private Button subCreateAuctionButton;
+    private Button CreateAuctionButton;
 
     @FXML
     private Button historyButton;
@@ -120,13 +118,6 @@ public class CreateAuctionController {
     }
 
     @FXML
-    private void toggleSidebar() {
-        if (missionBarController != null) {
-            missionBarController.toggleSidebar();
-        }
-    }
-
-    @FXML
     private void handleSubNavClick(ActionEvent event) {
         if (!(event.getSource() instanceof Button clickedButton)) return;
 
@@ -134,17 +125,17 @@ public class CreateAuctionController {
             SceneManager.switchScene("hub.fxml", false, true);
         } else if (clickedButton == managementButton) {
             // Future logic for management dashboard
-        } else if (clickedButton == subCreateAuctionButton) {
-            
+        } else if (clickedButton == CreateAuctionButton) {
+            SceneManager.switchScene("create-auction.fxml", false, false);
         } else if (clickedButton == historyButton) {
-            showMessage("History feature is coming soon!", true);
+            SceneManager.switchScene("history.fxml", false, true);
         }
         updateSubNavButtonStyle(clickedButton);
     }
 
     private void updateSubNavButtonStyle(Button activeButton) {
         if (activeButton == null) return;
-        Button[] buttons = {backButton, managementButton, subCreateAuctionButton, historyButton};
+        Button[] buttons = {backButton, managementButton, CreateAuctionButton, historyButton};
         for (Button button : buttons) {
             button.getStyleClass().removeAll("top-link-active", "top-link");
             button.getStyleClass().add("top-link");
@@ -270,13 +261,4 @@ public class CreateAuctionController {
             throw new ValidationException(fieldName + " must use HH:mm format");
         }
     }
-
-    private String resolveAvatarLetter() {
-        String username = SocketClient.getClient().getCurrentUsername();
-        if (username == null || username.isBlank()) {
-            return "Nig";
-        }
-        return username.substring(0, 1).toUpperCase();
-    }
-
 }
