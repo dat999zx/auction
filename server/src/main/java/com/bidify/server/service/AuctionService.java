@@ -103,7 +103,9 @@ public class AuctionService {
                 results.add(AuctionMapper.toDto(auction));
             }
 
+            }
             return new Response(RequestStatus.SUCCESS, "Search completed", results);
+        
         });
     }
 
