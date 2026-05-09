@@ -23,5 +23,5 @@ public enum RequestType {
 
     DEPOSIT,
     WITHDRAW,
-    GET_TRANSACTIONS
+    GET_TRANSACTION_HISTORY
 }

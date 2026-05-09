@@ -2,14 +2,16 @@ package com.bidify.server.service;
 
 import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Response;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
 import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.utility.RequestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,12 +25,16 @@ public class BidService {
 
     public static BidService getInstance() { return instance; }
 
-    public Response getUserBids(ClientHandler client) {
-        String username = client.getCurrentUsername();
-        if (!client.isInSession() || username == null) return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.GET_BID_HISTORY, (client, req) -> getUserBids(client));
+    }
 
-        try {
-            
+    public Response getUserBids(ClientHandler client) {
+        return RequestUtil.handleRequest(() -> {
+            String username = client.getCurrentUsername();
+            if (!client.isInSession() || username == null) return new Response(RequestStatus.UNAUTHORIZED, "Unauthorized");
+
             List<Bid> bids = bidDao.findByUsername(username);
             List<BidDto> dtos = new ArrayList<>();
             
@@ -45,9 +51,6 @@ public class BidService {
                 ));
             }
             return new Response(RequestStatus.SUCCESS, "Bid history loaded", dtos);
-        }
-        catch (DatabaseException e) {
-            return new Response(RequestStatus.ERROR, "Database error");
-        }
+        });
     }
 }

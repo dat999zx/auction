@@ -1,11 +1,7 @@
 package com.bidify.server.service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
-import com.bidify.common.dto.TransactionDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
@@ -17,11 +13,12 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Wallet;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.utility.RequestUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class UserProfileService {
@@ -33,18 +30,26 @@ public class UserProfileService {
 
     public static UserProfileService getInstance() { return instance; }
 
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
+        router.register(RequestType.UPDATE_PROFILE, this::updateProfile);
+        router.register(RequestType.DEPOSIT, this::deposit);
+        router.register(RequestType.WITHDRAW, this::withdraw);
+    }
+
     public Response getProfile(ClientHandler client) {
-        return handleProfileRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
             return new Response(RequestStatus.SUCCESS, "Profile loaded successfully", UserMapper.toDto(user));
         });
     }
 
     public Response updateProfile(ClientHandler client, Request request) {
-        UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+        return RequestUtil.handleRequest(() -> {
+            UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
 
-        return handleProfileRequest(() -> {
             User user = requireActiveUser(client);
 
             boolean hasChange = false;
@@ -66,11 +71,11 @@ public class UserProfileService {
     }
 
     public Response deposit(ClientHandler client, Request request) {
-        WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-
-        return handleProfileRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
+            WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
 
@@ -84,11 +89,11 @@ public class UserProfileService {
     }
 
     public Response withdraw(ClientHandler client, Request request) {
-        WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
-
-        return handleProfileRequest(() -> {
+        return RequestUtil.handleRequest(() -> {
             User user = requireActiveUser(client);
+            WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request data");
+
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
 
@@ -104,35 +109,6 @@ public class UserProfileService {
 
             return new Response(RequestStatus.SUCCESS, "Withdraw successful", UserMapper.toDto(user));
         });
-    }
-
-    public Response getTransactions(ClientHandler client) {
-        return handleProfileRequest(() -> {
-            User user = requireActiveUser(client);
-            List<Transaction> transactions = transactionDao.findByUsername(user.getUsername());
-            List<TransactionDto> dtos = new ArrayList<>();
-
-            for (Transaction t : transactions) {
-                dtos.add(new TransactionDto(
-                        t.getId(),
-                        t.getCreatedAt().toString(),
-                        t.getUsername(),
-                        t.getType(),
-                        t.getAmount(),
-                        t.getAuctionId()
-                ));
-            }
-
-            return new Response(RequestStatus.SUCCESS, "Transaction history loaded", dtos);
-        });
-    }
-
-    private Response handleProfileRequest(Supplier<Response> action) {
-        try {
-            return action.get();
-        } catch (ValidationException | DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
-        }
     }
 
     private User requireActiveUser(ClientHandler client) {

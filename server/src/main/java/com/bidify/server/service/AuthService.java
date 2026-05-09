@@ -1,14 +1,12 @@
 package com.bidify.server.service;
 
-import java.util.function.Supplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserStatus;
-import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
@@ -18,10 +16,11 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
-import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.utility.RequestUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
@@ -34,12 +33,19 @@ public class AuthService {
 
     public static AuthService getInstance() { return instance; }
 
+    public void initialize() {
+        RequestDispatcher router = RequestDispatcher.getInstance();
+        router.register(RequestType.REGISTER, (client, req) -> register(req));
+        router.register(RequestType.LOGIN, this::login);
+        router.register(RequestType.LOGOUT, (client, req) -> logout(client));
+    }
+
     // đăng kí
     public Response register(Request request) {
-        RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return RequestUtil.handleRequest(() -> {
+            RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuthRequest(() -> {
             String username = data.getUsername();
             String nickname = data.getNickname();
             String password = data.getPassword();
@@ -64,10 +70,10 @@ public class AuthService {
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
-        LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
-        if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+        return RequestUtil.handleRequest(() -> {
+            LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
+            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
 
-        return handleAuthRequest(() -> {
             String username = data.getUsername();
             String password = data.getPassword();
 
@@ -103,9 +109,9 @@ public class AuthService {
 
     // đăng kí
     public Response logout(ClientHandler client){
-        String username = client.getCurrentUsername();
+        return RequestUtil.handleRequest(() -> {
+            String username = client.getCurrentUsername();
 
-        return handleAuthRequest(() -> {
             if (!client.isInSession())
                 return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
 
@@ -128,15 +134,6 @@ public class AuthService {
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers()) {
             userDao.save(user, saveLastLogin);
-        }
-    }
-
-    private Response handleAuthRequest(Supplier<Response> action) {
-        try {
-            return action.get();
-        }
-        catch (ValidationException | DatabaseException e) {
-            return new Response(RequestStatus.FAILED, e.getMessage());
         }
     }
 }

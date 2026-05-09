@@ -10,7 +10,7 @@ public class Wallet {
 
     public Wallet(double balance) {
         this.balance = balance;
-        this.lockedBalance = balance;
+        this.lockedBalance = 0;
     }
     
     public synchronized void lockBalance(double amount) {

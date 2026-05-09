@@ -30,6 +30,9 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Agent handoff
-AGENTS.md
-GEMINI.md
+# Markdowns
+*.md
+
+# Excludes
+!README.md
+!changelog.md

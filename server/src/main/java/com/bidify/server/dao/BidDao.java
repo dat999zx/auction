@@ -45,7 +45,7 @@ public class BidDao {
     }
 
     public List<Bid> findByUsername(String username) throws DatabaseException {
-        String sql = "SELECT * FROM Bids WHERE bidder = ? ORDER BY bidTime DESC";
+        String sql = "SELECT * FROM Bids WHERE bidder = ? ORDER BY createdAt DESC";
         return SQLiteHelper.query(sql, rs -> {
             List<Bid> bids = new ArrayList<>();
             while (rs.next()) {
@@ -60,5 +60,10 @@ public class BidDao {
             }
             return bids;
         }, username);
+    }
+
+    public void deleteById(String bidId) throws DatabaseException {
+        String sql = "DELETE FROM Bids WHERE id = ?";
+        SQLiteHelper.update(sql, bidId);
     }
 }

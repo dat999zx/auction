@@ -4,15 +4,16 @@ import com.bidify.server.network.ClientHandler;
 import com.bidify.server.service.AuctionSchedulerService;
 import com.bidify.server.service.AuctionService;
 import com.bidify.server.service.AuthService;
+import com.bidify.server.service.UserProfileService;
+import com.bidify.server.service.BidService;
+import com.bidify.server.service.TransactionService;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
 
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.SecureRandom;
 
 import javax.net.ssl.*;
@@ -38,6 +39,12 @@ public class ServerApp {
         }
         AuctionService auctionService = AuctionService.getInstance();
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
+        
+        AuthService.getInstance().initialize();
+        auctionService.initialize();
+        UserProfileService.getInstance().initialize();
+        BidService.getInstance().initialize();
+        TransactionService.getInstance().initialize();
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
