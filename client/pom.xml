@@ -86,7 +86,7 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-            <classifier>linux</classifier>
+            <!-- <classifier>linux</classifier> -->
         </dependency>
 
         <!-- Mac (Intel & Apple Silicon) -->
@@ -94,13 +94,13 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-            <classifier>mac</classifier>
+            <!-- <classifier>mac</classifier> -->
         </dependency>
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
-            <classifier>mac-aarch64</classifier>
+            <!-- <classifier>mac-aarch64</classifier> -->
         </dependency>
 
         <dependency>
