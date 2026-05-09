@@ -319,46 +319,53 @@ public class AuctionService {
             if (auction.getSellerUsername().equals(username))
                 return new Response(RequestStatus.FAILED, "You cannot bid on your own auction");
 
-            Wallet wallet = user.getWallet();
-            
-            if (wallet.getAvailableBalance() < bidAmount)
-                return new Response(RequestStatus.FAILED, "Insufficient balance");
+            user.tryLock(5);
 
-            String prevBidderUsername = auction.getCurrentBidderUsername();
-            double prevBid = auction.getCurrentBid();
-            if (prevBidderUsername != null && prevBidderUsername.equals(username))
-                return new Response(RequestStatus.FAILED, "You are already the highest bidder");
-
-            Bid bid = new Bid(auction.getId(), username, bidAmount);
             try {
-                auction.placeBid(bid);
+                Wallet wallet = user.getWallet();
+                
+                if (wallet.getAvailableBalance() < bidAmount)
+                    return new Response(RequestStatus.FAILED, "Insufficient balance");
+    
+                String prevBidderUsername = auction.getCurrentBidderUsername();
+                double prevBid = auction.getCurrentBid();
+                if (prevBidderUsername != null && prevBidderUsername.equals(username))
+                    return new Response(RequestStatus.FAILED, "You are already the highest bidder");
+    
+                Bid bid = new Bid(auction.getId(), username, bidAmount);
+                try {
+                    auction.placeBid(bid);
+                }
+                catch (AuctionException | BidException e) {
+                    return new Response(RequestStatus.FAILED, e.getMessage());
+                }
+    
+                wallet.lockBalance(bidAmount);
+                User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
+                if (prevBidder != null) {
+                    prevBidder.getWallet().unlockBalance(prevBid);
+                    publishLockedBalanceChange(prevBidderUsername, prevBid);
+                }
+    
+                bidDao.create(bid);
+                auctionDao.save(auction);
+    
+                AuctionDto auctionDto = AuctionMapper.toDto(auction);
+                AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
+                if (auctionChannel != null)
+                    auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
+    
+                //save changes to database after placing bid.
+                if (prevBidder != null)
+                    userDao.save(prevBidder, false);
+    
+                logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
+    
+                return new Response(RequestStatus.SUCCESS, "Place bid successfully");
             }
-            catch (AuctionException | BidException e) {
-                return new Response(RequestStatus.FAILED, e.getMessage());
+            finally {
+                user.unlock();
             }
-
-            wallet.lockBalance(bidAmount);
-            User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
-            if (prevBidder != null) {
-                prevBidder.getWallet().unlockBalance(prevBid);
-                publishLockedBalanceChange(prevBidderUsername, prevBid);
-            }
-
-            bidDao.create(bid);
-            auctionDao.save(auction);
-
-            AuctionDto auctionDto = AuctionMapper.toDto(auction);
-            AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
-            if (auctionChannel != null)
-                auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
-
-            //save changes to database after placing bid.
-            if (prevBidder != null)
-                userDao.save(prevBidder, false);
-
-            logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
-
-            return new Response(RequestStatus.SUCCESS, "Place bid successfully");
         });
     }
 
