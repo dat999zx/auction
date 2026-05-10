@@ -203,7 +203,7 @@ public class UserProfileController {
     @FXML
     private void handleChangePassword() {
         try {
-            userProfileClientService.changePasswordPreview(
+            userProfileClientService.changePassword(
                 currentPasswordField.getText(),
                 newPasswordField.getText(),
                 confirmPasswordField.getText()
@@ -211,7 +211,10 @@ public class UserProfileController {
             currentPasswordField.clear();
             newPasswordField.clear();
             confirmPasswordField.clear();
-            showMessage("Password change passed client validation. Add server-side password update handling to make it real.", true);
+            showMessage("Password updated successfully.", true);
+        }
+        catch (IOException e) {
+            showMessage("Cannot connect to server.", false);
         }
         catch (ValidationException e) {
             showMessage(e.getMessage(), false);

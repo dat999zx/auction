@@ -36,6 +36,8 @@ public class TransactionService {
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_TRANSACTION_HISTORY, (client, req) -> getUserTransactions(client));
+        router.register(RequestType.DEPOSIT, this::deposit);
+        router.register(RequestType.WITHDRAW, this::withdraw);
     }
 
     public Response deposit(ClientHandler client, Request request) {
