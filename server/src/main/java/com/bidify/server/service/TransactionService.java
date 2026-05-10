@@ -16,6 +16,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.dispatcher.RequestDispatcher;
+import com.bidify.server.exception.InsufficientBalanceException;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Wallet;
@@ -39,9 +40,11 @@ public class TransactionService {
 
     public Response deposit(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
-            User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
+            ServiceUtil.validateRequestData(data);
             ServiceUtil.requireSession(client);
+
+            User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());
 
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
@@ -67,7 +70,7 @@ public class TransactionService {
             Wallet wallet = user.getWallet();
 
             if (wallet.getAvailableBalance() < amount)
-                throw new ValidationException("Insufficient available balance");
+                throw new InsufficientBalanceException("Insufficient available balance");
 
             wallet.withdraw(amount);
             userDao.save(user, false);

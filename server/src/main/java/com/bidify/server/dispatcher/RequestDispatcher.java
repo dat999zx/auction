@@ -22,7 +22,7 @@ public class RequestDispatcher extends Router<RequestType, RequestHandler> {
 
             RequestHandler handler = getHandler(request.getType());
             if (handler == null)
-                throw new ValidationException("Unsupported request");
+                throw new ValidationException("Unsupported request type: " + request.getType());
 
             return handler.handle(client, request);
         });

@@ -78,6 +78,9 @@ public class AuthService {
             String username = data.getUsername();
             String password = data.getPassword();
 
+            ValidationUtil.requiresNonBlank(username, "Username");
+            ValidationUtil.requiresNonBlank(password, "Password");
+
             if (client.isInSession())
                 throw new AuthException("You are already logged in");
 

@@ -1,7 +1,7 @@
 package com.bidify.server.utility;
 
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.exception.ValidationException;
+import com.bidify.common.exception.*;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
@@ -10,7 +10,6 @@ import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.exception.InsufficientBalanceException;
 import com.bidify.server.exception.ServerTimeOutException;
-import com.bidify.server.exception.UnauthorizedException;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
@@ -24,9 +23,6 @@ public class ServiceUtil {
     private ServiceUtil() {}
 
     // gọi cái này để đỡ phải try-catch
-    // handleRequest(() -> {
-    //     ...
-    // });
     public static Response handleRequest(Supplier<Response> action) {
         try {
             return action.get();
@@ -34,7 +30,8 @@ public class ServiceUtil {
         catch (DateTimeParseException e) {
             return new Response(RequestStatus.FAILED, "Invalid date time format");
         }
-        catch (UnauthorizedException | ValidationException | InsufficientBalanceException | ServerTimeOutException | DatabaseException e) {
+        catch (ValidationException | AuthException | AuctionException | BidException |
+               InsufficientBalanceException | ServerTimeOutException | DatabaseException e) {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
         catch (Exception e) {
@@ -50,6 +47,7 @@ public class ServiceUtil {
         if (user != null) return user;
 
         user = userDao.findByUsername(username);
+        if (user == null) throw new AuthException("User not found: " + username);
 
         double lockedBalance = auctionDao.sumWinningBidsForUser(username);
         user.getWallet().setlockedBalance(lockedBalance);

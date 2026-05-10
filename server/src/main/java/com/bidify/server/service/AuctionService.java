@@ -293,6 +293,8 @@ public class AuctionService {
             String auctionId = data.getAuctionId();
             String username = client.getCurrentUsername();
 
+            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
+
             if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
                 throw new AuctionException("You are not watching this auction");
 
