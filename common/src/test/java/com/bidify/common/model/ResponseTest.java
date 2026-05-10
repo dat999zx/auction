@@ -7,20 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.bidify.common.enums.RequestStatus;
 
 public class ResponseTest {
-    
-    @Test
-    void defaultConstructorSetsNotFound() {
-        // Tạo Response mà không truyền tham số nào
-        Response response = new Response();
-        
-        // Kiểm tra default values
-        // - Status phải là NOT_FOUND (default value từ constructor)
-        // - Message và Data phải null (vì không set)
-        assertEquals(RequestStatus.NOT_FOUND, response.getStatus());
-        assertNull(response.getMessage());
-        assertNull(response.getData());
-    }
-    
     @Test
     void constructorWithStatusAndMessage() {
         // Tạo Response với status và message (dùng cho login/register response)
@@ -69,11 +55,11 @@ public class ResponseTest {
     @Test
     void responseWithErrorStatus() {
         // Tạo error response (khi validation fail hoặc exception xảy ra)
-        Response errorResponse = new Response(RequestStatus.ERROR, "Invalid input");
+        Response errorResponse = new Response(RequestStatus.FAILED, "Invalid input");
         
         // Kiểm tra error status và message được truyền đúng
         // Client sẽ dùng để hiển thị lỗi cho user
-        assertEquals(RequestStatus.ERROR, errorResponse.getStatus());
+        assertEquals(RequestStatus.FAILED, errorResponse.getStatus());
         assertEquals("Invalid input", errorResponse.getMessage());
     }
     

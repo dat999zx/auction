@@ -72,7 +72,7 @@ public class User extends Entity {
         }
         catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new ServerTimeOutException("Server timed out, try again later");
+            throw new ServerTimeOutException();
         }
     }
 }

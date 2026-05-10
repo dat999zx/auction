@@ -6,7 +6,7 @@ public class InsufficientBalanceException extends RuntimeException {
     }
     
     public InsufficientBalanceException() {
-        super("Insufficient balance to perform this action");
+        super("Insufficient balance");
     }
 
     public InsufficientBalanceException(String message, double available, double required) {

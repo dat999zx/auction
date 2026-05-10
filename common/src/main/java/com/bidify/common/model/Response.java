@@ -7,7 +7,6 @@ public class Response {
     private String message;
     private Object data;
 
-    public Response() { this.status = RequestStatus.NOT_FOUND; }
     public Response(RequestStatus status, String message) {
         this.status = status;
         this.message = message;
