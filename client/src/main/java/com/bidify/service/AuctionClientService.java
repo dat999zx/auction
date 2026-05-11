@@ -11,9 +11,10 @@ import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
-import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.model.SearchAuctionRequest;
+import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
 
@@ -57,6 +58,13 @@ public class AuctionClientService {
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
+
+    public Response updateAuction(UpdateAuctionRequest data) throws IOException {
+        Response response = client.send(new Request(RequestType.UPDATE_AUCTION, data));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
 
     public Response placeBid(String auctionId, double bidAmount) throws IOException {
         Response response = client.send(new Request(RequestType.PLACE_BID, new PlaceBidRequest(auctionId, bidAmount)));

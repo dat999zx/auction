@@ -8,13 +8,15 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.NotificationUtil;
@@ -28,9 +30,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
@@ -210,7 +209,7 @@ public class CreateAuctionController {
             Response response = auctionClientService.createAuction(data);
             logger.info(response.getMessage());
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                NotificationUtil.success("Create new Auction successfully");
+                NotificationUtil.success("Created new Auction successfully");
                 SceneManager.clearCache("create-auction.fxml");
                 SceneManager.switchScene("hub.fxml", false, true);
             }

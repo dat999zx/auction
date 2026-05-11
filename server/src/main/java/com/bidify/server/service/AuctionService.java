@@ -15,7 +15,6 @@ import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.AuthException;
-import com.bidify.common.exception.BidException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
@@ -170,15 +169,17 @@ public class AuctionService {
             String auctionName = data.getAuctionName();
             String description = data.getDescription();
             double startingPrice = data.getStartingPrice();
+            double minIncrement = data.getMinIncrement();
             LocalDateTime startTime = parseDateTime(data.getStartTime());
             LocalDateTime endTime = parseDateTime(data.getEndTime());
 
-            validateAuctionFields(auction.getSellerUsername(), auctionName, description, auction.getCategory(), auction.getProductType(), startingPrice, auction.getMinIncrement());
+            validateAuctionFields(auction.getSellerUsername(), auctionName, description, auction.getCategory(), auction.getProductType(), startingPrice, minIncrement);
             validateAuctionTime(startTime, endTime);
 
             auction.setAuctionName(auctionName);
             auction.setDescription(description);
             auction.setStartingPrice(startingPrice);
+            auction.setMinIncrement(minIncrement);
             auction.setStartTime(startTime);
             auction.setEndTime(endTime);
 
