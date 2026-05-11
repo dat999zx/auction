@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.utility.IdGenerator;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.AuctionImage;
 
 // giao tiếp với SQLite database về bảng Auctions
 public class AuctionDao {
@@ -161,4 +163,33 @@ public class AuctionDao {
             return rs.getDouble(1);
         }, username);
     }
-}
+
+    // lưu các AuctionImage
+    public void saveAuctionImages(String auctionId, List<String> filePaths) throws DatabaseException {
+        String sql = "INSERT INTO AuctionImages(id, createdAt, auctionId, filePath, isPrimary) VALUES (?, ?, ?, ?, ?)";
+        for (int i = 0; i < filePaths.size(); i++) {
+            String imageId = IdGenerator.genImageId();
+            String createdAt = LocalDateTime.now().toString();
+            int isPrimary = (i == 0) ? 1 : 0; // ảnh đầu là ảnh chính
+            SQLiteHelper.update(sql, imageId, createdAt, auctionId, filePaths.get(i), isPrimary);
+        }
+    }
+
+    // lấy các AuctionImage theo auctionId
+    public List<AuctionImage> getAuctionImages(String auctionId) throws DatabaseException {
+        String sql = "SELECT * FROM AuctionImages WHERE auctionId = ?";
+        return SQLiteHelper.query(sql, rs -> {
+            List<AuctionImage> images = new ArrayList<>();
+            while (rs.next()) {
+                images.add(new AuctionImage(
+                    rs.getString("id"),
+                    LocalDateTime.parse(rs.getString("createdAt")),
+                    rs.getString("auctionId"),
+                    rs.getString("filePath"),
+                    rs.getInt("isPrimary") == 1
+                ));
+            }
+            return images;
+        }, auctionId);
+    }
+    }

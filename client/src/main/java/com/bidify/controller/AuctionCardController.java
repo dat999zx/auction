@@ -5,8 +5,15 @@ import com.bidify.common.utility.DisplayUtil;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 
 public class AuctionCardController {
+    @FXML
+    private ImageView auctionImageView;
     @FXML
     private Label timerText;
     @FXML
@@ -40,6 +47,18 @@ public class AuctionCardController {
             currentBidder.setText(auction.getCurrentBidderUsername());
         }
         sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSellerUsername(), "Unknown"));
+
+        if (auction.getThumbnailBase64() != null && !auction.getThumbnailBase64().isEmpty()) {
+            try {
+                byte[] imageBytes = Base64.getDecoder().decode(auction.getThumbnailBase64());
+                auctionImageView.setImage(new Image(new ByteArrayInputStream(imageBytes)));
+            } catch (Exception e) {
+                // set về default nếu fail
+                auctionImageView.setImage(null);
+            }
+        } else {
+            auctionImageView.setImage(null);
+        }
     }
 
     @FXML

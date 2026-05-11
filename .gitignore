@@ -18,6 +18,10 @@ logs/
 *.db-shm
 *.db-wal
 
+# Cache
+uploads/
+server/uploads/
+
 # Maven / build cache
 .m2/
 *.lst

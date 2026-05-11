@@ -38,16 +38,18 @@ public class HistoryController {
         missionBarController.setLogoutHandler(event -> handleLogout());
         missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
         missionBarController.setAvatarText(resolveAvatarLetter());
-        missionBarController.setActiveNavigation(null); 
+        missionBarController.setActiveNavigation(missionBarController.getHistoryButton()); 
     }
 
     private void handleSelection(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) return;
         
         if (selectedButton == missionBarController.getAuctionsButton()) {
-            SceneManager.switchScene("hub.fxml", true, true);
+            SceneManager.switchScene("hub.fxml", false, true);
         } else if (selectedButton == missionBarController.getCreateAuctionButton()) {
             SceneManager.switchScene("create-auction.fxml", false, true);
+        } else if (selectedButton == missionBarController.getHistoryButton()) {
+            SceneManager.switchScene("history.fxml", false, true);
         }
     }
 
