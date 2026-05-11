@@ -135,6 +135,7 @@ public class UserProfileController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);

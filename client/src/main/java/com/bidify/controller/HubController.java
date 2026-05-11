@@ -11,6 +11,7 @@ import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.event.ActionEvent;
@@ -116,15 +117,20 @@ public class HubController {
         try {
             var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            logger.error("Logout failed: {}", response.getMessage());
+            NotificationUtil.error(response.getMessage());
         }
         catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
+        }
+        catch (com.bidify.common.exception.AuthException e) {
+            NotificationUtil.error(e.getMessage());
         }
     }
 

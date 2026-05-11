@@ -16,6 +16,7 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
@@ -55,8 +56,6 @@ public class AuctionDetailsController {
     @FXML
     private ImageView previewimage;
     @FXML
-    private Label messageLabel;
-    @FXML
     private Label latestBidderLabel;
     @FXML
     private Label latestBidAmountLabel;
@@ -94,7 +93,7 @@ public class AuctionDetailsController {
 
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
             Platform.runLater(() -> {
-                showMessage("No auction selected.", false);
+                NotificationUtil.error("No auction selected.");
                 placebid.setDisable(true);
             });
             return;
@@ -109,7 +108,7 @@ public class AuctionDetailsController {
         if (updatedAuction != null && selectedAuctionId.equals(updatedAuction.getId())) {
             Platform.runLater(() -> {
                 bindAuctionData(updatedAuction);
-                showMessage(event.getMessage(), true);
+                NotificationUtil.info(event.getMessage());
             });
         }
     }
@@ -122,7 +121,7 @@ public class AuctionDetailsController {
             Platform.runLater(() -> {
                 bindAuctionData(endedAuction);
                 placebid.setDisable(true);
-                showMessage("Auction has ended.", false);
+                NotificationUtil.info("Auction has ended.");
             });
         }
     }
@@ -145,14 +144,14 @@ public class AuctionDetailsController {
     @FXML
     private void handlePlaceBid() {
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
-            showMessage("No auction selected.", false);
+            NotificationUtil.error("No auction selected.");
             placebid.setDisable(true);
             return;
         }
 
         String rawBid = inputprice.getText() == null ? "" : inputprice.getText().trim().replace(",", "");
         if (rawBid.isBlank()) {
-            showMessage("Enter a bid amount first.", false);
+            NotificationUtil.error("Enter a bid amount first.");
             return;
         }
 
@@ -160,30 +159,30 @@ public class AuctionDetailsController {
         try {
             bidAmount = Double.parseDouble(rawBid);
         } catch (NumberFormatException e) {
-            showMessage("Bid amount must be a valid number.", false);
+            NotificationUtil.error("Bid amount must be a valid number.");
             return;
         }
 
         if (bidAmount <= currentDisplayedPrice) {
-            showMessage("Your bid must be higher than the current price.", false);
+            NotificationUtil.error("Your bid must be higher than the current price.");
             return;
         }
 
         try {
             Response response = auctionClientService.placeBid(selectedAuctionId, bidAmount);
             if (response.getStatus() != RequestStatus.SUCCESS) {
-                showMessage(response.getMessage() == null ? "Failed to place bid." : response.getMessage(), false);
+                NotificationUtil.error(response.getMessage() == null ? "Failed to place bid." : response.getMessage());
                 return;
             }
 
             inputprice.clear();
-            showMessage(response.getMessage() == null ? "Bid placed successfully." : response.getMessage(), true);
+            NotificationUtil.success(response.getMessage() == null ? "Bid placed successfully." : response.getMessage());
             loadAuctionDetails(selectedAuctionId);
         } catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
         } catch (AuctionException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
@@ -221,17 +220,16 @@ public class AuctionDetailsController {
                 Platform.runLater(() -> {
                     bindAuctionData(auction);
                     placebid.setDisable(false);
-                    showMessage("Auction loaded.", true);
                 });
             } catch (IOException e) {
                 logger.error("Exception occurred", e);
                 Platform.runLater(() -> {
-                    showMessage("Cannot connect to server.", false);
+                    NotificationUtil.error("Cannot connect to server.");
                     placebid.setDisable(true);
                 });
             } catch (AuctionException e) {
                 Platform.runLater(() -> {
-                    showMessage(e.getMessage(), false);
+                    NotificationUtil.error(e.getMessage());
                     placebid.setDisable(true);
                 });
             }
@@ -244,7 +242,7 @@ public class AuctionDetailsController {
         try {
             auctionClientService.join(auctionId);
         } catch (IOException e) {
-            Platform.runLater(() -> showMessage("Auction loaded, but live bid updates could not be joined.", false));
+            Platform.runLater(() -> NotificationUtil.error("Auction loaded, but live bid updates could not be joined."));
         } catch (AuctionException e) {
             // Being already joined should not block the detail screen.
         }
@@ -290,7 +288,6 @@ public class AuctionDetailsController {
         currentprice.setText("Loading...");
 
         enddate.setText("Loading...");
-        messageLabel.setText("");
 
         latestBidderLabel.setText("Latest bid");
         latestBidAmountLabel.setText("Live value shown above");
@@ -327,17 +324,6 @@ public class AuctionDetailsController {
         }
     }
 
-    private void showMessage(String message, boolean success) {
-        if (messageLabel == null) {
-            return;
-        }
-        messageLabel.setText(message);
-        messageLabel.getStyleClass().removeAll("message-success", "message-error");
-        if (!message.isBlank()) {
-            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
-        }
-    }
-
     @FXML
     private void handleLogout() {
         String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
@@ -352,17 +338,18 @@ public class AuctionDetailsController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            showMessage(response.getMessage() == null ? "Logout failed." : response.getMessage(), false);
+            NotificationUtil.error(response.getMessage() == null ? "Logout failed." : response.getMessage());
         } catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
         } catch (com.bidify.common.exception.AuthException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 

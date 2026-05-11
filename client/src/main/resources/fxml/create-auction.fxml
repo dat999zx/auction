@@ -214,7 +214,7 @@
                     <Separator />
 
                     <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                        <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
+
                         <Button mnemonicParsing="false" onAction="#createAuction" styleClass="primary-button-large" text="Create Auction" />
                     </HBox>
 

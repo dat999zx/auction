@@ -4,6 +4,7 @@ import java.io.IOException;
 import com.bidify.network.SocketClient;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -54,6 +55,7 @@ public class HistoryController {
         try {
             var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
             }

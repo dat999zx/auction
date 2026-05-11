@@ -17,6 +17,7 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
@@ -25,7 +26,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
@@ -35,8 +35,6 @@ import org.slf4j.LoggerFactory;
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    @FXML
-    private Label messageLabel;
 
     @FXML
     private TextField productNameField;
@@ -156,6 +154,7 @@ public class CreateAuctionController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
@@ -169,7 +168,6 @@ public class CreateAuctionController {
     @FXML
     private void createAuction() {
         try {
-            showMessage("", false);
             String productName = productNameField.getText() == null ? "" : productNameField.getText().trim();
             String description = descriptionArea.getText() == null ? "" : descriptionArea.getText().trim();
             String category = categoryComboBox.getValue();
@@ -212,30 +210,20 @@ public class CreateAuctionController {
             Response response = auctionClientService.createAuction(data);
             logger.info(response.getMessage());
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                showMessage("Create new Auction successfully", true);
+                NotificationUtil.success("Create new Auction successfully");
                 SceneManager.clearCache("create-auction.fxml");
                 SceneManager.switchScene("hub.fxml", false, true);
             }
         }
         catch (AuctionException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
         catch (IOException e) {
-            showMessage("Cannot connect to server", false);
+            NotificationUtil.error("Cannot connect to server");
             logger.error("Exception occurred", e);
         }
         catch (ValidationException | NumberFormatException e) {
-            showMessage(e.getMessage(), false);
-        }
-    }
-    
-
-    private void showMessage(String message, boolean success) {
-        if (messageLabel == null) return;
-        messageLabel.setText(message);
-        messageLabel.getStyleClass().removeAll("message-success", "message-error");
-        if (!message.isBlank()) {
-            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
+            NotificationUtil.error(e.getMessage());
         }
     }
 

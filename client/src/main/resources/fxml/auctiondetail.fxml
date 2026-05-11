@@ -187,7 +187,7 @@
                                         <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
             
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
-                                        <Label fx:id="messageLabel" styleClass="footnote-text" text="Auction is loading..." wrapText="true" />
+
                                     </VBox>
                                 </VBox>
                         <padding>
