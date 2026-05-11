@@ -42,6 +42,9 @@ public class HubController {
     private Button createAuctionButton;
 
     @FXML
+    private Button historyButton;
+
+    @FXML
     private VBox liveAuctionsContainer;
 
     @FXML
@@ -99,6 +102,9 @@ public class HubController {
         if (selectedButton == createAuctionButton) {
             cleanup();
             handleCreateAuction();
+        } else if (selectedButton == historyButton) {
+            cleanup();
+            SceneManager.switchScene("history.fxml", false, true);
         }
 
     }
@@ -243,7 +249,7 @@ public class HubController {
     }
 
     private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml", false, false);
+        SceneManager.switchScene("create-auction.fxml", false, true);
     }
 
     private void bindTopBar() {
@@ -255,6 +261,7 @@ public class HubController {
         searchBar = missionBarController.getSearchBar();
         auctionsButton = missionBarController.getAuctionsButton();
         createAuctionButton = missionBarController.getCreateAuctionButton();
+        historyButton = missionBarController.getHistoryButton();
         missionBarController.setShowExplore(true);
         missionBarController.setShowSearch(true);
         missionBarController.setUseInlineLogout(true);

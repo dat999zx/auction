@@ -30,8 +30,6 @@
 
             <HBox alignment="CENTER_LEFT" spacing="24.0">
                 <HBox alignment="CENTER_LEFT" spacing="18.0">
-                    <Button fx:id="auctionsButton" styleClass="top-link" text="Auctions" />
-                    <Button fx:id="createAuctionButton" styleClass="top-link" text="Create Auction" />
                     <Button fx:id="logoutLinkButton" managed="false" styleClass="top-link" text="Logout" visible="false" />
                 </HBox>
 
@@ -67,7 +65,7 @@
                         <padding>
                             <Insets bottom="0.0" left="16.0" right="16.0" top="0.0" />
                         </padding>
-                        <Button fx:id="homeButton" onAction="#handleSidebarClick" styleClass="side-nav-button-active" text="Home " />
+                        <Button fx:id="auctionsButton" styleClass="side-nav-button-active" text="Home " />
                         
                         <VBox spacing="2.0">
                             <Button fx:id="myAccountButton" onAction="#handleAccountToggle" styleClass="side-nav-button" text="My Account" maxWidth="Infinity" />
@@ -87,9 +85,9 @@
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Analytics" maxWidth="Infinity" />
+                                <Button fx:id="historyButton" styleClass="side-nav-sub-button" text="• History" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• My Auctions" maxWidth="Infinity" />
+                                <Button fx:id="createAuctionButton" styleClass="side-nav-sub-button" text="• Create Auctions" maxWidth="Infinity" />
                             </VBox>
                         </VBox>
                     </VBox>

@@ -30,16 +30,19 @@ public class MissionBarController {
     private TextField searchBar;
 
     @FXML
-    private Button auctionsButton;
+    private Button auctionsButton; // This is the 'Home' button in sidebar
 
     @FXML
-    private Button createAuctionButton;
+    private Button createAuctionButton; // This is the 'Create Auctions' button in sidebar sub-menu
 
     @FXML
     private Button logoutButton;
 
     @FXML
     private Button logoutLinkButton;
+
+    @FXML
+    private Button historyButton;
 
     @FXML
     private Label avatarText;
@@ -55,9 +58,6 @@ public class MissionBarController {
 
     @FXML
     private VBox sidebarContent;
-
-    @FXML
-    private Button homeButton;
 
     @FXML
     private Button myAccountButton;
@@ -76,7 +76,7 @@ public class MissionBarController {
 
     @FXML
     private void initialize() {
-        leftSideActiveButton = homeButton; // Mặc định active home
+        leftSideActiveButton = auctionsButton; // Mặc định active home
         double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
@@ -171,6 +171,7 @@ public class MissionBarController {
     public Button getCreateAuctionButton() { return createAuctionButton; }
     public Button getLogoutButton() { return logoutButton; }
     public Button getLogoutLinkButton() { return logoutLinkButton; }
+    public Button getHistoryButton() { return historyButton; }
 
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
@@ -193,6 +194,9 @@ public class MissionBarController {
         auctionsButton.setOnAction(handler);
         createAuctionButton.setOnAction(handler);
         logoutLinkButton.setOnAction(handler);
+        if (historyButton != null) {
+            historyButton.setOnAction(handler);
+        }
     }
 
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {
@@ -212,8 +216,10 @@ public class MissionBarController {
     }
 
     public void setActiveNavigation(Button activeButton) {
-        updateNavButtonStyle(auctionsButton, activeButton == auctionsButton);
-        updateNavButtonStyle(createAuctionButton, activeButton == createAuctionButton);
+        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton) {
+            updateSidebarButtonStyle(activeButton);
+        }
+        
         updateNavButtonStyle(logoutLinkButton, activeButton == logoutLinkButton);
     }
 
