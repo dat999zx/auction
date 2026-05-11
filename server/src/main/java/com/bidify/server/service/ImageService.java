@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 
 public class ImageService {
     private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
-    private static final ImageService instance = new ImageService();
     private static final String UPLOAD_DIR = resolveUploadPath();
+    private static final ImageService instance = new ImageService();
 
     private ImageService() {
         try {
