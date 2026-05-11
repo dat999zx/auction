@@ -18,7 +18,6 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.NotificationUtil;
@@ -80,13 +79,10 @@ public class CreateAuctionController {
     private TextField endTimeField;
 
     @FXML
-    private Button backButton;
+    private Button auctionsButton;
 
     @FXML
-    private Button managementButton;
-
-    @FXML
-    private Button CreateAuctionButton;
+    private Button createAuctionButton;
 
     @FXML
     private Button historyButton;
@@ -98,12 +94,15 @@ public class CreateAuctionController {
     private FlowPane imagePreviewPane;
 
     private final List<File> selectedImageFiles = new ArrayList<>();
+    private MissionBarController missionBarController;
+
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
+            bindTopBar();
 
             if (categoryComboBox != null) {
                 categoryComboBox.getItems().setAll(
@@ -119,10 +118,12 @@ public class CreateAuctionController {
 
             if (startDatePicker != null) {
                 startDatePicker.setEditable(false);
+                startDatePicker.setValue(LocalDate.now());
             }
 
             if (endDatePicker != null) {
                 endDatePicker.setEditable(false);
+                endDatePicker.setValue(LocalDate.now().plusDays(7));
             }
 
             if (startTimeField != null) {
@@ -193,29 +194,14 @@ public class CreateAuctionController {
     }
 
     @FXML
-    private void handleSubNavClick(ActionEvent event) {
+    private void handleSelection(ActionEvent event) {
         if (!(event.getSource() instanceof Button clickedButton)) return;
 
-        if (clickedButton == backButton) {
+        if (clickedButton == auctionsButton) {
             SceneManager.switchScene("hub.fxml", false, true);
-        } else if (clickedButton == managementButton) {
-            // Future logic for management dashboard
-        } else if (clickedButton == CreateAuctionButton) {
-            SceneManager.switchScene("create-auction.fxml", false, false);
         } else if (clickedButton == historyButton) {
             SceneManager.switchScene("history.fxml", false, true);
         }
-        updateSubNavButtonStyle(clickedButton);
-    }
-
-    private void updateSubNavButtonStyle(Button activeButton) {
-        if (activeButton == null) return;
-        Button[] buttons = {backButton, managementButton, CreateAuctionButton, historyButton};
-        for (Button button : buttons) {
-            button.getStyleClass().removeAll("top-link-active", "top-link");
-            button.getStyleClass().add("top-link");
-        }
-        activeButton.getStyleClass().add("top-link-active");
     }
 
     @FXML
@@ -238,39 +224,45 @@ public class CreateAuctionController {
             }
             logger.error("Logout failed: {}", response.getMessage());
         } catch (IOException e) {
-            logger.error("Cannot connect to server while logging out");
-            logger.error("Exception occurred", e);
+            logger.error("Cannot connect to server while logging out", e);
+            NotificationUtil.error("Logout failed: Connection error");
         }
     }
+
+    @FXML
+    private void toggleSidebar() {
+        if (missionBarController != null) {
+            missionBarController.toggleSidebar();
+        }
+    }
+
     @FXML
     private void createAuction() {
         try {
-            String productName = productNameField.getText() == null ? "" : productNameField.getText().trim();
-            String description = descriptionArea.getText() == null ? "" : descriptionArea.getText().trim();
+            validateInputs();
+
+            String productName = productNameField.getText().trim();
+            String description = descriptionArea.getText().trim();
             String category = categoryComboBox.getValue();
             String productType = productTypeComboBox.getValue();
             double startingPrice = parseAmount(startingPriceField.getText(), "Starting price");
             double minIncrement = parseAmount(minIncrementField.getText(), "Min increment");
+            
             LocalDate startDate = startDatePicker.getValue();
-            LocalDate endDate = endDatePicker.getValue();
             LocalTime startTime = parseTime(startTimeField.getText(), "Start time");
+            LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
+
+            LocalDate endDate = endDatePicker.getValue();
             LocalTime endTime = parseTime(endTimeField.getText(), "End time");
-            LocalDateTime startDateTime;
-            LocalDateTime endDateTime;
-            
-            
-            // Validate startDate,Time
-            if (startDate == null || startTime == null || 
-                LocalDateTime.of(startDate, startTime).isBefore(LocalDateTime.now())) {
-                // Set to current date and time if invalid
-                startDate = LocalDate.now();
-                startDatePicker.setValue(startDate); // Update the DatePicker
-                startTime = LocalTime.now();
-                startTimeField.setText(startTime.format(TIME_FORMATTER)); // Update the TextField
+            LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+
+            if (startDateTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
+                throw new ValidationException("Start time cannot be in the past");
             }
 
-            startDateTime = LocalDateTime.of(startDate, startTime);
-            endDateTime = LocalDateTime.of(endDate, endTime);
+            if (endDateTime.isBefore(startDateTime.plusHours(1))) {
+                throw new ValidationException("End time must be at least 1 hour after start time");
+            }
 
             // convert images to Base64
             List<String> imagesBase64 = new ArrayList<>();
@@ -293,34 +285,54 @@ public class CreateAuctionController {
             );
 
             Response response = auctionClientService.createAuction(data);
-            logger.info(response.getMessage());
             if (response.getStatus() == RequestStatus.SUCCESS) {
-                NotificationUtil.success("Create new Auction successfully");
+                NotificationUtil.success("Auction created successfully");
                 SceneManager.clearCache("create-auction.fxml");
                 SceneManager.switchScene("hub.fxml", false, true);
+            } else {
+                NotificationUtil.error(response.getMessage());
             }
         }
-        catch (AuctionException e) {
+        catch (AuctionException | ValidationException | NumberFormatException e) {
             NotificationUtil.error(e.getMessage());
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server or process images");
             logger.error("Exception occurred", e);
         }
-        catch (ValidationException | NumberFormatException e) {
-            NotificationUtil.error(e.getMessage());
+    }
+
+    private void validateInputs() {
+        ValidationUtil.requiresNonBlank(productNameField.getText(), "Product name");
+        ValidationUtil.requiresNonBlank(descriptionArea.getText(), "Description");
+        
+        if (categoryComboBox.getValue() == null) {
+            throw new ValidationException("Please select a category");
+        }
+        
+        if (productTypeComboBox.getValue() == null) {
+            throw new ValidationException("Please select a product type");
+        }
+
+        if (startDatePicker.getValue() == null) {
+            throw new ValidationException("Please select a start date");
+        }
+
+        if (endDatePicker.getValue() == null) {
+            throw new ValidationException("Please select an end date");
         }
     }
 
-    // check valid double trước khi parse để tránh lỗi
     private double parseAmount(String value, String fieldName) {
         String parseValue = value == null ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
 
         try {
-            return Double.parseDouble(parseValue);
+            double amount = Double.parseDouble(parseValue);
+            if (amount < 0) throw new ValidationException(fieldName + " cannot be negative");
+            return amount;
         } catch (NumberFormatException e) {
-            throw new NumberFormatException(fieldName + " must be a number");
+            throw new ValidationException(fieldName + " must be a valid number");
         }
     }
 
@@ -331,7 +343,33 @@ public class CreateAuctionController {
         try {
             return LocalTime.parse(parseValue, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ValidationException(fieldName + " must use HH:mm format");
+            throw new ValidationException(fieldName + " must use HH:mm format (e.g., 09:30)");
         }
+    }
+
+    private void bindTopBar() {
+        missionBarController = SceneManager.getMissionBarController();
+        if (missionBarController == null) {
+            throw new IllegalStateException("Mission bar was not loaded.");
+        }
+
+        auctionsButton = missionBarController.getAuctionsButton();
+        createAuctionButton = missionBarController.getCreateAuctionButton();
+        historyButton = missionBarController.getHistoryButton();
+        
+        missionBarController.setShowExplore(true);
+        missionBarController.setShowSearch(false);
+        missionBarController.setUseInlineLogout(true);
+        
+        missionBarController.setSelectionHandler(this::handleSelection);
+        missionBarController.setExploreHandler(event -> toggleSidebar());
+        missionBarController.setLogoutHandler(event -> handleLogout());
+        missionBarController.setAvatarHandler(event -> {
+            SceneManager.switchScene("user-profile.fxml", false, true);
+        });
+        
+        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        missionBarController.setAvatarText(username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "?");
+        missionBarController.setActiveNavigation(createAuctionButton);
     }
 }
