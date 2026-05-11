@@ -1,10 +1,13 @@
 package com.bidify.common.model;
 
+import java.util.List;
+
 public class CreateAuctionRequest {
     private String seller;
     private String auctionName, description, category, productType;
     private double startingPrice, minIncrement;
     private String startTime, endTime;
+    private List<String> imagesBase64;
 
     public CreateAuctionRequest(
         String seller,
@@ -15,7 +18,8 @@ public class CreateAuctionRequest {
         double startingPrice,
         double minIncrement,
         String startTime,
-        String endTime
+        String endTime,
+        List<String> imagesBase64
     ) {
         this.seller = seller;
         this.auctionName = name;
@@ -26,6 +30,7 @@ public class CreateAuctionRequest {
         this.minIncrement = minIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.imagesBase64 = imagesBase64;
     }
 
     public String getAuctionName() { return auctionName; }
@@ -45,4 +50,6 @@ public class CreateAuctionRequest {
     public String getStartTime() { return startTime; }
 
     public String getSeller(){ return seller; }
+
+    public List<String> getImagesBase64() { return imagesBase64; }
 }

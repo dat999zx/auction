@@ -204,7 +204,8 @@ public class CreateAuctionController {
                 startingPrice,
                 minIncrement,
                 startDateTime.toString(),
-                endDateTime.toString()
+                endDateTime.toString(),
+                null
             );
 
             Response response = auctionClientService.createAuction(data);
