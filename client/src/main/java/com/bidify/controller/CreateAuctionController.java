@@ -1,11 +1,15 @@
 package com.bidify.controller;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 import com.bidify.common.enums.RequestStatus;
@@ -23,11 +27,19 @@ import com.bidify.utility.SceneManager;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.StackPane;
+import javafx.stage.FileChooser;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +47,7 @@ import org.slf4j.LoggerFactory;
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final int MAX_IMAGES = 10;
 
     @FXML
     private TextField productNameField;
@@ -78,6 +91,13 @@ public class CreateAuctionController {
     @FXML
     private Button historyButton;
 
+    @FXML
+    private StackPane uploadBox;
+
+    @FXML
+    private FlowPane imagePreviewPane;
+
+    private final List<File> selectedImageFiles = new ArrayList<>();
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
@@ -113,6 +133,63 @@ public class CreateAuctionController {
                 endTimeField.setText("18:00");
             }
         });
+    }
+
+    @FXML
+    private void handleUploadClick(MouseEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Select Product Images");
+        fileChooser.getExtensionFilters().addAll(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+        );
+
+        List<File> files = fileChooser.showOpenMultipleDialog(uploadBox.getScene().getWindow());
+        if (files != null) {
+            for (File file : files) {
+                if (selectedImageFiles.size() >= MAX_IMAGES) {
+                    NotificationUtil.error("Maximum " + MAX_IMAGES + " images allowed.");
+                    break;
+                }
+                if (!selectedImageFiles.contains(file)) {
+                    selectedImageFiles.add(file);
+                }
+            }
+            renderImagePreviews();
+        }
+    }
+
+    private void renderImagePreviews() {
+        imagePreviewPane.getChildren().clear();
+        for (File file : selectedImageFiles) {
+            StackPane tile = new StackPane();
+            tile.getStyleClass().add("preview-tile");
+            tile.setPrefSize(84, 84);
+
+            ImageView imageView = new ImageView(new Image(file.toURI().toString()));
+            imageView.setFitWidth(84);
+            imageView.setFitHeight(84);
+            imageView.setPreserveRatio(false);
+
+            Button removeBtn = new Button("x");
+            removeBtn.getStyleClass().add("remove-image-button");
+            StackPane.setAlignment(removeBtn, Pos.TOP_RIGHT);
+            removeBtn.setOnAction(e -> {
+                selectedImageFiles.remove(file);
+                renderImagePreviews();
+            });
+
+            tile.getChildren().addAll(imageView, removeBtn);
+
+            // Add "Primary" label for the first image
+            if (selectedImageFiles.indexOf(file) == 0) {
+                Label primaryLabel = new Label("PRIMARY");
+                primaryLabel.setStyle("-fx-background-color: rgba(0,0,0,0.6); -fx-text-fill: white; -fx-font-size: 9px; -fx-padding: 2px 4px;");
+                StackPane.setAlignment(primaryLabel, Pos.BOTTOM_LEFT);
+                tile.getChildren().add(primaryLabel);
+            }
+
+            imagePreviewPane.getChildren().add(tile);
+        }
     }
 
     @FXML
@@ -195,6 +272,13 @@ public class CreateAuctionController {
             startDateTime = LocalDateTime.of(startDate, startTime);
             endDateTime = LocalDateTime.of(endDate, endTime);
 
+            // convert images to Base64
+            List<String> imagesBase64 = new ArrayList<>();
+            for (File file : selectedImageFiles) {
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+                imagesBase64.add(Base64.getEncoder().encodeToString(fileContent));
+            }
+
             CreateAuctionRequest data = new CreateAuctionRequest(
                 com.bidify.network.SocketClient.getClient().getCurrentUsername(),
                 productName,
@@ -205,7 +289,7 @@ public class CreateAuctionController {
                 minIncrement,
                 startDateTime.toString(),
                 endDateTime.toString(),
-                null
+                imagesBase64
             );
 
             Response response = auctionClientService.createAuction(data);
@@ -220,7 +304,7 @@ public class CreateAuctionController {
             NotificationUtil.error(e.getMessage());
         }
         catch (IOException e) {
-            NotificationUtil.error("Cannot connect to server");
+            NotificationUtil.error("Cannot connect to server or process images");
             logger.error("Exception occurred", e);
         }
         catch (ValidationException | NumberFormatException e) {
