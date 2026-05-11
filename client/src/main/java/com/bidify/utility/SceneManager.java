@@ -187,6 +187,10 @@ public final class SceneManager {
         return missionBarController;
     }
 
+    public static StackPane getOverlayLayer() {
+        return overlayLayer;
+    }
+
     private static Parent loadFxml(String fxml, boolean remember) throws Exception {
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
@@ -241,8 +245,9 @@ public final class SceneManager {
         overlayLayer.getChildren().setAll(loadingNode);
         overlayLayer.setAlignment(Pos.TOP_CENTER);
         overlayLayer.setStyle("-fx-background-color: rgba(0, 0, 0, 0);");
-        overlayLayer.setVisible(false);
-        overlayLayer.setManaged(false);
+        overlayLayer.setVisible(true);
+        overlayLayer.setManaged(true);
+        overlayLayer.setMouseTransparent(true);
 
         contentLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         overlayLayer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -268,15 +273,17 @@ public final class SceneManager {
     }
 
     private static void updateShellLayout() {
-        if (missionBarRoot == null) {
-            shell.getChildren().setAll(contentLayer, overlayLayer);
-            return;
+        shell.getChildren().clear();
+        shell.getChildren().add(contentLayer);
+        
+        if (missionBarRoot != null) {
+            missionBarRoot.setVisible(showMissionBar);
+            missionBarRoot.setManaged(showMissionBar);
+            StackPane.setMargin(contentLayer, new Insets(showMissionBar ? MISSION_BAR_HEIGHT : 0.0, 0.0, 0.0, 0.0));
+            shell.getChildren().add(missionBarRoot);
         }
-
-        missionBarRoot.setVisible(showMissionBar);
-        missionBarRoot.setManaged(showMissionBar);
-        StackPane.setMargin(contentLayer, new Insets(showMissionBar ? MISSION_BAR_HEIGHT : 0.0, 0.0, 0.0, 0.0));
-        shell.getChildren().setAll(contentLayer, missionBarRoot, overlayLayer);
+        
+        shell.getChildren().add(overlayLayer);
     }
 
     private static void showLoading(boolean visible) {
@@ -284,14 +291,11 @@ public final class SceneManager {
         if (visible) {
             animateShowLoading();
         } else {
-            if (overlayLayer.isVisible()) animateHideLoading();
-            else finishSwitchScene();
+            animateHideLoading();
         }
     }
 
     private static void animateShowLoading() {
-        overlayLayer.setVisible(true);
-        overlayLayer.setManaged(true);
         loadingNode.setVisible(true);
         loadingNode.setManaged(true);
 
@@ -310,8 +314,6 @@ public final class SceneManager {
     }
 
     private static void animateHideLoading() {
-        if (!overlayLayer.isVisible()) return;
-
         FadeTransition fade = new FadeTransition(Duration.millis(50), loadingNode);
         fade.setFromValue(loadingNode.getOpacity());
         fade.setToValue(0);
@@ -328,8 +330,6 @@ public final class SceneManager {
             loadingNode.setManaged(false);
             loadingNode.setOpacity(0);
             loadingNode.setTranslateY(-450);
-            overlayLayer.setVisible(false);
-            overlayLayer.setManaged(false);
             finishSwitchScene();
         });
         hide.play();
