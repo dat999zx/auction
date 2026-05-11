@@ -1,17 +1,20 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import com.bidify.network.SocketClient;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class HistoryController {
     private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);

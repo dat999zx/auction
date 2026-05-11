@@ -277,6 +277,7 @@ public class UserProfileController {
         createAuctionButton = missionBarController.getCreateAuctionButton();
         missionBarController.setShowExplore(false);
         missionBarController.setShowSearch(false);
+        missionBarController.setShowExplore(true);
         missionBarController.setUseInlineLogout(true);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setLogoutHandler(event -> handleLogout());
