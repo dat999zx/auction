@@ -1,6 +1,8 @@
 package com.bidify.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +29,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.shape.Rectangle;
 
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
@@ -55,6 +60,8 @@ public class AuctionDetailsController {
     private Button placebid;
     @FXML
     private ImageView previewimage;
+    @FXML
+    private GridPane thumbnailGrid;
     @FXML
     private Label latestBidderLabel;
     @FXML
@@ -277,7 +284,49 @@ public class AuctionDetailsController {
             latestBidTimeLabel.setText(DisplayUtil.formatDateTime(data.getCreatedAt(), "Unknown"));
         }
 
-        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+        // set primary image
+        if (data.getThumbnailBase64() != null)
+            setPreviewImageFromBase64(data.getThumbnailBase64());
+        else
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+
+        // setup gallery
+        setupThumbnailGallery(data);
+    }
+
+    private void setupThumbnailGallery(AuctionDto data) {
+        if (thumbnailGrid == null) return;
+        thumbnailGrid.getChildren().clear();
+
+        if (data.getGalleryBase64() == null || data.getGalleryBase64().isEmpty()) return;
+
+        int col = 0;
+        for (String base64 : data.getGalleryBase64()) {
+            if (col >= 4) break; // limit 4
+
+            StackPane thumbPane = new StackPane();
+            thumbPane.getStyleClass().add("thumb-card");
+            thumbPane.setPrefHeight(80.0);
+
+            try {
+                byte[] bytes = Base64.getDecoder().decode(base64);
+                Image img = new Image(new ByteArrayInputStream(bytes));
+                ImageView thumbView = new ImageView(img);
+                thumbView.setFitHeight(70.0);
+                thumbView.setFitWidth(150.0);
+                thumbView.setPreserveRatio(true);
+                thumbView.setSmooth(true);
+
+                thumbPane.getChildren().add(thumbView);
+                thumbPane.setOnMouseClicked(e -> previewimage.setImage(img));
+                thumbPane.setStyle("-fx-cursor: hand;");
+
+                thumbnailGrid.add(thumbPane, col++, 0);
+            }
+            catch (Exception e) {
+                logger.error("Failed to load gallery image", e);
+            }
+        }
     }
 
     private void resetView() {
@@ -296,11 +345,23 @@ public class AuctionDetailsController {
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
 
+        if (thumbnailGrid != null) thumbnailGrid.getChildren().clear();
+
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
     }
 
     // top bar handlers and miscellaneous
+
+    private void setPreviewImageFromBase64(String base64) {
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64);
+            previewimage.setImage(new Image(new ByteArrayInputStream(bytes)));
+        }
+        catch (Exception e) {
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+        }
+    }
 
     private void setPreviewImage(String imagePath) {
         if (previewimage == null) {

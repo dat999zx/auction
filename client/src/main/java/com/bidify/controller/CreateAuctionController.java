@@ -168,7 +168,7 @@ public class CreateAuctionController {
             ImageView imageView = new ImageView(new Image(file.toURI().toString()));
             imageView.setFitWidth(84);
             imageView.setFitHeight(84);
-            imageView.setPreserveRatio(false);
+            imageView.setPreserveRatio(true);
 
             Button removeBtn = new Button("x");
             removeBtn.getStyleClass().add("remove-image-button");

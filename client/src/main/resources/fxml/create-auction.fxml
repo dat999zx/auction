@@ -108,7 +108,7 @@
 
                         <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
                             <StackPane fx:id="uploadBox" onMouseClicked="#handleUploadClick" maxWidth="Infinity" prefHeight="130.0" styleClass="upload-box">
-                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="false">
+                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="true">
                                     <image>
                                         <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuApyd0CCvVBwnZ8dEarN_inuQTAjBareF0HNbk1d2BuLDy2sAUZs5hCsSO2JBay1mcIfbfUU3HYA2ricPCXaCoNTJdrq9A4DHEq1ayK5dwCsd5qAS-6_Jsi3SNQACx50H-9wtIQVmOgOKHqaoa1XE_zw5Z52oeN3vstORT6HcB-6goXtmOrOkX1sxIfw8nYOd-xWKB70bS7l0Cx-zFTek6z9XjHq15wRsIR6XAk3dtzuwUulSMNCfM7TD9TucVGVTd25rqwgo6b14w" />
                                     </image>

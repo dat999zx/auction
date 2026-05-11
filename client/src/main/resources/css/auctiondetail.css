@@ -206,12 +206,12 @@
 }
 
 .hero-image-card {
-    -fx-background-color: #ffffff;
+    -fx-background-color: #f9f9ff;
     -fx-background-radius: 12px;
     -fx-border-color: #d8e3fb;
     -fx-border-radius: 12px;
     -fx-border-width: 1px;
-    -fx-padding: 12px;
+    -fx-padding: 0;
 }
 
 .image-placeholder {
@@ -219,9 +219,9 @@
 }
 
 .live-pill {
-    -fx-background-color: rgba(255,255,255,0.92);
+    -fx-background-color: rgba(255,255,255,0.7);
     -fx-background-radius: 999px;
-    -fx-padding: 8 12 8 12;
+    -fx-padding: 4 8 4 8;
 }
 
 .live-dot {
