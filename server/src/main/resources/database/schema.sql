@@ -43,6 +43,7 @@ CREATE TABLE IF NOT EXISTS Auctions (
 -- TABLE AuctionImages
 CREATE TABLE IF NOT EXISTS AuctionImages (
     id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
     auctionId TEXT NOT NULL,
     filePath TEXT NOT NULL,
     isPrimary INTEGER DEFAULT 0 CHECK(isPrimary IN (0, 1)),

@@ -36,8 +36,10 @@ import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
+import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.exception.InsufficientBalanceException;
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.AuctionImage;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
@@ -55,6 +57,7 @@ public class AuctionService {
     private final UserDao userDao = UserDao.getInstance();
     private final BidDao bidDao = BidDao.getInstance();
     private final TransactionDao transactionDao = TransactionDao.getInstance();
+    private final ImageService imageService = ImageService.getInstance();
 
     private AuctionService() {}
 
@@ -102,7 +105,9 @@ public class AuctionService {
                 boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
                 boolean matchesSeller = auction.getSellerUsername() != null && auction.getSellerUsername().toLowerCase().contains(finalQuery);
                 if (matchesName || matchesDesc || matchesSeller) {
-                    results.add(AuctionMapper.toDto(auction));
+                    AuctionDto dto = AuctionMapper.toDto(auction);
+                    dto.setThumbnailBase64(getThumbnail(auction.getId()));
+                    results.add(dto);
                 }
             }
 
@@ -139,6 +144,13 @@ public class AuctionService {
             auction.setProductType(productType);
             auction.setMinIncrement(minIncrement);
             auctionDao.create(auction);
+
+            List<String> images = data.getImagesBase64();
+            if (images != null && !images.isEmpty()) {
+                List<String> savedPaths = imageService.saveImages(auction.getId(), images);
+                auctionDao.saveAuctionImages(auction.getId(), savedPaths);
+            }
+
             RealtimeDatabase.addRuntimeAuction(auction);
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);
@@ -238,6 +250,8 @@ public class AuctionService {
                 throw new AuctionException("Auction not found");
 
             AuctionDto auctionDto = AuctionMapper.toDto(auction);
+            auctionDto.setThumbnailBase64(getThumbnail(auctionId));
+            auctionDto.setGalleryBase64(getGallery(auctionId));
             return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auctionDto);
         });
     }
@@ -250,11 +264,45 @@ public class AuctionService {
             if (auctions == null || auctions.isEmpty())
                 return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
 
-            for (Auction auction : auctions)
-                summaries.add(AuctionMapper.toDto(auction));
+            for (Auction auction : auctions) {
+                AuctionDto dto = AuctionMapper.toDto(auction);
+                dto.setThumbnailBase64(getThumbnail(auction.getId()));
+                summaries.add(dto);
+            }
 
             return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
         });
+    }
+
+    // lấy ảnh chính
+    private String getThumbnail(String auctionId) {
+        try {
+            List<AuctionImage> images = auctionDao.getAuctionImages(auctionId);
+            for (AuctionImage image : images) {
+                if (image.isPrimary())
+                    return imageService.getBase64Image(image.getFilePath());
+            }
+        }
+        catch (DatabaseException e) {
+            logger.error("Error getting thumbnail", e);
+        }
+        return null;
+    }
+
+    // lấy tất cả ảnh của auction
+    private List<String> getGallery(String auctionId) {
+        List<String> gallery = new ArrayList<>();
+        try {
+            List<AuctionImage> images = auctionDao.getAuctionImages(auctionId);
+            for (AuctionImage image : images) {
+                String base64 = imageService.getBase64Image(image.getFilePath());
+                if (base64 != null) gallery.add(base64);
+            }
+        }
+        catch (DatabaseException e) {
+            logger.error("Error getting gallery", e);
+        }
+        return gallery;
     }
 
     public Response join(ClientHandler client, Request request){
