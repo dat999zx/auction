@@ -7,32 +7,24 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.EventType;
-import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
-import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.event.EventManager;
-import com.bidify.service.AuthClientService;
 import com.bidify.service.UserProfileClientService;
+import com.bidify.utility.MissionBarUtil;
+import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 public class UserProfileController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
-    @FXML
-    private Button auctionsButton;
-
-    @FXML
-    private Button createAuctionButton;
 
     @FXML
     private Label usernameValueLabel;
@@ -70,9 +62,6 @@ public class UserProfileController {
     @FXML
     private PasswordField confirmPasswordField;
 
-    private MissionBarController missionBarController;
-
-    private final AuthClientService authClientService = new AuthClientService();
     private final UserProfileClientService userProfileClientService = new UserProfileClientService();
 
     @FXML
@@ -101,55 +90,6 @@ public class UserProfileController {
         EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
         EventManager.getInstance().unsubscribe(EventType.LOCKED_WALLET_CHANGED, this::handleLockedWalletChanged);
         EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
-    }
-
-    @FXML
-    private void handleSelection(ActionEvent event) {
-        if (!(event.getSource() instanceof Button selectedButton)) {
-            return;
-        }
-
-        if (selectedButton == auctionsButton) {
-            cleanup();
-            SceneManager.switchScene("hub.fxml", false, true);
-            return;
-        }
-
-        if (selectedButton == createAuctionButton) {
-            cleanup();
-            SceneManager.switchScene("create-auction.fxml", false, true);
-        }
-    }
-
-    @FXML
-    private void handleLogout() {
-        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
-
-        if (currentUsername == null || currentUsername.isBlank()) {
-            cleanup();
-            SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml", true, false);
-            return;
-        }
-
-        try {
-            Response response = authClientService.logout();
-            if (response.getStatus() == RequestStatus.SUCCESS) {
-                NotificationUtil.success("Logged out successfully.");
-                cleanup();
-                SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml", true, false);
-                return;
-            }
-            NotificationUtil.error(response.getMessage());
-        }
-        catch (IOException e) {
-            NotificationUtil.error("Cannot connect to server.");
-            logger.error("Exception occurred", e);
-        }
-        catch (com.bidify.common.exception.AuthException e) {
-            NotificationUtil.error(e.getMessage());
-        }
     }
 
     @FXML
@@ -247,9 +187,10 @@ public class UserProfileController {
         memberStatusLabel.setText("Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);
-        if (missionBarController != null) {
-            missionBarController.setAvatarText(avatarLetter);
-            missionBarController.setActiveNavigation(null);
+        
+        var controller = SceneManager.getMissionBarController();
+        if (controller != null) {
+            controller.setAvatarText(avatarLetter);
         }
     }
 
@@ -268,21 +209,7 @@ public class UserProfileController {
     }
 
     private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
-
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        missionBarController.setShowExplore(false);
-        missionBarController.setShowSearch(false);
-        missionBarController.setShowExplore(true);
-        missionBarController.setUseInlineLogout(true);
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
-        missionBarController.setActiveNavigation(null);
+        MissionBarUtil.setup(NavPage.PROFILE, false, null, this::cleanup);
     }
 
     private String resolveAvatarLetter(String nickname, String username) {
@@ -296,4 +223,3 @@ public class UserProfileController {
         return source.substring(0, 1).toUpperCase();
     }
 }
-

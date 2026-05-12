@@ -24,12 +24,12 @@ import com.bidify.common.utility.ImageUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
-import com.bidify.service.AuthClientService;
+import com.bidify.utility.MissionBarUtil;
+import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -81,25 +81,14 @@ public class CreateAuctionController {
     private TextField endTimeField;
 
     @FXML
-    private Button auctionsButton;
-
-    @FXML
-    private Button createAuctionButton;
-
-    @FXML
-    private Button historyButton;
-
-    @FXML
     private StackPane uploadBox;
 
     @FXML
     private FlowPane imagePreviewPane;
 
     private final List<File> selectedImageFiles = new ArrayList<>();
-    private MissionBarController missionBarController;
 
     private final AuctionClientService auctionClientService = new AuctionClientService();
-    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
@@ -192,49 +181,6 @@ public class CreateAuctionController {
             }
 
             imagePreviewPane.getChildren().add(tile);
-        }
-    }
-
-    @FXML
-    private void handleSelection(ActionEvent event) {
-        if (!(event.getSource() instanceof Button clickedButton)) return;
-
-        if (clickedButton == auctionsButton) {
-            SceneManager.switchScene("hub.fxml", false, true);
-        } else if (clickedButton == historyButton) {
-            SceneManager.switchScene("history.fxml", false, true);
-        }
-    }
-
-    @FXML
-    private void handleLogout() {
-        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
-
-        if (currentUsername == null || currentUsername.isBlank()) {
-            SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml", true, false);
-            return;
-        }
-
-        try {
-            Response response = authClientService.logout();
-            if (response.getStatus() == RequestStatus.SUCCESS) {
-                NotificationUtil.success("Logged out successfully.");
-                SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml", true, false);
-                return;
-            }
-            logger.error("Logout failed: {}", response.getMessage());
-        } catch (IOException e) {
-            logger.error("Cannot connect to server while logging out", e);
-            NotificationUtil.error("Logout failed: Connection error");
-        }
-    }
-
-    @FXML
-    private void toggleSidebar() {
-        if (missionBarController != null) {
-            missionBarController.toggleSidebar();
         }
     }
 
@@ -352,28 +298,6 @@ public class CreateAuctionController {
     }
 
     private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
-
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        historyButton = missionBarController.getHistoryButton();
-        
-        missionBarController.setShowExplore(true);
-        missionBarController.setShowSearch(false);
-        missionBarController.setUseInlineLogout(true);
-        
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setExploreHandler(event -> toggleSidebar());
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> {
-            SceneManager.switchScene("user-profile.fxml", false, true);
-        });
-        
-        String username = SocketClient.getClient().getCurrentUsername();
-        missionBarController.setAvatarText(username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "?");
-        missionBarController.setActiveNavigation(createAuctionButton);
+        MissionBarUtil.setup(NavPage.CREATE_AUCTION, false, null);
     }
 }

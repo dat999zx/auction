@@ -422,34 +422,4 @@ public class AuctionDetailsController {
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
-    // private void bindTopBar() {
-    //     missionBarController = SceneManager.getMissionBarController();
-    //     if (missionBarController == null) {
-    //         throw new IllegalStateException("Mission bar was not loaded.");
-    //     }
-
-    //     auctionsButton = missionBarController.getAuctionsButton();
-    //     createAuctionButton = missionBarController.getCreateAuctionButton();
-    //     logoutButton = missionBarController.getLogoutLinkButton();
-
-    //     missionBarController.setShowExplore(false);
-    //     missionBarController.setShowSearch(false);
-    //     missionBarController.setUseInlineLogout(false);
-    //     missionBarController.setSelectionHandler(this::handleSelection);
-    //     missionBarController.setLogoutHandler(event -> handleLogout());
-    //     missionBarController.setAvatarHandler(event -> {
-    //         cleanup();
-    //         SceneManager.switchScene("user-profile.fxml", false, true);
-    //     });
-    //     missionBarController.setAvatarText(resolveAvatarLetter());
-    //     missionBarController.setActiveNavigation(auctionsButton);
-    // }
-
-    // private String resolveAvatarLetter() {
-    //     String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
-    //     if (username == null || username.isBlank()) {
-    //         return "U";
-    //     }
-    //     return username.substring(0, 1).toUpperCase();
-    // }
 }
