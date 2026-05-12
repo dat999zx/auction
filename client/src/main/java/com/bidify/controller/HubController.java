@@ -14,22 +14,20 @@ import com.bidify.utility.SceneManager;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.application.Platform;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HubController {
     private static final Logger logger = LoggerFactory.getLogger(HubController.class);
-    private static final double AUCTION_ROW_GAP = 56.0;
 
     @FXML
-    private VBox liveAuctionsContainer;
+    private FlowPane liveAuctionsContainer;
 
     @FXML
     private VBox header;
@@ -118,16 +116,8 @@ public class HubController {
             return;
         }
 
-        int cardsPerRow = 2;
-        for (int i = 0; i < currentAuctions.length; i += cardsPerRow) {
-            HBox row = new HBox(AUCTION_ROW_GAP);
-            row.setAlignment(Pos.TOP_CENTER);
-
-            for (int j = 0; j < cardsPerRow && i + j < currentAuctions.length; j++) {
-                row.getChildren().add(loadAuctionCard(currentAuctions[i + j]));
-            }
-
-            liveAuctionsContainer.getChildren().add(row);
+        for (AuctionDto auction : currentAuctions) {
+            liveAuctionsContainer.getChildren().add(loadAuctionCard(auction));
         }
     }
 

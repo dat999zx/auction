@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="850" prefWidth="1200" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="720" prefWidth="1280" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
 
     <center>
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">

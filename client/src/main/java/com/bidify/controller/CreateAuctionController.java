@@ -21,6 +21,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;

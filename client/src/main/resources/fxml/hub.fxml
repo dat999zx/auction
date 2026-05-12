@@ -6,13 +6,14 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="root-bg" stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HubController">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" styleClass="root-bg" stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HubController">
 
-    <BorderPane prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <BorderPane prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
         <center>
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="main-scroll" vbarPolicy="AS_NEEDED">
@@ -41,7 +42,7 @@
 
                         <Label fx:id="emptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
 
-                        <VBox fx:id="liveAuctionsContainer" spacing="24.0" />
+                        <FlowPane fx:id="liveAuctionsContainer" alignment="TOP_CENTER" hgap="56.0" vgap="48.0" />
                     </VBox>
                 </content>
             </ScrollPane>

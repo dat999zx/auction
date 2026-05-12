@@ -65,7 +65,7 @@ public class MissionBarUtil {
         // set avatar text là chữ đầu của username
         missionBarController.setAvatarText(resolveAvatarLetter());
 
-        // Set Active Page highlighting
+        // đánh dấu page hiện tại đang active trên mission bar
         setActivePage(missionBarController, activePage);
     }
 
@@ -127,9 +127,7 @@ public class MissionBarUtil {
     // Lấy chữ cái đầu tiên của username để hiển thị trên avatar, nếu không có username thì hiển thị "U" mặc định.
     private static String resolveAvatarLetter() {
         String username = SocketClient.getClient().getCurrentUsername();
-        if (username == null || username.isBlank()) {
-            return "U";
-        }
+        if (username == null || username.isBlank()) return "U";
         return username.substring(0, 1).toUpperCase();
     }
 }
