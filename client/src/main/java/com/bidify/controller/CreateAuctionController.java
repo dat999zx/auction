@@ -204,8 +204,14 @@ public class CreateAuctionController {
             LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
 
-            if (startDateTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
-                throw new ValidationException("Start time cannot be in the past");
+            if (startDate == null || startTime == null || 
+                LocalDateTime.of(startDate, startTime).isBefore(LocalDateTime.now())) {
+                // Set to current date and time if invalid
+                startDate = LocalDate.now();
+                startTime = LocalTime.now();
+                startDatePicker.setValue(startDate); // Update the DatePicker
+                startTimeField.setText(startTime.format(TIME_FORMATTER)); // Update the TextField
+                startDateTime = LocalDateTime.of(startDate, startTime);
             }
 
             if (endDateTime.isBefore(startDateTime.plusHours(1))) {
