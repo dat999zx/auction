@@ -116,6 +116,7 @@ public class MissionBarUtil {
             return;
         }
 
+        // dấu hiệu của page nào đang active sẽ được highlight trên mission bar
         switch (activePage) {
             case HOME -> controller.setActiveNavigation(controller.getAuctionsButton());
             case CREATE_AUCTION -> controller.setActiveNavigation(controller.getCreateAuctionButton());
