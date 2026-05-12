@@ -12,6 +12,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
@@ -40,9 +43,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 public class CreateAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(CreateAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
@@ -51,7 +51,7 @@ public class CreateAuctionController {
     @FXML
     private TextField productNameField;
 
-    @FXML 
+    @FXML
     private TextArea descriptionArea;
 
     @FXML
@@ -63,13 +63,13 @@ public class CreateAuctionController {
     @FXML
     private TextField startingPriceField;
 
-    @FXML 
+    @FXML
     private DatePicker startDatePicker;
 
     @FXML
     private TextField startTimeField;
 
-    @FXML 
+    @FXML
     private TextField minIncrementField;
 
     @FXML
