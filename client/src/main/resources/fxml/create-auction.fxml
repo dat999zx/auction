@@ -201,5 +201,5 @@
         </ScrollPane>
     </center>
 </BorderPane>
-
+    </children>
 </AnchorPane>

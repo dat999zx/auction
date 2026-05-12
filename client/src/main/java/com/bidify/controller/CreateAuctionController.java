@@ -21,6 +21,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.NotificationUtil;
@@ -368,7 +369,7 @@ public class CreateAuctionController {
             SceneManager.switchScene("user-profile.fxml", false, true);
         });
         
-        String username = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        String username = SocketClient.getClient().getCurrentUsername();
         missionBarController.setAvatarText(username != null && !username.isEmpty() ? username.substring(0, 1).toUpperCase() : "?");
         missionBarController.setActiveNavigation(createAuctionButton);
     }

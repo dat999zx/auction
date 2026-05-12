@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -41,7 +42,7 @@
 
                         <Label fx:id="emptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
 
-                        <VBox fx:id="liveAuctionsContainer" spacing="24.0" />
+                        <FlowPane fx:id="liveAuctionsContainer" alignment="TOP_CENTER" hgap="56.0" vgap="48.0" />
                     </VBox>
                 </content>
             </ScrollPane>
