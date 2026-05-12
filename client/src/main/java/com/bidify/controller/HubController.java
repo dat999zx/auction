@@ -2,24 +2,20 @@ package com.bidify.controller;
 
 import java.io.IOException;
 
-import com.bidify.network.SocketClient;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.EventType;
-import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
-import com.bidify.service.AuthClientService;
-import com.bidify.utility.NotificationUtil;
+import com.bidify.utility.MissionBarUtil;
+import com.bidify.utility.NavPage;
 import com.bidify.utility.SceneManager;
 
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.application.Platform;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -33,18 +29,6 @@ public class HubController {
     private static final double AUCTION_ROW_GAP = 56.0;
 
     @FXML
-    private TextField searchBar;
-
-    @FXML
-    private Button auctionsButton;
-
-    @FXML
-    private Button createAuctionButton;
-
-    @FXML
-    private Button historyButton;
-
-    @FXML
     private VBox liveAuctionsContainer;
 
     @FXML
@@ -56,11 +40,8 @@ public class HubController {
     @FXML
     private Label emptyStateLabel;
 
-    private MissionBarController missionBarController;
-
     private AuctionDto[] currentAuctions = new AuctionDto[0];
     private final AuctionClientService auctionClientService = new AuctionClientService();
-    private final AuthClientService authClientService = new AuthClientService();
 
     @FXML
     private void initialize() {
@@ -84,60 +65,6 @@ public class HubController {
         EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEvent);
         EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleAuctionEvent);
-    }
-
-    @FXML
-    private void toggleSidebar() {
-        if (missionBarController != null) {
-            missionBarController.toggleSidebar();
-        }
-    }
-
-    @FXML
-    private void handleSelection(ActionEvent event) {
-        if (!(event.getSource() instanceof Button selectedButton)) {
-            return;
-        }
-
-        if (selectedButton == createAuctionButton) {
-            cleanup();
-            handleCreateAuction();
-        } else if (selectedButton == historyButton) {
-            cleanup();
-            SceneManager.switchScene("history.fxml", false, true);
-        }
-
-    }
-
-    @FXML
-    private void handleLogout() {
-        String currentUsername = SocketClient.getClient().getCurrentUsername();
-
-        if (currentUsername == null || currentUsername.isBlank()) {
-            cleanup();
-            SceneManager.clearAllCache();
-            SceneManager.switchScene("login.fxml", true, false);
-            return;
-        }
-
-        try {
-            var response = authClientService.logout();
-            if (response.getStatus() == RequestStatus.SUCCESS) {
-                NotificationUtil.success("Logged out successfully.");
-                cleanup();
-                SceneManager.clearAllCache();
-                SceneManager.switchScene("login.fxml", true, false);
-                return;
-            }
-            NotificationUtil.error(response.getMessage());
-        }
-        catch (IOException e) {
-            NotificationUtil.error("Cannot connect to server.");
-            logger.error("Exception occurred", e);
-        }
-        catch (com.bidify.common.exception.AuthException e) {
-            NotificationUtil.error(e.getMessage());
-        }
     }
 
     private void loadLiveAuctions() {
@@ -217,6 +144,7 @@ public class HubController {
     }
 
     private void search() {
+        TextField searchBar = SceneManager.getMissionBarController().getSearchBar();
         String query = searchBar.getText();
         if (query == null || query.isBlank()) {
             loadLiveAuctions();
@@ -248,41 +176,7 @@ public class HubController {
         }
     }
 
-    private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml", false, true);
-    }
-
     private void bindTopBar() {
-        missionBarController = SceneManager.getMissionBarController();
-        if (missionBarController == null) {
-            throw new IllegalStateException("Mission bar was not loaded.");
-        }
-
-        searchBar = missionBarController.getSearchBar();
-        auctionsButton = missionBarController.getAuctionsButton();
-        createAuctionButton = missionBarController.getCreateAuctionButton();
-        historyButton = missionBarController.getHistoryButton();
-        missionBarController.setShowExplore(true);
-        missionBarController.setShowSearch(true);
-        missionBarController.setUseInlineLogout(true);
-        missionBarController.setSelectionHandler(this::handleSelection);
-        missionBarController.setExploreHandler(event -> toggleSidebar());
-        missionBarController.setLogoutHandler(event -> handleLogout());
-        missionBarController.setAvatarHandler(event -> {
-            cleanup();
-            SceneManager.switchScene("user-profile.fxml", false, true);
-        });
-        missionBarController.setAvatarText(resolveAvatarLetter());
-        missionBarController.setActiveNavigation(auctionsButton);
-        searchBar.setOnAction(event -> search());
+        MissionBarUtil.setup(NavPage.HOME, true, event -> search(), this::cleanup);
     }
-
-    private String resolveAvatarLetter() {
-        String username = SocketClient.getClient().getCurrentUsername();
-        if (username == null || username.isBlank()) {
-            return "U";
-        }
-        return username.substring(0, 1).toUpperCase();
-    }
-
 }

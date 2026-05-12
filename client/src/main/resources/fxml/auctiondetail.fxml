@@ -28,7 +28,7 @@
                             </padding>
             
                             <HBox alignment="CENTER_LEFT" />
-                             <Button onAction="#tomenu" prefHeight="25.0" prefWidth="158.0" styleClass="back-link" text="&lt; Back to Auctions" />
+                             <Button onAction="#tomenu" prefHeight="40.0" styleClass="ghost-nav-button" text="&lt; Back to Auctions" />
             
                             <GridPane hgap="32.0" VBox.vgrow="ALWAYS">
                                 <columnConstraints>
