@@ -20,6 +20,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
+import com.bidify.common.utility.ImageUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
@@ -269,7 +270,9 @@ public class CreateAuctionController {
             List<String> imagesBase64 = new ArrayList<>();
             for (File file : selectedImageFiles) {
                 byte[] fileContent = Files.readAllBytes(file.toPath());
-                imagesBase64.add(Base64.getEncoder().encodeToString(fileContent));
+                // resize ảnh max 800px trc khi send 
+                byte[] resizedContent = ImageUtil.resizeImage(fileContent, 800);
+                imagesBase64.add(Base64.getEncoder().encodeToString(resizedContent));
             }
 
             CreateAuctionRequest data = new CreateAuctionRequest(

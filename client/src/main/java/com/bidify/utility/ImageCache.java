@@ -1,0 +1,48 @@
+package com.bidify.utility;
+
+import javafx.scene.image.Image;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
+import java.util.concurrent.ConcurrentHashMap;
+
+// bộ nhớ tạm thời lưu ảnh trong cache (RAM) của client
+public final class ImageCache {
+    private static final Logger logger = LoggerFactory.getLogger(ImageCache.class);
+    private static final ImageCache instance = new ImageCache();
+    
+    private final ConcurrentHashMap<String, Image> cache = new ConcurrentHashMap<>();
+
+    private ImageCache() {}
+
+    public static ImageCache getInstance() { return instance; }
+
+    // lấy ảnh trong cache
+    public Image get(String key, String base64String) {
+        if (key == null || base64String == null || base64String.isBlank())
+            return null;
+
+        return cache.computeIfAbsent(key, k -> {
+            try {
+                byte[] bytes = Base64.getDecoder().decode(base64String);
+                return new Image(new ByteArrayInputStream(bytes));
+            }
+            catch (Exception e) {
+                logger.error("Failed to decode image for key: " + key, e);
+                return null;
+            }
+        });
+    }
+
+    // lưu ảnh vào cache
+    public void put(String key, Image image) {
+        if (key != null && image != null)
+            cache.put(key, image);
+    }
+
+    public void clear() {
+        cache.clear();
+    }
+}

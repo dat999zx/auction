@@ -18,6 +18,7 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
@@ -301,6 +302,7 @@ public class AuctionDetailsController {
         if (data.getGalleryBase64() == null || data.getGalleryBase64().isEmpty()) return;
 
         int col = 0;
+        int index = 0;
         for (String base64 : data.getGalleryBase64()) {
             if (col >= 4) break; // limit 4
 
@@ -308,9 +310,10 @@ public class AuctionDetailsController {
             thumbPane.getStyleClass().add("thumb-card");
             thumbPane.setPrefHeight(80.0);
 
-            try {
-                byte[] bytes = Base64.getDecoder().decode(base64);
-                Image img = new Image(new ByteArrayInputStream(bytes));
+            String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
+            Image img = ImageCache.getInstance().get(cacheKey, base64);
+            
+            if (img != null) {
                 ImageView thumbView = new ImageView(img);
                 thumbView.setFitHeight(70.0);
                 thumbView.setFitWidth(150.0);
@@ -322,9 +325,6 @@ public class AuctionDetailsController {
                 thumbPane.setStyle("-fx-cursor: hand;");
 
                 thumbnailGrid.add(thumbPane, col++, 0);
-            }
-            catch (Exception e) {
-                logger.error("Failed to load gallery image", e);
             }
         }
     }
@@ -354,13 +354,15 @@ public class AuctionDetailsController {
     // top bar handlers and miscellaneous
 
     private void setPreviewImageFromBase64(String base64) {
-        try {
-            byte[] bytes = Base64.getDecoder().decode(base64);
-            previewimage.setImage(new Image(new ByteArrayInputStream(bytes)));
+        if (selectedAuctionId != null && base64 != null) {
+            String cacheKey = "auction_" + selectedAuctionId + "_thumb";
+            Image cachedImage = ImageCache.getInstance().get(cacheKey, base64);
+            if (cachedImage != null) {
+                previewimage.setImage(cachedImage);
+                return;
+            }
         }
-        catch (Exception e) {
-            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-        }
+        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
     }
 
     private void setPreviewImage(String imagePath) {
