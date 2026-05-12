@@ -7,6 +7,7 @@ public enum RequestType {
 
     GET_PROFILE,
     UPDATE_PROFILE,
+    UPDATE_PASSWORD,
 
     CREATE_AUCTION,
     UPDATE_AUCTION,

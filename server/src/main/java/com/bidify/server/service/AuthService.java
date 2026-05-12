@@ -7,6 +7,7 @@ import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserStatus;
+import com.bidify.common.exception.AuthException;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
 import com.bidify.common.model.Request;
@@ -20,7 +21,7 @@ import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
-import com.bidify.server.utility.RequestUtil;
+import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
@@ -42,9 +43,9 @@ public class AuthService {
 
     // đăng kí
     public Response register(Request request) {
-        return RequestUtil.handleRequest(() -> {
+        return ServiceUtil.handleRequest(() -> {
             RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
-            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+            ServiceUtil.validateRequestData(data);
 
             String username = data.getUsername();
             String nickname = data.getNickname();
@@ -59,7 +60,7 @@ public class AuthService {
             ValidationUtil.validatePassword(password);
 
             if (userDao.existsByUsername(username))
-                return new Response(RequestStatus.FAILED, "Username already exists");
+                throw new AuthException("Username already exists");
 
             User user = new User(username, nickname, PasswordUtil.hash(password));
             userDao.create(user);
@@ -70,31 +71,34 @@ public class AuthService {
 
     // đăng nhập
     public Response login(ClientHandler client, Request request){
-        return RequestUtil.handleRequest(() -> {
+        return ServiceUtil.handleRequest(() -> {
             LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
-            if (data == null) return new Response(RequestStatus.INVALID_REQUEST, "Invalid request");
+            ServiceUtil.validateRequestData(data);
 
             String username = data.getUsername();
             String password = data.getPassword();
 
+            ValidationUtil.requiresNonBlank(username, "Username");
+            ValidationUtil.requiresNonBlank(password, "Password");
+
             if (client.isInSession())
-                return new Response(RequestStatus.FAILED, "You are already logged in");
+                throw new AuthException("You are already logged in");
 
             if (!userDao.existsByUsername(username))
-                return new Response(RequestStatus.FAILED, "Username or password is incorrect");
+                throw new AuthException("Username or password is incorrect");
 
             User user = userDao.findByUsername(username);
             if (user == null)
-                return new Response(RequestStatus.FAILED, "Failed to get user data");
+                throw new AuthException("Failed to get user data");
             
             if (!PasswordUtil.matches(password, user.getPassword()))
-                return new Response(RequestStatus.FAILED, "Username or password is incorrect");
+                throw new AuthException("Username or password is incorrect");
 
             if (user.getStatus() == UserStatus.BANNED)
-                return new Response(RequestStatus.FAILED, "You have been banned");
+                throw new AuthException("You have been banned");
 
-            if (RealtimeDatabase.getUserClient(username) != null)
-                return new Response(RequestStatus.FAILED, "Another session is already active");
+            if (RealtimeDatabase.isUserOnline(username))
+                throw new AuthException("Another session is already active");
 
             double lockedBalance = auctionDao.sumWinningBidsForUser(username);
             user.getWallet().setlockedBalance(lockedBalance);
@@ -109,15 +113,14 @@ public class AuthService {
 
     // đăng kí
     public Response logout(ClientHandler client){
-        return RequestUtil.handleRequest(() -> {
+        return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
 
-            if (!client.isInSession())
-                return new Response(RequestStatus.UNAUTHORIZED, "Invalid session");
+            ServiceUtil.requireSession(client);
 
             User user = RealtimeDatabase.getActiveUser(username);
             if (user == null)
-                return new Response(RequestStatus.FAILED, "Session is inactive");
+                throw new AuthException("Session is inactive");
 
             userDao.save(user);
             client.setCurrentUsername(null);
@@ -132,8 +135,7 @@ public class AuthService {
     }
 
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
-        for (User user : RealtimeDatabase.getAllActiveUsers()) {
+        for (User user : RealtimeDatabase.getAllActiveUsers())
             userDao.save(user, saveLastLogin);
-        }
     }
 }

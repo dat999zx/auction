@@ -15,6 +15,7 @@ import com.bidify.common.utility.DisplayUtil;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuthClientService;
 import com.bidify.service.UserProfileClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
@@ -32,9 +33,6 @@ public class UserProfileController {
 
     @FXML
     private Button createAuctionButton;
-
-    @FXML
-    private Label messageLabel;
 
     @FXML
     private Label usernameValueLabel;
@@ -96,7 +94,7 @@ public class UserProfileController {
     }
 
     private void handleServerNotice(Event event) {
-        Platform.runLater(() -> showMessage(event.getMessage(), true));
+        Platform.runLater(() -> NotificationUtil.info(event.getMessage()));
     }
 
     public void cleanup() {
@@ -137,19 +135,20 @@ public class UserProfileController {
         try {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            showMessage(response.getMessage(), false);
+            NotificationUtil.error(response.getMessage());
         }
         catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
         }
         catch (com.bidify.common.exception.AuthException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
@@ -158,13 +157,13 @@ public class UserProfileController {
         try {
             UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
             refreshProfile(updatedUser);
-            showMessage("Profile updated successfully.", true);
+            NotificationUtil.success("Profile updated successfully.");
         }
         catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
         }
         catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
@@ -174,13 +173,13 @@ public class UserProfileController {
             UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Top up amount"));
             topUpAmountField.clear();
             refreshProfile(updatedUser);
-            showMessage("Wallet updated successfully.", true);
+            NotificationUtil.success("Wallet updated successfully.");
         }
         catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
         }
         catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
@@ -190,20 +189,20 @@ public class UserProfileController {
             UserDto updatedUser = userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
             withdrawAmountField.clear();
             refreshProfile(updatedUser);
-            showMessage("Wallet updated successfully.", true);
+            NotificationUtil.success("Wallet updated successfully.");
         }
         catch (IOException e) {
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
         }
         catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
     @FXML
     private void handleChangePassword() {
         try {
-            userProfileClientService.changePasswordPreview(
+            userProfileClientService.changePassword(
                 currentPasswordField.getText(),
                 newPasswordField.getText(),
                 confirmPasswordField.getText()
@@ -211,28 +210,30 @@ public class UserProfileController {
             currentPasswordField.clear();
             newPasswordField.clear();
             confirmPasswordField.clear();
-            showMessage("Password change passed client validation. Add server-side password update handling to make it real.", true);
+            NotificationUtil.success("Password updated successfully.");
+        }
+        catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
         }
         catch (ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
     }
 
     @FXML
     private void handleProfileImagePlaceholder() {
-        showMessage("Profile image upload is a UI placeholder right now. Add image storage and profile update support on the server when ready.", true);
+        NotificationUtil.info("Profile image upload is a UI placeholder right now.");
     }
 
     private void populateProfile() {
         try {
             refreshProfile(userProfileClientService.getCurrentProfile());
-            showMessage("Profile loaded successfully.", true);
         } catch (IOException e) {
             refreshProfile(userProfileClientService.getCachedProfile());
-            showMessage("Cannot connect to server.", false);
+            NotificationUtil.error("Cannot connect to server.");
         } catch (ValidationException e) {
             refreshProfile(userProfileClientService.getCachedProfile());
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         }
 
         profileImageHintLabel.setText("Profile image upload placeholder");
@@ -276,22 +277,12 @@ public class UserProfileController {
         createAuctionButton = missionBarController.getCreateAuctionButton();
         missionBarController.setShowExplore(false);
         missionBarController.setShowSearch(false);
+        missionBarController.setShowExplore(true);
         missionBarController.setUseInlineLogout(true);
         missionBarController.setSelectionHandler(this::handleSelection);
         missionBarController.setLogoutHandler(event -> handleLogout());
         missionBarController.setAvatarHandler(event -> SceneManager.switchScene("user-profile.fxml", false, true));
         missionBarController.setActiveNavigation(null);
-    }
-
-    private void showMessage(String message, boolean success) {
-        if (messageLabel == null) {
-            return;
-        }
-        messageLabel.setText(message == null ? "" : message);
-        messageLabel.getStyleClass().removeAll("message-success", "message-error");
-        if (message != null && !message.isBlank()) {
-            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
-        }
     }
 
     private String resolveAvatarLetter(String nickname, String username) {
@@ -305,3 +296,4 @@ public class UserProfileController {
         return source.substring(0, 1).toUpperCase();
     }
 }
+

@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="850" prefWidth="1200" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <VBox spacing="30" style="-fx-padding: 40;">
+                
+                <HBox alignment="BOTTOM_LEFT">
+                    <VBox spacing="5" HBox.hgrow="ALWAYS">
+                        <Label styleClass="section-label" text="AUCTION MANAGEMENT" />
+                        <Label styleClass="header-title" text="Modify Auction" />
+                    </VBox>
+                    <HBox spacing="15">
+                        <Button styleClass="btn-secondary" text="Cancel" />
+                        <Button styleClass="btn-primary" text="Save Changes" />
+                    </HBox>
+                </HBox>
+
+                <GridPane hgap="30" vgap="30">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="60" />
+                        <ColumnConstraints percentWidth="40" />
+                    </columnConstraints>
+
+                    <VBox spacing="25" GridPane.columnIndex="0">
+                        <VBox spacing="15" styleClass="card">
+                            <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="General Information" />
+                            
+                            <VBox spacing="5">
+                                <Label styleClass="input-label" text="PRODUCT NAME" />
+                                <TextField fx:id="productNameField" text="1963 Rolex Daytona Cosmograph 'Paul Newman' the ." />
+                            </VBox>
+
+                            <HBox spacing="15">
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="CATEGORY" />
+                                    <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" promptText="Horology &amp; Timepieces" />
+                                </VBox>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="PRODUCT TYPE" />
+                                    <ComboBox fx:id="productTypeComboBox" maxWidth="Infinity" promptText="Vintage Original" />
+                                </VBox>
+                            </HBox>
+
+                            <VBox spacing="5">
+                                <Label styleClass="input-label" text="DESCRIPTION" />
+                                <TextArea fx:id="descriptionArea" prefRowCount="5" text="The Rolex Cosmograph Daytona Ref. 6239 with 'Exotic' dial..." wrapText="true" />
+                            </VBox>
+                        </VBox>
+
+                    <VBox spacing="15" styleClass="card">
+                        <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Auction Mechanics" />
+                        
+                        <HBox spacing="15">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label styleClass="input-label" text="STARTING PRICE (USD)" />
+                                <TextField fx:id="startingPriceField" styleClass="text-field-modern" text="125000" />
+                            </VBox>
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label styleClass="input-label" text="MIN INCREMENTS (USD)" />
+                                <TextField fx:id="minIncrementField" styleClass="text-field-modern" text="2500" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="15">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label styleClass="input-label" text="START DATE" />
+                                <DatePicker fx:id="startDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
+                            </VBox>
+                            <VBox spacing="5">
+                                <Label styleClass="input-label" text="START TIME" />
+                                <TextField fx:id="startTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="09:00" />
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="15">
+                            <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                <Label styleClass="input-label" text="END DATE" />
+                                <DatePicker fx:id="endDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
+                            </VBox>
+                            <VBox spacing="5">
+                                <Label styleClass="input-label" text="END TIME" />
+                                <TextField fx:id="endTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="21:00" />
+                            </VBox>
+                        </HBox>
+                        
+                        <Label style="-fx-font-size: 10; -fx-text-fill: #767683; -fx-font-style: italic;" text="Current timezone: UTC-5 (EST). Auction will close exactly at the specified minute." />
+                    </VBox>
+                    </VBox>
+
+                    <VBox spacing="25" GridPane.columnIndex="1">
+                        <VBox spacing="15" styleClass="card" VBox.vgrow="ALWAYS">
+                            <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Media Gallery" />
+                            
+                            <VBox alignment="CENTER" prefHeight="250" styleClass="image-placeholder">
+                                <ImageView fitWidth="300" preserveRatio="true">
+                                    <Image url="https://picsum.photos/600/400" />
+                                </ImageView>
+                            </VBox>
+
+                            <TilePane hgap="10" prefColumns="2" vgap="10">
+                                <VBox alignment="CENTER" prefHeight="100" prefWidth="100" styleClass="image-placeholder">
+                                    <Label style="-fx-font-size: 24; -fx-text-fill: #767683;" text="+" />
+                                </VBox>
+                            </TilePane>
+                            
+                            <Region VBox.vgrow="ALWAYS" />
+                            
+                            <HBox spacing="10" style="-fx-background-color: #f2f4f7; -fx-padding: 15; -fx-background-radius: 8;">
+                                <Label text="🛡️" />
+                                <VBox>
+                                    <Label style="-fx-font-size: 11; -fx-font-weight: bold;" text="Precision Authenticated" />
+                                    <Label style="-fx-font-size: 10; -fx-text-fill: #767683;" text="Images are scanned for compliance." />
+                                </VBox>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+               <rowConstraints>
+                  <RowConstraints />
+               </rowConstraints>
+                </GridPane>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

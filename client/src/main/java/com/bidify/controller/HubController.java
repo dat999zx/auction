@@ -11,6 +11,7 @@ import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
 import javafx.event.ActionEvent;
@@ -41,7 +42,16 @@ public class HubController {
     private Button createAuctionButton;
 
     @FXML
+    private Button historyButton;
+
+    @FXML
     private VBox liveAuctionsContainer;
+
+    @FXML
+    private VBox header;
+
+    @FXML
+    private Label pageTitle;
 
     @FXML
     private Label emptyStateLabel;
@@ -92,6 +102,9 @@ public class HubController {
         if (selectedButton == createAuctionButton) {
             cleanup();
             handleCreateAuction();
+        } else if (selectedButton == historyButton) {
+            cleanup();
+            SceneManager.switchScene("history.fxml", false, true);
         }
 
     }
@@ -110,23 +123,35 @@ public class HubController {
         try {
             var response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
-            logger.error("Logout failed: {}", response.getMessage());
+            NotificationUtil.error(response.getMessage());
         }
         catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
+        }
+        catch (com.bidify.common.exception.AuthException e) {
+            NotificationUtil.error(e.getMessage());
         }
     }
 
     private void loadLiveAuctions() {
         try {
             AuctionDto[] auctions = auctionClientService.getLiveAuctions();
+            
+            Platform.runLater(() -> {
+                header.setVisible(true);
+                header.setManaged(true);
+                pageTitle.setText("Live Running Auctions");
+            });
+
             if (auctions == null || auctions.length == 0) {
-                Platform.runLater(() -> showEmptyState("No live auctions right now."));
+                Platform.runLater(() -> showEmptyState("No live auctions right now.", false));
                 return;
             }
 
@@ -138,24 +163,28 @@ public class HubController {
             });
         } catch (IOException e) {
             logger.error("Exception occurred", e);
-            Platform.runLater(() -> showEmptyState("Cannot connect to server."));
+            Platform.runLater(() -> showEmptyState("Cannot connect to server.", true));
         } catch (AuctionException e) {
-            Platform.runLater(() -> showEmptyState(e.getMessage()));
+            Platform.runLater(() -> showEmptyState(e.getMessage(), true));
         }
     }
 
-    private void showEmptyState(String message) {
+    private void showEmptyState(String message, boolean hideHeader) {
         currentAuctions = new AuctionDto[0];
         liveAuctionsContainer.getChildren().clear();
-        emptyStateLabel.setText(message);
-        if (!emptyStateLabel.getStyleClass().contains("empty-state-label")) {
-            emptyStateLabel.getStyleClass().add("empty-state-label");
-        }
-        emptyStateLabel.setManaged(true);
-        emptyStateLabel.setVisible(true);
+        
+        Platform.runLater(() -> {
+            header.setVisible(!hideHeader);
+            header.setManaged(!hideHeader);
+            emptyStateLabel.setText(message);
+            if (!emptyStateLabel.getStyleClass().contains("empty-state-label")) {
+                emptyStateLabel.getStyleClass().add("empty-state-label");
+            }
+            emptyStateLabel.setManaged(true);
+            emptyStateLabel.setVisible(true);
+        });
     }
 
-    // chia để cho mỗi hàng có tối đa 2 auction card, căn giữa và có khoảng cách đều nhau
     private void renderAuctionRows() {
         liveAuctionsContainer.getChildren().clear();
         if (currentAuctions == null || currentAuctions.length == 0) {
@@ -175,7 +204,6 @@ public class HubController {
         }
     }
 
-    // Lấy auction card từ auction_card.fxml và bind dữ liệu vào
     private AnchorPane loadAuctionCard(AuctionDto auction) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
@@ -198,26 +226,30 @@ public class HubController {
         try {
             AuctionDto[] results = auctionClientService.searchAuctions(query);
             if (results == null || results.length == 0) {
-                Platform.runLater(() -> showEmptyState("No auctions found matching '" + query + "'."));
+                showEmptyState("No auctions or sellers found matching '" + query + "'.", true);
                 return;
             }
 
             currentAuctions = results;
             Platform.runLater(() -> {
+                header.setVisible(true);
+                header.setManaged(true);
+                pageTitle.setText("Results for '" + query + "'");
+                
                 emptyStateLabel.setVisible(false);
                 emptyStateLabel.setManaged(false);
                 renderAuctionRows();
             });
         } catch (IOException e) {
             logger.error("Search failed", e);
-            Platform.runLater(() -> showEmptyState("Search failed: Network error."));
+            Platform.runLater(() -> showEmptyState("Search failed: Network error.", true));
         } catch (AuctionException e) {
-            Platform.runLater(() -> showEmptyState(e.getMessage()));
+            Platform.runLater(() -> showEmptyState(e.getMessage(), true));
         }
     }
 
     private void handleCreateAuction() {
-        SceneManager.switchScene("create-auction.fxml", false, false);
+        SceneManager.switchScene("create-auction.fxml", false, true);
     }
 
     private void bindTopBar() {
@@ -229,6 +261,7 @@ public class HubController {
         searchBar = missionBarController.getSearchBar();
         auctionsButton = missionBarController.getAuctionsButton();
         createAuctionButton = missionBarController.getCreateAuctionButton();
+        historyButton = missionBarController.getHistoryButton();
         missionBarController.setShowExplore(true);
         missionBarController.setShowSearch(true);
         missionBarController.setUseInlineLogout(true);

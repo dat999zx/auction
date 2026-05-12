@@ -5,6 +5,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 import java.io.IOException;
 import javafx.application.Platform;
@@ -22,8 +23,6 @@ public class RegisterController {
     private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
     @FXML
     private TextField usernameField;
-    @FXML
-    private Label messageLabel;
     @FXML
     private PasswordField passwordField;
     @FXML
@@ -52,7 +51,6 @@ public class RegisterController {
     @FXML
     private void handleRegister() {
         try {
-            showMessage("", false);
             String username = usernameField.getText();
             String password = passwordField.getText();
             String passwordConfirm = passwordConfirmField.getText();
@@ -66,12 +64,12 @@ public class RegisterController {
             Response response = authClientService.register(username, password);
             logger.info(response.getMessage());
             if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
-                showMessage("Register successfully, please login", true);
+                NotificationUtil.success("Register successfully, please login");
             }
         } catch (AuthException | ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         } catch (IOException e) {
-            showMessage("Cannot connect to server", false);
+            NotificationUtil.error("Cannot connect to server");
             logger.error("Exception occurred", e);
         }
     }
@@ -101,15 +99,6 @@ public class RegisterController {
         TextField activeField = visible ? passwordFieldVisible : passwordField;
         activeField.requestFocus();
         activeField.positionCaret(activeField.getText().length());
-    }
-
-    private void showMessage(String message, boolean success) {
-        if (messageLabel == null) return;
-        messageLabel.setText(message);
-        messageLabel.getStyleClass().removeAll("message-success", "message-error");
-        if (!message.isBlank()) {
-            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
-        }
     }
 
     @FXML

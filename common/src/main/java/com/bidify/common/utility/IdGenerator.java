@@ -14,6 +14,8 @@ public class IdGenerator {
     public static String genItemId(){ return "ITM-" + genId(); }
     
     public static String genTransactionId(){ return "TRS-" + genId(); }
+
+    public static String genImageId() { return "IMG-" + genId(); }
     
     private static String genId() { return UUID.randomUUID().toString().substring(0, 12); }
 }

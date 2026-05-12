@@ -198,7 +198,7 @@ class AuthServiceTest {
         // Client chưa có currentUsername => không có session hợp lệ để logout.
         Response response = authService.logout(new TestClientHandler());
 
-        assertEquals(RequestStatus.UNAUTHORIZED, response.getStatus());
+        assertEquals(RequestStatus.FAILED, response.getStatus());
         assertEquals("Invalid session", response.getMessage());
     }
 

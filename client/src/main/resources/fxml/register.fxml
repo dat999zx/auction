@@ -150,7 +150,7 @@
                                     <children>
                                         <CheckBox styleClass="terms-check" text="I agree to the Terms of Service and Privacy Policy of Bidify Concierge." wrapText="true" />
                                         <Button maxWidth="1.7976931348623157E308" onAction="#handleRegister" prefHeight="52.0" styleClass="primary-button" text="Register" />
-                                        <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
+
                                     </children>
                                 </VBox>
 

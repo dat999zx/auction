@@ -9,6 +9,7 @@ import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.model.UpdatePasswordRequest;
 import com.bidify.common.model.UpdateProfileRequest;
 import com.bidify.common.model.WalletRequest;
 import com.bidify.common.utility.JsonUtil;
@@ -69,6 +70,22 @@ public class UserProfileClientService {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
         Response response = client.send(new Request(RequestType.WITHDRAW, new WalletRequest(amount)));
         return consumeProfileResponse(response, "Cannot update wallet.");
+    }
+
+    public void changePassword(String currentPassword, String newPassword, String confirmPassword) throws IOException {
+        ValidationUtil.validatePassword(currentPassword);
+        ValidationUtil.validatePassword(newPassword);
+        ValidationUtil.validatePassword(confirmPassword);
+
+        if (!newPassword.equals(confirmPassword))
+            throw new ValidationException("Confirm password must match the new password");
+
+        if (currentPassword.equals(newPassword))
+            throw new ValidationException("New password must be different from the current password");
+
+        Response response = client.send(new Request(RequestType.UPDATE_PASSWORD, new UpdatePasswordRequest(currentPassword, newPassword)));
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot update password." : response.getMessage());
     }
 
     public void changePasswordPreview(String currentPassword, String newPassword, String confirmPassword) {

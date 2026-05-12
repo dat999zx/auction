@@ -1,0 +1,318 @@
+.root {
+    -fx-background-color: #f7f9fc;
+    -fx-font-family: "Inter";
+}
+
+.header {
+    -fx-background-color: #f7f9fc;
+    -fx-padding: 20 32;
+    -fx-border-color: transparent transparent #e6e8eb transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.brand-logo {
+    -fx-text-fill: #000666;
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+}
+
+.nav-link {
+    -fx-text-fill: #667085;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.nav-link:hover {
+    -fx-text-fill: #000666;
+}
+
+.nav-link-active {
+    -fx-text-fill: #0048d8;
+    -fx-border-color: transparent transparent #0048d8 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-padding: 0 0 4 0;
+}
+
+.search-box {
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 10;
+    -fx-padding: 0 16;
+}
+
+.search-field {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-font-size: 14px;
+    -fx-prompt-text-fill: #767683;
+    -fx-padding: 10 0;
+}
+
+.search-field:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.icon {
+    -fx-font-family: "Material Symbols Outlined";
+    -fx-font-size: 18px;
+}
+
+.sidebar {
+    -fx-background-color: #f2f4f7;
+    -fx-padding: 32 24;
+    -fx-pref-width: 250;
+}
+
+.sidebar-title {
+    -fx-text-fill: #000666;
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+}
+
+.sidebar-subtitle {
+    -fx-text-fill: #667085;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}
+
+.sidebar-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #667085;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 14 18;
+    -fx-background-radius: 10;
+    -fx-alignment: CENTER_LEFT;
+    -fx-cursor: hand;
+}
+
+.sidebar-btn:hover {
+    -fx-background-color: rgba(255,255,255,0.7);
+    -fx-text-fill: #000666;
+}
+
+.sidebar-btn-active {
+    -fx-background-color: white;
+    -fx-text-fill: #0048d8;
+    -fx-font-weight: 700;
+}
+
+.pro-card {
+    -fx-background-color: #e0e3e6;
+    -fx-background-radius: 14;
+    -fx-padding: 16;
+}
+
+.pro-card-tag {
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+}
+
+.pro-card-desc {
+    -fx-font-size: 11px;
+}
+
+.main-content {
+    -fx-padding: 40;
+}
+
+.page-title {
+    -fx-text-fill: #000666;
+    -fx-font-size: 48px;
+    -fx-font-weight: 900;
+}
+
+.section-title {
+    -fx-text-fill: #000666;
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+}
+
+.title-underline {
+    -fx-background-color: #0048d8;
+    -fx-pref-width: 48;
+    -fx-pref-height: 4;
+    -fx-background-radius: 999;
+}
+
+.btn-primary {
+    -fx-background-color: #000666;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 10 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.btn-primary:hover {
+    -fx-opacity: 0.9;
+}
+
+.btn-secondary {
+    -fx-background-color: #e0e3e6;
+    -fx-text-fill: #454652;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 10 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.btn-secondary:hover {
+    -fx-background-color: #d5d8dc;
+}
+
+
+.table-container {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-padding: 0;
+}
+
+.table-header {
+    -fx-background-color: #f2f4f7;
+    -fx-padding: 16 24;
+}
+
+.table-header-text {
+    -fx-text-fill: #767683;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.table-row {
+    -fx-padding: 24;
+    -fx-border-color: #f2f4f7;
+    -fx-border-width: 0 0 1 0;
+}
+
+.table-row:hover {
+    -fx-background-color: rgba(236,238,241,0.5);
+}
+
+.table-row-title {
+    -fx-font-weight: 700;
+}
+
+.table-row-subtitle {
+    -fx-font-size: 12px;
+}
+
+.table-row-amount {
+    -fx-font-weight: 700;
+}
+
+.image-placeholder {
+    -fx-background-color: #eceef1;
+    -fx-background-radius: 8;
+}
+
+.badge-won {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #15803d;
+    -fx-padding: 6 12;
+    -fx-background-radius: 999;
+    -fx-font-size: 10px;
+    -fx-font-weight: 900;
+}
+
+.badge-lost {
+    -fx-background-color: #ffdad6;
+    -fx-text-fill: #ba1a1a;
+    -fx-padding: 6 12;
+    -fx-background-radius: 999;
+    -fx-font-size: 10px;
+    -fx-font-weight: 900;
+}
+
+.transaction-export-btn {
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-underline: true;
+}
+
+.transaction-card {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-padding: 24;
+    -fx-border-width: 0 0 0 4;
+}
+
+.transaction-card-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+}
+
+.transaction-card-id {
+    -fx-font-size: 12px;
+}
+
+.border-green {
+    -fx-border-color: #22c55e;
+}
+
+.border-blue {
+    -fx-border-color: #0048d8;
+}
+
+.border-gray {
+    -fx-border-color: #cbd5e1;
+}
+
+.icon-circle {
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 999;
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-alignment: CENTER;
+}
+
+.amount-text {
+    -fx-font-size: 22px;
+    -fx-font-weight: 900;
+}
+
+
+.footer {
+    -fx-padding: 32 0 0 0;
+    -fx-border-color: #e6e8eb transparent transparent transparent;
+    -fx-border-width: 1 0 0 0;
+}
+
+
+.text-primary {
+    -fx-text-fill: #000666;
+}
+
+.text-secondary {
+    -fx-text-fill: #0048d8;
+}
+
+.text-outline {
+    -fx-text-fill: #767683;
+}
+
+.text-on-surface-variant {
+    -fx-text-fill: #667085;
+}
+
+
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #c6c5d4;
+    -fx-background-radius: 999;
+}

@@ -24,17 +24,6 @@
 <AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-    <top>
-        <HBox alignment="CENTER_LEFT" prefHeight="89.0" prefWidth="1280.0" spacing="20.0" styleClass="top-bar" BorderPane.alignment="CENTER">
-            <padding>
-                <Insets bottom="10.0" left="24.0" right="24.0" top="15.0" />
-            </padding>
-            <Button fx:id="backButton" onAction="#handleSubNavClick" styleClass="top-link" text="Back" />
-            <Button fx:id="subCreateAuctionButton" onAction="#handleSubNavClick" styleClass="top-link-active" text="Create Auction" />
-            <Button fx:id="managementButton" onAction="#handleSubNavClick" styleClass="top-link" text="Auction Management" />
-            <Button fx:id="historyButton" onAction="#handleSubNavClick" styleClass="top-link" text="History" />
-        </HBox>
-    </top>
     <center>
         <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
             <content>
@@ -107,8 +96,8 @@
                         </VBox>
 
                         <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
-                            <StackPane maxWidth="Infinity" prefHeight="130.0" styleClass="upload-box">
-                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="false">
+                            <StackPane fx:id="uploadBox" onMouseClicked="#handleUploadClick" maxWidth="Infinity" prefHeight="130.0" styleClass="upload-box">
+                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="true">
                                     <image>
                                         <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuApyd0CCvVBwnZ8dEarN_inuQTAjBareF0HNbk1d2BuLDy2sAUZs5hCsSO2JBay1mcIfbfUU3HYA2ricPCXaCoNTJdrq9A4DHEq1ayK5dwCsd5qAS-6_Jsi3SNQACx50H-9wtIQVmOgOKHqaoa1XE_zw5Z52oeN3vstORT6HcB-6goXtmOrOkX1sxIfw8nYOd-xWKB70bS7l0Cx-zFTek6z9XjHq15wRsIR6XAk3dtzuwUulSMNCfM7TD9TucVGVTd25rqwgo6b14w" />
                                     </image>
@@ -121,19 +110,7 @@
                                 </VBox>
                             </StackPane>
 
-                            <FlowPane hgap="12.0" maxWidth="Infinity" prefWrapLength="400.0" vgap="12.0">
-                                <StackPane prefHeight="84.0" prefWidth="84.0" styleClass="preview-tile">
-                                    <ImageView fitHeight="84.0" fitWidth="84.0" preserveRatio="false">
-                                        <image>
-                                            <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuAK7b94xkE921VTFWMqcevwzzbpE7er4tXwxtQDefJ6yF7-hrJ3G0_4DoXbjQ01E2nnVYiw5owALL3hmE5U3MpmL82ZDm7JZHj6mpnSDTLC2MLjijVtEH6r2sow4T6OsdasT_Y5YMw0Ige-j5_nLIp-EIKl0FmPeMm7LWNh5TfZyhaKTdyRd6-NYBkSIlb-UhKk6gqQVROoO4g1wz81Ivyyp0_wdW7RSMG4-YKyXI91DFq3T2z8XysINW3U2n7FR1nJ8EzAtp4-KQs" />
-                                        </image>
-                                    </ImageView>
-                                    <Button mnemonicParsing="false" styleClass="remove-image-button" text="x" StackPane.alignment="TOP_RIGHT" />
-                                </StackPane>
-
-                                <StackPane prefHeight="84.0" prefWidth="84.0" styleClass="empty-preview-tile">
-                                    <Label styleClass="empty-preview-icon" text="🖼" />
-                                </StackPane>
+                            <FlowPane fx:id="imagePreviewPane" hgap="12.0" maxWidth="Infinity" prefWrapLength="400.0" vgap="12.0">
                             </FlowPane>
                         </VBox>
                         <rowConstraints>
@@ -214,7 +191,7 @@
                     <Separator />
 
                     <HBox alignment="CENTER_RIGHT" spacing="12.0">
-                        <Label fx:id="messageLabel" maxWidth="1.7976931348623157E308" styleClass="message-label" text="" wrapText="true" />
+
                         <Button mnemonicParsing="false" onAction="#createAuction" styleClass="primary-button-large" text="Create Auction" />
                     </HBox>
 

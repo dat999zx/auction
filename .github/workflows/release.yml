@@ -33,7 +33,7 @@ jobs:
           PREV=$(git describe --tags --abbrev=0 ${TAG}^ 2>/dev/null || echo "")
           [ -n "$PREV" ] && echo -e "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${PREV}...${TAG}" >> notes.txt
 
-      - run: mvn -B clean package -DskipTests
+      - run: mvn -B clean package -Puniversal -DskipTests
 
       - name: Rename Artifacts
         run: |

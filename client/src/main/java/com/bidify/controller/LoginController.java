@@ -5,6 +5,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 import java.awt.Desktop;
 import java.io.IOException;
@@ -23,8 +24,6 @@ public class LoginController {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @FXML
     private TextField usernameField;
-    @FXML
-    private Label messageLabel;
     @FXML
     private PasswordField passwordField;
     @FXML
@@ -48,7 +47,6 @@ public class LoginController {
     @FXML
     private void handleLogin() {
         try {
-            showMessage("", false);
             String username = usernameField.getText();
             String password = passwordField.getText();
 
@@ -58,14 +56,14 @@ public class LoginController {
             Response response = authClientService.login(username, password);
             logger.info(response.getMessage());
             if (response.getStatus() == com.bidify.common.enums.RequestStatus.SUCCESS) {
-                showMessage("Logged in", true);
+                NotificationUtil.success("Welcome back, " + username + "!");
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("hub.fxml", false, true);
             }
         } catch (AuthException | ValidationException e) {
-            showMessage(e.getMessage(), false);
+            NotificationUtil.error(e.getMessage());
         } catch (IOException e) {
-            showMessage("Cannot connect to server", false);
+            NotificationUtil.error("Cannot connect to server");
             logger.error("Exception occurred", e);
         }
     }
@@ -91,15 +89,6 @@ public class LoginController {
         activeField.positionCaret(activeField.getText().length());
     }
 
-    private void showMessage(String message, boolean success) {
-        if (messageLabel == null) return;
-        messageLabel.setText(message);
-        messageLabel.getStyleClass().removeAll("message-success", "message-error");
-        if (!message.isBlank()) {
-            messageLabel.getStyleClass().add(success ? "message-success" : "message-error");
-        }
-    }
-
     @FXML
     private void toRegister() {
         SceneManager.switchScene("register.fxml", true, false);
@@ -110,7 +99,6 @@ public class LoginController {
         try {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(URI.create("https://www.youtube.com/watch?v=9BalEldzE8o"));
-                showMessage("", true);
             }
         }
         catch (IOException e) {

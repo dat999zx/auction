@@ -15,8 +15,6 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.shape.Circle?>
-<?import javafx.scene.shape.Rectangle?>
 
 <AnchorPane prefHeight="800.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
     <children>
@@ -24,7 +22,7 @@
          <top>
                 <AnchorPane prefHeight="734.0" prefWidth="1320.0" BorderPane.alignment="CENTER">
                     <children>
-                        <VBox layoutY="-25.0" spacing="16.0" styleClass="main-content" AnchorPane.bottomAnchor="25.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="-25.0">
+                        <VBox spacing="16.0" styleClass="main-content" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                             <padding>
                                 <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
                             </padding>
@@ -43,16 +41,10 @@
             
                                 <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
                                     <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
-                                        <Rectangle arcHeight="20.0" arcWidth="20.0" height="480.0" styleClass="image-placeholder" width="700.0" />
                                         <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
-            
-                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="live-pill" translateX="16.0" translateY="16.0" StackPane.alignment="TOP_LEFT">
-                                            <Circle radius="4.0" styleClass="live-dot" />
-                                            <Label styleClass="live-pill-text" text="Live Auction" />
-                                        </HBox>
                                     </StackPane>
             
-                                    <GridPane hgap="12.0">
+                                    <GridPane fx:id="thumbnailGrid" hgap="12.0">
                                         <columnConstraints>
                                             <ColumnConstraints percentWidth="25.0" />
                                             <ColumnConstraints percentWidth="25.0" />
@@ -62,22 +54,7 @@
                                         <rowConstraints>
                                             <RowConstraints />
                                         </rowConstraints>
-            
-                                        <StackPane prefHeight="80.0" styleClass="thumb-card" GridPane.columnIndex="0">
-                                            <Rectangle arcHeight="12.0" arcWidth="12.0" height="70.0" styleClass="thumb-placeholder" width="150.0" />
-                                        </StackPane>
-            
-                                        <StackPane prefHeight="80.0" styleClass="thumb-card" GridPane.columnIndex="1">
-                                            <Rectangle arcHeight="12.0" arcWidth="12.0" height="70.0" styleClass="thumb-placeholder" width="150.0" />
-                                        </StackPane>
-            
-                                        <StackPane prefHeight="80.0" styleClass="thumb-card" GridPane.columnIndex="2">
-                                            <Rectangle arcHeight="12.0" arcWidth="12.0" height="70.0" styleClass="thumb-placeholder" width="150.0" />
-                                        </StackPane>
-            
-                                        <StackPane prefHeight="80.0" styleClass="thumb-more-card" GridPane.columnIndex="3">
-                                            <Label styleClass="thumb-more-text" text="+12" />
-                                        </StackPane>
+                                        <!-- Dynamic thumbnails -->
                                     </GridPane>
                                 </VBox>
             
@@ -187,7 +164,7 @@
                                         <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
             
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
-                                        <Label fx:id="messageLabel" styleClass="footnote-text" text="Auction is loading..." wrapText="true" />
+
                                     </VBox>
                                 </VBox>
                         <padding>

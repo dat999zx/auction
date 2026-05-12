@@ -1,5 +1,7 @@
 package com.bidify.common.dto;
 
+import java.util.List;
+
 public class AuctionDto {
     private String id;
     private String createdAt;
@@ -15,6 +17,8 @@ public class AuctionDto {
     private String startTime;
     private String endTime;
     private String status;
+    private String thumbnailBase64;
+    private List<String> galleryBase64;
 
     public AuctionDto(String id, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
@@ -49,4 +53,10 @@ public class AuctionDto {
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
     public String getStatus() { return status; }
+
+    public String getThumbnailBase64() { return thumbnailBase64; }
+    public void setThumbnailBase64(String thumbnailBase64) { this.thumbnailBase64 = thumbnailBase64; }
+
+    public List<String> getGalleryBase64() { return galleryBase64; }
+    public void setGalleryBase64(List<String> galleryBase64) { this.galleryBase64 = galleryBase64; }
 }

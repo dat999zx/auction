@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.bidify.controller.HistoryController"
+            stylesheets="@../css/history.css">
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="48" styleClass="main-content">
+
+                <!-- Page Header -->
+                <VBox spacing="8">
+                    <Label text="History &amp; Archives" styleClass="page-title"/>
+                    <Label wrapText="true" styleClass="text-on-surface-variant"
+                           text="A comprehensive overview of your curatorial journey, featuring all auction engagements and financial settlements handled with precision."/>
+                </VBox>
+
+                <!-- Bidding Activity Section -->
+                <VBox spacing="24">
+                    <BorderPane>
+                        <left>
+                            <VBox spacing="4">
+                                <Label text="Bidding Activity" styleClass="section-title"/>
+                                <Pane styleClass="title-underline"/>
+                            </VBox>
+                        </left>
+                        <right>
+                            <HBox spacing="8">
+                                <Button text="ALL BIDS" styleClass="btn-primary"/>
+                                <Button text="ACTIVE" styleClass="btn-secondary"/>
+                            </HBox>
+                        </right>
+                    </BorderPane>
+
+                    <VBox styleClass="table-container">
+                        <!-- Table Header -->
+                        <HBox styleClass="table-header">
+                            <Label text="AUCTION ITEM" prefWidth="320" styleClass="table-header-text"/>
+                            <Label text="BID AMOUNT" prefWidth="180" styleClass="table-header-text"/>
+                            <Label text="DATE &amp; TIME" prefWidth="240" styleClass="table-header-text"/>
+                            <Label text="STATUS" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="table-header-text"/>
+                        </HBox>
+
+                        <!-- Sample Row -->
+                        <HBox alignment="CENTER_LEFT" styleClass="table-row">
+                            <HBox spacing="16" alignment="CENTER_LEFT" prefWidth="320">
+                                <Pane prefWidth="48" prefHeight="48" styleClass="image-placeholder"/>
+                                <VBox spacing="4">
+                                    <Label text="Ethereal Symmetry #04" styleClass="text-primary table-row-title"/>
+                                    <Label text="Contemporary Digital Art" styleClass="text-on-surface-variant table-row-subtitle"/>
+                                </VBox>
+                            </HBox>
+                            <Label text="14,500.00" prefWidth="180" styleClass="text-secondary table-row-amount"/>
+                            <Label text="Oct 12, 2023 • 14:22 PM" prefWidth="240" styleClass="text-on-surface-variant"/>
+                            <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+                                <Label text="WON" styleClass="badge-won"/>
+                            </HBox>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- Transaction Records Section -->
+                <VBox spacing="24">
+                    <BorderPane>
+                        <left>
+                            <VBox spacing="4">
+                                <Label text="Transaction Records" styleClass="section-title"/>
+                                <Pane styleClass="title-underline"/>
+                            </VBox>
+                        </left>
+                        <right>
+                            <HBox alignment="CENTER_RIGHT" spacing="8">
+                                <Label text="download" styleClass="icon text-secondary"/>
+                                <Label text="EXPORT STATEMENT" styleClass="text-secondary transaction-export-btn"/>
+                            </HBox>
+                        </right>
+                    </BorderPane>
+
+                    <HBox alignment="CENTER_LEFT" spacing="24" styleClass="transaction-card border-green">
+                        <HBox alignment="CENTER_LEFT" spacing="16" HBox.hgrow="ALWAYS">
+                            <HBox styleClass="icon-circle">
+                                <Label text="payments" styleClass="icon text-primary"/>
+                            </HBox>
+                            <VBox spacing="4">
+                                <Label text="Ethereal Symmetry #04" styleClass="text-primary transaction-card-title"/>
+                                <Label text="Transaction ID: #TRX-992011" styleClass="text-on-surface-variant transaction-card-id"/>
+                            </VBox>
+                        </HBox>
+                        <VBox alignment="CENTER_RIGHT" spacing="4">
+                            <Label text="AMOUNT" styleClass="table-header-text"/>
+                            <Label text="15,225.00" styleClass="amount-text text-primary"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Footer -->
+                <BorderPane styleClass="footer">
+                    <left>
+                        <Label text="© 2023 Bidify Collective • Absolute Transparency in Luxury Trading" styleClass="table-header-text"/>
+                    </left>
+                    <right>
+                        <HBox spacing="24">
+                            <Label text="TAX DOCUMENTS" styleClass="table-header-text"/>
+                            <Label text="PRIVACY CHARTER" styleClass="table-header-text"/>
+                            <Label text="HELP DESK" styleClass="table-header-text"/>
+                        </HBox>
+                    </right>
+                </BorderPane>
+            </VBox>
+        </ScrollPane>
+    </center>
+</BorderPane>

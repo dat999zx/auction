@@ -1,10 +1,16 @@
 package com.bidify.server.model;
 
 import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.bidify.common.enums.UserStatus;
+import com.bidify.server.exception.ServerTimeOutException;
 
 public class User extends Entity {
+    // khóa Object User để tránh race condition
+    private final ReentrantLock lock = new ReentrantLock();
+
     private String nickname;
     private String username;
     private String password;
@@ -57,4 +63,16 @@ public class User extends Entity {
     public UserStatus getStatus() { return status; }
     public void setStatus(UserStatus status) { this.status = status; }
     public Wallet getWallet() { return wallet; }
+
+    public void lock() { lock.lock(); }
+    public void unlock() { lock.unlock(); }
+    public void tryLock(int timeout) throws ServerTimeOutException {
+        try {
+            lock.tryLock(timeout, TimeUnit.SECONDS);
+        }
+        catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new ServerTimeOutException();
+        }
+    }
 }
