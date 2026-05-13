@@ -5,13 +5,13 @@
 
 .login-root {
     -fx-pref-width: 1280px;
-    -fx-pref-height: 800px;
+    -fx-pref-height: 720px;
     -fx-background-color: #f7f9fc;
 }
 
 .login-shell {
     -fx-pref-width: 1280px;
-    -fx-pref-height: 800px;
+    -fx-pref-height: 720px;
     -fx-alignment: center;
     -fx-spacing: 48px;
     -fx-padding: 24px;

@@ -69,6 +69,7 @@ public class AuctionService {
         router.register(RequestType.CREATE_AUCTION, this::create);
         router.register(RequestType.UPDATE_AUCTION, this::update);
         router.register(RequestType.GET_LIVE_AUCTIONS, (client, req) -> getAllLiveAuctions());
+        router.register(RequestType.GET_UPCOMING_AUCTIONS, (client, req) -> getAllUpcomingAuctions());
         router.register(RequestType.GET_AUCTION_DETAIL, (client, req) -> getDetail(req));
         router.register(RequestType.DELETE_AUCTION, this::delete);
         router.register(RequestType.PLACE_BID, this::placeBid);
@@ -275,6 +276,24 @@ public class AuctionService {
         });
     }
 
+    public Response getAllUpcomingAuctions(){
+        return ServiceUtil.handleRequest(() -> {
+            List<Auction> auctions = RealtimeDatabase.getAllUpcomingAuctions();
+            List<AuctionDto> summaries = new ArrayList<>();
+
+            if (auctions == null || auctions.isEmpty())
+                return new Response(RequestStatus.SUCCESS, "No upcoming auctions", summaries);
+
+            for (Auction auction : auctions) {
+                AuctionDto dto = AuctionMapper.toDto(auction);
+                dto.setThumbnailBase64(getThumbnail(auction.getId()));
+                summaries.add(dto);
+            }
+
+            return new Response(RequestStatus.SUCCESS, "Get upcoming auctions successfully", summaries);
+        });
+    }
+
     // lấy ảnh chính
     private String getThumbnail(String auctionId) {
         try {
@@ -405,6 +424,8 @@ public class AuctionService {
                 AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
                 if (auctionChannel != null)
                     auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
+                RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
+                publishLockedBalanceChange(username, bidAmount);
     
                 //save changes to database after placing bid.
                 if (prevBidder != null)
@@ -482,6 +503,7 @@ public class AuctionService {
 
             publishBalanceChange(winnerUsername, finalBid);
             publishLockedBalanceChange(winnerUsername, -finalBid);
+            publishBalanceChange(sellerUsername, finalBid);
         }
         else {
             auction.setEndTime(LocalDateTime.now());
@@ -505,7 +527,7 @@ public class AuctionService {
     private void publishLockedBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
-        Event event = new Event(EventType.SERVER_NOTICE, "Locked balance changed: " + diff);
+        Event event = new Event(EventType.LOCKED_BALANCE_CHANGED, "Locked balance changed: " + diff);
         userClient.sendEvent(event);
     }
 }

@@ -193,6 +193,10 @@
     -fx-background-color: #f9f9ff;
 }
 
+.hub-section {
+    -fx-background-color: transparent;
+}
+
 .live-dot {
     -fx-text-fill: #ba1a1a;
     -fx-font-size: 10px;
@@ -208,6 +212,18 @@
     -fx-text-fill: #111c2d;
     -fx-font-size: 36px;
     -fx-font-weight: 900;
+}
+
+.section-title {
+    -fx-text-fill: #111c2d;
+    -fx-font-size: 26px;
+    -fx-font-weight: 900;
+}
+
+.section-subtitle {
+    -fx-text-fill: #64748b;
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
 }
 
 .view-toggle,
@@ -230,6 +246,22 @@
 
 .view-toggle:hover {
     -fx-background-color: #e7eeff;
+}
+
+.row-scroll,
+.row-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.row-scroll {
+    -fx-background-insets: 0;
+    -fx-padding: 2 0 10 0;
+    -fx-border-color: transparent;
+}
+
+.auction-row,
+.results-wrap {
+    -fx-padding: 4 0 8 0;
 }
 
 .auction-card,
@@ -291,6 +323,23 @@
     -fx-text-fill: #111c2d;
     -fx-font-size: 12px;
     -fx-font-weight: 800;
+}
+
+.status-pill {
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: 900;
+    -fx-padding: 6 12;
+    -fx-background-radius: 999;
+    -fx-letter-spacing: 0.6px;
+}
+
+.status-pill-live {
+    -fx-background-color: rgba(186, 26, 26, 0.92);
+}
+
+.status-pill-upcoming {
+    -fx-background-color: rgba(0, 84, 166, 0.92);
 }
 
 .lot-pill {

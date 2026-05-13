@@ -10,38 +10,91 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="800.0" prefWidth="1280.0" styleClass="root-bg" stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HubController">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" styleClass="root-bg" stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HubController">
 
-    <BorderPane prefHeight="800.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <BorderPane prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
         <center>
             <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="main-scroll" vbarPolicy="AS_NEEDED">
                 <content>
-                    <VBox spacing="24.0" styleClass="content-area">
+                    <VBox spacing="28.0" styleClass="content-area">
                         <padding>
                             <Insets bottom="36.0" left="40.0" right="40.0" top="36.0" />
                         </padding>
 
                         <HBox alignment="BOTTOM_LEFT">
-                            <VBox fx:id = "header" spacing="8.0">
+                            <VBox spacing="8.0">
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
                                     <Label styleClass="live-dot" text="●" />
                                     <Label styleClass="eyebrow" text="REAL-TIME FLOOR" />
                                 </HBox>
-                                <Label fx:id="pageTitle" styleClass="page-title" text="Live Running Auctions" />
+                                <Label styleClass="page-title" text="Auction Hub" />
                             </VBox>
 
                             <Region HBox.hgrow="ALWAYS" />
 
                             <HBox spacing="8.0">
-                                <Button styleClass="view-toggle-active" text="▦" />
+                                <Button styleClass="view-toggle-active" text="◦" />
                                 <Button styleClass="view-toggle" text="☰" />
                             </HBox>
                         </HBox>
 
-                        <Label fx:id="emptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
+                        <VBox fx:id="defaultSections" spacing="28.0">
+                            <children>
+                                <VBox spacing="14.0" styleClass="hub-section">
+                                    <children>
+                                        <VBox spacing="4.0">
+                                            <children>
+                                                <Label styleClass="section-title" text="Live Auctions" />
+                                                <Label styleClass="section-subtitle" text="Currently running auctions." />
+                                            </children>
+                                        </VBox>
 
-                        <VBox fx:id="liveAuctionsContainer" spacing="24.0" />
+                                        <Label fx:id="liveEmptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
+
+                                        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER">
+                                            <content>
+                                                <HBox fx:id="liveAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
+                                            </content>
+                                        </ScrollPane>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="14.0" styleClass="hub-section">
+                                    <children>
+                                        <VBox spacing="4.0">
+                                            <children>
+                                                <Label styleClass="section-title" text="Upcoming Auctions" />
+                                                <Label styleClass="section-subtitle" text="Scheduled auctions that will start soon." />
+                                            </children>
+                                        </VBox>
+
+                                        <Label fx:id="upcomingEmptyStateLabel" managed="false" styleClass="empty-state-label" text="No upcoming auctions right now." visible="false" />
+
+                                        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER">
+                                            <content>
+                                                <HBox fx:id="upcomingAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
+                                            </content>
+                                        </ScrollPane>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <VBox fx:id="searchSection" managed="false" spacing="14.0" visible="false">
+                            <children>
+                                <VBox spacing="4.0">
+                                    <children>
+                                        <Label fx:id="searchTitleLabel" styleClass="section-title" text="Search Results" />
+                                        <Label styleClass="section-subtitle" text="Matching live and upcoming auctions." />
+                                    </children>
+                                </VBox>
+
+                                <Label fx:id="searchEmptyStateLabel" managed="false" styleClass="empty-state-label" text="No auctions found." visible="false" />
+
+                                <HBox fx:id="searchResultsContainer" spacing="24.0" styleClass="results-wrap" />
+                            </children>
+                        </VBox>
                     </VBox>
                 </content>
             </ScrollPane>

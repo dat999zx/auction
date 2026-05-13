@@ -12,6 +12,8 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bidify.common.utility.ImageUtil;
+
 public class ImageService {
     private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
     private static final String UPLOAD_DIR = resolveUploadPath();
@@ -53,6 +55,7 @@ public class ImageService {
                 Path filePath = auctionDir.resolve(fileName);
                 
                 byte[] imageBytes = Base64.getDecoder().decode(base64);
+                imageBytes = ImageUtil.resizeImage(imageBytes, 800);
                 Files.write(filePath, imageBytes);
                 savedPaths.add(filePath.toString());
             }

@@ -20,9 +20,23 @@ public class MainApp extends Application {
         
         stage.setTitle("Bidify");
         stage.setMinWidth(1280);
-        stage.setMaxWidth(1280);
-        stage.setMinHeight(800);
-        stage.setMaxHeight(800);
+        stage.setMinHeight(720);
+        stage.setWidth(1280);
+        stage.setHeight(720);
+        stage.setResizable(true);
+
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
+            if (!stage.isFullScreen() && !Double.isNaN(newVal.doubleValue())) {
+                stage.setHeight(newVal.doubleValue() * 9.0 / 16.0);
+            }
+        });
+
+        stage.addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (event.getCode() == javafx.scene.input.KeyCode.F11) {
+                stage.setFullScreen(!stage.isFullScreen());
+            }
+        });
+
         SceneManager.setStage(stage);
 
         SceneManager.preloadScenes("login.fxml", "register.fxml");

@@ -8,13 +8,14 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21"
+<BorderPane fx:id="historyRoot"
+            xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.bidify.controller.HistoryController"
             stylesheets="@../css/history.css">
 
     <center>
-        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+        <ScrollPane fx:id="historyScrollPane" fitToWidth="true" styleClass="scroll-pane">
             <VBox spacing="48" styleClass="main-content">
 
                 <!-- Page Header -->
@@ -41,7 +42,7 @@
                         </right>
                     </BorderPane>
 
-                    <VBox styleClass="table-container">
+                    <VBox fx:id="biddingActivityContainer" styleClass="table-container">
                         <!-- Table Header -->
                         <HBox styleClass="table-header">
                             <Label text="AUCTION ITEM" prefWidth="320" styleClass="table-header-text"/>
@@ -85,21 +86,23 @@
                         </right>
                     </BorderPane>
 
-                    <HBox alignment="CENTER_LEFT" spacing="24" styleClass="transaction-card border-green">
-                        <HBox alignment="CENTER_LEFT" spacing="16" HBox.hgrow="ALWAYS">
-                            <HBox styleClass="icon-circle">
-                                <Label text="payments" styleClass="icon text-primary"/>
+                    <VBox fx:id="transactionRecordsContainer" spacing="16">
+                        <HBox alignment="CENTER_LEFT" spacing="24" styleClass="transaction-card border-green">
+                            <HBox alignment="CENTER_LEFT" spacing="16" HBox.hgrow="ALWAYS">
+                                <HBox styleClass="icon-circle">
+                                    <Label text="payments" styleClass="icon text-primary"/>
+                                </HBox>
+                                <VBox spacing="4">
+                                    <Label text="Ethereal Symmetry #04" styleClass="text-primary transaction-card-title"/>
+                                    <Label text="Transaction ID: #TRX-992011" styleClass="text-on-surface-variant transaction-card-id"/>
+                                </VBox>
                             </HBox>
-                            <VBox spacing="4">
-                                <Label text="Ethereal Symmetry #04" styleClass="text-primary transaction-card-title"/>
-                                <Label text="Transaction ID: #TRX-992011" styleClass="text-on-surface-variant transaction-card-id"/>
+                            <VBox alignment="CENTER_RIGHT" spacing="4">
+                                <Label text="AMOUNT" styleClass="table-header-text"/>
+                                <Label text="15,225.00" styleClass="amount-text text-primary"/>
                             </VBox>
                         </HBox>
-                        <VBox alignment="CENTER_RIGHT" spacing="4">
-                            <Label text="AMOUNT" styleClass="table-header-text"/>
-                            <Label text="15,225.00" styleClass="amount-text text-primary"/>
-                        </VBox>
-                    </HBox>
+                    </VBox>
                 </VBox>
 
                 <!-- Footer -->
