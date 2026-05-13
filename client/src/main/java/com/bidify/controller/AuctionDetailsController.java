@@ -32,6 +32,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Rectangle;
 
 public class AuctionDetailsController {
@@ -75,6 +76,20 @@ public class AuctionDetailsController {
     private Label openingBidAmountLabel;
     @FXML
     private Label opendate;
+    @FXML
+    private Label leftMetricLabel;
+    @FXML
+    private Label rightMetricLabel;
+    @FXML
+    private Label openDateLabel;
+    @FXML
+    private Label endDateLabel;
+    @FXML
+    private Label recentActivityLabel;
+    @FXML
+    private VBox recentActivitySection;
+    @FXML
+    private VBox bidActionSection;
 
     private double currentDisplayedPrice;
     private final AuctionClientService auctionClientService = new AuctionClientService();
@@ -253,7 +268,6 @@ public class AuctionDetailsController {
                 joinAuctionChannel(auctionId);
                 Platform.runLater(() -> {
                     bindAuctionData(auction);
-                    placebid.setDisable(false);
                 });
             } catch (IOException e) {
                 logger.error("Exception occurred", e);
@@ -285,6 +299,8 @@ public class AuctionDetailsController {
     //binding
 
     private void bindAuctionData(AuctionDto data) {
+        boolean isUpcoming = "UPCOMING".equalsIgnoreCase(data.getStatus());
+
         //auction name, seller and description
         name.setText(DisplayUtil.defaultText(data.getAuctionName(), "Untitled auction"));
         openingBidderLabel.setText(DisplayUtil.defaultText(data.getSellerUsername(), "Unknown seller"));
@@ -299,9 +315,14 @@ public class AuctionDetailsController {
         currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
         enddate.setText(DisplayUtil.formatDateTime(data.getEndTime(), "Unknown"));
+        configureAuctionState(isUpcoming, startingValue, currentValue);
 
         // validate and display latest bid info     
-        if (currentValue == 0) {
+        if (isUpcoming) {
+            latestBidderLabel.setText("Bidding opens when the auction goes live.");
+            latestBidAmountLabel.setText("");
+            latestBidTimeLabel.setText("");
+        } else if (currentValue == 0) {
             latestBidderLabel.setText("No bids placed yet.");
             latestBidAmountLabel.setText("");
             latestBidTimeLabel.setText("");
@@ -319,6 +340,34 @@ public class AuctionDetailsController {
 
         // setup gallery
         setupThumbnailGallery(data);
+    }
+
+    private void configureAuctionState(boolean isUpcoming, double startingValue, double currentValue) {
+        if (isUpcoming) {
+            leftMetricLabel.setText("STARTING PRICE");
+            rightMetricLabel.setText("OPENING BID");
+            currentprice.setText(DisplayUtil.formatCurrency(startingValue));
+            openDateLabel.setText("Starts at:");
+            endDateLabel.setText("Ends at:");
+            recentActivityLabel.setText("AUCTION STATUS");
+            bidActionSection.setManaged(false);
+            bidActionSection.setVisible(false);
+            placebid.setDisable(true);
+            inputprice.clear();
+            latestBidAmountLabel.setText("");
+            latestBidTimeLabel.setText("");
+            return;
+        }
+
+        leftMetricLabel.setText("STARTING PRICE");
+        rightMetricLabel.setText("CURRENT BID");
+        currentprice.setText(DisplayUtil.formatCurrency(currentValue > 0 ? currentValue : startingValue));
+        openDateLabel.setText("Open at:");
+        endDateLabel.setText("End at:");
+        recentActivityLabel.setText("RECENT ACTIVITY");
+        bidActionSection.setManaged(true);
+        bidActionSection.setVisible(true);
+        placebid.setDisable(false);
     }
 
     private void setupThumbnailGallery(AuctionDto data) {
@@ -361,6 +410,13 @@ public class AuctionDetailsController {
 
         openingBidAmountLabel.setText("Loading...");
         currentprice.setText("Loading...");
+        leftMetricLabel.setText("STARTING PRICE");
+        rightMetricLabel.setText("CURRENT BID");
+        openDateLabel.setText("Open at:");
+        endDateLabel.setText("End at:");
+        recentActivityLabel.setText("RECENT ACTIVITY");
+        bidActionSection.setManaged(true);
+        bidActionSection.setVisible(true);
 
         enddate.setText("Loading...");
 
