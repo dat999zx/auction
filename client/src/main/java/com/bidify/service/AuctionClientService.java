@@ -42,6 +42,16 @@ public class AuctionClientService {
         return auctions;
     }
 
+    public AuctionDto[] getUpcomingAuctions() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_UPCOMING_AUCTIONS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new AuctionException(response.getMessage() == null ? "Cannot load upcoming auctions." : response.getMessage());
+
+        AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        if (auctions == null) throw new AuctionException("Cannot load upcoming auctions.");
+        return auctions;
+    }
+
     public AuctionDto getAuctionDetail(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.GET_AUCTION_DETAIL, new GetAuctionDetailRequest(auctionId)));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {

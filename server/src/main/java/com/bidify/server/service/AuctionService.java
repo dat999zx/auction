@@ -69,6 +69,7 @@ public class AuctionService {
         router.register(RequestType.CREATE_AUCTION, this::create);
         router.register(RequestType.UPDATE_AUCTION, this::update);
         router.register(RequestType.GET_LIVE_AUCTIONS, (client, req) -> getAllLiveAuctions());
+        router.register(RequestType.GET_UPCOMING_AUCTIONS, (client, req) -> getAllUpcomingAuctions());
         router.register(RequestType.GET_AUCTION_DETAIL, (client, req) -> getDetail(req));
         router.register(RequestType.DELETE_AUCTION, this::delete);
         router.register(RequestType.PLACE_BID, this::placeBid);
@@ -272,6 +273,24 @@ public class AuctionService {
             }
 
             return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
+        });
+    }
+
+    public Response getAllUpcomingAuctions(){
+        return ServiceUtil.handleRequest(() -> {
+            List<Auction> auctions = RealtimeDatabase.getAllUpcomingAuctions();
+            List<AuctionDto> summaries = new ArrayList<>();
+
+            if (auctions == null || auctions.isEmpty())
+                return new Response(RequestStatus.SUCCESS, "No upcoming auctions", summaries);
+
+            for (Auction auction : auctions) {
+                AuctionDto dto = AuctionMapper.toDto(auction);
+                dto.setThumbnailBase64(getThumbnail(auction.getId()));
+                summaries.add(dto);
+            }
+
+            return new Response(RequestStatus.SUCCESS, "Get upcoming auctions successfully", summaries);
         });
     }
 

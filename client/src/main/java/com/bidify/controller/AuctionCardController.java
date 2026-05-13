@@ -14,6 +14,8 @@ public class AuctionCardController {
     @FXML
     private ImageView auctionImageView;
     @FXML
+    private Label statusPill;
+    @FXML
     private Label timerText;
     @FXML
     private Label lotPill;
@@ -32,7 +34,13 @@ public class AuctionCardController {
 
     public void bind(AuctionDto auction) {
         this.auction = auction;
-        timerText.setText(DisplayUtil.formatRemainingTime(auction.getEndTime()));
+        String status = DisplayUtil.defaultText(auction.getStatus(), "LIVE").toUpperCase();
+        boolean isUpcoming = "UPCOMING".equals(status);
+
+        statusPill.setText(isUpcoming ? "UPCOMING" : "LIVE");
+        statusPill.getStyleClass().removeAll("status-pill-live", "status-pill-upcoming");
+        statusPill.getStyleClass().add(isUpcoming ? "status-pill-upcoming" : "status-pill-live");
+        timerText.setText(DisplayUtil.formatRemainingTime(isUpcoming ? auction.getStartTime() : auction.getEndTime()));
         lotPill.setText(DisplayUtil.defaultText(auction.getId(), "Auction"));
         title.setText(DisplayUtil.defaultText(auction.getAuctionName(), "Untitled auction"));
         subtitle.setText(DisplayUtil.defaultText(auction.getDescription(), "No description."));

@@ -17,6 +17,12 @@
                     <children>
                         <ImageView fx:id="auctionImageView" fitHeight="250.0" fitWidth="460.0" preserveRatio="true" styleClass="card-image-view" />
 
+                        <Label fx:id="statusPill" maxWidth="-Infinity" styleClass="status-pill" text="LIVE" StackPane.alignment="TOP_LEFT">
+                            <StackPane.margin>
+                                <Insets left="16.0" top="16.0" />
+                            </StackPane.margin>
+                        </Label>
+
                         <Label fx:id="lotPill" maxWidth="-Infinity" styleClass="lot-pill" text="Auction" StackPane.alignment="BOTTOM_LEFT">
                             <StackPane.margin>
                                 <Insets bottom="16.0" left="16.0" />
