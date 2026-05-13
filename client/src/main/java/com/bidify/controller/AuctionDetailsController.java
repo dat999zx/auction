@@ -98,6 +98,7 @@ public class AuctionDetailsController {
         EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
         EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
         EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
+        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
 
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
             Platform.runLater(() -> {
@@ -134,6 +135,30 @@ public class AuctionDetailsController {
         }
     }
 
+    private void handleAuctionDeleted(Event event) {
+        if (selectedAuctionId == null || event == null || event.getData() == null) return;
+
+        String deletedAuctionId = String.valueOf(event.getData());
+        if (!selectedAuctionId.equals(deletedAuctionId)) return;
+
+        Platform.runLater(() -> {
+            placebid.setDisable(true);
+            inputprice.clear();
+            NotificationUtil.info("This auction was deleted.");
+
+            Thread redirectThread = new Thread(() -> {
+                try {
+                    Thread.sleep(250);
+                    Platform.runLater(this::tomenu);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+            redirectThread.setDaemon(true);
+            redirectThread.start();
+        });
+    }
+
     public void cleanup() {
         if (selectedAuctionId != null) {
             try {
@@ -145,6 +170,7 @@ public class AuctionDetailsController {
         EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleLiveUpdate);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
+        EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
     }
 
     //bid placing
