@@ -1,6 +1,8 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +60,7 @@ public class HubController {
     private AuctionDto[] upcomingAuctions = new AuctionDto[0];
     private AuctionDto[] searchResults = new AuctionDto[0];
     private final AuctionClientService auctionClientService = new AuctionClientService();
+    private final List<AuctionCardController> renderedCardControllers = new ArrayList<>();
 
     @FXML
     private void initialize() {
@@ -76,6 +79,7 @@ public class HubController {
     }
 
     public void cleanup() {
+        cleanupRenderedCards();
         EventManager.getInstance().unsubscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionEvent);
@@ -92,6 +96,7 @@ public class HubController {
             upcomingAuctions = upcoming == null ? new AuctionDto[0] : upcoming;
 
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showDefaultSections();
                 renderSection(liveAuctionsContainer, liveEmptyStateLabel, liveAuctions,
                         "No live auctions right now.");
@@ -101,12 +106,14 @@ public class HubController {
         } catch (IOException e) {
             logger.error("Failed to load hub auctions", e);
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showDefaultSections();
                 renderSection(liveAuctionsContainer, liveEmptyStateLabel, new AuctionDto[0], "Cannot connect to server.");
                 renderSection(upcomingAuctionsContainer, upcomingEmptyStateLabel, new AuctionDto[0], "Cannot connect to server.");
             });
         } catch (AuctionException e) {
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showDefaultSections();
                 renderSection(liveAuctionsContainer, liveEmptyStateLabel, new AuctionDto[0], e.getMessage());
                 renderSection(upcomingAuctionsContainer, upcomingEmptyStateLabel, new AuctionDto[0],
@@ -152,10 +159,18 @@ public class HubController {
             AnchorPane card = loader.load();
             AuctionCardController controller = loader.getController();
             controller.bind(auction);
+            renderedCardControllers.add(controller);
             return card;
         } catch (IOException e) {
             throw new IllegalStateException("Cannot load auction-card.fxml", e);
         }
+    }
+
+    private void cleanupRenderedCards() {
+        for (AuctionCardController controller : renderedCardControllers)
+            controller.cleanup();
+
+        renderedCardControllers.clear();
     }
 
     private void search() {
@@ -171,6 +186,7 @@ public class HubController {
             searchResults = results == null ? new AuctionDto[0] : results;
 
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
                 renderSection(searchResultsContainer, searchEmptyStateLabel, searchResults,
@@ -179,6 +195,7 @@ public class HubController {
         } catch (IOException e) {
             logger.error("Search failed", e);
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
                 renderSection(searchResultsContainer, searchEmptyStateLabel, new AuctionDto[0],
@@ -186,6 +203,7 @@ public class HubController {
             });
         } catch (AuctionException e) {
             Platform.runLater(() -> {
+                cleanupRenderedCards();
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
                 renderSection(searchResultsContainer, searchEmptyStateLabel, new AuctionDto[0], e.getMessage());

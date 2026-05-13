@@ -4,6 +4,7 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
 
 import com.bidify.utility.ImageCache;
+import com.bidify.utility.UiUpdateScheduler;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -31,8 +32,10 @@ public class AuctionCardController {
     private Label sellerLabel;
 
     private AuctionDto auction;
+    private String timerSubscriptionId;
 
     public void bind(AuctionDto auction) {
+        cleanup();
         this.auction = auction;
         String status = DisplayUtil.defaultText(auction.getStatus(), "LIVE").toUpperCase();
         boolean isUpcoming = "UPCOMING".equals(status);
@@ -40,10 +43,10 @@ public class AuctionCardController {
         statusPill.setText(isUpcoming ? "UPCOMING" : "LIVE");
         statusPill.getStyleClass().removeAll("status-pill-live", "status-pill-upcoming");
         statusPill.getStyleClass().add(isUpcoming ? "status-pill-upcoming" : "status-pill-live");
-        timerText.setText(DisplayUtil.formatRemainingTime(isUpcoming ? auction.getStartTime() : auction.getEndTime()));
         lotPill.setText(DisplayUtil.defaultText(auction.getId(), "Auction"));
         title.setText(DisplayUtil.defaultText(auction.getAuctionName(), "Untitled auction"));
         subtitle.setText(DisplayUtil.defaultText(auction.getDescription(), "No description."));
+        startTimer(status);
 
         //dealing with no one bidded yet case
         if (auction.getCurrentBid() == 0) {
@@ -62,6 +65,22 @@ public class AuctionCardController {
         } else {
             auctionImageView.setImage(null);
         }
+    }
+
+    public void cleanup() {
+        if (timerSubscriptionId == null || timerSubscriptionId.isBlank())
+            return;
+
+        UiUpdateScheduler.getInstance().unsubscribe(timerSubscriptionId);
+        timerSubscriptionId = null;
+    }
+
+    private void startTimer(String status) {
+        boolean isUpcoming = "UPCOMING".equals(status);
+        String targetTime = isUpcoming ? auction.getStartTime() : auction.getEndTime();
+
+        timerSubscriptionId = UiUpdateScheduler.getInstance()
+                .subscribe(() -> timerText.setText(DisplayUtil.formatRemainingTime(targetTime)));
     }
 
     @FXML

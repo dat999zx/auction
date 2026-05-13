@@ -21,6 +21,7 @@ import com.bidify.service.AuthClientService;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
+import com.bidify.utility.UiUpdateScheduler;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -92,6 +93,8 @@ public class AuctionDetailsController {
     private VBox bidActionSection;
 
     private double currentDisplayedPrice;
+    private AuctionDto currentAuction;
+    private String timerSubscriptionId;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
@@ -175,6 +178,7 @@ public class AuctionDetailsController {
     }
 
     public void cleanup() {
+        stopTimer();
         if (selectedAuctionId != null) {
             try {
                 auctionClientService.leave(selectedAuctionId);
@@ -299,6 +303,7 @@ public class AuctionDetailsController {
     //binding
 
     private void bindAuctionData(AuctionDto data) {
+        currentAuction = data;
         boolean isUpcoming = "UPCOMING".equalsIgnoreCase(data.getStatus());
 
         //auction name, seller and description
@@ -314,8 +319,8 @@ public class AuctionDetailsController {
         openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
         currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
-        enddate.setText(DisplayUtil.formatDateTime(data.getEndTime(), "Unknown"));
         configureAuctionState(isUpcoming, startingValue, currentValue);
+        startTimer();
 
         // validate and display latest bid info     
         if (isUpcoming) {
@@ -405,6 +410,8 @@ public class AuctionDetailsController {
     }
 
     private void resetView() {
+        stopTimer();
+        currentAuction = null;
         name.setText("Loading auction...");
         description.setText("Please wait while the auction details are fetched.");
 
@@ -431,6 +438,32 @@ public class AuctionDetailsController {
 
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
+    }
+
+    private void startTimer() {
+        stopTimer();
+        if (currentAuction == null) return;
+
+        timerSubscriptionId = UiUpdateScheduler.getInstance().subscribe(this::refreshTimerText);
+    }
+
+    private void stopTimer() {
+        if (timerSubscriptionId == null || timerSubscriptionId.isBlank())
+            return;
+
+        UiUpdateScheduler.getInstance().unsubscribe(timerSubscriptionId);
+        timerSubscriptionId = null;
+    }
+
+    private void refreshTimerText() {
+        if (currentAuction == null) {
+            enddate.setText("Unknown");
+            return;
+        }
+
+        boolean isUpcoming = "UPCOMING".equalsIgnoreCase(currentAuction.getStatus());
+        String targetTime = isUpcoming ? currentAuction.getStartTime() : currentAuction.getEndTime();
+        enddate.setText(DisplayUtil.formatRemainingTime(targetTime));
     }
 
     // top bar handlers and miscellaneous
