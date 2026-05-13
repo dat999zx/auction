@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.dto.TransactionDto;
+import com.bidify.common.dto.UserDto;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
-import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.WalletRequest;
@@ -56,7 +58,10 @@ public class TransactionService {
 
             transactionDao.create(new Transaction(user.getUsername(), TransactionType.DEPOSIT, amount));
 
-            return new Response(RequestStatus.SUCCESS, "Deposit successful", UserMapper.toDto(user));
+            UserDto userDto = UserMapper.toDto(user);
+            publishWalletChanged(client, userDto);
+
+            return new Response(RequestStatus.SUCCESS, "Deposit successful", userDto);
         });
     }
 
@@ -79,7 +84,10 @@ public class TransactionService {
 
             transactionDao.create(new Transaction(user.getUsername(), TransactionType.WITHDRAW, amount));
 
-            return new Response(RequestStatus.SUCCESS, "Withdraw successful", UserMapper.toDto(user));
+            UserDto userDto = UserMapper.toDto(user);
+            publishWalletChanged(client, userDto);
+
+            return new Response(RequestStatus.SUCCESS, "Withdraw successful", userDto);
         });
     }
 
@@ -104,5 +112,10 @@ public class TransactionService {
 
             return new Response(RequestStatus.SUCCESS, "Transaction history loaded", dtos);
         });
+    }
+
+    private void publishWalletChanged(ClientHandler client, UserDto userDto) {
+        if (client == null || userDto == null) return;
+        client.sendEvent(new Event(EventType.WALLET_CHANGED, "Wallet changed", userDto));
     }
 }

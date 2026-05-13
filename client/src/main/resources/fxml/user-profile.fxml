@@ -75,7 +75,7 @@
                         <VBox spacing="6.0">
                            <children>
                               <Label prefHeight="15.0" prefWidth="192.0" styleClass="meta-label" text="LOCKED BALANCE (Pending for auction)" />
-                              <Label fx:id="lockedWalletLabel" styleClass="wallet-figure" text="\$0.00" />
+                              <Label fx:id="lockedBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
                            </children>
                         </VBox>
                         <HBox.margin>

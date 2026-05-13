@@ -10,6 +10,7 @@ import com.bidify.common.enums.EventType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.service.UserProfileClientService;
 import com.bidify.utility.MissionBarUtil;
@@ -33,7 +34,7 @@ public class UserProfileController {
     private Label walletBalanceLabel;
 
     @FXML
-    private Label lockedWalletLabel;
+    private Label lockedBalanceLabel;
 
     @FXML
     private Label memberStatusLabel;
@@ -71,15 +72,17 @@ public class UserProfileController {
             populateProfile();
         });
 
+        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
+        EventManager.getInstance().subscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
         EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
     }
 
     private void handleWalletChanged(Event event) {
-        Platform.runLater(this::populateProfile);
+        Platform.runLater(() -> refreshProfileFromEvent(event));
     }
 
-    private void handleLockedWalletChanged(Event event) {
-        Platform.runLater(this::populateProfile);
+    private void handleLockedBalanceChanged(Event event) {
+        Platform.runLater(() -> refreshProfileFromEvent(event));
     }
 
     private void handleServerNotice(Event event) {
@@ -88,7 +91,7 @@ public class UserProfileController {
 
     public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
-        EventManager.getInstance().unsubscribe(EventType.LOCKED_WALLET_CHANGED, this::handleLockedWalletChanged);
+        EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
         EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
     }
 
@@ -179,11 +182,22 @@ public class UserProfileController {
         profileImageHintLabel.setText("Profile image upload placeholder");
     }
 
+    private void refreshProfileFromEvent(Event event) {
+        if (event != null && event.getData() != null) {
+            UserDto updatedUser = JsonUtil.fromMap(event.getData(), UserDto.class);
+            if (updatedUser != null) {
+                refreshProfile(updatedUser);
+                return;
+            }
+        }
+        populateProfile();
+    }
+
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
         walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
-        lockedWalletLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
+        lockedBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
         memberStatusLabel.setText("Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);

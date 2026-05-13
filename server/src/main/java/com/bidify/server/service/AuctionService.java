@@ -405,6 +405,8 @@ public class AuctionService {
                 AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
                 if (auctionChannel != null)
                     auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
+                RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
+                publishLockedBalanceChange(username, bidAmount);
     
                 //save changes to database after placing bid.
                 if (prevBidder != null)
@@ -482,6 +484,7 @@ public class AuctionService {
 
             publishBalanceChange(winnerUsername, finalBid);
             publishLockedBalanceChange(winnerUsername, -finalBid);
+            publishBalanceChange(sellerUsername, finalBid);
         }
         else {
             auction.setEndTime(LocalDateTime.now());
@@ -505,7 +508,7 @@ public class AuctionService {
     private void publishLockedBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
-        Event event = new Event(EventType.SERVER_NOTICE, "Locked balance changed: " + diff);
+        Event event = new Event(EventType.LOCKED_BALANCE_CHANGED, "Locked balance changed: " + diff);
         userClient.sendEvent(event);
     }
 }
