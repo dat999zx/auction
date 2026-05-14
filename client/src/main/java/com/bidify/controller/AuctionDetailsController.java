@@ -1,9 +1,9 @@
 package com.bidify.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.util.Base64;
+import java.util.List;
 
+import com.bidify.common.dto.BidDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,10 +31,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Rectangle;
 
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
@@ -66,12 +66,6 @@ public class AuctionDetailsController {
     @FXML
     private GridPane thumbnailGrid;
     @FXML
-    private Label latestBidderLabel;
-    @FXML
-    private Label latestBidAmountLabel;
-    @FXML
-    private Label latestBidTimeLabel;
-    @FXML
     private Label openingBidderLabel;
     @FXML
     private Label openingBidAmountLabel;
@@ -89,6 +83,8 @@ public class AuctionDetailsController {
     private Label recentActivityLabel;
     @FXML
     private VBox recentActivitySection;
+    @FXML
+    private VBox activityList;
     @FXML
     private VBox bidActionSection;
 
@@ -322,20 +318,7 @@ public class AuctionDetailsController {
         configureAuctionState(isUpcoming, startingValue, currentValue);
         startTimer();
 
-        // validate and display latest bid info     
-        if (isUpcoming) {
-            latestBidderLabel.setText("Bidding opens when the auction goes live.");
-            latestBidAmountLabel.setText("");
-            latestBidTimeLabel.setText("");
-        } else if (currentValue == 0) {
-            latestBidderLabel.setText("No bids placed yet.");
-            latestBidAmountLabel.setText("");
-            latestBidTimeLabel.setText("");
-        } else {
-            latestBidderLabel.setText(data.getCurrentBidderUsername()); 
-            latestBidAmountLabel.setText(DisplayUtil.formatCurrency(data.getCurrentBid()));
-            latestBidTimeLabel.setText(DisplayUtil.formatDateTime(data.getCreatedAt(), "Unknown"));
-        }
+        renderRecentActivity(data, isUpcoming);
 
         // set primary image
         if (data.getThumbnailBase64() != null)
@@ -359,8 +342,6 @@ public class AuctionDetailsController {
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
             inputprice.clear();
-            latestBidAmountLabel.setText("");
-            latestBidTimeLabel.setText("");
             return;
         }
 
@@ -426,10 +407,7 @@ public class AuctionDetailsController {
         bidActionSection.setVisible(true);
 
         enddate.setText("Loading...");
-
-        latestBidderLabel.setText("Latest bid");
-        latestBidAmountLabel.setText("Live value shown above");
-        latestBidTimeLabel.setText("Waiting for server data");
+        activityList.getChildren().clear();
 
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
@@ -464,6 +442,63 @@ public class AuctionDetailsController {
         boolean isUpcoming = "UPCOMING".equalsIgnoreCase(currentAuction.getStatus());
         String targetTime = isUpcoming ? currentAuction.getStartTime() : currentAuction.getEndTime();
         enddate.setText(DisplayUtil.formatRemainingTime(targetTime));
+    }
+
+    private void renderRecentActivity(AuctionDto data, boolean isUpcoming) {
+        if (activityList == null) return;
+
+        activityList.getChildren().clear();
+        if (isUpcoming) {
+            activityList.getChildren().add(createActivityRow("Bidding opens when the auction goes live.", "", ""));
+            return;
+        }
+
+        List<BidDto> bidHistory = data.getBidHistory();
+        if (bidHistory == null || bidHistory.isEmpty()) {
+            activityList.getChildren().add(createActivityRow("No bids placed yet.", "", ""));
+            return;
+        }
+
+        for (BidDto bid : bidHistory) {
+            activityList.getChildren().add(createActivityRow(
+                    DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder"),
+                    DisplayUtil.formatCurrency(bid.getAmount()),
+                    DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown")
+            ));
+        }
+    }
+
+    private GridPane createActivityRow(String bidderText, String amountText, String timeText) {
+        GridPane row = new GridPane();
+        row.getStyleClass().add("activity-row");
+        row.getColumnConstraints().addAll(
+                createActivityColumn(34.0),
+                createActivityColumn(33.0),
+                createActivityColumn(33.0)
+        );
+
+        Label bidderLabel = new Label(bidderText);
+        bidderLabel.getStyleClass().add("bidder-name");
+        bidderLabel.setWrapText(true);
+
+        Label amountLabel = new Label(amountText);
+        amountLabel.getStyleClass().addAll("bidder-name", "right");
+        amountLabel.setMaxWidth(Double.MAX_VALUE);
+
+        Label timeLabel = new Label(timeText);
+        timeLabel.getStyleClass().addAll("bidder-name", "right");
+        timeLabel.setMaxWidth(Double.MAX_VALUE);
+
+        row.add(bidderLabel, 0, 0);
+        row.add(amountLabel, 1, 0);
+        row.add(timeLabel, 2, 0);
+        return row;
+    }
+
+    private ColumnConstraints createActivityColumn(double percentWidth) {
+        ColumnConstraints column = new ColumnConstraints();
+        column.setPercentWidth(percentWidth);
+        return column;
     }
 
     // top bar handlers and miscellaneous

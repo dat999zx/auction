@@ -19,6 +19,7 @@ public class AuctionDto {
     private String status;
     private String thumbnailBase64;
     private List<String> galleryBase64;
+    private List<BidDto> bidHistory;
 
     public AuctionDto(String id, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
@@ -59,4 +60,7 @@ public class AuctionDto {
 
     public List<String> getGalleryBase64() { return galleryBase64; }
     public void setGalleryBase64(List<String> galleryBase64) { this.galleryBase64 = galleryBase64; }
+
+    public List<BidDto> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<BidDto> bidHistory) { this.bidHistory = bidHistory; }
 }

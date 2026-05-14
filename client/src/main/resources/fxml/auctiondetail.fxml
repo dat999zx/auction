@@ -132,22 +132,7 @@
     
                                     <ScrollPane fitToWidth="true" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
                                         <content>
-                                            <VBox>
-                                                <GridPane styleClass="activity-row">
-                                                    <columnConstraints>
-                                                        <ColumnConstraints percentWidth="34.0" />
-                                                        <ColumnConstraints percentWidth="33.0" />
-                                                        <ColumnConstraints percentWidth="33.0" />
-                                                    </columnConstraints>
-                                                    <rowConstraints>
-                                                        <RowConstraints />
-                                                    </rowConstraints>
-    
-                                                    <Label fx:id="latestBidderLabel" styleClass="bidder-name" text="latestBidderLabel" GridPane.columnIndex="0" />
-                                                    <Label fx:id="latestBidAmountLabel" styleClass="bidder-name" text="latestBidAmountLabel" GridPane.columnIndex="1" />
-                                                    <Label fx:id="latestBidTimeLabel" styleClass="bidder-name" text="latestBidTimeLabel" GridPane.columnIndex="2" />
-                                                </GridPane>
-                                            </VBox>
+                                            <VBox fx:id="activityList" spacing="0.0" />
                                         </content>
                                     </ScrollPane>
                                 </VBox>
