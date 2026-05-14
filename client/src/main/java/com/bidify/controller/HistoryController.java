@@ -291,18 +291,18 @@ public class HistoryController {
 
     private String resolveTransactionIcon(TransactionDto transaction) {
         return switch (transaction.getType()) {
-            case DEPOSIT -> "south";
-            case WITHDRAW -> "north";
-            case AUCTION_PAY, AUCTION_PROFIT -> "payments";
+            case DEPOSIT -> "Deposit";
+            case WITHDRAW -> "Withdraw";
+            case AUCTION_PAY, AUCTION_PROFIT -> "Payment";
         };
     }
 
     private String resolveTransactionTitle(TransactionDto transaction) {
         return switch (transaction.getType()) {
-            case DEPOSIT -> "Wallet top up";
-            case WITHDRAW -> "Wallet withdrawal";
-            case AUCTION_PAY -> "Auction payment";
-            case AUCTION_PROFIT -> "Auction profit";
+            case DEPOSIT -> "Wallet Deposit";
+            case WITHDRAW -> "Wallet Withdraw";
+            case AUCTION_PAY -> "Auction Payment";
+            case AUCTION_PROFIT -> "Auction Profit";
         };
     }
 }

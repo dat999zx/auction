@@ -61,7 +61,7 @@ public class UserProfileClientService {
     }
 
     public UserDto addWalletBalance(double amount) throws IOException {
-        ValidationUtil.validatePositiveAmount(amount, "Top up amount");
+        ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
         Response response = client.send(new Request(RequestType.DEPOSIT, new WalletRequest(amount)));
         return consumeProfileResponse(response, "Cannot update wallet.");
     }
