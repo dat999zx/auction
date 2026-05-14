@@ -2,8 +2,9 @@ package com.bidify.controller;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
-
+import com.bidify.network.SocketClient;
 import com.bidify.utility.ImageCache;
+import com.bidify.utility.SceneManager;
 import com.bidify.utility.UiUpdateScheduler;
 
 import javafx.fxml.FXML;
@@ -85,6 +86,23 @@ public class AuctionCardController {
 
     @FXML
     private void openAuction() {
-        if (auction != null) AuctionDetailsController.openAuctionDetails(auction.getId(), auction.getSellerUsername());
+        if (auction == null) return;
+
+        String currentUsername = SocketClient.getClient().getCurrentUsername();
+        String auctionId = auction.getId();
+        String sellerUsername = auction.getSellerUsername();
+
+        // 2. Decide the destination
+        if (sellerUsername != null && sellerUsername.equals(currentUsername)) {
+            // User owns it -> Go to Modify
+            ModifyAuctionController.setAuctionId(auctionId);
+            SceneManager.clearCache("modifyauction.fxml");
+            SceneManager.switchScene("modifyauction.fxml", false, false);
+        } else {
+            // User is a buyer -> Go to Details
+            AuctionDetailsController.setAuctionId(auctionId);
+            SceneManager.clearCache("auctiondetail.fxml");
+            SceneManager.switchScene("auctiondetail.fxml", false, false);
+        }
     }
 }

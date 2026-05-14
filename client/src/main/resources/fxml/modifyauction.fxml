@@ -18,7 +18,7 @@
 <?import javafx.scene.layout.TilePane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="720" prefWidth="1280" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="720" prefWidth="1280" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ModifyAuctionController">
 
     <center>
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
@@ -30,8 +30,8 @@
                         <Label styleClass="header-title" text="Modify Auction" />
                     </VBox>
                     <HBox spacing="15">
-                        <Button styleClass="btn-secondary" text="Cancel" />
-                        <Button styleClass="btn-primary" text="Save Changes" />
+                        <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
+                        <Button fx:id="saveChangesButton" onAction="#handleSaveChanges" styleClass="btn-primary" text="Save Changes" />
                     </HBox>
                 </HBox>
 
@@ -47,64 +47,65 @@
                             
                             <VBox spacing="5">
                                 <Label styleClass="input-label" text="PRODUCT NAME" />
-                                <TextField fx:id="productNameField" text="1963 Rolex Daytona Cosmograph 'Paul Newman' the ." />
+                                <TextField fx:id="productNameField" styleClass="text-area-modern" text="1963 Rolex Daytona Cosmograph 'Paul Newman' the ." />
                             </VBox>
 
                             <HBox spacing="15">
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label styleClass="input-label" text="CATEGORY" />
-                                    <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" promptText="Horology &amp; Timepieces" />
+                                    <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" promptText="Horology &amp; Timepieces" styleClass="combo-box-modern" />
                                 </VBox>
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
                                     <Label styleClass="input-label" text="PRODUCT TYPE" />
-                                    <ComboBox fx:id="productTypeComboBox" maxWidth="Infinity" promptText="Vintage Original" />
+                                    <ComboBox fx:id="productTypeComboBox" maxWidth="Infinity" promptText="Vintage Original" styleClass="combo-box-modern" />
                                 </VBox>
                             </HBox>
 
                             <VBox spacing="5">
                                 <Label styleClass="input-label" text="DESCRIPTION" />
-                                <TextArea fx:id="descriptionArea" prefRowCount="5" text="The Rolex Cosmograph Daytona Ref. 6239 with 'Exotic' dial..." wrapText="true" />
+                                <TextArea fx:id="descriptionArea" prefRowCount="5" styleClass="text-area-modern" text="The Rolex Cosmograph Daytona Ref. 6239 with 'Exotic' dial..." wrapText="true" />
                             </VBox>
                         </VBox>
 
-                    <VBox spacing="15" styleClass="card">
-                        <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Auction Mechanics" />
-                        
-                        <HBox spacing="15">
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label styleClass="input-label" text="STARTING PRICE (USD)" />
-                                <TextField fx:id="startingPriceField" styleClass="text-field-modern" text="125000" />
-                            </VBox>
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label styleClass="input-label" text="MIN INCREMENTS (USD)" />
-                                <TextField fx:id="minIncrementField" styleClass="text-field-modern" text="2500" />
-                            </VBox>
-                        </HBox>
+                        <VBox spacing="15" styleClass="card">
+                            <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Auction Mechanics" />
+                            
+                            <HBox spacing="15">
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="STARTING PRICE (USD)" />
+                                    <TextField fx:id="startingPriceField" styleClass="text-field-modern" text="125000" />
+                                </VBox>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="MIN INCREMENTS (USD)" />
+                                    <TextField fx:id="minIncrementField" styleClass="text-field-modern" text="2500" />
+                                </VBox>
+                            </HBox>
 
-                        <HBox spacing="15">
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label styleClass="input-label" text="START DATE" />
-                                <DatePicker fx:id="startDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
-                            </VBox>
-                            <VBox spacing="5">
-                                <Label styleClass="input-label" text="START TIME" />
-                                <TextField fx:id="startTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="09:00" />
-                            </VBox>
-                        </HBox>
-
-                        <HBox spacing="15">
-                            <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                <Label styleClass="input-label" text="END DATE" />
-                                <DatePicker fx:id="endDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
-                            </VBox>
-                            <VBox spacing="5">
-                                <Label styleClass="input-label" text="END TIME" />
-                                <TextField fx:id="endTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="21:00" />
-                            </VBox>
-                        </HBox>
-                        
-                        <Label style="-fx-font-size: 10; -fx-text-fill: #767683; -fx-font-style: italic;" text="Current timezone: UTC-5 (EST). Auction will close exactly at the specified minute." />
-                    </VBox>
+                            <HBox spacing="15">
+                                <!-- Start Date Container -->
+                                <VBox minWidth="240.0" spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="START DATE" />
+                                    <DatePicker fx:id="startDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
+                                </VBox>
+                                <!-- Start Time Container -->
+                                <VBox spacing="5">
+                                    <Label styleClass="input-label" text="START TIME" />
+                                    <TextField fx:id="startTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="09:00" />
+                                </VBox>
+                                <!-- End Date Container -->
+                                <VBox minWidth="240.0" spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="END DATE" />
+                                    <DatePicker fx:id="endDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
+                                </VBox>
+                                <!-- End Time Container -->
+                                <VBox spacing="5">
+                                    <Label styleClass="input-label" text="END TIME" />
+                                    <TextField fx:id="endTimeField" prefHeight="40.0" prefWidth="120.0" promptText="HH:mm" styleClass="text-field-modern" text="21:00" />
+                                </VBox>
+                            </HBox>
+                            
+                            <Label style="-fx-font-size: 10; -fx-text-fill: #767683; -fx-font-style: italic;" text="Current timezone: UTC-5 (EST). Auction will close exactly at the specified minute." />
+                        </VBox> <!-- This is the one Scene Builder says is missing or mismatched! -->
                     </VBox>
 
                     <VBox spacing="25" GridPane.columnIndex="1">
@@ -134,9 +135,9 @@
                             </HBox>
                         </VBox>
                     </VBox>
-               <rowConstraints>
-                  <RowConstraints />
-               </rowConstraints>
+                    <rowConstraints>
+                        <RowConstraints />
+                    </rowConstraints>
                 </GridPane>
             </VBox>
         </ScrollPane>
