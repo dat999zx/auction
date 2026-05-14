@@ -1,0 +1,55 @@
+.root {
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+    -fx-background-color: #f7f9fc;
+    -fx-text-fill: #191c1e;
+
+    -primary: #000666;
+    -primary-container: #1a237e;
+    -secondary: #0048d8;
+    -surface: #f7f9fc;
+    -surface-container-lowest: #ffffff;
+    -surface-container-low: #f2f4f7;
+    -surface-container: #eceef1;
+    -surface-container-high: #e6e8eb;
+    -surface-container-highest: #e0e3e6;
+    -outline-variant: #c6c5d4;
+    -on-surface: #191c1e;
+    -on-surface-variant: #454652;
+    -error: #ba1a1a;
+    -error-container: #ffdad6;
+}
+
+.label { -fx-text-fill: -on-surface; }
+.button { -fx-cursor: hand; -fx-background-radius: 8; -fx-border-radius: 8; }
+.text-field, .text-area { -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 0; }
+.text-field:focused, .text-area:focused { -fx-effect: dropshadow(gaussian, rgba(0,72,216,0.35), 0, 0, 0, 0); }
+
+.detail-shell { -fx-background-color: -surface-container-lowest; -fx-background-radius: 12; }
+.detail-header { -fx-pref-height: 80; -fx-background-color: -surface-container-low; }
+.icon-button { -fx-min-width: 40; -fx-min-height: 40; -fx-background-color: transparent; -fx-text-fill: -on-surface-variant; -fx-font-size: 26px; }
+.icon-button:hover { -fx-background-color: -surface-container-high; }
+.detail-title { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: -primary; }
+.cancel-button { -fx-background-color: -surface-container-highest; -fx-text-fill: -on-surface-variant; -fx-font-size: 13px; -fx-font-weight: 700; -fx-padding: 10 24 10 24; }
+.save-button { -fx-background-color: linear-gradient(to bottom right, #000666, #1a237e); -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 10 32 10 32; }
+.detail-main { -fx-background-color: -surface-container-lowest; }
+.field-label { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: -on-surface-variant; }
+.large-input { -fx-min-height: 56; -fx-background-color: -surface-container-low; -fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: -on-surface; -fx-padding: 0 16 0 16; }
+.medium-input, .money-input { -fx-min-height: 48; -fx-background-color: -surface-container-low; -fx-background-radius: 8; }
+.medium-input { -fx-font-size: 14px; -fx-font-weight: 700; -fx-padding: 0 16 0 16; }
+.money-input { -fx-padding: 0 12 0 14; }
+.prefix { -fx-font-weight: 900; -fx-text-fill: -on-surface-variant; }
+.embedded-input { -fx-background-color: transparent; -fx-font-size: 14px; -fx-font-weight: 700; -fx-padding: 0 0 0 8; }
+.editor { -fx-background-color: -surface-container-low; -fx-background-radius: 8; -fx-min-height: 320; }
+.toolbar { -fx-background-color: -surface-container-high; -fx-padding: 8; -fx-border-color: transparent transparent rgba(198,197,212,0.18) transparent; }
+.toolbar-button { -fx-background-color: transparent; -fx-font-weight: 800; -fx-min-width: 34; -fx-min-height: 34; }
+.toolbar-button:hover { -fx-background-color: -surface-container-highest; }
+.description-area { -fx-background-color: transparent; -fx-control-inner-background: -surface-container-low; -fx-font-size: 14px; -fx-text-fill: -on-surface; -fx-padding: 12; }
+.image-drop-zone { -fx-background-color: -surface-container-low; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-width: 2; -fx-border-style: dashed; -fx-border-color: rgba(198,197,212,0.45); }
+.image-overlay { -fx-background-color: rgba(0,6,102,0.20); -fx-padding: 24; }
+.overlay-button { -fx-background-color: white; -fx-text-fill: -primary; -fx-font-size: 12px; -fx-font-weight: 900; -fx-background-radius: 999; -fx-padding: 8 24 8 24; }
+.overlay-hint { -fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: 900; }
+.secondary-thumb, .secondary-thumb-selected { -fx-background-radius: 8; -fx-border-radius: 8; }
+.secondary-thumb-selected { -fx-border-color: -secondary; -fx-border-width: 2; }
+.add-media-button { -fx-background-color: -surface-container-low; -fx-border-color: rgba(198,197,212,0.55); -fx-border-style: dashed; -fx-text-fill: -on-surface-variant; -fx-font-size: 10px; -fx-font-weight: 900; }
+.helper-text { -fx-font-size: 11px; -fx-text-fill: -on-surface-variant; -fx-line-spacing: 3px; }
+.status-bar { -fx-pref-height: 40; -fx-background-color: -surface-container-lowest; -fx-border-color: rgba(198,197,212,0.10) transparent transparent transparent; -fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: -on-surface-variant; }

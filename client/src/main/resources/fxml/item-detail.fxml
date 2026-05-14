@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            prefWidth="1080" prefHeight="720" styleClass="detail-shell">
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="16" styleClass="detail-header">
+            <Button text="‹" styleClass="icon-button"/>
+            <Label text="Item Details" styleClass="detail-title" HBox.hgrow="ALWAYS"/>
+            <Button text="Cancel" styleClass="cancel-button"/>
+            <Button text="Save Changes" styleClass="save-button"/>
+            <padding><Insets top="0" right="40" bottom="0" left="40"/></padding>
+        </HBox>
+    </top>
+
+    <center>
+        <HBox spacing="48" styleClass="detail-main">
+            <VBox spacing="28" HBox.hgrow="ALWAYS">
+                <VBox spacing="8">
+                    <Label text="Product Name" styleClass="field-label"/>
+                    <TextField text="Vintage 1964 Chronograph Watch" styleClass="large-input"/>
+                </VBox>
+
+                <VBox spacing="8" VBox.vgrow="ALWAYS">
+                    <Label text="Description" styleClass="field-label"/>
+                    <VBox styleClass="editor" VBox.vgrow="ALWAYS">
+                        <HBox spacing="4" alignment="CENTER_LEFT" styleClass="toolbar">
+                            <Button text="B" styleClass="toolbar-button"/>
+                            <Button text="I" styleClass="toolbar-button"/>
+                            <Button text="•≡" styleClass="toolbar-button"/>
+                            <Separator orientation="VERTICAL"/>
+                            <Button text="🔗" styleClass="toolbar-button"/>
+                            <Button text="▧" styleClass="toolbar-button"/>
+                        </HBox>
+                        <TextArea wrapText="true" styleClass="description-area" VBox.vgrow="ALWAYS"
+                                  text="This exceptional timepiece features an original tachymeter scale and sunburst dial. Preserved in its original condition, the 1964 edition is a rare find for collectors of horological excellence.&#10;&#10;Specifications:&#10;• Movement: Hand-wound Calibre 321&#10;• Diameter: 36mm&#10;• Material: Stainless Steel&#10;• Strap: Authentic Crocodile Leather"/>
+                    </VBox>
+                </VBox>
+
+                <GridPane hgap="24" vgap="8">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50"/>
+                    </columnConstraints>
+                    <Label text="Starting Bid" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <Label text="Lot Number" styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="money-input" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                        <Label text="$" styleClass="prefix"/>
+                        <TextField text="4,500.00" styleClass="embedded-input" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                    <TextField text="LX-8892" styleClass="medium-input" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                </GridPane>
+            </VBox>
+
+            <VBox spacing="18" prefWidth="360">
+                <Label text="Item Media" styleClass="field-label"/>
+                <StackPane styleClass="image-drop-zone" prefWidth="360" prefHeight="360">
+                    <ImageView fitWidth="360" fitHeight="360" preserveRatio="false">
+                        <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuCCgoJl7KG8twggHb4bIkIUiyV2VXVug6Q4oS9Xdsak1eJGatL3NJXa7r4ZitX7Ar9OUMil1ptQhBrPY9bjvAjwRjT4SVJtdcS_5V2EQEWVduoUDQOu44bVD9uV8f2PC_MrlZyNe5y0IMwvD3ie007aKx1KuJavR-pzWO4jE7bwiYvUUctGm6H82-0j4xiVW-hWtqvUXx5VfVY1mLNzK6G3h-Yfz4WB7OSAyJzRJmklrGy2R8IV_sJ4_EZipKGNsLp8gXql0-qUVwE"/></image>
+                    </ImageView>
+                    <VBox alignment="CENTER" spacing="12" styleClass="image-overlay">
+                        <Button text="Change Image" styleClass="overlay-button"/>
+                        <Label text="OR DRAG &amp; DROP" styleClass="overlay-hint"/>
+                    </VBox>
+                </StackPane>
+
+                <HBox spacing="12">
+                    <ImageView fitWidth="112" fitHeight="112" preserveRatio="false" styleClass="secondary-thumb">
+                        <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuC-XBq_ogg2Rc7OlwVJHju5iOqCEbM9806WTHpcjngWJyrq_S4B-dtFrqPLCTTFKlM5DR2rmzj3-OIDUZ2CoCf3pS85Wi2hA5SWFHalTTsGxbnmE1a1OZyZLd79rP9VcCJwN6rc5VpDVdLplrJC_dK3F8dkdzKE0iO-8FWsSKUSD5yHDiLh9hMXGzJ2URz8Dtbb23yjIwroRfxMKvhhSJjv0-TJDj_66uNgIXlui97RDqoc_W4MIZjh0vPfpzH0xIVuOcZphzkKDlw"/></image>
+                    </ImageView>
+                    <ImageView fitWidth="112" fitHeight="112" preserveRatio="false" styleClass="secondary-thumb-selected">
+                        <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ5-AcC4iw9QACfTg2hsfdnztazOGXTosfdC9qu2NolH2MKEOqP-R7539zrnJ-Ck4jnAJNGi9k8BZ9koJv_BhOjXH-UfXZkKpXS9VqVbR7kQJeHvA-2FQk5tl4NZZUXjupmv9254Q8leirns7uk6taZV6YpjioZeuIJ8UQFv0EDcvukvLNxHFShurPpCVKuQvZQyqHMwQ-Na5UUN1Ghl5Epucgv_ud4Jv1jsIOh59gPiDxnOomd8bXzhVFYNGY69SC0TdlL10NgIk"/></image>
+                    </ImageView>
+                    <Button text="＋&#10;ADD" prefWidth="112" prefHeight="112" styleClass="add-media-button"/>
+                </HBox>
+
+                <Label wrapText="true" styleClass="helper-text"
+                       text="Pro Tip: Use high-resolution images with neutral backgrounds for 15% higher bidding engagement. Maximum file size: 12MB."/>
+            </VBox>
+            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+        </HBox>
+    </center>
+
+    <bottom>
+        <HBox alignment="CENTER_LEFT" styleClass="status-bar">
+            <Label text="●  Last saved: 2 minutes ago" HBox.hgrow="ALWAYS"/>
+            <Label text="Item ID: #INV-00452-64"/>
+            <padding><Insets top="0" right="40" bottom="0" left="40"/></padding>
+        </HBox>
+    </bottom>
+</BorderPane>
