@@ -16,6 +16,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.ImageCache;
@@ -94,10 +95,15 @@ public class AuctionDetailsController {
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
-    public static void openAuctionDetails(String auctionId) {
+    public static void openAuctionDetails(String auctionId, String sellerUsername) {
         selectedAuctionId = auctionId;
+        String client = SocketClient.getClient().getCurrentUsername();
         SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false, false);
+        if (sellerUsername != null && sellerUsername.equals(client)) {
+            SceneManager.switchScene("modifyauction.fxml", false, false);
+        } else {
+            SceneManager.switchScene("auctiondetail.fxml", false, false);
+        }
     }
 
     @FXML

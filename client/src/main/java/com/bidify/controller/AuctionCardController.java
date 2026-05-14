@@ -85,6 +85,6 @@ public class AuctionCardController {
 
     @FXML
     private void openAuction() {
-        if (auction != null) AuctionDetailsController.openAuctionDetails(auction.getId());
+        if (auction != null) AuctionDetailsController.openAuctionDetails(auction.getId(), auction.getSellerUsername());
     }
 }
