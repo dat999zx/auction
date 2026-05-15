@@ -5,11 +5,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.enums.AuctionStatus;
-import com.bidify.common.utility.IdGenerator;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
-import com.bidify.server.model.AuctionImage;
 
 // giao tiếp với SQLite database về bảng Auctions
 public class AuctionDao {
@@ -31,9 +29,8 @@ public class AuctionDao {
                     rs.getString("auctionName"),
                     rs.getString("description"),
                     rs.getString("seller"),
+                    rs.getString("itemId"),
                     rs.getString("currentBidder"),
-                    rs.getString("category"),
-                    rs.getString("type"),
                     rs.getDouble("startingPrice"),
                     rs.getDouble("minIncrement"),
                     LocalDateTime.parse(rs.getString("startAt")),
@@ -48,7 +45,7 @@ public class AuctionDao {
         }, status.toString());
     }
 
-    public Auction findById(String id) throws DatabaseException { // lấy auction theo id
+    public Auction findById(String id) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
@@ -58,9 +55,8 @@ public class AuctionDao {
                 rs.getString("auctionName"),
                 rs.getString("description"),
                 rs.getString("seller"),
+                rs.getString("itemId"),
                 rs.getString("currentBidder"),
-                rs.getString("category"),
-                rs.getString("type"),
                 rs.getDouble("startingPrice"),
                 rs.getDouble("minIncrement"),
                 LocalDateTime.parse(rs.getString("startAt")),
@@ -73,7 +69,7 @@ public class AuctionDao {
         }, id);
     }
 
-    public void create(Auction auction) throws DatabaseException { // tạo auction
+    public void create(Auction auction) throws DatabaseException {
         LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
         String sql = """
             INSERT INTO Auctions(
@@ -81,8 +77,7 @@ public class AuctionDao {
             createdAt,
             auctionName,
             description,
-            category,
-            type,
+            itemId,
             startingPrice,
             minIncrement,
             seller,
@@ -91,7 +86,7 @@ public class AuctionDao {
             status,
             startAt,
             endTime
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """;
 
         SQLiteHelper.update(sql,
@@ -99,8 +94,7 @@ public class AuctionDao {
             createdAt.toString(),
             auction.getAuctionName(),
             auction.getDescription(),
-            auction.getCategory(),
-            auction.getProductType(),
+            auction.getItemId(),
             auction.getStartingPrice(),
             auction.getMinIncrement(),
             auction.getSellerUsername(),
@@ -112,12 +106,12 @@ public class AuctionDao {
         );
     }
 
-    public void deleteById(String id) throws DatabaseException { // xóa auction theo id
+    public void deleteById(String id) throws DatabaseException {
         String sql = "DELETE FROM Auctions WHERE id = ?";
         SQLiteHelper.update(sql, id);
     }
 
-    public void save(Auction auction) throws DatabaseException { // lưu auction
+    public void save(Auction auction) throws DatabaseException {
         LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
         SQLiteHelper.update(
             """
@@ -125,8 +119,7 @@ public class AuctionDao {
             createdAt = ?,
             auctionName = ?,
             description = ?,
-            category = ?,
-            type = ?,
+            itemId = ?,
             startingPrice = ?,
             minIncrement = ?,
             seller = ?,
@@ -140,8 +133,7 @@ public class AuctionDao {
             createdAt.toString(),
             auction.getAuctionName(),
             auction.getDescription(),
-            auction.getCategory(),
-            auction.getProductType(),
+            auction.getItemId(),
             auction.getStartingPrice(),
             auction.getMinIncrement(),
             auction.getSellerUsername(),
@@ -163,33 +155,4 @@ public class AuctionDao {
             return rs.getDouble(1);
         }, username);
     }
-
-    // lưu các AuctionImage
-    public void saveAuctionImages(String auctionId, List<String> filePaths) throws DatabaseException {
-        String sql = "INSERT INTO AuctionImages(id, createdAt, auctionId, filePath, isPrimary) VALUES (?, ?, ?, ?, ?)";
-        for (int i = 0; i < filePaths.size(); i++) {
-            String imageId = IdGenerator.genImageId();
-            String createdAt = LocalDateTime.now().toString();
-            int isPrimary = (i == 0) ? 1 : 0; // ảnh đầu là ảnh chính
-            SQLiteHelper.update(sql, imageId, createdAt, auctionId, filePaths.get(i), isPrimary);
-        }
-    }
-
-    // lấy các AuctionImage theo auctionId
-    public List<AuctionImage> getAuctionImages(String auctionId) throws DatabaseException {
-        String sql = "SELECT * FROM AuctionImages WHERE auctionId = ?";
-        return SQLiteHelper.query(sql, rs -> {
-            List<AuctionImage> images = new ArrayList<>();
-            while (rs.next()) {
-                images.add(new AuctionImage(
-                    rs.getString("id"),
-                    LocalDateTime.parse(rs.getString("createdAt")),
-                    rs.getString("auctionId"),
-                    rs.getString("filePath"),
-                    rs.getInt("isPrimary") == 1
-                ));
-            }
-            return images;
-        }, auctionId);
-    }
-    }
+}

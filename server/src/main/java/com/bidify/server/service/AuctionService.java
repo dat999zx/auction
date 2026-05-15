@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.TransactionType;
@@ -31,6 +32,8 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
+import com.bidify.server.dao.ImageDao;
+import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
@@ -38,8 +41,10 @@ import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.exception.InsufficientBalanceException;
 import com.bidify.server.model.Auction;
-import com.bidify.server.model.AuctionImage;
 import com.bidify.server.model.Bid;
+import com.bidify.server.model.Image;
+import com.bidify.server.model.Item;
+import com.bidify.server.model.ItemImageLink;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.Wallet;
@@ -53,6 +58,8 @@ public class AuctionService {
     private static Logger logger = LoggerFactory.getLogger(AuctionService.class);
     private static AuctionService instance = new AuctionService();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final ItemDao itemDao = ItemDao.getInstance();
+    private final ImageDao imageDao = ImageDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
     private final BidDao bidDao = BidDao.getInstance();
     private final TransactionDao transactionDao = TransactionDao.getInstance();
@@ -100,15 +107,19 @@ public class AuctionService {
             List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
 
             for (Auction auction : allAuctions) {
-                // lấy các auction thỏa mãn 2 điều kiện: chứa tên / description
-                boolean matchesName = auction.getAuctionName() != null && auction.getAuctionName().toLowerCase().contains(finalQuery);
-                boolean matchesDesc = auction.getDescription() != null && auction.getDescription().toLowerCase().contains(finalQuery);
+                Item item = getLinkedAuctionItem(auction);
+                String auctionName = item != null ? item.getName() : auction.getAuctionName();
+                String description = item != null ? item.getDescription() : auction.getDescription();
+                String category = item != null ? item.getCategory() : auction.getCategory();
+                String productType = item != null ? item.getProductType() : auction.getProductType();
+
+                boolean matchesName = auctionName != null && auctionName.toLowerCase().contains(finalQuery);
+                boolean matchesDesc = description != null && description.toLowerCase().contains(finalQuery);
                 boolean matchesSeller = auction.getSellerUsername() != null && auction.getSellerUsername().toLowerCase().contains(finalQuery);
-                if (matchesName || matchesDesc || matchesSeller) {
-                    AuctionDto dto = AuctionMapper.toDto(auction);
-                    dto.setThumbnailBase64(getThumbnail(auction.getId()));
-                    results.add(dto);
-                }
+                boolean matchesCategory = category != null && category.toLowerCase().contains(finalQuery);
+                boolean matchesProductType = productType != null && productType.toLowerCase().contains(finalQuery);
+                if (matchesName || matchesDesc || matchesSeller || matchesCategory || matchesProductType)
+                    results.add(toAuctionDto(auction, item, false));
             }
 
             return new Response(RequestStatus.SUCCESS, "Search completed", results);
@@ -122,38 +133,31 @@ public class AuctionService {
 
             ServiceUtil.requireSession(client);
 
-            String sellerUsername = data.getSeller();
-            String auctionName = data.getAuctionName();
-            String description = data.getDescription();
-            String category = data.getCategory();
-            String productType = data.getProductType();
+            String sellerUsername = client.getCurrentUsername();
+            String itemId = data.getItemId();
             double startingPrice = data.getStartingPrice();
             double minIncrement = data.getMinIncrement();
             LocalDateTime startTime = parseDateTime(data.getStartTime());
             LocalDateTime endTime = parseDateTime(data.getEndTime());
 
-            validateAuctionFields(sellerUsername, auctionName, description, category, productType, startingPrice, minIncrement);
-
-            if (!client.getCurrentUsername().equals(sellerUsername))
-                throw new ValidationException("You are not the seller of this auction");
-
+            ValidationUtil.requiresNonBlank(itemId, "Item ID");
+            ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
+            ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
             validateAuctionTime(startTime, endTime);
 
-            Auction auction = new Auction(auctionName, description, sellerUsername, startingPrice, startTime, endTime);
-            auction.setCategory(category);
-            auction.setProductType(productType);
+            Item item = requireAvailableOwnedItem(itemId, sellerUsername);
+
+            Auction auction = new Auction(sellerUsername, itemId, startingPrice, startTime, endTime);
+            auction.setAuctionName(item.getName());
+            auction.setDescription(item.getDescription());
             auction.setMinIncrement(minIncrement);
             auctionDao.create(auction);
-
-            List<String> images = data.getImagesBase64();
-            if (images != null && !images.isEmpty()) {
-                List<String> savedPaths = imageService.saveImages(auction.getId(), images);
-                auctionDao.saveAuctionImages(auction.getId(), savedPaths);
-            }
+            itemDao.updateAvailabilityStatus(itemId, ItemStatus.LOCKED_IN_AUCTION);
+            item.setAvailabilityStatus(ItemStatus.LOCKED_IN_AUCTION);
 
             RealtimeDatabase.addRuntimeAuction(auction);
 
-            AuctionDto auctionDto = AuctionMapper.toDto(auction);
+            AuctionDto auctionDto = toAuctionDto(auction, item, false);
             RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_CREATED, "New auction created", auctionDto));
 
             return new Response(RequestStatus.SUCCESS, "Create new auction successfully!");
@@ -198,7 +202,7 @@ public class AuctionService {
 
             auctionDao.save(auction);
 
-            AuctionDto auctionDto = AuctionMapper.toDto(auction);
+            AuctionDto auctionDto = toAuctionDto(auction, false);
             RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_UPDATED, "Auction updated", auctionDto));
 
             return new Response(RequestStatus.SUCCESS, "Auction updated successfully!", auctionDto);
@@ -230,6 +234,9 @@ public class AuctionService {
 
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
 
+            if (auction.getItemId() != null && !auction.getItemId().isBlank())
+                itemDao.updateAvailabilityStatus(auction.getItemId(), ItemStatus.AVAILABLE);
+
             auctionDao.deleteById(auctionId);
             RealtimeDatabase.removeRuntimeAuction(auctionId);
 
@@ -251,9 +258,7 @@ public class AuctionService {
             if (auction == null)
                 throw new AuctionException("Auction not found");
 
-            AuctionDto auctionDto = AuctionMapper.toDto(auction);
-            auctionDto.setThumbnailBase64(getThumbnail(auctionId));
-            auctionDto.setGalleryBase64(getGallery(auctionId));
+            AuctionDto auctionDto = toAuctionDto(auction, true);
             return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auctionDto);
         });
     }
@@ -266,11 +271,8 @@ public class AuctionService {
             if (auctions == null || auctions.isEmpty())
                 return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
 
-            for (Auction auction : auctions) {
-                AuctionDto dto = AuctionMapper.toDto(auction);
-                dto.setThumbnailBase64(getThumbnail(auction.getId()));
-                summaries.add(dto);
-            }
+            for (Auction auction : auctions)
+                summaries.add(toAuctionDto(auction, false));
 
             return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
         });
@@ -284,22 +286,27 @@ public class AuctionService {
             if (auctions == null || auctions.isEmpty())
                 return new Response(RequestStatus.SUCCESS, "No upcoming auctions", summaries);
 
-            for (Auction auction : auctions) {
-                AuctionDto dto = AuctionMapper.toDto(auction);
-                dto.setThumbnailBase64(getThumbnail(auction.getId()));
-                summaries.add(dto);
-            }
+            for (Auction auction : auctions)
+                summaries.add(toAuctionDto(auction, false));
 
             return new Response(RequestStatus.SUCCESS, "Get upcoming auctions successfully", summaries);
         });
     }
 
     // lấy ảnh chính
-    private String getThumbnail(String auctionId) {
+    private String getThumbnail(Item item) {
+        if (item == null) return null;
         try {
-            List<AuctionImage> images = auctionDao.getAuctionImages(auctionId);
-            for (AuctionImage image : images) {
-                if (image.isPrimary())
+            List<ItemImageLink> links = itemDao.getItemImageLinks(item.getId());
+            for (ItemImageLink link : links) {
+                if (!link.isPrimary()) continue;
+                Image image = imageDao.findById(link.getImageId());
+                if (image != null)
+                    return imageService.getBase64Image(image.getFilePath());
+            }
+            for (ItemImageLink link : links) {
+                Image image = imageDao.findById(link.getImageId());
+                if (image != null)
                     return imageService.getBase64Image(image.getFilePath());
             }
         }
@@ -310,11 +317,14 @@ public class AuctionService {
     }
 
     // lấy tất cả ảnh của auction
-    private List<String> getGallery(String auctionId) {
+    private List<String> getGallery(Item item) {
         List<String> gallery = new ArrayList<>();
+        if (item == null) return gallery;
         try {
-            List<AuctionImage> images = auctionDao.getAuctionImages(auctionId);
-            for (AuctionImage image : images) {
+            List<ItemImageLink> links = itemDao.getItemImageLinks(item.getId());
+            for (ItemImageLink link : links) {
+                Image image = imageDao.findById(link.getImageId());
+                if (image == null) continue;
                 String base64 = imageService.getBase64Image(image.getFilePath());
                 if (base64 != null) gallery.add(base64);
             }
@@ -347,7 +357,7 @@ public class AuctionService {
 
             RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
-            AuctionDto auctionDto = AuctionMapper.toDto(auction);
+            AuctionDto auctionDto = toAuctionDto(auction, false);
             return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         });
     }
@@ -420,7 +430,7 @@ public class AuctionService {
                 bidDao.create(bid);
                 auctionDao.save(auction);
     
-                AuctionDto auctionDto = AuctionMapper.toDto(auction);
+                AuctionDto auctionDto = toAuctionDto(auction, false);
                 AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auctionId);
                 if (auctionChannel != null)
                     auctionChannel.publish(new Event(EventType.BID_PLACED, "New bid placed", auctionDto));
@@ -444,6 +454,44 @@ public class AuctionService {
     private void requireSeller(Auction auction, String username, String message) {
         if (auction == null || username == null || !username.equals(auction.getSellerUsername()))
             throw new ValidationException(message);
+    }
+
+    private Item requireAvailableOwnedItem(String itemId, String username) {
+        Item item = itemDao.findById(itemId);
+        if (item == null)
+            throw new ValidationException("Item not found");
+        if (!username.equals(item.getOwnerUsername()))
+            throw new ValidationException("You do not own this item");
+        if (item.getAvailabilityStatus() != ItemStatus.AVAILABLE)
+            throw new ValidationException("Item is not available for auction");
+        return item;
+    }
+
+    private Item getLinkedAuctionItem(Auction auction) {
+        if (auction == null) return null;
+
+        String itemId = auction.getItemId();
+        if (itemId == null || itemId.isBlank()) return null;
+
+        return itemDao.findById(itemId);
+    }
+
+    public AuctionDto toAuctionDto(Auction auction, boolean includeGallery) {
+        return toAuctionDto(auction, getLinkedAuctionItem(auction), includeGallery);
+    }
+
+    public AuctionDto toAuctionDto(Auction auction, Item item, boolean includeGallery) {
+        List<String> gallery = includeGallery ? getGallery(item) : null;
+        return AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
+    }
+
+    private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {
+        Item item = getLinkedAuctionItem(auction);
+        if (item == null) return;
+
+        item.setOwnerUsername(ownerUsername);
+        item.setAvailabilityStatus(status);
+        itemDao.save(item);
     }
 
     private void validateAuctionFields(String sellerUsername, String auctionName, String description,
@@ -496,6 +544,8 @@ public class AuctionService {
             seller.getWallet().deposit(finalBid);
             transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
 
+            updateAuctionItemState(auction, winnerUsername, ItemStatus.AVAILABLE);
+
             auction.setStatus(AuctionStatus.ENDED);
 
             userDao.save(winner, false);
@@ -506,6 +556,7 @@ public class AuctionService {
             publishBalanceChange(sellerUsername, finalBid);
         }
         else {
+            updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
             auction.setEndTime(LocalDateTime.now());
             auction.setStatus(AuctionStatus.CANCELED);
         }
