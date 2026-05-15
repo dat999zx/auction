@@ -38,6 +38,27 @@
     -fx-text-fill: #767683;
 }
 
+.read-only-value {
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #191c1e;
+}
+
+.read-only-panel {
+    -fx-padding: 12;
+    -fx-background-color: #f7f9fc;
+    -fx-background-radius: 10;
+    -fx-border-color: #d9dde3;
+    -fx-border-radius: 10;
+    -fx-text-fill: #191c1e;
+}
+
+.status-note {
+    -fx-text-fill: #0048d8;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
 
 
 /* --- Primary Button --- */

@@ -1,11 +1,13 @@
 package com.bidify.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +26,11 @@ import com.bidify.utility.SceneManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class ModifyAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(ModifyAuctionController.class);
@@ -37,12 +40,14 @@ public class ModifyAuctionController {
     // before switching to this view.
     private static String currentAuctionId;
 
-    @FXML private TextField productNameField;
-    @FXML private TextArea descriptionArea;
-    @FXML private ComboBox<String> categoryComboBox;
-    @FXML private ComboBox<String> productTypeComboBox;
+    @FXML private Label itemNameLabel;
+    @FXML private Label itemDescriptionLabel;
+    @FXML private Label categoryLabel;
+    @FXML private Label productTypeLabel;
+    @FXML private Label itemStatusLabel;
+    @FXML private ImageView linkedItemImageView;
     @FXML private TextField startingPriceField;
-    @FXML private TextField minIncrementField; // Optional: Only if you want to allow editing this field
+    @FXML private TextField minIncrementField;
     @FXML private DatePicker startDatePicker;
     @FXML private TextField startTimeField;
     @FXML private DatePicker endDatePicker;
@@ -64,11 +69,6 @@ public class ModifyAuctionController {
 
     @FXML
     private void initialize() {
-        // 1. Setup dropdowns
-        categoryComboBox.getItems().setAll("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other");
-        productTypeComboBox.getItems().setAll("New", "Used", "Rare", "Vintage", "Limited");
-
-        // 2. Load data if we have an ID
         if (currentAuctionId == null || currentAuctionId.isBlank()) {
             NotificationUtil.error("No auction selected for modification.");
             return;
@@ -99,17 +99,15 @@ public class ModifyAuctionController {
     }
 
     private void bindAuctionToFields(AuctionDto data) {
-        // Populate Text Fields
-        productNameField.setText(data.getAuctionName());
-        descriptionArea.setText(data.getDescription());
-        startingPriceField.setText(String.valueOf(data.getStartingPrice()));
-        
-        // Set ComboBox values (ensure these strings match the lists in initialize)
-        categoryComboBox.setValue(data.getCategory()); 
-        productTypeComboBox.setValue(data.getProductType());
+        itemNameLabel.setText(defaultText(data.getAuctionName(), "Unnamed item"));
+        itemDescriptionLabel.setText(defaultText(data.getDescription(), "No description."));
+        categoryLabel.setText(defaultText(data.getCategory(), "-"));
+        productTypeLabel.setText(defaultText(data.getProductType(), "-"));
+        itemStatusLabel.setText("Linked inventory item is locked by this auction.");
+        linkedItemImageView.setImage(decodeBase64Image(data.getThumbnailBase64()));
 
-        // Handle Dates and Times
-        // Assuming getStartTime() returns an ISO string like "2023-10-27T09:00"
+        startingPriceField.setText(String.valueOf(data.getStartingPrice()));
+
         try {
             LocalDateTime start = LocalDateTime.parse(data.getStartTime());
             LocalDateTime end = LocalDateTime.parse(data.getEndTime());
@@ -134,9 +132,6 @@ public class ModifyAuctionController {
         }
 
         try {
-            // 1. Collect Data from UI
-            String name = productNameField.getText().trim();
-            String desc = descriptionArea.getText().trim();
             double price = parseAmount(startingPriceField.getText(), "Starting Price");
             
             LocalDate startDate = startDatePicker.getValue();
@@ -153,12 +148,10 @@ public class ModifyAuctionController {
             }
 
             double minIncrement = parseAmount(minIncrementField.getText(), "Minimum Increment");
-            // 3. Construct the Request (Mapping to your UpdateAuctionRequest model)
-            // Note: Message is added as a blank/default string if not present in your FXML
             UpdateAuctionRequest request = new UpdateAuctionRequest(
                 currentAuctionId,
-                name,
-                desc,
+                "",
+                "",
                 price,
                 minIncrement, startDateTime.toString(),
                 endDateTime.toString(),
@@ -215,5 +208,23 @@ public class ModifyAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format.");
         }
+    }
+
+    private Image decodeBase64Image(String base64) {
+        if (base64 == null || base64.isBlank()) return null;
+        try {
+            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+        }
+        catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private String defaultText(String value, String fallback) {
+        return safe(value).isBlank() ? fallback : value;
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }
