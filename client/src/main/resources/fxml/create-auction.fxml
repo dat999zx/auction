@@ -144,7 +144,7 @@
                                         <VBox spacing="6.0" GridPane.columnIndex="0">
                                             <Label styleClass="field-label" text="STARTING PRICE (USD)" />
                                             <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="input-wrapper">
-                                                <Label styleClass="currency-label" text="$" />
+                                                <Label styleClass="currency-label" text="\$" />
                                                 <TextField fx:id="startingPriceField" promptText="0.00" styleClass="embedded-input" HBox.hgrow="ALWAYS" />
                                             </HBox>
                                         </VBox>
