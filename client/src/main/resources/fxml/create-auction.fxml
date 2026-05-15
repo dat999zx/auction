@@ -7,14 +7,11 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
@@ -24,182 +21,189 @@
 <AnchorPane prefHeight="720.0" prefWidth="1280.0" styleClass="create-auction-root" stylesheets="@../css/create-auction.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.CreateAuctionController">
     <children>
         <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
-    <center>
-        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
-            <content>
-                <VBox fillWidth="true" maxWidth="Infinity" minWidth="0.0" spacing="16.0" styleClass="content-wrapper">
-                    <padding>
-                        <Insets bottom="70.0" left="24.0" right="24.0" top="60.0" />
-                    </padding>
+            <center>
+                <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="false" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
+                    <content>
+                        <VBox fillWidth="true" maxWidth="Infinity" minWidth="0.0" spacing="16.0" styleClass="content-wrapper">
+                            <padding>
+                                <Insets bottom="70.0" left="24.0" right="24.0" top="60.0" />
+                            </padding>
 
-                    <VBox spacing="4.0">
-                        <Label styleClass="page-title" text="Create New Auction" />
-                        <Label styleClass="page-subtitle" text="List your premium asset on the global stage." />
-                    </VBox>
-
-                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
-                        <columnConstraints>
-                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
-                        </columnConstraints>
-
-                        <VBox spacing="8.0" GridPane.columnIndex="0">
-                            <Label styleClass="section-title" text="Asset Details" />
-                            <Label styleClass="section-description" text="Provide the essential information about your item." wrapText="true" />
-                        </VBox>
-
-                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
-                            <VBox spacing="6.0">
-                                <Label styleClass="field-label" text="PRODUCT NAME" />
-                                <TextField fx:id="productNameField" promptText="e.g. 1963 Vintage Chronograph" styleClass="text-field-modern" />
+                            <VBox spacing="4.0">
+                                <Label styleClass="page-title" text="Create New Auction" />
+                                <Label styleClass="page-subtitle" text="Choose an inventory item and set the auction terms." />
                             </VBox>
 
-                            <VBox spacing="6.0">
-                                <Label styleClass="field-label" text="DESCRIPTION" />
-                                <TextArea fx:id="descriptionArea" prefRowCount="3" promptText="Detail the provenance, condition, and unique features..." styleClass="text-area-modern" wrapText="true" />
-                            </VBox>
-
-                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                            <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
                                 <columnConstraints>
-                                    <ColumnConstraints percentWidth="50.0" />
-                                    <ColumnConstraints percentWidth="50.0" />
+                                    <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
                                 </columnConstraints>
 
-                                <VBox spacing="6.0" GridPane.columnIndex="0">
-                                    <Label styleClass="field-label" text="CATEGORY" />
-                                    <ComboBox fx:id="categoryComboBox" maxWidth="Infinity" promptText="Select category" styleClass="combo-box-modern" />
+                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                    <Label styleClass="section-title" text="Inventory Item" />
+                                    <Label styleClass="section-description" text="Select one of your available inventory items to list." wrapText="true" />
                                 </VBox>
 
-                                <VBox spacing="6.0" GridPane.columnIndex="1">
-                                    <Label styleClass="field-label" text="PRODUCT TYPE" />
-                                    <ComboBox fx:id="productTypeComboBox" maxWidth="Infinity" promptText="Select type" styleClass="combo-box-modern" />
-                                </VBox>
-                                <rowConstraints>
-                                    <RowConstraints />
-                                </rowConstraints>
-                            </GridPane>
-                        </VBox>
-                        <rowConstraints>
-                            <RowConstraints />
-                        </rowConstraints>
-                    </GridPane>
+                                <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                                    <VBox spacing="6.0">
+                                        <Label styleClass="field-label" text="AVAILABLE INVENTORY ITEM" />
+                                        <ComboBox fx:id="inventoryItemComboBox" promptText="Select an item from inventory" styleClass="combo-box-modern" />
+                                    </VBox>
 
-                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
-                        <columnConstraints>
-                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
-                        </columnConstraints>
+                                    <VBox spacing="6.0">
+                                        <Label styleClass="field-label" text="DESCRIPTION" />
+                                        <Label fx:id="selectedDescriptionLabel" prefHeight="90.0" styleClass="read-only-description" text="Choose an item to view its description." wrapText="true" />
+                                    </VBox>
 
-                        <VBox spacing="8.0" GridPane.columnIndex="0">
-                            <Label styleClass="section-title" text="Media Gallery" />
-                            <Label styleClass="section-description" text="High-resolution imagery increases final bid values by up to 40%." wrapText="true" />
-                        </VBox>
+                                    <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints percentWidth="50.0" />
+                                            <ColumnConstraints percentWidth="50.0" />
+                                        </columnConstraints>
 
-                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
-                            <StackPane fx:id="uploadBox" onMouseClicked="#handleUploadClick" maxWidth="Infinity" prefHeight="130.0" styleClass="upload-box">
-                                <ImageView fitHeight="130.0" opacity="0.10" preserveRatio="true">
-                                    <image>
-                                        <Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuApyd0CCvVBwnZ8dEarN_inuQTAjBareF0HNbk1d2BuLDy2sAUZs5hCsSO2JBay1mcIfbfUU3HYA2ricPCXaCoNTJdrq9A4DHEq1ayK5dwCsd5qAS-6_Jsi3SNQACx50H-9wtIQVmOgOKHqaoa1XE_zw5Z52oeN3vstORT6HcB-6goXtmOrOkX1sxIfw8nYOd-xWKB70bS7l0Cx-zFTek6z9XjHq15wRsIR6XAk3dtzuwUulSMNCfM7TD9TucVGVTd25rqwgo6b14w" />
-                                    </image>
-                                </ImageView>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="ITEM NAME" />
+                                            <Label fx:id="selectedItemNameLabel" styleClass="read-only-value" text="No item selected" wrapText="true" />
+                                        </VBox>
 
-                                <VBox alignment="CENTER" spacing="6.0">
-                                    <Label styleClass="upload-icon" text="📷" />
-                                    <Label styleClass="upload-title" text="Drop images here or click to upload" />
-                                    <Label styleClass="upload-subtitle" text="SVG, PNG, JPG or GIF (max. 10MB)" />
-                                </VBox>
-                            </StackPane>
-
-                            <FlowPane fx:id="imagePreviewPane" hgap="12.0" maxWidth="Infinity" prefWrapLength="400.0" vgap="12.0">
-                            </FlowPane>
-                        </VBox>
-                        <rowConstraints>
-                            <RowConstraints />
-                        </rowConstraints>
-                    </GridPane>
-
-                    <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
-                        <columnConstraints>
-                            <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
-                            <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
-                        </columnConstraints>
-
-                        <VBox spacing="8.0" GridPane.columnIndex="0">
-                            <Label styleClass="section-title" text="Auction Economics" />
-                            <Label styleClass="section-description" text="Define the financial parameters and duration of the event." wrapText="true" />
-                        </VBox>
-
-                        <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
-                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
-                                <columnConstraints>
-                                    <ColumnConstraints percentWidth="50.0" />
-                                    <ColumnConstraints percentWidth="50.0" />
-                                </columnConstraints>
-
-                                <VBox spacing="6.0" GridPane.columnIndex="0">
-                                    <Label styleClass="field-label" text="STARTING PRICE (USD)" />
-                                    <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="input-wrapper">
-                                        <Label styleClass="currency-label" text="\$" />
-                                        <TextField fx:id="startingPriceField" promptText="0.00" styleClass="embedded-input" HBox.hgrow="ALWAYS" />
-                                    </HBox>
-                                </VBox>
-
-                                <VBox spacing="6.0" GridPane.columnIndex="1">
-                                    <Label styleClass="field-label" text="START DATE" />
-                                    <HBox spacing="10.0">
-                                        <children>
-                                            <DatePicker fx:id="startDatePicker" editable="false" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
-                                            <TextField fx:id="startTimeField" promptText="HH:mm" styleClass="text-field-modern" />
-                                        </children>
-                                    </HBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="STATUS" />
+                                            <Label fx:id="selectedItemHintLabel" styleClass="read-only-value" text="Only available inventory items can be listed." wrapText="true" />
+                                        </VBox>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
+                                    </GridPane>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
                                 </rowConstraints>
                             </GridPane>
 
-                            <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                            <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
                                 <columnConstraints>
-                                    <ColumnConstraints percentWidth="50.0" />
-                                    <ColumnConstraints percentWidth="50.0" />
+                                    <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
                                 </columnConstraints>
 
-                                <VBox spacing="6.0" GridPane.columnIndex="0">
-                                    <Label styleClass="field-label" text="MIN INCREMENT" />
-                                    <TextField fx:id="minIncrementField" promptText="0" styleClass="text-field-modern" text="0" />
+                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                    <Label styleClass="section-title" text="Selected Item Preview" />
+                                    <Label styleClass="section-description" text="Auction media comes from the linked inventory item." wrapText="true" />
                                 </VBox>
 
-                                <VBox spacing="6.0" GridPane.columnIndex="1">
-                                    <Label styleClass="field-label" text="END DATE" />
-                                    <HBox spacing="10.0">
-                                        <children>
-                                            <DatePicker fx:id="endDatePicker" editable="false" maxWidth="Infinity" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
-                                            <TextField fx:id="endTimeField" promptText="HH:mm" styleClass="text-field-modern" />
-                                        </children>
-                                    </HBox>
+                                <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                                    <StackPane maxWidth="Infinity" prefHeight="190.0" styleClass="upload-box">
+                                        <ImageView fx:id="selectedItemImageView" fitHeight="190.0" fitWidth="420.0" preserveRatio="true" />
+
+                                        <VBox alignment="CENTER" spacing="6.0">
+                                            <Label styleClass="upload-icon" text="Preview" />
+                                            <Label styleClass="upload-title" text="Selected item thumbnail" />
+                                            <Label styleClass="upload-subtitle" text="Choose an item to see its stored thumbnail." />
+                                        </VBox>
+                                    </StackPane>
+
+                                    <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints percentWidth="50.0" />
+                                            <ColumnConstraints percentWidth="50.0" />
+                                        </columnConstraints>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="CATEGORY" />
+                                            <Label fx:id="selectedCategoryLabel" styleClass="read-only-value" text="-" wrapText="true" />
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="PRODUCT TYPE" />
+                                            <Label fx:id="selectedProductTypeLabel" styleClass="read-only-value" text="-" wrapText="true" />
+                                        </VBox>
+                                    </GridPane>
                                 </VBox>
                                 <rowConstraints>
                                     <RowConstraints />
                                 </rowConstraints>
                             </GridPane>
+
+                            <GridPane hgap="24.0" maxWidth="Infinity" minWidth="0.0">
+                                <columnConstraints>
+                                    <ColumnConstraints maxWidth="320.0" minWidth="320.0" prefWidth="320.0" />
+                                    <ColumnConstraints hgrow="ALWAYS" minWidth="0.0" />
+                                </columnConstraints>
+
+                                <VBox spacing="8.0" GridPane.columnIndex="0">
+                                    <Label styleClass="section-title" text="Auction Economics" />
+                                    <Label styleClass="section-description" text="Define the pricing and duration of the auction." wrapText="true" />
+                                </VBox>
+
+                                <VBox maxWidth="Infinity" minWidth="0.0" spacing="12.0" GridPane.columnIndex="1">
+                                    <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints percentWidth="50.0" />
+                                            <ColumnConstraints percentWidth="50.0" />
+                                        </columnConstraints>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="STARTING PRICE (USD)" />
+                                            <HBox alignment="CENTER_LEFT" spacing="6.0" styleClass="input-wrapper">
+                                                <Label styleClass="currency-label" text="$" />
+                                                <TextField fx:id="startingPriceField" promptText="0.00" styleClass="embedded-input" HBox.hgrow="ALWAYS" />
+                                            </HBox>
+                                        </VBox>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="START DATE" />
+                                            <HBox spacing="10.0">
+                                                <children>
+                                                    <DatePicker fx:id="startDatePicker" editable="false" maxWidth="Infinity" prefHeight="47.0" prefWidth="442.0" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                                    <TextField fx:id="startTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                                </children>
+                                            </HBox>
+                                        </VBox>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
+                                    </GridPane>
+
+                                    <GridPane hgap="16.0" maxWidth="Infinity" minWidth="0.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints percentWidth="50.0" />
+                                            <ColumnConstraints percentWidth="50.0" />
+                                        </columnConstraints>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="MIN INCREMENT" />
+                                            <TextField fx:id="minIncrementField" promptText="0" styleClass="text-field-modern" text="0" />
+                                        </VBox>
+
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="END DATE" />
+                                            <HBox spacing="10.0">
+                                                <children>
+                                                    <DatePicker fx:id="endDatePicker" editable="false" maxWidth="Infinity" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
+                                                    <TextField fx:id="endTimeField" promptText="HH:mm" styleClass="text-field-modern" />
+                                                </children>
+                                            </HBox>
+                                        </VBox>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
+                                    </GridPane>
+                                </VBox>
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
+                            </GridPane>
+
+                            <Separator />
+
+                            <HBox alignment="CENTER_RIGHT" spacing="12.0">
+                                <Button mnemonicParsing="false" onAction="#createAuction" styleClass="primary-button-large" text="Create Auction" />
+                            </HBox>
+
+                            <Label styleClass="footer-label" text="Listings lock the selected inventory item until the auction ends or is deleted." wrapText="true" />
                         </VBox>
-                        <rowConstraints>
-                            <RowConstraints />
-                        </rowConstraints>
-                    </GridPane>
-
-                    <Separator />
-
-                    <HBox alignment="CENTER_RIGHT" spacing="12.0">
-
-                        <Button mnemonicParsing="false" onAction="#createAuction" styleClass="primary-button-large" text="Create Auction" />
-                    </HBox>
-
-                    <Label styleClass="footer-label" text="© 2024 BIDIFY PREMIUM AUCTIONEERING ECOSYSTEM. ALL LISTINGS SUBJECT TO CURATOR VERIFICATION." wrapText="true" />
-                </VBox>
-            </content>
-        </ScrollPane>
-    </center>
-</BorderPane>
+                    </content>
+                </ScrollPane>
+            </center>
+        </BorderPane>
     </children>
 </AnchorPane>

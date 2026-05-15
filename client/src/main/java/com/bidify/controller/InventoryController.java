@@ -1,0 +1,251 @@
+package com.bidify.controller;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+
+import com.bidify.common.dto.ItemDto;
+import com.bidify.common.enums.ItemStatus;
+import com.bidify.common.exception.ValidationException;
+import com.bidify.service.InventoryClientService;
+import com.bidify.utility.MissionBarUtil;
+import com.bidify.utility.NavPage;
+import com.bidify.utility.NotificationUtil;
+import com.bidify.utility.SceneManager;
+
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.ColumnConstraints;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+
+public class InventoryController {
+    private final InventoryClientService inventoryClientService = new InventoryClientService();
+    private List<ItemDto> allItems = List.of();
+
+    @FXML
+    private TextField searchField;
+
+    @FXML
+    private VBox itemsContainer;
+
+    @FXML
+    private Label summaryLabel;
+
+    @FXML
+    private void initialize() {
+        Platform.runLater(() -> {
+            MissionBarUtil.setup(NavPage.NONE, false, null);
+            searchField.textProperty().addListener((obs, oldValue, newValue) -> renderItems(filterItems(newValue)));
+            loadInventory();
+        });
+    }
+
+    @FXML
+    private void handleAddItem() {
+        SceneManager.switchScene("item-detail.fxml", false, false);
+    }
+
+    @FXML
+    private void handleRefresh() {
+        loadInventory();
+    }
+
+    private void loadInventory() {
+        try {
+            allItems = inventoryClientService.getMyInventory();
+            renderItems(filterItems(searchField.getText()));
+        }
+        catch (IOException e) {
+            allItems = List.of();
+            renderItems(List.of());
+            NotificationUtil.error("Cannot connect to server.");
+        }
+        catch (ValidationException e) {
+            allItems = List.of();
+            renderItems(List.of());
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    private List<ItemDto> filterItems(String rawQuery) {
+        String query = rawQuery == null ? "" : rawQuery.trim().toLowerCase();
+        if (query.isBlank()) return allItems;
+
+        List<ItemDto> filtered = new ArrayList<>();
+        for (ItemDto item : allItems) {
+            if (item == null) continue;
+
+            String haystack = String.join(" ",
+                safe(item.getName()),
+                safe(item.getDescription()),
+                safe(item.getCategory()),
+                safe(item.getProductType()),
+                safe(item.getAvailabilityStatus())
+            ).toLowerCase();
+
+            if (haystack.contains(query))
+                filtered.add(item);
+        }
+        return filtered;
+    }
+
+    private void renderItems(List<ItemDto> items) {
+        itemsContainer.getChildren().clear();
+
+        if (items == null || items.isEmpty()) {
+            itemsContainer.getChildren().add(createEmptyState());
+            summaryLabel.setText(allItems.isEmpty() ? "No inventory items yet" : "No items match your search");
+            return;
+        }
+
+        for (int i = 0; i < items.size(); i++)
+            itemsContainer.getChildren().add(createRow(items.get(i), i == items.size() - 1));
+
+        summaryLabel.setText("Showing " + items.size() + " item" + (items.size() == 1 ? "" : "s"));
+    }
+
+    private Node createEmptyState() {
+        VBox box = new VBox(10);
+        box.getStyleClass().add("empty-state");
+        box.setAlignment(Pos.CENTER_LEFT);
+        box.setPadding(new Insets(28, 32, 28, 32));
+
+        Label title = new Label(allItems.isEmpty() ? "Your inventory is empty." : "No items match that search.");
+        title.getStyleClass().add("empty-state-title");
+
+        Label subtitle = new Label(allItems.isEmpty()
+            ? "Create an item first, then you can list it in an auction."
+            : "Try a different keyword or clear the search field.");
+        subtitle.getStyleClass().add("empty-state-subtitle");
+        subtitle.setWrapText(true);
+
+        box.getChildren().addAll(title, subtitle);
+        return box;
+    }
+
+    private Node createRow(ItemDto item, boolean isLast) {
+        GridPane row = new GridPane();
+        row.getStyleClass().add(isLast ? "table-row-last" : "table-row");
+        row.getColumnConstraints().addAll(createColumn(70), createColumn(30));
+        row.setPadding(new Insets(24, 32, 24, 32));
+
+        HBox details = new HBox(16);
+        details.setAlignment(Pos.TOP_LEFT);
+        details.getChildren().add(createThumbnailNode(item));
+
+        VBox textBox = new VBox(6);
+        Label title = new Label(defaultText(item.getName(), "Unnamed item"));
+        title.getStyleClass().add("item-title");
+
+        Label description = new Label(defaultText(item.getDescription(), "No description."));
+        description.getStyleClass().add("item-description");
+        description.setWrapText(true);
+        description.setMaxWidth(560);
+
+        Label meta = new Label(buildMetaLine(item));
+        meta.getStyleClass().add("sku-text");
+        textBox.getChildren().addAll(title, description, meta);
+
+        details.getChildren().add(textBox);
+
+        HBox actions = new HBox(12);
+        actions.setAlignment(Pos.CENTER);
+
+        Label statusChip = new Label(formatStatus(item.getAvailabilityStatus()));
+        statusChip.getStyleClass().addAll(
+            "status-chip",
+            ItemStatus.LOCKED_IN_AUCTION.name().equals(item.getAvailabilityStatus()) ? "status-chip-locked" : "status-chip-available"
+        );
+
+        Button detailsButton = new Button("Details");
+        detailsButton.getStyleClass().add("outline-button");
+        detailsButton.setOnAction(event -> NotificationUtil.info("Item editing is not implemented yet."));
+
+        actions.getChildren().addAll(statusChip, detailsButton);
+
+        row.add(details, 0, 0);
+        row.add(actions, 1, 0);
+        return row;
+    }
+
+    private ColumnConstraints createColumn(double percentWidth) {
+        ColumnConstraints constraints = new ColumnConstraints();
+        constraints.setPercentWidth(percentWidth);
+        return constraints;
+    }
+
+    private Node createThumbnailNode(ItemDto item) {
+        StackPane frame = new StackPane();
+        frame.getStyleClass().add("thumb-frame");
+        frame.setPrefSize(64, 64);
+
+        Image image = decodeImage(item.getThumbnailBase64());
+        if (image != null) {
+            ImageView imageView = new ImageView(image);
+            imageView.setFitWidth(64);
+            imageView.setFitHeight(64);
+            imageView.setPreserveRatio(false);
+            imageView.getStyleClass().add("thumb");
+            frame.getChildren().add(imageView);
+        }
+        else {
+            Label placeholder = new Label(resolveInitial(item.getName()));
+            placeholder.getStyleClass().add("thumb-placeholder");
+            frame.getChildren().add(placeholder);
+        }
+
+        return frame;
+    }
+
+    private Image decodeImage(String base64) {
+        if (base64 == null || base64.isBlank()) return null;
+        try {
+            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+        }
+        catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private String buildMetaLine(ItemDto item) {
+        List<String> parts = new ArrayList<>();
+        if (!safe(item.getCategory()).isBlank())
+            parts.add(item.getCategory());
+        if (!safe(item.getProductType()).isBlank())
+            parts.add(item.getProductType());
+        parts.add("Status: " + formatStatus(item.getAvailabilityStatus()));
+        return String.join(" • ", parts);
+    }
+
+    private String resolveInitial(String value) {
+        if (value == null || value.isBlank()) return "I";
+        return value.substring(0, 1).toUpperCase();
+    }
+
+    private String formatStatus(String availabilityStatus) {
+        if (ItemStatus.LOCKED_IN_AUCTION.name().equals(availabilityStatus))
+            return "Locked";
+        return "Available";
+    }
+
+    private String defaultText(String value, String fallback) {
+        return safe(value).isBlank() ? fallback : value;
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+}

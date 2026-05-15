@@ -53,3 +53,4 @@
 .add-media-button { -fx-background-color: -surface-container-low; -fx-border-color: rgba(198,197,212,0.55); -fx-border-style: dashed; -fx-text-fill: -on-surface-variant; -fx-font-size: 10px; -fx-font-weight: 900; }
 .helper-text { -fx-font-size: 11px; -fx-text-fill: -on-surface-variant; -fx-line-spacing: 3px; }
 .status-bar { -fx-pref-height: 40; -fx-background-color: -surface-container-lowest; -fx-border-color: rgba(198,197,212,0.10) transparent transparent transparent; -fx-font-size: 10px; -fx-font-weight: 900; -fx-text-fill: -on-surface-variant; }
+.media-preview-tile { -fx-background-color: -surface-container-low; -fx-background-radius: 8; -fx-border-radius: 8; }

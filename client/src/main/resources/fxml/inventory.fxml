@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 
 <ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.bidify.controller.InventoryController"
             fitToWidth="true" fitToHeight="true" pannable="true"
             prefWidth="1080" prefHeight="720" styleClass="page-scroll">
     <content>
@@ -21,15 +27,15 @@
                     <Label text="Inventory" styleClass="page-title"/>
                     <Label text="Manage your product catalog and items." styleClass="muted-text"/>
                 </VBox>
-                <Button text="＋  Add Item" styleClass="primary-button"/>
+                <Button onAction="#handleAddItem" text="+ Add Item" styleClass="primary-button"/>
             </HBox>
 
             <VBox styleClass="card" spacing="0">
                 <HBox alignment="CENTER_LEFT" styleClass="card-header" spacing="16">
                     <Label text="Live Inventory" styleClass="section-title" HBox.hgrow="ALWAYS"/>
                     <HBox alignment="CENTER_LEFT" styleClass="search-box" spacing="10">
-                        <Label text="⌕" styleClass="search-icon"/>
-                        <TextField promptText="Search..." styleClass="plain-field" prefWidth="190"/>
+                        <Label text="Search" styleClass="search-icon"/>
+                        <TextField fx:id="searchField" promptText="Search..." styleClass="plain-field" prefWidth="190"/>
                     </HBox>
                 </HBox>
 
@@ -43,85 +49,16 @@
                     <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
                 </GridPane>
 
-                <VBox styleClass="table-body" spacing="0">
-                    <GridPane styleClass="table-row">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="70"/>
-                            <ColumnConstraints percentWidth="30"/>
-                        </columnConstraints>
-                        <HBox spacing="16" alignment="TOP_LEFT" GridPane.columnIndex="0">
-                            <ImageView fitWidth="64" fitHeight="64" preserveRatio="false" styleClass="thumb">
-                                <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuAoAjE4U5JUmRMzY-7WDRpdEAJTCD_XNel9u248zsZPjBp-5NVRWRM10bQi0ILs_qm4I71qEMV1O2jYXtRuq0XMgaU04OoOWAUt7ObLMOUKU51Z04Ej04oMEj15YvsNkd77B_WvwItsrNDt2Qdn2qAWu7PpKR_y8SVBFmRBMZWYBFbY8oJqAu18DflTstjOrFZfGB52fjaeCXnO3RDOO4oaKhnToLwFZcLyKvbrfqlRL6nytTtHWqnCM-M3bNtYlR8lale4AquLUh0"/></image>
-                            </ImageView>
-                            <VBox spacing="6">
-                                <Label text="Chronos MK II Limited" styleClass="item-title"/>
-                                <Label text="A premium minimalist wristwatch with a silver casing and black leather strap. Features high-end craftsmanship and precision Swiss movement for the elite collector." wrapText="true" maxWidth="560" styleClass="item-description"/>
-                                <Label text="SKU: CH-901-2" styleClass="sku-text"/>
-                            </VBox>
-                        </HBox>
-                        <HBox alignment="CENTER" spacing="12" GridPane.columnIndex="1">
-                            <Button text="✎  Edit" styleClass="outline-button"/>
-                            <Button text="🗑  Delete" styleClass="danger-outline-button"/>
-                        </HBox>
-                        <padding><Insets top="24" right="32" bottom="24" left="32"/></padding>
-                    </GridPane>
-
-                    <GridPane styleClass="table-row">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="70"/>
-                            <ColumnConstraints percentWidth="30"/>
-                        </columnConstraints>
-                        <HBox spacing="16" alignment="TOP_LEFT" GridPane.columnIndex="0">
-                            <ImageView fitWidth="64" fitHeight="64" preserveRatio="false" styleClass="thumb">
-                                <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuAp5E9PBWqP5erF-Jfa_SUT-_QeJfl3anUSjOa6GoyfaISrx6X-ULsue7ZOV-WYOu-t8RgZIlQJdK-jVTBpmTQLLBtrWarFV_N32mwfPQWsSL2yzHbixUuTASENQwOG6OOIdyhb8Te1yJfh5OLGSOo5gR2Uy42YNv1x0c4V-7NqeCnqgulzk1xrCZGDJjyh9KQ8Y5Fx8nyqDhMmP8BOdFA9vZBhQt3FRSbcDwm5ScoWwdzSZBE7xCnYfH3p8g4NgTPBezSqOhMedZg"/></image>
-                            </ImageView>
-                            <VBox spacing="6">
-                                <Label text="Sonic Pro X-Series" styleClass="item-title"/>
-                                <Label text="High-fidelity professional noise-cancelling headphones with matte black finish. Delivers studio-quality audio performance for audiophiles and producers." wrapText="true" maxWidth="560" styleClass="item-description"/>
-                                <Label text="SKU: SP-202-B" styleClass="sku-text"/>
-                            </VBox>
-                        </HBox>
-                        <HBox alignment="CENTER" spacing="12" GridPane.columnIndex="1">
-                            <Button text="✎  Edit" styleClass="outline-button"/>
-                            <Button text="🗑  Delete" styleClass="danger-outline-button"/>
-                        </HBox>
-                        <padding><Insets top="24" right="32" bottom="24" left="32"/></padding>
-                    </GridPane>
-
-                    <GridPane styleClass="table-row-last">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="70"/>
-                            <ColumnConstraints percentWidth="30"/>
-                        </columnConstraints>
-                        <HBox spacing="16" alignment="TOP_LEFT" GridPane.columnIndex="0">
-                            <ImageView fitWidth="64" fitHeight="64" preserveRatio="false" styleClass="thumb">
-                                <image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuDOeNNkxlmiIWxq4IYuJdbueQkkY6MCtB2HADtl0B3ACUPJX7K6zuUmBfKl8bSzBqj8WbKWtrK0sq_g5Hd0vPm5Bk4WgDvb-_Wm0iGQl6008_dtIczei5se9lZ1k7ey5qGpXyO76M3iKh76tyWml-KZVE29V6k_lUieIzkw1qx023U9uhbKmUdbwM-Bm3-rPz-NcuTNBQZh5sJjmt35B6zsM0Ff1-KQDJfXhMBTXCedx2IyNVZxTqqMuZ-WtHobbMJHJDsdRIywRz8"/></image>
-                            </ImageView>
-                            <VBox spacing="6">
-                                <Label text="Vintage Lumina 35mm" styleClass="item-title"/>
-                                <Label text="A meticulously preserved 1970s film camera with chrome and leather finish. An archival-grade heritage piece for vintage photography enthusiasts." wrapText="true" maxWidth="560" styleClass="item-description"/>
-                                <Label text="SKU: VL-770-S" styleClass="sku-text"/>
-                            </VBox>
-                        </HBox>
-                        <HBox alignment="CENTER" spacing="12" GridPane.columnIndex="1">
-                            <Button text="✎  Edit" styleClass="outline-button"/>
-                            <Button text="🗑  Delete" styleClass="danger-outline-button"/>
-                        </HBox>
-                        <padding><Insets top="24" right="32" bottom="24" left="32"/></padding>
-                    </GridPane>
-                </VBox>
+                <VBox fx:id="itemsContainer" styleClass="table-body" spacing="0"/>
 
                 <HBox alignment="CENTER_LEFT" styleClass="pagination" spacing="8">
-                    <Label text="Showing 1-3 of 34 items" styleClass="muted-text" HBox.hgrow="ALWAYS"/>
-                    <Button text="‹" disable="true" styleClass="pager-button"/>
-                    <Button text="1" styleClass="pager-button-active"/>
-                    <Button text="2" styleClass="pager-button"/>
-                    <Button text="›" styleClass="pager-button"/>
+                    <Label fx:id="summaryLabel" text="Loading inventory..." styleClass="muted-text" HBox.hgrow="ALWAYS"/>
+                    <Button onAction="#handleRefresh" text="Refresh" styleClass="pager-button"/>
                 </HBox>
             </VBox>
 
             <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
-                <Label text="© 2023 Bidify International. All Rights Reserved." HBox.hgrow="ALWAYS"/>
+                <Label text="Inventory items become available for auction selection once created." HBox.hgrow="ALWAYS"/>
                 <Hyperlink text="Privacy"/>
                 <Hyperlink text="Terms"/>
                 <Hyperlink text="Support"/>
