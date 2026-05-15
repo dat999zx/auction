@@ -4,6 +4,7 @@ package com.bidify.utility;
 public enum NavPage {
     HOME,
     CREATE_AUCTION,
+    INVENTORY,
     HISTORY,
     PROFILE,
     NONE

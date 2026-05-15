@@ -84,6 +84,10 @@ public class MissionBarUtil {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("create-auction.fxml", false, true);
         } 
+        else if (selectedButton == controller.getInventoryButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("inventory.fxml", false, true);
+        } 
         else if (selectedButton == controller.getHistoryButton()) {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("history.fxml", false, true);
@@ -120,6 +124,7 @@ public class MissionBarUtil {
         switch (activePage) {
             case HOME -> controller.setActiveNavigation(controller.getAuctionsButton());
             case CREATE_AUCTION -> controller.setActiveNavigation(controller.getCreateAuctionButton());
+            case INVENTORY -> controller.setActiveNavigation(controller.getInventoryButton());
             case HISTORY -> controller.setActiveNavigation(controller.getHistoryButton());
             default -> controller.setActiveNavigation(null);
         }

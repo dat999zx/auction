@@ -45,6 +45,9 @@ public class MissionBarController {
     private Button historyButton;
 
     @FXML
+    private Button inventoryButton;
+
+    @FXML
     private Label avatarText;
 
     @FXML
@@ -172,6 +175,7 @@ public class MissionBarController {
     public Button getLogoutButton() { return logoutButton; }
     public Button getLogoutLinkButton() { return logoutLinkButton; }
     public Button getHistoryButton() { return historyButton; }
+    public Button getInventoryButton() { return inventoryButton; }
 
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
@@ -197,6 +201,9 @@ public class MissionBarController {
         if (historyButton != null) {
             historyButton.setOnAction(handler);
         }
+        if (inventoryButton != null) {
+            inventoryButton.setOnAction(handler);
+        }
     }
 
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {
@@ -216,7 +223,7 @@ public class MissionBarController {
     }
 
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton) {
+        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton) {
             updateSidebarButtonStyle(activeButton);
         }
         

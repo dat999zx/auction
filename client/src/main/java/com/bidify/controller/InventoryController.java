@@ -47,7 +47,7 @@ public class InventoryController {
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
-            MissionBarUtil.setup(NavPage.NONE, false, null);
+            MissionBarUtil.setup(NavPage.INVENTORY, false, null);
             searchField.textProperty().addListener((obs, oldValue, newValue) -> renderItems(filterItems(newValue)));
             loadInventory();
         });

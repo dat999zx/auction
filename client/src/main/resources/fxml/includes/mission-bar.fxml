@@ -74,6 +74,7 @@
                                     <Insets left="20.0" />
                                 </padding>
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" maxWidth="Infinity" />
+                                <Button fx:id="inventoryButton" styleClass="side-nav-sub-button" text="• Inventory" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" maxWidth="Infinity" />
                             </VBox>
