@@ -183,18 +183,14 @@ public class AuctionService {
             if (auction.getStatus() != AuctionStatus.UPCOMING)
                 throw new AuctionException("Can only update auction before it starts");
 
-            String auctionName = data.getAuctionName();
-            String description = data.getDescription();
             double startingPrice = data.getStartingPrice();
             double minIncrement = data.getMinIncrement();
             LocalDateTime startTime = parseDateTime(data.getStartTime());
             LocalDateTime endTime = parseDateTime(data.getEndTime());
 
-            validateAuctionFields(auction.getSellerUsername(), auctionName, description, auction.getCategory(), auction.getProductType(), startingPrice, minIncrement);
+            validateAuctionUpdateFields(auction.getSellerUsername(), startingPrice, minIncrement);
             validateAuctionTime(startTime, endTime);
 
-            auction.setAuctionName(auctionName);
-            auction.setDescription(description);
             auction.setStartingPrice(startingPrice);
             auction.setMinIncrement(minIncrement);
             auction.setStartTime(startTime);
@@ -494,15 +490,8 @@ public class AuctionService {
         itemDao.save(item);
     }
 
-    private void validateAuctionFields(String sellerUsername, String auctionName, String description,
-                                       String category, String productType,
-                                       double startingPrice, double minIncrement) {
+    private void validateAuctionUpdateFields(String sellerUsername, double startingPrice, double minIncrement) {
         ValidationUtil.requiresNonBlank(sellerUsername, "Seller");
-        ValidationUtil.requiresNonBlank(auctionName, "Auction's name");
-        ValidationUtil.requiresNonBlank(description, "Description");
-        ValidationUtil.requiresNonBlank(category, "Category");
-        ValidationUtil.requiresNonBlank(productType, "Product type");
-        ValidationUtil.validateMaxLength("Description", description, 2000);
         ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
     }

@@ -122,10 +122,7 @@ public class CreateAuctionController {
                 startDatePicker.setValue(startDateTime.toLocalDate());
                 startTimeField.setText(startDateTime.toLocalTime().format(TIME_FORMATTER));
             }
-
-            if (endDateTime.isBefore(startDateTime.plusHours(1)))
-                throw new ValidationException("End time must be at least 1 hour after start time");
-
+            
             CreateAuctionRequest data = new CreateAuctionRequest(
                 com.bidify.network.SocketClient.getClient().getCurrentUsername(),
                 selectedItem.getId(),
