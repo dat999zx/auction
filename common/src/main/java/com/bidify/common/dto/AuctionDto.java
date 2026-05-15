@@ -4,6 +4,7 @@ import java.util.List;
 
 public class AuctionDto {
     private String id;
+    private String itemId;
     private String createdAt;
     private String auctionName;
     private String description;
@@ -21,10 +22,11 @@ public class AuctionDto {
     private List<String> galleryBase64;
     private List<BidDto> bidHistory;
 
-    public AuctionDto(String id, String createdAt, String auctionName, String description, String sellerUsername, 
+    public AuctionDto(String id, String itemId, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
                       double currentBid, double minIncrement, String startTime, String endTime, String status) {
         this.id = id;
+        this.itemId = itemId;
         this.createdAt = createdAt;
         this.auctionName = auctionName;
         this.description = description;
@@ -41,6 +43,7 @@ public class AuctionDto {
     }
 
     public String getId() { return id; }
+    public String getItemId() { return itemId; }
     public String getCreatedAt() { return createdAt; }
     public String getAuctionName() { return auctionName; }
     public String getDescription() { return description; }

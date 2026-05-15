@@ -9,6 +9,9 @@ public enum RequestType {
     UPDATE_PROFILE,
     UPDATE_PASSWORD,
 
+    CREATE_ITEM,
+    GET_MY_INVENTORY,
+
     CREATE_AUCTION,
     UPDATE_AUCTION,
     GET_LIVE_AUCTIONS,
