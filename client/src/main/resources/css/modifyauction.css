@@ -38,19 +38,7 @@
     -fx-text-fill: #767683;
 }
 
-/* Form Fields */
-.text-field, .text-area, .combo-box, .date-picker {
-    -fx-background-color: #f2f4f7;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 10;
-    -fx-text-fill: #191c1e;
-}
 
-.text-field:focused {
-    -fx-border-color: #0048d8;
-    -fx-border-width: 2;
-}
 
 /* --- Primary Button --- */
 .btn-primary {
@@ -103,4 +91,29 @@
     -fx-border-width: 2;
     -fx-border-radius: 8;
     -fx-background-color: #f7f9fc;
+}
+
+.text-field-modern,
+.text-area-modern,
+.combo-box-modern,
+.date-picker-modern,
+.input-wrapper {
+    -fx-min-height: 40px;
+    -fx-pref-width: 2000px; /* Force it to try and fill the space */
+    -fx-background-insets: 0;
+    -fx-padding: 0 10 0 10; /* Adjust top right bottom left */
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d9dde3;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+    
+}
+
+.text-field:focused {
+    -fx-border-color: #0048d8;
+    -fx-border-width: 2;
+}
+.text-area:focused {
+    -fx-border-color: #0048d8;
+    -fx-border-width: 2;
 }

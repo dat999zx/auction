@@ -10,6 +10,7 @@ import java.time.format.DateTimeParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
@@ -20,6 +21,7 @@ import com.bidify.service.AuctionClientService;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -62,23 +64,70 @@ public class ModifyAuctionController {
 
     @FXML
     private void initialize() {
-        // Setup dropdowns
+        // 1. Setup dropdowns
         categoryComboBox.getItems().setAll("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other");
         productTypeComboBox.getItems().setAll("New", "Used", "Rare", "Vintage", "Limited");
 
-        // UI logic: If we have an ID, we should ideally fetch existing data here
-        if (currentAuctionId != null) {
-            loadAuctionData(currentAuctionId);
+        // 2. Load data if we have an ID
+        if (currentAuctionId == null || currentAuctionId.isBlank()) {
+            NotificationUtil.error("No auction selected for modification.");
+            return;
         }
+        
+        loadAuctionData(currentAuctionId);
     }
 
     private void loadAuctionData(String auctionId) {
-        // Implementation: Fetch data from auctionClientService and populate fields
-        // e.g., productNameField.setText(fetchedAuction.getName());
+        // Start background thread to fetch data (similar to AuctionDetailsController)
+        Thread loader = new Thread(() -> {
+            try {
+                // Fetch from service
+                AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
+                
+                // Update UI on the JavaFX Thread
+                Platform.runLater(() -> bindAuctionToFields(auction));
+                
+            } catch (IOException | AuctionException e) {
+                logger.error("Failed to load auction data", e);
+                Platform.runLater(() -> {
+                    NotificationUtil.error("Failed to load auction: " + e.getMessage());
+                });
+            }
+        });
+        loader.setDaemon(true);
+        loader.start();
+    }
+
+    private void bindAuctionToFields(AuctionDto data) {
+        // Populate Text Fields
+        productNameField.setText(data.getAuctionName());
+        descriptionArea.setText(data.getDescription());
+        startingPriceField.setText(String.valueOf(data.getStartingPrice()));
+        
+        // Set ComboBox values (ensure these strings match the lists in initialize)
+        categoryComboBox.setValue(data.getCategory()); 
+        productTypeComboBox.setValue(data.getProductType());
+
+        // Handle Dates and Times
+        // Assuming getStartTime() returns an ISO string like "2023-10-27T09:00"
+        try {
+            LocalDateTime start = LocalDateTime.parse(data.getStartTime());
+            LocalDateTime end = LocalDateTime.parse(data.getEndTime());
+
+            startDatePicker.setValue(start.toLocalDate());
+            startTimeField.setText(start.toLocalTime().format(TIME_FORMATTER));
+            
+            endDatePicker.setValue(end.toLocalDate());
+            endTimeField.setText(end.toLocalTime().format(TIME_FORMATTER));
+        } catch (Exception e) {
+            logger.warn("Could not parse auction dates: {}", e.getMessage());
+        }
     }
 
     @FXML
     private void handleSaveChanges() {
+        saveChangesButton.setText("Saving..."); // Prevent multiple clicks
+        saveChangesButton.setDisable(true);
         if (currentAuctionId == null) {
             NotificationUtil.error("No auction selected for modification.");
             return;
@@ -121,7 +170,10 @@ public class ModifyAuctionController {
 
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction updated successfully.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                //redirect to auction details page
+                AuctionDetailsController.setAuctionId(currentAuctionId);
+                SceneManager.clearCache("auctiondetail.fxml");
+                SceneManager.switchScene("auctiondetail.fxml", false, false);
             } else {
                 NotificationUtil.error(response.getMessage());
             }
@@ -133,6 +185,10 @@ public class ModifyAuctionController {
             logger.error("IOException while updating auction", e);
         } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
+        }
+        finally {
+            saveChangesButton.setText("Save Changes");
+            saveChangesButton.setDisable(false);
         }
     }
 

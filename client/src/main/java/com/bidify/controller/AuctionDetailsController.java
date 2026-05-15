@@ -3,11 +3,11 @@ package com.bidify.controller;
 import java.io.IOException;
 import java.util.List;
 
-import com.bidify.common.dto.BidDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
@@ -94,34 +94,19 @@ public class AuctionDetailsController {
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
-    public static void openAuctionDetails(String auctionId) {
+    // The gatekeeper calls this first
+    public static void setAuctionId(String auctionId) {
         selectedAuctionId = auctionId;
-        SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false, false);
     }
 
     @FXML
     private void initialize() {
-        Platform.runLater(() -> {
-            // bindTopBar();
-            missionBarController.setActiveNavigation(auctionsButton);
-            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-            resetView();
-        });
-
-        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
-        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
-        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
-        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
-
-        if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
-            Platform.runLater(() -> {
-                NotificationUtil.error("No auction selected.");
-                placebid.setDisable(true);
-            });
-            return;
+        // Just focus on loading the data for this specific view
+        if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
+            loadAuctionDetails(selectedAuctionId);
+        } else {
+            NotificationUtil.error("No auction selected.");
         }
-        loadAuctionDetails(selectedAuctionId);
     }
 
     private void handleLiveUpdate(Event event) {
