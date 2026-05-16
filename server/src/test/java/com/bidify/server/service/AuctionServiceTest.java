@@ -26,10 +26,12 @@ import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.Item;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
@@ -37,8 +39,10 @@ import com.bidify.server.utility.PasswordUtil;
 class AuctionServiceTest {
     private final AuctionService auctionService = AuctionService.getInstance();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final ItemDao itemDao = ItemDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
     private final List<String> createdUsernames = new ArrayList<>();
+    private final List<String> createdItemIds = new ArrayList<>();
     private final List<String> createdAuctionIds = new ArrayList<>();
 
     @BeforeAll
@@ -50,6 +54,7 @@ class AuctionServiceTest {
     void setUp() {
         RealtimeDatabase.clearAll();
         createdUsernames.clear();
+        createdItemIds.clear();
         createdAuctionIds.clear();
     }
 
@@ -58,6 +63,8 @@ class AuctionServiceTest {
         RealtimeDatabase.clearAll();
         for (String auctionId : createdAuctionIds)
             deleteAuctionData(auctionId);
+        for (String itemId : createdItemIds)
+            SQLiteHelper.update("DELETE FROM Items WHERE id = ?", itemId);
         for (String username : createdUsernames)
             SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
     }
@@ -72,6 +79,7 @@ class AuctionServiceTest {
         TestClientHandler client = new TestClientHandler();
         client.setCurrentUsername(sellerName);
         RealtimeDatabase.addActiveUser(client, seller);
+        Item item = createItem(sellerName, "Test Auction", "Test description", "General", "Electronics");
 
         LocalDateTime start = LocalDateTime.now().plusMinutes(5);
         LocalDateTime end = start.plusHours(2);
@@ -80,15 +88,11 @@ class AuctionServiceTest {
             RequestType.CREATE_AUCTION,
             new CreateAuctionRequest(
                 sellerName,
-                "Test Auction",
-                "Test description",
-                "General",
-                "Electronics",
+                item.getId(),
                 100.0,
                 10.0,
                 start.toString(),
-                end.toString(),
-                null
+                end.toString()
             )
         );
 
@@ -119,6 +123,7 @@ class AuctionServiceTest {
         TestClientHandler client = new TestClientHandler();
         client.setCurrentUsername(otherName);
         RealtimeDatabase.addActiveUser(client, other);
+        Item item = createItem(sellerName, "Test Auction", "Test description", "General", "Electronics");
 
         LocalDateTime start = LocalDateTime.now().plusMinutes(5);
         LocalDateTime end = start.plusHours(2);
@@ -127,22 +132,18 @@ class AuctionServiceTest {
             RequestType.CREATE_AUCTION,
             new CreateAuctionRequest(
                 sellerName,
-                "Test Auction",
-                "Test description",
-                "General",
-                "Electronics",
+                item.getId(),
                 100.0,
                 10.0,
                 start.toString(),
-                end.toString(),
-                null
+                end.toString()
             )
         );
 
         Response response = auctionService.create(client, request);
 
         assertEquals(RequestStatus.FAILED, response.getStatus());
-        assertEquals("You are not the seller of this auction", response.getMessage());
+        assertEquals("You do not own this item", response.getMessage());
     }
 
     @Test
@@ -306,17 +307,19 @@ class AuctionServiceTest {
         return user;
     }
 
+    private Item createItem(String ownerUsername, String name, String description, String category, String productType) {
+        Item item = new Item(ownerUsername, name, description, category, productType);
+        itemDao.create(item);
+        createdItemIds.add(item.getId());
+        return item;
+    }
+
     private Auction createAuction(String sellerUsername, LocalDateTime start, LocalDateTime end) {
-        Auction auction = new Auction(
-            "Auction " + uniqueUsername("title"),
-            "Description",
-            sellerUsername,
-            100.0,
-            start,
-            end
-        );
-        auction.setCategory("General");
-        auction.setProductType("Electronics");
+        String auctionName = "Auction " + uniqueUsername("title");
+        Item item = createItem(sellerUsername, auctionName, "Description", "General", "Electronics");
+        Auction auction = new Auction(sellerUsername, item.getId(), 100.0, start, end);
+        auction.setAuctionName(auctionName);
+        auction.setDescription("Description");
         auction.setMinIncrement(10.0);
 
         if (!start.isAfter(LocalDateTime.now())) {

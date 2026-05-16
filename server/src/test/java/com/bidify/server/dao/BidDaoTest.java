@@ -3,6 +3,7 @@ package com.bidify.server.dao;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -13,12 +14,15 @@ import org.junit.jupiter.api.Test;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
+import com.bidify.server.model.Item;
 
 class BidDaoTest {
     private BidDao bidDao = BidDao.getInstance();
     private AuctionDao auctionDao = AuctionDao.getInstance();
+    private ItemDao itemDao = ItemDao.getInstance();
     private String testAuctionId;
     private String testBidId;
+    private final List<String> createdItemIds = new ArrayList<>();
 
     @BeforeAll
     static void initDatabase() {
@@ -37,6 +41,8 @@ class BidDaoTest {
             LocalDateTime.now().plusMinutes(1),
             LocalDateTime.now().plusHours(1)
         );
+        Item item = createItem("seller", "Test Auction Item");
+        auction.setItemId(item.getId());
         auctionDao.create(auction);
         testAuctionId = auction.getId();
 
@@ -58,6 +64,9 @@ class BidDaoTest {
             // Xóa auction
             auctionDao.deleteById(testAuctionId);
         }
+        for (String itemId : createdItemIds)
+            itemDao.deleteById(itemId);
+        createdItemIds.clear();
     }
 
     @Test
@@ -87,6 +96,8 @@ class BidDaoTest {
             LocalDateTime.now().plusMinutes(1),
             LocalDateTime.now().plusHours(1)
         );
+        Item item = createItem("seller2", "Empty Auction Item");
+        newAuction.setItemId(item.getId());
         auctionDao.create(newAuction);
 
         // Tìm bids của auction mới
@@ -171,5 +182,11 @@ class BidDaoTest {
         // Cleanup
         bidDao.deleteById(olderBid.getId());
         bidDao.deleteById(newerBid.getId());
+    }
+    private Item createItem(String ownerUsername, String name) {
+        Item item = new Item(ownerUsername, name, "Test Description", "General", "Electronics");
+        itemDao.create(item);
+        createdItemIds.add(item.getId());
+        return item;
     }
 }
