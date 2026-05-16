@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox fx:id="card" spacing="24" alignment="CENTER_LEFT" styleClass="transaction-card" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.history.TransactionCardController">
+    <HBox spacing="16" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+        <HBox alignment="CENTER" styleClass="icon-circle">
+            <Label fx:id="iconLabel" styleClass="icon, text-primary"/>
+        </HBox>
+        <VBox spacing="4">
+            <Label fx:id="titleLabel" styleClass="text-primary, transaction-card-title"/>
+            <Label fx:id="idLabel" styleClass="text-on-surface-variant, transaction-card-id"/>
+        </VBox>
+    </HBox>
+
+    <VBox spacing="4" alignment="CENTER_RIGHT">
+        <Label text="AMOUNT" styleClass="table-header-text"/>
+        <Label fx:id="amountLabel" styleClass="amount-text, text-primary"/>
+    </VBox>
+</HBox>
