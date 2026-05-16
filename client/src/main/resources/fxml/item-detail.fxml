@@ -13,19 +13,18 @@
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.bidify.controller.ItemDetailController"
-            prefWidth="1080" prefHeight="720" styleClass="detail-shell">
+<BorderPane prefHeight="720" prefWidth="1080" styleClass="detail-shell" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ItemDetailController">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="16" styleClass="detail-header">
-            <Button onAction="#handleBack" text="&lt;" styleClass="icon-button"/>
-            <Label text="Item Details" styleClass="detail-title" HBox.hgrow="ALWAYS"/>
-            <Button onAction="#handleCancel" text="Cancel" styleClass="cancel-button"/>
-            <Button onAction="#handleSave" text="Save Item" styleClass="save-button"/>
-            <padding><Insets top="0" right="40" bottom="0" left="40"/></padding>
+            <Button onAction="#handleBack" styleClass="icon-button" text="&lt;" />
+            <Label styleClass="detail-title" text="Item Details" HBox.hgrow="ALWAYS" />
+            <Button onAction="#handleCancel" styleClass="cancel-button" text="Cancel" />
+            <Button onAction="#handleSave" styleClass="save-button" text="Save Item" />
+            <padding><Insets bottom="0" left="40" right="40" top="0" /></padding>
         </HBox>
     </top>
 
@@ -33,62 +32,63 @@
         <HBox spacing="48" styleClass="detail-main">
             <VBox spacing="28" HBox.hgrow="ALWAYS">
                 <VBox spacing="8">
-                    <Label text="Product Name" styleClass="field-label"/>
-                    <TextField fx:id="productNameField" promptText="Vintage 1964 Chronograph Watch" styleClass="large-input"/>
+                    <Label styleClass="field-label" text="Product Name" />
+                    <TextField fx:id="productNameField" promptText="Vintage 1964 Chronograph Watch" styleClass="large-input" />
                 </VBox>
 
                 <VBox spacing="8" VBox.vgrow="ALWAYS">
-                    <Label text="Description" styleClass="field-label"/>
+                    <Label styleClass="field-label" text="Description" />
                     <VBox styleClass="editor" VBox.vgrow="ALWAYS">
-                        <HBox spacing="4" alignment="CENTER_LEFT" styleClass="toolbar">
-                            <Button text="B" styleClass="toolbar-button"/>
-                            <Button text="I" styleClass="toolbar-button"/>
-                            <Button text="List" styleClass="toolbar-button"/>
-                            <Separator orientation="VERTICAL"/>
-                            <Button text="Link" styleClass="toolbar-button"/>
-                            <Button text="Tag" styleClass="toolbar-button"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4" styleClass="toolbar">
+                            <Button styleClass="toolbar-button" text="B" />
+                            <Button styleClass="toolbar-button" text="I" />
+                            <Button styleClass="toolbar-button" text="List" />
+                            <Separator orientation="VERTICAL" />
+                            <Button styleClass="toolbar-button" text="Link" />
+                            <Button styleClass="toolbar-button" text="Tag" />
                         </HBox>
-                        <TextArea fx:id="descriptionArea" promptText="Describe the condition, provenance, and notable details."
-                                  wrapText="true" styleClass="description-area" VBox.vgrow="ALWAYS"/>
+                        <TextArea fx:id="descriptionArea" promptText="Describe the condition, provenance, and notable details." styleClass="description-area" wrapText="true" VBox.vgrow="ALWAYS" />
                     </VBox>
                 </VBox>
 
                 <GridPane hgap="24" vgap="8">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="50"/>
-                        <ColumnConstraints percentWidth="50"/>
+                        <ColumnConstraints percentWidth="50" />
+                        <ColumnConstraints percentWidth="50" />
                     </columnConstraints>
-                    <Label text="Category" styleClass="field-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
-                    <Label text="Product Type" styleClass="field-label" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
-                    <ComboBox fx:id="categoryComboBox" promptText="Select category" styleClass="medium-input" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
-                    <ComboBox fx:id="productTypeComboBox" promptText="Select type" styleClass="medium-input" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                    <Label styleClass="field-label" text="Category" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <Label styleClass="field-label" text="Product Type" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <ComboBox fx:id="categoryComboBox" promptText="Select category" styleClass="medium-input" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <ComboBox fx:id="productTypeComboBox" promptText="Select type" styleClass="medium-input" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+               <rowConstraints>
+                  <RowConstraints />
+                  <RowConstraints />
+               </rowConstraints>
                 </GridPane>
             </VBox>
 
-            <VBox spacing="18" prefWidth="360">
-                <Label text="Item Media" styleClass="field-label"/>
-                <StackPane onMouseClicked="#handlePickImages" styleClass="image-drop-zone" prefWidth="360" prefHeight="360">
-                    <ImageView fx:id="primaryImageView" fitWidth="360" fitHeight="360" preserveRatio="false"/>
+            <VBox prefWidth="360" spacing="18">
+                <Label styleClass="field-label" text="Item Media" />
+                <StackPane onMouseClicked="#handlePickImages" prefHeight="360" prefWidth="360" styleClass="image-drop-zone">
+                    <ImageView fx:id="primaryImageView" fitHeight="360" fitWidth="360" preserveRatio="false" />
                     <VBox alignment="CENTER" spacing="12" styleClass="image-overlay">
-                        <Button onAction="#handlePickImages" text="Choose Images" styleClass="overlay-button"/>
-                        <Label text="OR DRAG &amp; DROP" styleClass="overlay-hint"/>
+                        <Label styleClass="overlay-hint" text="CLICK TO EDIT" />
                     </VBox>
                 </StackPane>
 
-                <FlowPane fx:id="galleryPreviewPane" hgap="12" vgap="12" prefWrapLength="360"/>
+                <FlowPane fx:id="galleryPreviewPane" hgap="12" prefWrapLength="360" vgap="12" />
 
-                <Label wrapText="true" styleClass="helper-text"
-                       text="Use at least one clear image if possible. Supported formats: PNG, JPG, JPEG, GIF."/>
+                <Label styleClass="helper-text" text="Use at least one clear image if possible. Supported formats: PNG, JPG, JPEG, GIF." wrapText="true" />
             </VBox>
-            <padding><Insets top="40" right="40" bottom="40" left="40"/></padding>
+            <padding><Insets bottom="40" left="40" right="40" top="40" /></padding>
         </HBox>
     </center>
 
     <bottom>
         <HBox alignment="CENTER_LEFT" styleClass="status-bar">
-            <Label fx:id="statusFooterLabel" text="New item draft" HBox.hgrow="ALWAYS"/>
-            <Label text="Inventory"/>
-            <padding><Insets top="0" right="40" bottom="0" left="40"/></padding>
+            <Label fx:id="statusFooterLabel" text="New item draft" HBox.hgrow="ALWAYS" />
+            <Label text="Inventory" />
+            <padding><Insets bottom="0" left="40" right="40" top="0" /></padding>
         </HBox>
     </bottom>
 </BorderPane>
