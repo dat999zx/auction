@@ -52,11 +52,17 @@
 
                                         <Label fx:id="liveEmptyStateLabel" managed="false" styleClass="empty-state-label" text="No live auctions right now." visible="false" />
 
-                                        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER">
-                                            <content>
-                                                <HBox fx:id="liveAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
-                                            </content>
-                                        </ScrollPane>
+                                        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="row-nav-wrap">
+                                            <Button fx:id="liveScrollLeftButton" mnemonicParsing="false" onAction="#scrollLiveLeft" styleClass="row-nav-button" text="&lt;" />
+
+                                            <ScrollPane fx:id="liveAuctionsScrollPane" fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+                                                <content>
+                                                    <HBox fx:id="liveAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
+                                                </content>
+                                            </ScrollPane>
+
+                                            <Button fx:id="liveScrollRightButton" mnemonicParsing="false" onAction="#scrollLiveRight" styleClass="row-nav-button" text="&gt;" />
+                                        </HBox>
                                     </children>
                                 </VBox>
 
@@ -71,11 +77,17 @@
 
                                         <Label fx:id="upcomingEmptyStateLabel" managed="false" styleClass="empty-state-label" text="No upcoming auctions right now." visible="false" />
 
-                                        <ScrollPane fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER">
-                                            <content>
-                                                <HBox fx:id="upcomingAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
-                                            </content>
-                                        </ScrollPane>
+                                        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="row-nav-wrap">
+                                            <Button fx:id="upcomingScrollLeftButton" mnemonicParsing="false" onAction="#scrollUpcomingLeft" styleClass="row-nav-button" text="&lt;" />
+
+                                            <ScrollPane fx:id="upcomingAuctionsScrollPane" fitToHeight="true" fitToWidth="false" hbarPolicy="AS_NEEDED" pannable="true" styleClass="row-scroll" vbarPolicy="NEVER" HBox.hgrow="ALWAYS">
+                                                <content>
+                                                    <HBox fx:id="upcomingAuctionsContainer" alignment="CENTER_LEFT" spacing="24.0" styleClass="auction-row" />
+                                                </content>
+                                            </ScrollPane>
+
+                                            <Button fx:id="upcomingScrollRightButton" mnemonicParsing="false" onAction="#scrollUpcomingRight" styleClass="row-nav-button" text="&gt;" />
+                                        </HBox>
                                     </children>
                                 </VBox>
                             </children>

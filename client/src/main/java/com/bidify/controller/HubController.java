@@ -17,17 +17,26 @@ import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.SceneManager;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
 public class HubController {
     private static final Logger logger = LoggerFactory.getLogger(HubController.class);
+    private static final double AUCTION_CARD_WIDTH = 460.0;
+    private static final double AUCTION_ROW_SPACING = 24.0;
+    private static final Duration ROW_SCROLL_DURATION = Duration.millis(220);
 
     @FXML
     private VBox defaultSections;
@@ -39,7 +48,13 @@ public class HubController {
     private HBox liveAuctionsContainer;
 
     @FXML
+    private ScrollPane liveAuctionsScrollPane;
+
+    @FXML
     private HBox upcomingAuctionsContainer;
+
+    @FXML
+    private ScrollPane upcomingAuctionsScrollPane;
 
     @FXML
     private HBox searchResultsContainer;
@@ -56,6 +71,18 @@ public class HubController {
     @FXML
     private Label searchTitleLabel;
 
+    @FXML
+    private Button liveScrollLeftButton;
+
+    @FXML
+    private Button liveScrollRightButton;
+
+    @FXML
+    private Button upcomingScrollLeftButton;
+
+    @FXML
+    private Button upcomingScrollRightButton;
+
     private AuctionDto[] liveAuctions = new AuctionDto[0];
     private AuctionDto[] upcomingAuctions = new AuctionDto[0];
     private AuctionDto[] searchResults = new AuctionDto[0];
@@ -65,6 +92,8 @@ public class HubController {
     @FXML
     private void initialize() {
         Platform.runLater(this::bindTopBar);
+        setupRowNavigation(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton);
+        setupRowNavigation(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton);
         loadHubSections();
 
         EventManager.getInstance().subscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
@@ -138,11 +167,13 @@ public class HubController {
 
     private void renderSection(HBox container, Label emptyLabel, AuctionDto[] auctions, String emptyMessage) {
         container.getChildren().clear();
+        resetNavigationForContainer(container);
 
         if (auctions == null || auctions.length == 0) {
             emptyLabel.setText(emptyMessage);
             emptyLabel.setVisible(true);
             emptyLabel.setManaged(true);
+            refreshNavigationForContainer(container);
             return;
         }
 
@@ -151,6 +182,8 @@ public class HubController {
 
         for (AuctionDto auction : auctions)
             container.getChildren().add(loadAuctionCard(auction));
+
+        refreshNavigationForContainer(container);
     }
 
     private AnchorPane loadAuctionCard(AuctionDto auction) {
@@ -213,5 +246,100 @@ public class HubController {
 
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.HOME, true, event -> search(), this::cleanup);
+    }
+
+    @FXML
+    private void scrollLiveLeft() {
+        scrollRowByCard(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton, -1);
+    }
+
+    @FXML
+    private void scrollLiveRight() {
+        scrollRowByCard(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton, 1);
+    }
+
+    @FXML
+    private void scrollUpcomingLeft() {
+        scrollRowByCard(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton, -1);
+    }
+
+    @FXML
+    private void scrollUpcomingRight() {
+        scrollRowByCard(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton, 1);
+    }
+
+    private void setupRowNavigation(ScrollPane scrollPane, Button leftButton, Button rightButton) {
+        scrollPane.hvalueProperty().addListener((observable, oldValue, newValue) ->
+                updateRowNavigationButtons(scrollPane, leftButton, rightButton));
+        scrollPane.viewportBoundsProperty().addListener((observable, oldValue, newValue) ->
+                Platform.runLater(() -> updateRowNavigationButtons(scrollPane, leftButton, rightButton)));
+        if (scrollPane.getContent() != null)
+            scrollPane.getContent().layoutBoundsProperty().addListener((observable, oldValue, newValue) ->
+                    Platform.runLater(() -> updateRowNavigationButtons(scrollPane, leftButton, rightButton)));
+    }
+
+    private void resetNavigationForContainer(HBox container) {
+        if (container == liveAuctionsContainer)
+            liveAuctionsScrollPane.setHvalue(0);
+        else if (container == upcomingAuctionsContainer)
+            upcomingAuctionsScrollPane.setHvalue(0);
+    }
+
+    private void refreshNavigationForContainer(HBox container) {
+        Platform.runLater(() -> {
+            if (container == liveAuctionsContainer)
+                updateRowNavigationButtons(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton);
+            else if (container == upcomingAuctionsContainer)
+                updateRowNavigationButtons(upcomingAuctionsScrollPane, upcomingScrollLeftButton,
+                        upcomingScrollRightButton);
+        });
+    }
+
+    void scrollRowByCard(ScrollPane scrollPane, Button leftButton, Button rightButton, int direction) {
+        if (scrollPane.getContent() == null) return;
+
+        double targetHValue = calculateTargetHValue(scrollPane.getHvalue(), scrollPane.getContent().getLayoutBounds().getWidth(),
+                scrollPane.getViewportBounds().getWidth(), direction * (AUCTION_CARD_WIDTH + AUCTION_ROW_SPACING));
+        if (Double.compare(targetHValue, scrollPane.getHvalue()) == 0) {
+            updateRowNavigationButtons(scrollPane, leftButton, rightButton);
+            return;
+        }
+
+        Timeline timeline = new Timeline(
+                new KeyFrame(Duration.ZERO, new KeyValue(scrollPane.hvalueProperty(), scrollPane.getHvalue())),
+                new KeyFrame(ROW_SCROLL_DURATION, new KeyValue(scrollPane.hvalueProperty(), targetHValue)));
+        timeline.setOnFinished(event -> updateRowNavigationButtons(scrollPane, leftButton, rightButton));
+        timeline.play();
+    }
+
+    void updateRowNavigationButtons(ScrollPane scrollPane, Button leftButton, Button rightButton) {
+        if (scrollPane.getContent() == null || !hasHorizontalOverflow(scrollPane.getContent().getLayoutBounds().getWidth(),
+                scrollPane.getViewportBounds().getWidth())) {
+            leftButton.setDisable(true);
+            rightButton.setDisable(true);
+            return;
+        }
+
+        double hValue = scrollPane.getHvalue();
+        leftButton.setDisable(hValue <= 0.001);
+        rightButton.setDisable(hValue >= 0.999);
+    }
+
+    static double calculateTargetHValue(double currentHValue, double contentWidth, double viewportWidth,
+            double pixelDelta) {
+        double scrollableWidth = contentWidth - viewportWidth;
+        if (scrollableWidth <= 0) return 0;
+
+        double currentPixel = currentHValue * scrollableWidth;
+        double targetPixel = clamp(currentPixel + pixelDelta, 0, scrollableWidth);
+        return targetPixel / scrollableWidth;
+    }
+
+    static boolean hasHorizontalOverflow(double contentWidth, double viewportWidth) {
+        return contentWidth > viewportWidth + 1;
+    }
+
+    private static double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 }
