@@ -63,8 +63,10 @@ class AuctionServiceTest {
         RealtimeDatabase.clearAll();
         for (String auctionId : createdAuctionIds)
             deleteAuctionData(auctionId);
-        for (String itemId : createdItemIds)
+        for (String itemId : createdItemIds) {
+            SQLiteHelper.update("DELETE FROM ItemImageLinks WHERE itemId = ?", itemId);
             SQLiteHelper.update("DELETE FROM Items WHERE id = ?", itemId);
+        }
         for (String username : createdUsernames)
             SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
     }
@@ -333,7 +335,6 @@ class AuctionServiceTest {
     }
 
     private void deleteAuctionData(String auctionId) {
-        SQLiteHelper.update("DELETE FROM AuctionImages WHERE auctionId = ?", auctionId);
         SQLiteHelper.update("DELETE FROM Bids WHERE auctionId = ?", auctionId);
         SQLiteHelper.update("DELETE FROM Transactions WHERE auctionId = ?", auctionId);
         SQLiteHelper.update("DELETE FROM Auctions WHERE id = ?", auctionId);
