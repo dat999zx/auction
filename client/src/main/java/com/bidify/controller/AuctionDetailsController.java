@@ -62,6 +62,14 @@ public class AuctionDetailsController {
     @FXML
     private Button placebid;
     @FXML
+    private TextField autoBidMaxInput;
+    @FXML
+    private Button saveAutoBidButton;
+    @FXML
+    private Button disableAutoBidButton;
+    @FXML
+    private Label autoBidStatusLabel;
+    @FXML
     private ImageView previewimage;
     @FXML
     private GridPane thumbnailGrid;
@@ -91,6 +99,8 @@ public class AuctionDetailsController {
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
     private String timerSubscriptionId;
+    private boolean currentUserAutoBidActive;
+    private Double currentUserAutoBidMax;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
 
@@ -221,6 +231,61 @@ public class AuctionDetailsController {
     }
 
     @FXML
+    private void handleSaveAutoBid() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
+            NotificationUtil.error("No auction selected.");
+            return;
+        }
+
+        String rawMaxBid = autoBidMaxInput.getText() == null ? "" : autoBidMaxInput.getText().trim().replace(",", "");
+        if (rawMaxBid.isBlank()) {
+            NotificationUtil.error("Enter an AutoBid max first.");
+            return;
+        }
+
+        double maxBid;
+        try {
+            maxBid = Double.parseDouble(rawMaxBid);
+        } catch (NumberFormatException e) {
+            NotificationUtil.error("AutoBid max must be a valid number.");
+            return;
+        }
+
+        try {
+            Response response = auctionClientService.setAutoBid(selectedAuctionId, maxBid);
+            autoBidMaxInput.clear();
+            autoBidStatusLabel.setText("AutoBid active");
+            NotificationUtil.success(response.getMessage() == null ? "AutoBid saved successfully." : response.getMessage());
+            loadAuctionDetails(selectedAuctionId);
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleDisableAutoBid() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
+            NotificationUtil.error("No auction selected.");
+            return;
+        }
+
+        try {
+            Response response = auctionClientService.disableAutoBid(selectedAuctionId);
+            autoBidStatusLabel.setText("AutoBid disabled");
+            NotificationUtil.success(response.getMessage() == null ? "AutoBid disabled successfully." : response.getMessage());
+            loadAuctionDetails(selectedAuctionId);
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
     private void handleSelection(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) {
             return;
@@ -252,6 +317,7 @@ public class AuctionDetailsController {
                 AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
                 joinAuctionChannel(auctionId);
                 Platform.runLater(() -> {
+                    currentUserAutoBidActive = auction.isCurrentUserAutoBidActive();
                     bindAuctionData(auction);
                 });
             } catch (IOException e) {
@@ -285,6 +351,8 @@ public class AuctionDetailsController {
 
     private void bindAuctionData(AuctionDto data) {
         currentAuction = data;
+        currentUserAutoBidActive = data.isCurrentUserAutoBidActive();
+        currentUserAutoBidMax = data.getCurrentUserAutoBidMax();
         boolean isUpcoming = "UPCOMING".equalsIgnoreCase(data.getStatus());
 
         //auction name, seller and description
@@ -304,6 +372,7 @@ public class AuctionDetailsController {
         startTimer();
 
         renderRecentActivity(data, isUpcoming);
+        refreshAutoBidStatusLabel();
 
         // set primary image
         if (data.getThumbnailBase64() != null)
@@ -401,6 +470,36 @@ public class AuctionDetailsController {
 
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
+        currentUserAutoBidActive = false;
+        refreshAutoBidStatusLabel();
+    }
+
+    private void refreshAutoBidStatusLabel() {
+        if (autoBidStatusLabel == null) {
+            return;
+        }
+
+        autoBidStatusLabel.getStyleClass().removeAll("autobid-status-active", "autobid-status-inactive");
+        if (currentUserAutoBidActive) {
+            autoBidStatusLabel.setText("AutoBid active");
+            autoBidStatusLabel.getStyleClass().add("autobid-status-active");
+            if (autoBidMaxInput != null && currentUserAutoBidMax != null) {
+                autoBidMaxInput.setText(formatAutoBidValue(currentUserAutoBidMax));
+            }
+        } else {
+            autoBidStatusLabel.setText("No AutoBid configured");
+            autoBidStatusLabel.getStyleClass().add("autobid-status-inactive");
+            if (autoBidMaxInput != null) {
+                autoBidMaxInput.clear();
+            }
+        }
+    }
+
+    private String formatAutoBidValue(double value) {
+        if (Math.rint(value) == value) {
+            return String.valueOf((long) value);
+        }
+        return String.format("%.2f", value);
     }
 
     private void startTimer() {
@@ -445,8 +544,11 @@ public class AuctionDetailsController {
         }
 
         for (BidDto bid : bidHistory) {
+            String bidderText = bid.isAutoBidGenerated()
+                    ? DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder") + " (AutoBid)"
+                    : DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder");
             activityList.getChildren().add(createActivityRow(
-                    DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder"),
+                    bidderText,
                     DisplayUtil.formatCurrency(bid.getAmount()),
                     DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown")
             ));

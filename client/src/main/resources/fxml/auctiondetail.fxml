@@ -143,9 +143,21 @@
                                     <Label styleClass="bid-currency" text="\$" />
                                     <TextField fx:id="inputprice" onAction="#handlePlaceBid" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
                                 </HBox>
-    
+
                                 <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
-    
+
+                                <VBox spacing="8.0">
+                                    <Label styleClass="section-label" text="AUTOBID" />
+                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                        <TextField fx:id="autoBidMaxInput" onAction="#handleSaveAutoBid" promptText="Set hidden max bid" styleClass="autobid-field" HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="saveAutoBidButton" onAction="#handleSaveAutoBid" styleClass="autobid-save-button" text="Save AutoBid" />
+                                    </HBox>
+                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                        <Button fx:id="disableAutoBidButton" onAction="#handleDisableAutoBid" styleClass="autobid-disable-button" text="Disable AutoBid" />
+                                        <Label fx:id="autoBidStatusLabel" styleClass="footnote-text" text="No AutoBid configured" />
+                                    </HBox>
+                                </VBox>
+
                                 <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
                             </VBox>
                         </VBox>

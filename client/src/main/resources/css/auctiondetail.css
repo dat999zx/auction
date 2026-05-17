@@ -430,11 +430,82 @@
     -fx-padding: 16 24 16 24;
 }
 
+.autobid-field {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #c8d7fb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-text-fill: #001e40;
+    -fx-prompt-text-fill: #7a8597;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-padding: 12 14 12 14;
+}
+
+.autobid-field:focused {
+    -fx-border-color: #001e40;
+    -fx-background-color: #ffffff;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.autobid-save-button,
+.autobid-disable-button {
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-background-radius: 12px;
+    -fx-padding: 12 16 12 16;
+    -fx-cursor: hand;
+}
+
+.autobid-save-button {
+    -fx-background-color: linear-gradient(to right, #0b5cad, #003d73);
+    -fx-text-fill: white;
+}
+
+.autobid-save-button:hover {
+    -fx-opacity: 0.94;
+}
+
+.autobid-disable-button {
+    -fx-background-color: #fff2ef;
+    -fx-text-fill: #a03020;
+    -fx-border-color: #f3c5bc;
+    -fx-border-radius: 12px;
+}
+
+.autobid-disable-button:hover {
+    -fx-background-color: #ffe6e0;
+}
+
 .footnote-text {
     -fx-text-fill: #515f74;
     -fx-font-size: 9px;
     -fx-font-weight: 600;
     -fx-text-alignment: center;
+}
+
+.autobid-status-active,
+.autobid-status-inactive {
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 999px;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.autobid-status-active {
+    -fx-text-fill: #1f7a1f;
+    -fx-background-color: #e6f4ea;
+    -fx-border-color: #9bd3a8;
+    -fx-border-radius: 999px;
+}
+
+.autobid-status-inactive {
+    -fx-text-fill: #516173;
+    -fx-background-color: #eef3ff;
+    -fx-border-color: #d8e3fb;
+    -fx-border-radius: 999px;
 }
 
 .message-success {
