@@ -16,13 +16,14 @@ public class BidDao {
     public static BidDao getInstance() { return instance; }
 
     public void create(Bid bid) throws DatabaseException {
-        String sql = "INSERT INTO Bids (id, createdAt, auctionId, bidder, amount) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Bids (id, createdAt, auctionId, bidder, amount, autoBidGenerated) VALUES (?, ?, ?, ?, ?, ?)";
         SQLiteHelper.update(sql,
                 bid.getId(),
                 bid.getCreatedAt().toString(),
                 bid.getAuctionId(),
                 bid.getBidderUsername(),
-                bid.getAmount()
+                bid.getAmount(),
+                bid.isAutoBidGenerated() ? 1 : 0
         );
     }
 
@@ -36,7 +37,8 @@ public class BidDao {
                         LocalDateTime.parse(rs.getString("createdAt")),
                         rs.getString("auctionId"),
                         rs.getString("bidder"),
-                        rs.getDouble("amount")
+                        rs.getDouble("amount"),
+                        rs.getInt("autoBidGenerated") == 1
                 );
                 bids.add(bid);
             }
@@ -54,7 +56,8 @@ public class BidDao {
                         LocalDateTime.parse(rs.getString("createdAt")),
                         rs.getString("auctionId"),
                         rs.getString("bidder"),
-                        rs.getDouble("amount")
+                        rs.getDouble("amount"),
+                        rs.getInt("autoBidGenerated") == 1
                 );
                 bids.add(bid);
             }

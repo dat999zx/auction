@@ -20,6 +20,7 @@ public class Auction extends Entity {
     private AuctionStatus status = AuctionStatus.ACTIVE;
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
+    private List<AutoBid> autoBids = new ArrayList<>();
 
     public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(IdGenerator.genAuctionId(), LocalDateTime.now());
@@ -125,4 +126,26 @@ public class Auction extends Entity {
     public void setMinIncrement(double num) { this.minIncrement = num; }
 
     public List<Bid> getBids() { return bids; }
+
+    public synchronized List<AutoBid> getAutoBids() {
+        return new ArrayList<>(autoBids);
+    }
+
+    public synchronized AutoBid getAutoBid(String username) {
+        if (username == null) return null;
+        return autoBids.stream()
+                .filter(autoBid -> username.equals(autoBid.getUsername()) && autoBid.isEnabled())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public synchronized void upsertAutoBid(AutoBid autoBid) {
+        autoBids.removeIf(existing -> existing.getUsername().equals(autoBid.getUsername()));
+        autoBids.add(autoBid);
+    }
+
+    public synchronized void disableAutoBid(String username) {
+        AutoBid autoBid = getAutoBid(username);
+        if (autoBid != null) autoBid.disable();
+    }
 }

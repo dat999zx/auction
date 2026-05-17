@@ -59,7 +59,8 @@ public class AuctionMapper {
                         bid.getCreatedAt().toString(),
                         bid.getAuctionId(),
                         bid.getBidderUsername(),
-                        bid.getAmount()
+                        bid.getAmount(),
+                        bid.isAutoBidGenerated()
                 ))
                 .toList();
     }

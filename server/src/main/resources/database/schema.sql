@@ -80,6 +80,7 @@ CREATE TABLE IF NOT EXISTS Bids (
     auctionId TEXT NOT NULL,
     bidder TEXT NOT NULL,
     amount REAL NOT NULL CHECK(amount > 0), -- phải là số dương
+    autoBidGenerated INTEGER NOT NULL DEFAULT 0 CHECK(autoBidGenerated IN (0, 1)),
     FOREIGN KEY (auctionId) REFERENCES Auctions(id),
     FOREIGN KEY (bidder) REFERENCES Users(username)
 );
