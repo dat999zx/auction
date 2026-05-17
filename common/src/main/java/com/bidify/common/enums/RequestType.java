@@ -11,6 +11,8 @@ public enum RequestType {
 
     CREATE_ITEM,
     GET_MY_INVENTORY,
+    GET_ITEM_DETAIL,
+    UPDATE_ITEM,
 
     CREATE_AUCTION,
     UPDATE_AUCTION,

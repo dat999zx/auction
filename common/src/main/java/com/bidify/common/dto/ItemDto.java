@@ -1,5 +1,7 @@
 package com.bidify.common.dto;
 
+import java.util.List;
+
 public class ItemDto {
     private String id;
     private String createdAt;
@@ -10,6 +12,7 @@ public class ItemDto {
     private String productType;
     private String availabilityStatus;
     private String thumbnailBase64;
+    private List<String> galleryBase64;
 
     public ItemDto(
         String id,
@@ -50,4 +53,8 @@ public class ItemDto {
     public String getThumbnailBase64() { return thumbnailBase64; }
 
     public void setThumbnailBase64(String thumbnailBase64) { this.thumbnailBase64 = thumbnailBase64; }
+
+    public List<String> getGalleryBase64() { return galleryBase64; }
+
+    public void setGalleryBase64(List<String> galleryBase64) { this.galleryBase64 = galleryBase64; }
 }
