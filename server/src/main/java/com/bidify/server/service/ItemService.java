@@ -1,12 +1,15 @@
 package com.bidify.server.service;
 
 import com.bidify.common.dto.ItemDto;
+import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateItemRequest;
+import com.bidify.common.model.GetItemDetailRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.model.UpdateItemRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.ItemDao;
@@ -37,6 +40,8 @@ public class ItemService {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.CREATE_ITEM, this::create);
         router.register(RequestType.GET_MY_INVENTORY, this::getMyInventory);
+        router.register(RequestType.GET_ITEM_DETAIL, this::getItemDetail);
+        router.register(RequestType.UPDATE_ITEM, this::update);
     }
 
     public Response create(ClientHandler client, Request request) {
@@ -67,7 +72,7 @@ public class ItemService {
                 itemDao.saveItemImageLinks(item.getId(), savedImages);
             }
 
-            ItemDto itemDto = toDtoWithThumbnail(item);
+            ItemDto itemDto = toDtoWithImages(item, false);
             return new Response(RequestStatus.SUCCESS, "Create item successfully", itemDto);
         });
     }
@@ -79,9 +84,45 @@ public class ItemService {
             List<Item> items = itemDao.findByOwnerUsername(client.getCurrentUsername());
             List<ItemDto> inventory = new ArrayList<>();
             for (Item item : items)
-                inventory.add(toDtoWithThumbnail(item));
+                inventory.add(toDtoWithImages(item, false));
 
             return new Response(RequestStatus.SUCCESS, "Inventory loaded successfully", inventory);
+        });
+    }
+
+    public Response getItemDetail(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            GetItemDetailRequest data = JsonUtil.fromMap(request.getData(), GetItemDetailRequest.class);
+            ServiceUtil.validateRequestData(data);
+            ServiceUtil.requireSession(client);
+
+            Item item = requireOwnedItem(client.getCurrentUsername(), data.getItemId());
+            return new Response(RequestStatus.SUCCESS, "Item loaded successfully", toDtoWithImages(item, true));
+        });
+    }
+
+    public Response update(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            UpdateItemRequest data = JsonUtil.fromMap(request.getData(), UpdateItemRequest.class);
+            ServiceUtil.validateRequestData(data);
+            ServiceUtil.requireSession(client);
+
+            requireEditOwner(client.getCurrentUsername(), data.getOwnerUsername());
+            validateItemFields(data.getName(), data.getDescription(), data.getCategory(), data.getProductType());
+
+            Item item = requireOwnedItem(client.getCurrentUsername(), data.getItemId());
+            if (item.getAvailabilityStatus() != ItemStatus.AVAILABLE)
+                throw new ValidationException("Only available items can be edited");
+
+            item.setName(data.getName().trim());
+            item.setDescription(data.getDescription().trim());
+            item.setCategory(trimToNull(data.getCategory()));
+            item.setProductType(trimToNull(data.getProductType()));
+            itemDao.save(item);
+
+            replaceItemImages(item.getId(), data.getImagesBase64());
+            Item refreshed = itemDao.findById(item.getId());
+            return new Response(RequestStatus.SUCCESS, "Item updated successfully", toDtoWithImages(refreshed, true));
         });
     }
 
@@ -94,38 +135,74 @@ public class ItemService {
     }
 
     private void validateItemFields(CreateItemRequest data) {
-        ValidationUtil.requiresNonBlank(data.getName(), "Item name");
-        ValidationUtil.requiresNonBlank(data.getDescription(), "Description");
-        ValidationUtil.requiresNonBlank(data.getCategory(), "Category");
-        ValidationUtil.requiresNonBlank(data.getProductType(), "Product type");
-        ValidationUtil.validateMaxLength("Description", data.getDescription(), 2000);
+        validateItemFields(data.getName(), data.getDescription(), data.getCategory(), data.getProductType());
     }
 
-    private ItemDto toDtoWithThumbnail(Item item) {
+    private void validateItemFields(String name, String description, String category, String productType) {
+        ValidationUtil.requiresNonBlank(name, "Item name");
+        ValidationUtil.requiresNonBlank(description, "Description");
+        ValidationUtil.requiresNonBlank(category, "Category");
+        ValidationUtil.requiresNonBlank(productType, "Product type");
+        ValidationUtil.validateMaxLength("Description", description, 2000);
+    }
+
+    private void requireEditOwner(String currentUsername, String ownerUsername) {
+        ValidationUtil.validateUsername(currentUsername);
+        ValidationUtil.validateUsername(ownerUsername);
+
+        if (!currentUsername.equals(ownerUsername))
+            throw new ValidationException("You do not have permission to edit this item");
+    }
+
+    private Item requireOwnedItem(String currentUsername, String itemId) throws DatabaseException {
+        ValidationUtil.validateUsername(currentUsername);
+        ValidationUtil.requiresNonBlank(itemId, "Item ID");
+
+        Item item = itemDao.findById(itemId);
+        if (item == null)
+            throw new ValidationException("Item not found");
+        if (!currentUsername.equals(item.getOwnerUsername()))
+            throw new ValidationException("You do not have permission to edit this item");
+        return item;
+    }
+
+    private ItemDto toDtoWithImages(Item item, boolean includeGallery) {
         ItemDto itemDto = ItemMapper.toDto(item);
-        itemDto.setThumbnailBase64(getThumbnail(item.getId()));
+        List<String> gallery = getGallery(item.getId());
+        itemDto.setThumbnailBase64(gallery.isEmpty() ? null : gallery.get(0));
+        if (includeGallery)
+            itemDto.setGalleryBase64(gallery);
         return itemDto;
     }
 
-    private String getThumbnail(String itemId) {
+    private List<String> getGallery(String itemId) {
+        List<String> gallery = new ArrayList<>();
         try {
-            List<ItemImageLink> links = itemDao.getItemImageLinks(itemId);
-            for (ItemImageLink link : links) {
-                if (!link.isPrimary()) continue;
+            for (ItemImageLink link : itemDao.getItemImageLinks(itemId)) {
                 Image image = imageDao.findById(link.getImageId());
-                if (image != null)
-                    return imageService.getBase64Image(image.getFilePath());
-            }
-            for (ItemImageLink link : links) {
-                Image image = imageDao.findById(link.getImageId());
-                if (image != null)
-                    return imageService.getBase64Image(image.getFilePath());
+                if (image == null) continue;
+
+                String base64 = imageService.getBase64Image(image.getFilePath());
+                if (base64 != null && !base64.isBlank())
+                    gallery.add(base64);
             }
         }
         catch (DatabaseException ignored) {
-            return null;
+            return List.of();
         }
-        return null;
+        return gallery;
+    }
+
+    private void replaceItemImages(String itemId, List<String> imagesBase64) throws DatabaseException {
+        itemDao.deleteItemImageLinks(itemId);
+
+        if (imagesBase64 == null || imagesBase64.isEmpty())
+            return;
+
+        List<Image> savedImages = imageService.saveImages(imagesBase64);
+        for (Image image : savedImages)
+            imageDao.create(image);
+        itemDao.saveItemImageLinks(itemId, savedImages);
     }
 
     private String trimToNull(String value) {

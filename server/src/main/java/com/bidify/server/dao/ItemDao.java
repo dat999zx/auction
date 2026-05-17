@@ -143,6 +143,10 @@ public class ItemDao {
         }, itemId);
     }
 
+    public void deleteItemImageLinks(String itemId) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM ItemImageLinks WHERE itemId = ?", itemId);
+    }
+
     private List<Item> findMany(String sql, Object... params) throws DatabaseException {
         return SQLiteHelper.query(sql, rs -> {
             List<Item> items = new ArrayList<>();
