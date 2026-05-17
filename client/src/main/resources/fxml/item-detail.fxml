@@ -21,7 +21,7 @@
     <top>
         <HBox alignment="CENTER_LEFT" spacing="16" styleClass="detail-header">
             <Button onAction="#handleBack" styleClass="icon-button" text="&lt;" />
-            <Label styleClass="detail-title" text="Item Details" HBox.hgrow="ALWAYS" />
+            <Label styleClass="detail-title" text="Item Editor" HBox.hgrow="ALWAYS" />
             <Button onAction="#handleCancel" styleClass="cancel-button" text="Cancel" />
             <Button onAction="#handleSave" styleClass="save-button" text="Save Item" />
             <padding><Insets bottom="0" left="40" right="40" top="0" /></padding>

@@ -1,5 +1,6 @@
 package com.bidify.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,9 +33,10 @@ import javafx.stage.FileChooser;
 
 public class ItemDetailController {
     private static final int MAX_IMAGES = 10;
+    private static String currentItemId;
 
     private final InventoryClientService inventoryClientService = new InventoryClientService();
-    private final List<File> selectedImageFiles = new ArrayList<>();
+    private final List<GalleryImageEntry> galleryEntries = new ArrayList<>();
 
     @FXML
     private TextField productNameField;
@@ -57,23 +59,34 @@ public class ItemDetailController {
     @FXML
     private Label statusFooterLabel;
 
+    public static void setItemId(String itemId) {
+        currentItemId = itemId;
+    }
+
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
             categoryComboBox.getItems().setAll("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other");
             productTypeComboBox.getItems().setAll("New", "Used", "Rare", "Vintage", "Limited");
-            statusFooterLabel.setText("New item draft");
             renderGallery();
+
+            if (currentItemId == null || currentItemId.isBlank()) {
+                statusFooterLabel.setText("New item draft");
+            } else {
+                loadItemForEdit(currentItemId);
+            }
         });
     }
 
     @FXML
     private void handleBack() {
+        clearEditingState();
         SceneManager.switchScene("inventory.fxml", false, true);
     }
 
     @FXML
     private void handleCancel() {
+        clearEditingState();
         SceneManager.switchScene("inventory.fxml", false, true);
     }
 
@@ -91,15 +104,34 @@ public class ItemDetailController {
     private void handleSave() {
         try {
             validateFields();
-            ItemDto createdItem = inventoryClientService.createItem(
-                productNameField.getText().trim(),
-                descriptionArea.getText().trim(),
-                categoryComboBox.getValue(),
-                productTypeComboBox.getValue(),
-                encodeSelectedImages()
-            );
-            NotificationUtil.success("Item created successfully.");
-            statusFooterLabel.setText("Created item: " + createdItem.getId());
+            List<String> encodedImages = encodeGalleryImages();
+
+            ItemDto savedItem;
+            if (currentItemId == null || currentItemId.isBlank()) {
+                savedItem = inventoryClientService.createItem(
+                    productNameField.getText().trim(),
+                    descriptionArea.getText().trim(),
+                    categoryComboBox.getValue(),
+                    productTypeComboBox.getValue(),
+                    encodedImages
+                );
+                NotificationUtil.success("Item created successfully.");
+                statusFooterLabel.setText("Created item: " + savedItem.getId());
+            }
+            else {
+                savedItem = inventoryClientService.updateItem(
+                    currentItemId,
+                    productNameField.getText().trim(),
+                    descriptionArea.getText().trim(),
+                    categoryComboBox.getValue(),
+                    productTypeComboBox.getValue(),
+                    encodedImages
+                );
+                NotificationUtil.success("Item updated successfully.");
+                statusFooterLabel.setText("Updated item: " + savedItem.getId());
+            }
+
+            clearEditingState();
             SceneManager.clearCache("inventory.fxml");
             SceneManager.switchScene("inventory.fxml", false, true);
         }
@@ -109,6 +141,41 @@ public class ItemDetailController {
         catch (ValidationException e) {
             NotificationUtil.error(e.getMessage());
         }
+    }
+
+    private void loadItemForEdit(String itemId) {
+        Thread loader = new Thread(() -> {
+            try {
+                ItemDto item = inventoryClientService.getItemDetail(itemId);
+                Platform.runLater(() -> bindItem(item));
+            }
+            catch (IOException e) {
+                Platform.runLater(() -> NotificationUtil.error("Cannot connect to server."));
+            }
+            catch (ValidationException e) {
+                Platform.runLater(() -> NotificationUtil.error(e.getMessage()));
+            }
+        });
+        loader.setDaemon(true);
+        loader.start();
+    }
+
+    private void bindItem(ItemDto item) {
+        productNameField.setText(safe(item.getName()));
+        descriptionArea.setText(safe(item.getDescription()));
+        categoryComboBox.setValue(item.getCategory());
+        productTypeComboBox.setValue(item.getProductType());
+
+        galleryEntries.clear();
+        if (item.getGalleryBase64() != null) {
+            for (String base64 : item.getGalleryBase64()) {
+                if (base64 != null && !base64.isBlank())
+                    galleryEntries.add(fromBase64(base64));
+            }
+        }
+
+        statusFooterLabel.setText("Editing item: " + item.getId());
+        renderGallery();
     }
 
     private void openChooser() {
@@ -124,42 +191,53 @@ public class ItemDetailController {
         if (files == null || files.isEmpty()) return;
 
         for (File file : files) {
-            if (selectedImageFiles.size() >= MAX_IMAGES) {
+            if (galleryEntries.size() >= MAX_IMAGES) {
                 NotificationUtil.error("Maximum " + MAX_IMAGES + " images allowed.");
                 break;
             }
-            if (!selectedImageFiles.contains(file))
-                selectedImageFiles.add(file);
+            if (!containsFile(file))
+                galleryEntries.add(fromFile(file));
         }
 
         renderGallery();
     }
 
+    private boolean containsFile(File candidate) {
+        String target = candidate.getAbsolutePath();
+        for (GalleryImageEntry entry : galleryEntries) {
+            if (entry.file != null && target.equals(entry.file.getAbsolutePath()))
+                return true;
+        }
+        return false;
+    }
+
     private void renderGallery() {
         galleryPreviewPane.getChildren().clear();
 
-        if (selectedImageFiles.isEmpty()) {
+        if (galleryEntries.isEmpty()) {
             primaryImageView.setImage(null);
-            statusFooterLabel.setText("New item draft");
+            statusFooterLabel.setText(currentItemId == null || currentItemId.isBlank() ? "New item draft" : "Editing item: " + currentItemId);
             Label empty = new Label("No images selected yet");
             empty.getStyleClass().add("helper-text");
             galleryPreviewPane.getChildren().add(empty);
             return;
         }
 
-        primaryImageView.setImage(new Image(selectedImageFiles.get(0).toURI().toString()));
-        statusFooterLabel.setText("Selected " + selectedImageFiles.size() + " image" + (selectedImageFiles.size() == 1 ? "" : "s"));
+        primaryImageView.setImage(galleryEntries.get(0).toImage());
+        statusFooterLabel.setText((currentItemId == null || currentItemId.isBlank() ? "Selected " : "Editing " )
+            + galleryEntries.size() + " image" + (galleryEntries.size() == 1 ? "" : "s")
+            + ". Click a thumbnail to make it primary.");
 
-        for (File file : selectedImageFiles)
-            galleryPreviewPane.getChildren().add(createPreviewTile(file));
+        for (GalleryImageEntry entry : galleryEntries)
+            galleryPreviewPane.getChildren().add(createPreviewTile(entry));
     }
 
-    private StackPane createPreviewTile(File file) {
+    private StackPane createPreviewTile(GalleryImageEntry entry) {
         StackPane tile = new StackPane();
         tile.getStyleClass().add("media-preview-tile");
         tile.setPrefSize(112, 112);
 
-        ImageView imageView = new ImageView(new Image(file.toURI().toString()));
+        ImageView imageView = new ImageView(entry.toImage());
         imageView.setFitWidth(112);
         imageView.setFitHeight(112);
         imageView.setPreserveRatio(false);
@@ -169,21 +247,26 @@ public class ItemDetailController {
         removeButton.getStyleClass().add("remove-image-button");
         StackPane.setAlignment(removeButton, Pos.TOP_RIGHT);
         removeButton.setOnAction(event -> {
-            selectedImageFiles.remove(file);
+            galleryEntries.remove(entry);
             renderGallery();
+        });
+
+        tile.setOnMouseClicked(event -> {
+            if (!galleryEntries.isEmpty() && galleryEntries.get(0) != entry) {
+                galleryEntries.remove(entry);
+                galleryEntries.add(0, entry);
+                renderGallery();
+            }
         });
 
         tile.getChildren().addAll(imageView, removeButton);
         return tile;
     }
 
-    private List<String> encodeSelectedImages() throws IOException {
+    private List<String> encodeGalleryImages() throws IOException {
         List<String> imagesBase64 = new ArrayList<>();
-        for (File file : selectedImageFiles) {
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-            byte[] resizedContent = ImageUtil.resizeImage(fileContent, 800);
-            imagesBase64.add(Base64.getEncoder().encodeToString(resizedContent));
-        }
+        for (GalleryImageEntry entry : galleryEntries)
+            imagesBase64.add(entry.toBase64());
         return imagesBase64;
     }
 
@@ -195,5 +278,57 @@ public class ItemDetailController {
             throw new ValidationException("Please select a category");
         if (productTypeComboBox.getValue() == null)
             throw new ValidationException("Please select a product type");
+    }
+
+    private Image decodeBase64Image(String base64) {
+        if (base64 == null || base64.isBlank()) return null;
+        try {
+            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+        }
+        catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
+    private void clearEditingState() {
+        currentItemId = null;
+        galleryEntries.clear();
+    }
+
+    private GalleryImageEntry fromFile(File file) {
+        return new GalleryImageEntry(file, null);
+    }
+
+    private GalleryImageEntry fromBase64(String base64) {
+        return new GalleryImageEntry(null, base64);
+    }
+
+    private final class GalleryImageEntry {
+        private final File file;
+        private final String base64;
+
+        private GalleryImageEntry(File file, String base64) {
+            this.file = file;
+            this.base64 = base64;
+        }
+
+        private Image toImage() {
+            if (file != null)
+                return new Image(file.toURI().toString());
+            return decodeBase64Image(base64);
+        }
+
+        private String toBase64() throws IOException {
+            if (base64 != null)
+                return base64;
+
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            byte[] resizedContent = ImageUtil.resizeImage(fileContent, 800);
+            return Base64.getEncoder().encodeToString(resizedContent);
+        }
     }
 }

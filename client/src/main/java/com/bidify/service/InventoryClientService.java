@@ -9,9 +9,11 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateItemRequest;
+import com.bidify.common.model.GetItemDetailRequest;
 import com.bidify.common.model.GetInventoryRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.model.UpdateItemRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
@@ -45,11 +47,7 @@ public class InventoryClientService {
             throws IOException {
         String ownerUsername = client.getCurrentUsername();
         ValidationUtil.validateUsername(ownerUsername);
-        ValidationUtil.requiresNonBlank(name, "Item name");
-        ValidationUtil.requiresNonBlank(description, "Description");
-        ValidationUtil.requiresNonBlank(category, "Category");
-        ValidationUtil.requiresNonBlank(productType, "Product type");
-        ValidationUtil.validateMaxLength("Description", description, 2000);
+        validateItemFields(name, description, category, productType);
 
         Response response = client.send(
             new Request(
@@ -75,5 +73,52 @@ public class InventoryClientService {
         }
 
         return item;
+    }
+
+    public ItemDto getItemDetail(String itemId) throws IOException {
+        ValidationUtil.requiresNonBlank(itemId, "Item ID");
+
+        Response response = client.send(
+            new Request(RequestType.GET_ITEM_DETAIL, new GetItemDetailRequest(itemId))
+        );
+
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot load item." : response.getMessage());
+
+        ItemDto item = JsonUtil.fromMap(response.getData(), ItemDto.class);
+        if (item == null)
+            throw new ValidationException("Item detail came back in an unexpected format.");
+        return item;
+    }
+
+    public ItemDto updateItem(String itemId, String name, String description, String category, String productType,
+            List<String> imagesBase64) throws IOException {
+        String ownerUsername = client.getCurrentUsername();
+        ValidationUtil.validateUsername(ownerUsername);
+        ValidationUtil.requiresNonBlank(itemId, "Item ID");
+        validateItemFields(name, description, category, productType);
+
+        Response response = client.send(
+            new Request(
+                RequestType.UPDATE_ITEM,
+                new UpdateItemRequest(itemId, ownerUsername, name, description, category, productType, imagesBase64)
+            )
+        );
+
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot update item." : response.getMessage());
+
+        ItemDto item = JsonUtil.fromMap(response.getData(), ItemDto.class);
+        if (item == null)
+            throw new ValidationException("Update item came back in an unexpected format.");
+        return item;
+    }
+
+    private void validateItemFields(String name, String description, String category, String productType) {
+        ValidationUtil.requiresNonBlank(name, "Item name");
+        ValidationUtil.requiresNonBlank(description, "Description");
+        ValidationUtil.requiresNonBlank(category, "Category");
+        ValidationUtil.requiresNonBlank(productType, "Product type");
+        ValidationUtil.validateMaxLength("Description", description, 2000);
     }
 }

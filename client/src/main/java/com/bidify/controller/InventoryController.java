@@ -55,6 +55,8 @@ public class InventoryController {
 
     @FXML
     private void handleAddItem() {
+        ItemDetailController.setItemId(null);
+        SceneManager.clearCache("item-detail.fxml");
         SceneManager.switchScene("item-detail.fxml", false, false);
     }
 
@@ -170,9 +172,17 @@ public class InventoryController {
             ItemStatus.LOCKED_IN_AUCTION.name().equals(item.getAvailabilityStatus()) ? "status-chip-locked" : "status-chip-available"
         );
 
-        Button detailsButton = new Button("Details");
+        Button detailsButton = new Button("Edit");
         detailsButton.getStyleClass().add("outline-button");
-        detailsButton.setOnAction(event -> NotificationUtil.info("Item editing is not implemented yet."));
+        boolean editable = ItemStatus.AVAILABLE.name().equals(item.getAvailabilityStatus());
+        detailsButton.setDisable(!editable);
+        detailsButton.setOnAction(event -> {
+            if (!editable) {
+                NotificationUtil.info("Only available items can be edited.");
+                return;
+            }
+            openItemEditor(item.getId());
+        });
 
         actions.getChildren().addAll(statusChip, detailsButton);
 
@@ -185,6 +195,12 @@ public class InventoryController {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
         return constraints;
+    }
+
+    private void openItemEditor(String itemId) {
+        ItemDetailController.setItemId(itemId);
+        SceneManager.clearCache("item-detail.fxml");
+        SceneManager.switchScene("item-detail.fxml", false, false);
     }
 
     private Node createThumbnailNode(ItemDto item) {
