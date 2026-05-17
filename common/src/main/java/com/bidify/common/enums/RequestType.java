@@ -23,6 +23,8 @@ public enum RequestType {
     SEARCH_AUCTIONS,
 
     PLACE_BID,
+    SET_AUTO_BID,
+    DISABLE_AUTO_BID,
     GET_BID_HISTORY,
 
     JOIN_AUCTION,

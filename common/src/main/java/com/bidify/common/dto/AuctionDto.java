@@ -21,6 +21,8 @@ public class AuctionDto {
     private String thumbnailBase64;
     private List<String> galleryBase64;
     private List<BidDto> bidHistory;
+    private boolean currentUserAutoBidActive;
+    private Double currentUserAutoBidMax;
 
     public AuctionDto(String id, String itemId, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
@@ -66,4 +68,9 @@ public class AuctionDto {
 
     public List<BidDto> getBidHistory() { return bidHistory; }
     public void setBidHistory(List<BidDto> bidHistory) { this.bidHistory = bidHistory; }
+
+    public boolean isCurrentUserAutoBidActive() { return currentUserAutoBidActive; }
+    public void setCurrentUserAutoBidActive(boolean currentUserAutoBidActive) { this.currentUserAutoBidActive = currentUserAutoBidActive; }
+    public Double getCurrentUserAutoBidMax() { return currentUserAutoBidMax; }
+    public void setCurrentUserAutoBidMax(Double currentUserAutoBidMax) { this.currentUserAutoBidMax = currentUserAutoBidMax; }
 }
