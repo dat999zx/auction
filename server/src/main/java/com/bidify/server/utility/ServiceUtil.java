@@ -13,6 +13,7 @@ import com.bidify.server.exception.InsufficientBalanceException;
 import com.bidify.server.exception.ServerTimeOutException;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.AuthService;
 
 import java.time.format.DateTimeParseException;
 import java.util.function.Supplier;
@@ -23,7 +24,7 @@ public class ServiceUtil {
 
     private ServiceUtil() {}
 
-    // gá»i cÃ¡i nÃ y Ä‘á»ƒ Ä‘á»¡ pháº£i try-catch
+    // dùng cái này đỡ phải try-catch
     public static Response handleRequest(Supplier<Response> action) {
         try {
             return action.get();
@@ -40,9 +41,12 @@ public class ServiceUtil {
         }
     }
 
-    // load user tá»« RAM náº¿u cÃ³, ko thÃ¬ load tá»« database vÃ  tÃ­nh lockedBalance
+    // load user từ RealtimeDatabase hoặc SQL
     public static User getOrLoadUser(String username) {
         ValidationUtil.validateUsername(username);
+
+        if (AuthService.isBootstrapAdminUsername(username))
+            return AuthService.createBootstrapAdminUser();
         
         User user = RealtimeDatabase.getActiveUser(username);
         if (user != null) return user;
@@ -56,7 +60,7 @@ public class ServiceUtil {
         return user;
     }
 
-    // kiá»ƒm tra session há»£p lá»‡
+    // kiểm tra session hoạt động
     public static void requireSession(ClientHandler client) {
         if (client == null || !client.isInSession())
             throw new ValidationException("Invalid session");
@@ -96,7 +100,7 @@ public class ServiceUtil {
         return ownerUsername.equals(currentUsername) || isAdminUsername(currentUsername);
     }
 
-    // kiá»ƒm tra request data
+    // kiểm tra request data hợp lệ
     public static void validateRequestData(Object data) {
         if (data == null)
             throw new ValidationException("Invalid request");

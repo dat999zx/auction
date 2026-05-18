@@ -42,24 +42,24 @@ public class AuthService {
     public static AuthService getInstance() { return instance; }
 
     public void initialize() {
-        ensureBootstrapAdmin();
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.REGISTER, (client, req) -> register(req));
         router.register(RequestType.LOGIN, this::login);
         router.register(RequestType.LOGOUT, (client, req) -> logout(client));
     }
 
-    private void ensureBootstrapAdmin() {
-        if (userDao.existsByUsername(BOOTSTRAP_ADMIN_USERNAME))
-            return;
+    public static boolean isBootstrapAdminUsername(String username) {
+        return BOOTSTRAP_ADMIN_USERNAME.equals(username);
+    }
 
+    public static User createBootstrapAdminUser() {
         User admin = new User(
             BOOTSTRAP_ADMIN_USERNAME,
             BOOTSTRAP_ADMIN_NICKNAME,
             PasswordUtil.hash(BOOTSTRAP_ADMIN_PASSWORD)
         );
         admin.setRole(UserRole.ADMIN);
-        userDao.create(admin);
+        return admin;
     }
 
     // đăng kí
@@ -80,7 +80,7 @@ public class AuthService {
             ValidationUtil.validateNickname(nickname);
             ValidationUtil.validatePassword(password);
 
-            if (userDao.existsByUsername(username))
+            if (userDao.existsByUsername(username) || isBootstrapAdminUsername(username))
                 throw new AuthException("Username already exists");
 
             User user = new User(username, nickname, PasswordUtil.hash(password));
@@ -105,12 +105,11 @@ public class AuthService {
             if (client.isInSession())
                 throw new AuthException("You are already logged in");
 
-            if (!userDao.existsByUsername(username))
-                throw new AuthException("Username or password is incorrect");
-
-            User user = userDao.findByUsername(username);
+            User user = isBootstrapAdminUsername(username)
+                ? createBootstrapAdminUser()
+                : userDao.findByUsername(username);
             if (user == null)
-                throw new AuthException("Failed to get user data");
+                throw new AuthException("Username or password is incorrect");
             
             if (!PasswordUtil.matches(password, user.getPassword()))
                 throw new AuthException("Username or password is incorrect");
@@ -143,7 +142,8 @@ public class AuthService {
             if (user == null)
                 throw new AuthException("Session is inactive");
 
-            userDao.save(user);
+            if (!isBootstrapAdminUsername(username))
+                userDao.save(user);
             client.setCurrentUsername(null);
             List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
             for (String auctionId : affectedAuctionIds)
@@ -158,7 +158,9 @@ public class AuthService {
     }
 
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
-        for (User user : RealtimeDatabase.getAllActiveUsers())
-            userDao.save(user, saveLastLogin);
+        for (User user : RealtimeDatabase.getAllActiveUsers()) {
+            if (!isBootstrapAdminUsername(user.getUsername()))
+                userDao.save(user, saveLastLogin);
+        }
     }
 }
