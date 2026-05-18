@@ -280,6 +280,17 @@
     -fx-padding: 20px;
 }
 
+.audience-pill {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-padding: 6 10;
+    -fx-background-radius: 999px;
+    -fx-border-color: #d8e3fb;
+    -fx-border-radius: 999px;
+}
+
 .metric-label {
     -fx-text-fill: #737780;
     -fx-font-size: 10px;

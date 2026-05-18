@@ -109,6 +109,13 @@
                                         <Region maxHeight="6.0" prefHeight="6.0" prefWidth="260.0" styleClass="progress-fill" StackPane.alignment="CENTER_LEFT" />
                                     </StackPane>
                                 </VBox>
+
+                                <HBox fx:id="audienceStatsRow" alignment="CENTER_LEFT" spacing="8.0">
+                                    <children>
+                                        <Label fx:id="watcherCountLabel" styleClass="audience-pill" text="0 watching" />
+                                        <Label fx:id="activeBidderCountLabel" styleClass="audience-pill" text="0 active bidders" />
+                                    </children>
+                                </HBox>
                             </VBox>
     
                             <VBox fx:id="recentActivitySection" spacing="10.0" VBox.vgrow="ALWAYS">

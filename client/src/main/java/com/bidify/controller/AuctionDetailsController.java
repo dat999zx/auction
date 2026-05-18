@@ -33,6 +33,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -88,6 +89,12 @@ public class AuctionDetailsController {
     @FXML
     private Label endDateLabel;
     @FXML
+    private HBox audienceStatsRow;
+    @FXML
+    private Label watcherCountLabel;
+    @FXML
+    private Label activeBidderCountLabel;
+    @FXML
     private Label recentActivityLabel;
     @FXML
     private VBox recentActivitySection;
@@ -111,6 +118,11 @@ public class AuctionDetailsController {
 
     @FXML
     private void initialize() {
+        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
+        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
+
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
             loadAuctionDetails(selectedAuctionId);
@@ -125,8 +137,11 @@ public class AuctionDetailsController {
         AuctionDto updatedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
         if (updatedAuction != null && selectedAuctionId.equals(updatedAuction.getId())) {
             Platform.runLater(() -> {
+                updatedAuction.setCurrentUserAutoBidActive(currentUserAutoBidActive);
+                updatedAuction.setCurrentUserAutoBidMax(currentUserAutoBidMax);
                 bindAuctionData(updatedAuction);
-                NotificationUtil.info(event.getMessage());
+                if (event.getType() == EventType.BID_PLACED)
+                    NotificationUtil.info(event.getMessage());
             });
         }
     }
@@ -373,6 +388,7 @@ public class AuctionDetailsController {
 
         renderRecentActivity(data, isUpcoming);
         refreshAutoBidStatusLabel();
+        renderAudienceStats(data, isUpcoming);
 
         // set primary image
         if (data.getThumbnailBase64() != null)
@@ -408,6 +424,19 @@ public class AuctionDetailsController {
         bidActionSection.setManaged(true);
         bidActionSection.setVisible(true);
         placebid.setDisable(false);
+    }
+
+    private void renderAudienceStats(AuctionDto data, boolean isUpcoming) {
+        if (audienceStatsRow == null)
+            return;
+
+        audienceStatsRow.setManaged(!isUpcoming);
+        audienceStatsRow.setVisible(!isUpcoming);
+        if (isUpcoming)
+            return;
+
+        watcherCountLabel.setText(formatCount(data.getWatcherCount(), "watching", "watching"));
+        activeBidderCountLabel.setText(formatCount(data.getActiveBidderCount(), "active bidder", "active bidders"));
     }
 
     private void setupThumbnailGallery(AuctionDto data) {
@@ -500,6 +529,10 @@ public class AuctionDetailsController {
             return String.valueOf((long) value);
         }
         return String.format("%.2f", value);
+    }
+
+    private String formatCount(int count, String singular, String plural) {
+        return count + " " + (count == 1 ? singular : plural);
     }
 
     private void startTimer() {
