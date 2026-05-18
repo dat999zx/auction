@@ -2,6 +2,7 @@ package com.bidify.controller;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.model.ClientSession;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.SceneManager;
@@ -122,7 +123,10 @@ public class AuctionCardController {
         String sellerUsername = auction.getSellerUsername();
 
         // 2. Decide the destination
-        if (sellerUsername != null && sellerUsername.equals(currentUsername) && "UPCOMING".equals(auction.getStatus())) {
+        boolean canModifyUpcoming = "UPCOMING".equals(auction.getStatus())
+            && ((sellerUsername != null && sellerUsername.equals(currentUsername)) || ClientSession.getInstance().isAdmin());
+
+        if (canModifyUpcoming) {
             // User owns it -> Go to Modify
             ModifyAuctionController.setAuctionId(auctionId);
             SceneManager.clearCache("modifyauction.fxml");

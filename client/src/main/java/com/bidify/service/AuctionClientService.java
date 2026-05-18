@@ -7,6 +7,7 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.CreateAuctionRequest;
+import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.DisableAutoBidRequest;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
@@ -73,6 +74,12 @@ public class AuctionClientService {
 
     public Response updateAuction(UpdateAuctionRequest data) throws IOException {
         Response response = client.send(new Request(RequestType.UPDATE_AUCTION, data));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    public Response deleteAuction(String auctionId) throws IOException {
+        Response response = client.send(new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }

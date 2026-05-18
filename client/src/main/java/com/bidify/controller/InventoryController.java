@@ -9,6 +9,7 @@ import java.util.List;
 import com.bidify.common.dto.ItemDto;
 import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.model.ClientSession;
 import com.bidify.service.InventoryClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
@@ -32,6 +33,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 public class InventoryController {
+    private static String managedOwnerUsername;
+
     private final InventoryClientService inventoryClientService = new InventoryClientService();
     private List<ItemDto> allItems = List.of();
 
@@ -45,16 +48,32 @@ public class InventoryController {
     private Label summaryLabel;
 
     @FXML
+    private Button addItemButton;
+
+    public static void setManagedOwnerUsername(String ownerUsername) {
+        managedOwnerUsername = ownerUsername;
+    }
+
+    @FXML
     private void initialize() {
         Platform.runLater(() -> {
             MissionBarUtil.setup(NavPage.INVENTORY, false, null);
             searchField.textProperty().addListener((obs, oldValue, newValue) -> renderItems(filterItems(newValue)));
+            if (addItemButton != null) {
+                boolean allowCreate = !ClientSession.getInstance().isAdmin() && !isAdminManagedView();
+                addItemButton.setManaged(allowCreate);
+                addItemButton.setVisible(allowCreate);
+            }
             loadInventory();
         });
     }
 
     @FXML
     private void handleAddItem() {
+        if (ClientSession.getInstance().isAdmin()) {
+            NotificationUtil.info("Admin accounts cannot create items.");
+            return;
+        }
         ItemDetailController.setItemId(null);
         SceneManager.clearCache("item-detail.fxml");
         SceneManager.switchScene("item-detail.fxml", false, false);
@@ -67,7 +86,12 @@ public class InventoryController {
 
     private void loadInventory() {
         try {
-            allItems = inventoryClientService.getMyInventory();
+            if (isAdminManagedView()) {
+                allItems = inventoryClientService.getInventoryForOwner(managedOwnerUsername);
+            }
+            else {
+                allItems = inventoryClientService.getMyInventory();
+            }
             renderItems(filterItems(searchField.getText()));
         }
         catch (IOException e) {
@@ -184,7 +208,15 @@ public class InventoryController {
             openItemEditor(item.getId());
         });
 
-        actions.getChildren().addAll(statusChip, detailsButton);
+        actions.getChildren().add(statusChip);
+        if (isAdminManagedView()) {
+            Button deleteButton = new Button("Delete");
+            deleteButton.getStyleClass().add("outline-button");
+            deleteButton.setDisable(!editable);
+            deleteButton.setOnAction(event -> handleDeleteItem(item, editable));
+            actions.getChildren().add(deleteButton);
+        }
+        actions.getChildren().add(detailsButton);
 
         row.add(details, 0, 0);
         row.add(actions, 1, 0);
@@ -201,6 +233,25 @@ public class InventoryController {
         ItemDetailController.setItemId(itemId);
         SceneManager.clearCache("item-detail.fxml");
         SceneManager.switchScene("item-detail.fxml", false, false);
+    }
+
+    private void handleDeleteItem(ItemDto item, boolean editable) {
+        if (!editable) {
+            NotificationUtil.info("Only available items can be deleted.");
+            return;
+        }
+
+        try {
+            inventoryClientService.deleteItem(item.getId());
+            NotificationUtil.success("Item deleted successfully.");
+            loadInventory();
+        }
+        catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+        }
+        catch (ValidationException e) {
+            NotificationUtil.error(e.getMessage());
+        }
     }
 
     private Node createThumbnailNode(ItemDto item) {
@@ -263,5 +314,9 @@ public class InventoryController {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private boolean isAdminManagedView() {
+        return managedOwnerUsername != null && !managedOwnerUsername.isBlank();
     }
 }

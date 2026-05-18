@@ -56,6 +56,7 @@ public class ModifyAuctionController {
     // Action Buttons
     @FXML private Button cancelButton;
     @FXML private Button saveChangesButton;
+    @FXML private Button deleteAuctionButton;
 
     private final AuctionClientService auctionClientService = new AuctionClientService();
 
@@ -188,6 +189,31 @@ public class ModifyAuctionController {
     @FXML
     private void handleCancel() {
         SceneManager.switchScene("hub.fxml", false, true);
+    }
+
+    @FXML
+    private void handleDeleteAuction() {
+        if (currentAuctionId == null || currentAuctionId.isBlank()) {
+            NotificationUtil.error("No auction selected for deletion.");
+            return;
+        }
+
+        try {
+            Response response = auctionClientService.deleteAuction(currentAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction deleted successfully.");
+                SceneManager.switchScene("hub.fxml", false, true);
+                return;
+            }
+            NotificationUtil.error(response.getMessage());
+        }
+        catch (IOException e) {
+            NotificationUtil.error("Failed to connect to server.");
+            logger.error("IOException while deleting auction", e);
+        }
+        catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
     }
 
     private double parseAmount(String value, String fieldName) {

@@ -16,6 +16,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
+import com.bidify.model.ClientSession;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.ImageCache;
@@ -401,13 +402,13 @@ public class AuctionDetailsController {
     }
 
     private void configureAuctionState(boolean isUpcoming, double startingValue, double currentValue) {
-        if (isUpcoming) {
+        if (isUpcoming || ClientSession.getInstance().isAdmin()) {
             leftMetricLabel.setText("STARTING PRICE");
-            rightMetricLabel.setText("OPENING BID");
-            currentprice.setText(DisplayUtil.formatCurrency(startingValue));
-            openDateLabel.setText("Starts at:");
+            rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
+            currentprice.setText(DisplayUtil.formatCurrency(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
+            openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
             endDateLabel.setText("Ends at:");
-            recentActivityLabel.setText("AUCTION STATUS");
+            recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
             bidActionSection.setManaged(false);
             bidActionSection.setVisible(false);
             placebid.setDisable(true);

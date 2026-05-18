@@ -3,6 +3,7 @@ package com.bidify.utility;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.model.Response;
 import com.bidify.controller.MissionBarController;
+import com.bidify.model.ClientSession;
 import com.bidify.network.SocketClient;
 import com.bidify.service.AuthClientService;
 import javafx.event.ActionEvent;
@@ -13,20 +14,21 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-// Utility class để setup mission bar cho các controller khác nhau, giúp giảm thiểu code trùng lặp và đảm bảo tính nhất quán trong cách thiết lập mission bar trên toàn ứng dụng.
+// Utility class Ä‘á»ƒ setup mission bar cho cÃ¡c controller khÃ¡c nhau, giÃºp giáº£m thiá»ƒu code trÃ¹ng láº·p vÃ  Ä‘áº£m báº£o tÃ­nh nháº¥t quÃ¡n trong cÃ¡ch thiáº¿t láº­p mission bar trÃªn toÃ n á»©ng dá»¥ng.
 public class MissionBarUtil {
     private static final Logger logger = LoggerFactory.getLogger(MissionBarUtil.class);
     private static final AuthClientService authClientService = new AuthClientService();
+    private static final ClientSession clientSession = ClientSession.getInstance();
 
     private MissionBarUtil() {}
 
     private static Runnable currentCleanupAction;
 
 /*
-3 tham số:
-- activePage: NavPage enum để xác định page nào đang active, giúp mission bar highlight đúng page.
-- showSearch: boolean để quyết định có hiển thị search bar hay không.
-- searchHandler: EventHandler để xử lý sự kiện khi người dùng thực hiện tìm kiếm (nếu showSearch = true).
+3 tham sá»‘:
+- activePage: NavPage enum Ä‘á»ƒ xÃ¡c Ä‘á»‹nh page nÃ o Ä‘ang active, giÃºp mission bar highlight Ä‘Ãºng page.
+- showSearch: boolean Ä‘á»ƒ quyáº¿t Ä‘á»‹nh cÃ³ hiá»ƒn thá»‹ search bar hay khÃ´ng.
+- searchHandler: EventHandler Ä‘á»ƒ xá»­ lÃ½ sá»± kiá»‡n khi ngÆ°á»i dÃ¹ng thá»±c hiá»‡n tÃ¬m kiáº¿m (náº¿u showSearch = true).
 */
 
     public static void setup(NavPage activePage, boolean showSearch, EventHandler<ActionEvent> searchHandler) {
@@ -41,19 +43,21 @@ public class MissionBarUtil {
             return;
         }
 
-        // set cho các thuộc tính chung của mission bar
+        // set cho cÃ¡c thuá»™c tÃ­nh chung cá»§a mission bar
         missionBarController.setShowExplore(true);
         missionBarController.setShowSearch(showSearch);
         missionBarController.setUseInlineLogout(true);
+        missionBarController.setShowAdminControls(clientSession.isAdmin());
+        missionBarController.setShowCreateAuction(!clientSession.isAdmin());
 
-        // set function cho search bar nếu có, nếu không thì bỏ qua
+        // set function cho search bar náº¿u cÃ³, náº¿u khÃ´ng thÃ¬ bá» qua
         if (showSearch && searchHandler != null) {
             missionBarController.getSearchBar().setOnAction(searchHandler);
         } else {
             missionBarController.getSearchBar().setOnAction(null);
         }
 
-        // Xử lý sự kiện cho các button trên mission bar
+        // Xá»­ lÃ½ sá»± kiá»‡n cho cÃ¡c button trÃªn mission bar
         missionBarController.setSelectionHandler(MissionBarUtil::handleNavigation);
         missionBarController.setExploreHandler(event -> missionBarController.toggleSidebar());
         missionBarController.setLogoutHandler(event -> handleLogout());
@@ -62,14 +66,14 @@ public class MissionBarUtil {
             SceneManager.switchScene("user-profile.fxml", false, true);
         });
 
-        // set avatar text là chữ đầu của username
+        // set avatar text lÃ  chá»¯ Ä‘áº§u cá»§a username
         missionBarController.setAvatarText(resolveAvatarLetter());
 
-        // đánh dấu page hiện tại đang active trên mission bar
+        // Ä‘Ã¡nh dáº¥u page hiá»‡n táº¡i Ä‘ang active trÃªn mission bar
         setActivePage(missionBarController, activePage);
     }
 
-    // xử lý sự kiện khi người dùng click vào các button trên mission bar
+    // xá»­ lÃ½ sá»± kiá»‡n khi ngÆ°á»i dÃ¹ng click vÃ o cÃ¡c button trÃªn mission bar
     private static void handleNavigation(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) return;
 
@@ -91,7 +95,11 @@ public class MissionBarUtil {
         else if (selectedButton == controller.getHistoryButton()) {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("history.fxml", false, true);
-        } 
+        }
+        else if (selectedButton == controller.getAdminUsersButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("admin-users.fxml", false, true);
+        }
         else if (selectedButton == controller.getLogoutLinkButton()) handleLogout();
     }
 
@@ -120,17 +128,18 @@ public class MissionBarUtil {
             return;
         }
 
-        // dấu hiệu của page nào đang active sẽ được highlight trên mission bar
+        // dáº¥u hiá»‡u cá»§a page nÃ o Ä‘ang active sáº½ Ä‘Æ°á»£c highlight trÃªn mission bar
         switch (activePage) {
             case HOME -> controller.setActiveNavigation(controller.getAuctionsButton());
             case CREATE_AUCTION -> controller.setActiveNavigation(controller.getCreateAuctionButton());
             case INVENTORY -> controller.setActiveNavigation(controller.getInventoryButton());
             case HISTORY -> controller.setActiveNavigation(controller.getHistoryButton());
+            case ADMIN_USERS -> controller.setActiveNavigation(controller.getAdminUsersButton());
             default -> controller.setActiveNavigation(null);
         }
     }
 
-    // Lấy chữ cái đầu tiên của username để hiển thị trên avatar, nếu không có username thì hiển thị "U" mặc định.
+    // Láº¥y chá»¯ cÃ¡i Ä‘áº§u tiÃªn cá»§a username Ä‘á»ƒ hiá»ƒn thá»‹ trÃªn avatar, náº¿u khÃ´ng cÃ³ username thÃ¬ hiá»ƒn thá»‹ "U" máº·c Ä‘á»‹nh.
     private static String resolveAvatarLetter() {
         String username = SocketClient.getClient().getCurrentUsername();
         if (username == null || username.isBlank()) return "U";

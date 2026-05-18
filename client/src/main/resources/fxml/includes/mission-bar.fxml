@@ -91,6 +91,8 @@
                                 <Button fx:id="createAuctionButton" styleClass="side-nav-sub-button" text="• Create Auctions" maxWidth="Infinity" />
                             </VBox>
                         </VBox>
+
+                        <Button fx:id="adminUsersButton" managed="false" styleClass="side-nav-button" text="Admin Users" visible="false" maxWidth="Infinity" />
                     </VBox>
                 </VBox>
             </children>
