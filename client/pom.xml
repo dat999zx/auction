@@ -17,6 +17,8 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <javafx.version>21</javafx.version>
+        <server.host>localhost</server.host>
+        <server.port>5000</server.port>
     </properties>
 
     <dependencies>
@@ -236,6 +238,10 @@
                 <version>0.0.8</version>
                 <configuration>
                     <mainClass>com.bidify.Launcher</mainClass>
+                    <options>
+                        <option>-Dserver.host=${server.host}</option>
+                        <option>-Dserver.port=${server.port}</option>
+                    </options>
                 </configuration>
             </plugin>
             <plugin>
