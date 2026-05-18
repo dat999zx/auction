@@ -12,6 +12,7 @@ import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
+import com.bidify.model.ClientSession;
 import com.bidify.service.UserProfileClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
@@ -26,6 +27,7 @@ import javafx.scene.control.TextField;
 
 public class UserProfileController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
+    private final ClientSession clientSession = ClientSession.getInstance();
 
     @FXML
     private Label usernameValueLabel;
@@ -198,9 +200,10 @@ public class UserProfileController {
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
         walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
         lockedBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
-        memberStatusLabel.setText("Active bidder");
+        memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);
+        toggleWalletControls(!clientSession.isAdmin());
         
         var controller = SceneManager.getMissionBarController();
         if (controller != null) {
@@ -235,5 +238,16 @@ public class UserProfileController {
             return "U";
         }
         return source.substring(0, 1).toUpperCase();
+    }
+
+    private void toggleWalletControls(boolean visible) {
+        if (topUpAmountField != null && topUpAmountField.getParent() != null && topUpAmountField.getParent().getParent() != null) {
+            topUpAmountField.getParent().getParent().setManaged(visible);
+            topUpAmountField.getParent().getParent().setVisible(visible);
+        }
+        if (withdrawAmountField != null && withdrawAmountField.getParent() != null && withdrawAmountField.getParent().getParent() != null) {
+            withdrawAmountField.getParent().getParent().setManaged(visible);
+            withdrawAmountField.getParent().getParent().setVisible(visible);
+        }
     }
 }

@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.model.LoginRequest;
@@ -27,6 +28,9 @@ import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
+    public static final String BOOTSTRAP_ADMIN_USERNAME = "admin";
+    public static final String BOOTSTRAP_ADMIN_PASSWORD = "admin123";
+    public static final String BOOTSTRAP_ADMIN_NICKNAME = "Administrator";
     private static AuthService instance = new AuthService();
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserDao userDao = UserDao.getInstance();
@@ -38,10 +42,24 @@ public class AuthService {
     public static AuthService getInstance() { return instance; }
 
     public void initialize() {
+        ensureBootstrapAdmin();
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.REGISTER, (client, req) -> register(req));
         router.register(RequestType.LOGIN, this::login);
         router.register(RequestType.LOGOUT, (client, req) -> logout(client));
+    }
+
+    private void ensureBootstrapAdmin() {
+        if (userDao.existsByUsername(BOOTSTRAP_ADMIN_USERNAME))
+            return;
+
+        User admin = new User(
+            BOOTSTRAP_ADMIN_USERNAME,
+            BOOTSTRAP_ADMIN_NICKNAME,
+            PasswordUtil.hash(BOOTSTRAP_ADMIN_PASSWORD)
+        );
+        admin.setRole(UserRole.ADMIN);
+        userDao.create(admin);
     }
 
     // đăng kí
