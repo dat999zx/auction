@@ -93,7 +93,7 @@ public class AuctionCardController {
         String sellerUsername = auction.getSellerUsername();
 
         // 2. Decide the destination
-        if (sellerUsername != null && sellerUsername.equals(currentUsername)) {
+        if (sellerUsername != null && sellerUsername.equals(currentUsername) && "UPCOMING".equals(auction.getStatus())) {
             // User owns it -> Go to Modify
             ModifyAuctionController.setAuctionId(auctionId);
             SceneManager.clearCache("modifyauction.fxml");
