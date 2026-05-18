@@ -147,6 +147,19 @@ public class ItemDao {
         SQLiteHelper.update("DELETE FROM ItemImageLinks WHERE itemId = ?", itemId);
     }
 
+    public List<String> findImageIdsByItemId(String itemId) throws DatabaseException {
+        return SQLiteHelper.query(
+            "SELECT imageId FROM ItemImageLinks WHERE itemId = ? ORDER BY displayOrder ASC, createdAt ASC",
+            rs -> {
+                List<String> imageIds = new ArrayList<>();
+                while (rs.next())
+                    imageIds.add(rs.getString("imageId"));
+                return imageIds;
+            },
+            itemId
+        );
+    }
+
     private List<Item> findMany(String sql, Object... params) throws DatabaseException {
         return SQLiteHelper.query(sql, rs -> {
             List<Item> items = new ArrayList<>();

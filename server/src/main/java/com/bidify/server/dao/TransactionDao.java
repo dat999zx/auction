@@ -45,4 +45,12 @@ public class TransactionDao {
             return list;
         }, username);
     }
+
+    public void deleteByUsername(String username) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM Transactions WHERE username = ?", username);
+    }
+
+    public void deleteByAuctionId(String auctionId) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM Transactions WHERE auctionId = ?", auctionId);
+    }
 }

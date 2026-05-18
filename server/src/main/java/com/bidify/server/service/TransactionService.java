@@ -46,9 +46,8 @@ public class TransactionService {
         return ServiceUtil.handleRequest(() -> {
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
-
-            User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());
+            User user = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(user, "Admin accounts cannot deposit");
 
             double amount = data.getAmount();
             ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
@@ -67,7 +66,8 @@ public class TransactionService {
 
     public Response withdraw(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
-            User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());
+            User user = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(user, "Admin accounts cannot withdraw");
             WalletRequest data = JsonUtil.fromMap(request.getData(), WalletRequest.class);
             ServiceUtil.validateRequestData(data);
 

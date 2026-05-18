@@ -6,19 +6,22 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateItemRequest;
+import com.bidify.common.model.DeleteItemRequest;
 import com.bidify.common.model.GetItemDetailRequest;
+import com.bidify.common.model.GetUserInventoryRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateItemRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
-import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.ImageDao;
+import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Image;
 import com.bidify.server.model.Item;
 import com.bidify.server.model.ItemImageLink;
+import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.ItemMapper;
 import com.bidify.server.utility.ServiceUtil;
@@ -40,15 +43,19 @@ public class ItemService {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.CREATE_ITEM, this::create);
         router.register(RequestType.GET_MY_INVENTORY, this::getMyInventory);
+        router.register(RequestType.GET_USER_INVENTORY, this::getUserInventory);
         router.register(RequestType.GET_ITEM_DETAIL, this::getItemDetail);
         router.register(RequestType.UPDATE_ITEM, this::update);
+        router.register(RequestType.DELETE_ITEM, this::delete);
     }
 
     public Response create(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             CreateItemRequest data = JsonUtil.fromMap(request.getData(), CreateItemRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
+
+            User user = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(user, "Admin accounts cannot create items");
 
             String ownerUsername = data.getOwnerUsername();
             String currentUsername = client.getCurrentUsername();
@@ -79,14 +86,20 @@ public class ItemService {
 
     public Response getMyInventory(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
-            ServiceUtil.requireSession(client);
+            User user = ServiceUtil.requireSessionUser(client);
+            return loadInventory(user.getUsername());
+        });
+    }
 
-            List<Item> items = itemDao.findByOwnerUsername(client.getCurrentUsername());
-            List<ItemDto> inventory = new ArrayList<>();
-            for (Item item : items)
-                inventory.add(toDtoWithImages(item, false));
+    public Response getUserInventory(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireAdmin(client);
 
-            return new Response(RequestStatus.SUCCESS, "Inventory loaded successfully", inventory);
+            GetUserInventoryRequest data = JsonUtil.fromMap(request.getData(), GetUserInventoryRequest.class);
+            ServiceUtil.validateRequestData(data);
+            ValidationUtil.validateUsername(data.getOwnerUsername());
+
+            return loadInventory(data.getOwnerUsername());
         });
     }
 
@@ -94,9 +107,10 @@ public class ItemService {
         return ServiceUtil.handleRequest(() -> {
             GetItemDetailRequest data = JsonUtil.fromMap(request.getData(), GetItemDetailRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
 
-            Item item = requireOwnedItem(client.getCurrentUsername(), data.getItemId());
+            User user = ServiceUtil.requireSessionUser(client);
+
+            Item item = requireAccessibleItem(user, data.getItemId(), "You do not have permission to view this item");
             return new Response(RequestStatus.SUCCESS, "Item loaded successfully", toDtoWithImages(item, true));
         });
     }
@@ -105,12 +119,11 @@ public class ItemService {
         return ServiceUtil.handleRequest(() -> {
             UpdateItemRequest data = JsonUtil.fromMap(request.getData(), UpdateItemRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
 
-            requireEditOwner(client.getCurrentUsername(), data.getOwnerUsername());
+            User user = ServiceUtil.requireSessionUser(client);
             validateItemFields(data.getName(), data.getDescription(), data.getCategory(), data.getProductType());
 
-            Item item = requireOwnedItem(client.getCurrentUsername(), data.getItemId());
+            Item item = requireAccessibleItem(user, data.getItemId(), "You do not have permission to edit this item");
             if (item.getAvailabilityStatus() != ItemStatus.AVAILABLE)
                 throw new ValidationException("Only available items can be edited");
 
@@ -124,6 +137,31 @@ public class ItemService {
             Item refreshed = itemDao.findById(item.getId());
             return new Response(RequestStatus.SUCCESS, "Item updated successfully", toDtoWithImages(refreshed, true));
         });
+    }
+
+    public Response delete(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            DeleteItemRequest data = JsonUtil.fromMap(request.getData(), DeleteItemRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            User user = ServiceUtil.requireSessionUser(client);
+            Item item = requireAccessibleItem(user, data.getItemId(), "You do not have permission to delete this item");
+            if (item.getAvailabilityStatus() != ItemStatus.AVAILABLE)
+                throw new ValidationException("Only available items can be deleted");
+
+            deleteItemAssets(item);
+            itemDao.deleteById(item.getId());
+            return new Response(RequestStatus.SUCCESS, "Item deleted successfully");
+        });
+    }
+
+    private Response loadInventory(String ownerUsername) {
+        List<Item> items = itemDao.findByOwnerUsername(ownerUsername);
+        List<ItemDto> inventory = new ArrayList<>();
+        for (Item item : items)
+            inventory.add(toDtoWithImages(item, false));
+
+        return new Response(RequestStatus.SUCCESS, "Inventory loaded successfully", inventory);
     }
 
     private void requireOwner(String currentUsername, String ownerUsername) {
@@ -146,23 +184,14 @@ public class ItemService {
         ValidationUtil.validateMaxLength("Description", description, 2000);
     }
 
-    private void requireEditOwner(String currentUsername, String ownerUsername) {
-        ValidationUtil.validateUsername(currentUsername);
-        ValidationUtil.validateUsername(ownerUsername);
-
-        if (!currentUsername.equals(ownerUsername))
-            throw new ValidationException("You do not have permission to edit this item");
-    }
-
-    private Item requireOwnedItem(String currentUsername, String itemId) throws DatabaseException {
-        ValidationUtil.validateUsername(currentUsername);
+    private Item requireAccessibleItem(User user, String itemId, String permissionMessage) throws DatabaseException {
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
 
         Item item = itemDao.findById(itemId);
         if (item == null)
             throw new ValidationException("Item not found");
-        if (!currentUsername.equals(item.getOwnerUsername()))
-            throw new ValidationException("You do not have permission to edit this item");
+        if (!ServiceUtil.isOwnerOrAdmin(item.getOwnerUsername(), user.getUsername()))
+            throw new ValidationException(permissionMessage);
         return item;
     }
 
@@ -194,7 +223,7 @@ public class ItemService {
     }
 
     private void replaceItemImages(String itemId, List<String> imagesBase64) throws DatabaseException {
-        itemDao.deleteItemImageLinks(itemId);
+        clearItemImages(itemId);
 
         if (imagesBase64 == null || imagesBase64.isEmpty())
             return;
@@ -203,6 +232,20 @@ public class ItemService {
         for (Image image : savedImages)
             imageDao.create(image);
         itemDao.saveItemImageLinks(itemId, savedImages);
+    }
+
+    private void deleteItemAssets(Item item) throws DatabaseException {
+        clearItemImages(item.getId());
+    }
+
+    private void clearItemImages(String itemId) throws DatabaseException {
+        for (String imageId : itemDao.findImageIdsByItemId(itemId)) {
+            Image image = imageDao.findById(imageId);
+            if (image != null)
+                imageService.deleteImageFile(image.getFilePath());
+            imageDao.deleteById(imageId);
+        }
+        itemDao.deleteItemImageLinks(itemId);
     }
 
     private String trimToNull(String value) {
