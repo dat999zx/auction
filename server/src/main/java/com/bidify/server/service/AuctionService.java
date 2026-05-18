@@ -3,7 +3,9 @@ package com.bidify.server.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -367,6 +369,7 @@ public class AuctionService {
             RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
             AuctionDto auctionDto = toAuctionDto(auction, false);
+            publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         });
     }
@@ -386,6 +389,9 @@ public class AuctionService {
                 throw new AuctionException("You are not watching this auction");
 
             RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
+            if (auction != null)
+                publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
         });
     }
@@ -709,7 +715,53 @@ public class AuctionService {
 
     public AuctionDto toAuctionDto(Auction auction, Item item, boolean includeGallery) {
         List<String> gallery = includeGallery ? getGallery(item) : null;
-        return AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
+        AuctionDto dto = AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
+        dto.setWatcherCount(resolveWatcherCount(auction));
+        dto.setActiveBidderCount(resolveActiveBidderCount(auction));
+        return dto;
+    }
+
+    private int resolveWatcherCount(Auction auction) {
+        if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE)
+            return 0;
+
+        AuctionChannel channel = RealtimeDatabase.getAuctionChannel(auction.getId());
+        return channel == null ? 0 : channel.getObserverCount();
+    }
+
+    private int resolveActiveBidderCount(Auction auction) {
+        if (auction == null || auction.getBids() == null || auction.getBids().isEmpty())
+            return 0;
+
+        Set<String> bidders = new LinkedHashSet<>();
+        for (Bid bid : auction.getBids()) {
+            if (bid == null || bid.getBidderUsername() == null || bid.getBidderUsername().isBlank())
+                continue;
+            bidders.add(bid.getBidderUsername());
+        }
+        return bidders.size();
+    }
+
+    private void publishAuctionUpdate(Auction auction, String message) {
+        if (auction == null) return;
+
+        AuctionDto auctionDto = toAuctionDto(auction, false);
+        AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auction.getId());
+        Event event = new Event(EventType.AUCTION_UPDATED, message, auctionDto);
+        if (auctionChannel != null)
+            auctionChannel.publish(event);
+        RealtimeDatabase.getGlobalChannel().publish(event);
+    }
+
+    public void publishLiveAudienceUpdate(String auctionId) {
+        if (auctionId == null || auctionId.isBlank())
+            return;
+
+        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+        if (auction == null)
+            return;
+
+        publishAuctionUpdate(auction, "Auction watcher count updated");
     }
 
     private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {

@@ -23,6 +23,8 @@ public class AuctionDto {
     private List<BidDto> bidHistory;
     private boolean currentUserAutoBidActive;
     private Double currentUserAutoBidMax;
+    private int watcherCount;
+    private int activeBidderCount;
 
     public AuctionDto(String id, String itemId, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
@@ -73,4 +75,8 @@ public class AuctionDto {
     public void setCurrentUserAutoBidActive(boolean currentUserAutoBidActive) { this.currentUserAutoBidActive = currentUserAutoBidActive; }
     public Double getCurrentUserAutoBidMax() { return currentUserAutoBidMax; }
     public void setCurrentUserAutoBidMax(Double currentUserAutoBidMax) { this.currentUserAutoBidMax = currentUserAutoBidMax; }
+    public int getWatcherCount() { return watcherCount; }
+    public void setWatcherCount(int watcherCount) { this.watcherCount = watcherCount; }
+    public int getActiveBidderCount() { return activeBidderCount; }
+    public void setActiveBidderCount(int activeBidderCount) { this.activeBidderCount = activeBidderCount; }
 }
