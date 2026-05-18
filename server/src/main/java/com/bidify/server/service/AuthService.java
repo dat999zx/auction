@@ -1,5 +1,7 @@
 package com.bidify.server.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +31,7 @@ public class AuthService {
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserDao userDao = UserDao.getInstance();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final AuctionService auctionService = AuctionService.getInstance();
 
     private AuthService() {}
 
@@ -124,7 +127,9 @@ public class AuthService {
 
             userDao.save(user);
             client.setCurrentUsername(null);
-            RealtimeDatabase.removeActiveUser(username);
+            List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
+            for (String auctionId : affectedAuctionIds)
+                auctionService.publishLiveAudienceUpdate(auctionId);
 
             return new Response(RequestStatus.SUCCESS, "Logout successfully");
         });
