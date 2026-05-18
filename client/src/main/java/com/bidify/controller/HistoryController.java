@@ -9,6 +9,9 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.controller.history.BiddingRowController;
+import com.bidify.controller.history.EmptyCardController;
+import com.bidify.controller.history.TransactionCardController;
 import com.bidify.event.EventManager;
 import com.bidify.service.TransactionClientService;
 import com.bidify.utility.MissionBarUtil;
@@ -17,10 +20,10 @@ import com.bidify.utility.NotificationUtil;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.geometry.Pos;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
@@ -87,7 +90,7 @@ public class HistoryController {
     private void renderErrorState(String message) {
         renderBiddingActivity(List.of());
         renderTransactionRecords(List.of());
-        transactionRecordsContainer.getChildren().add(createEmptyCard(message));
+        transactionRecordsContainer.getChildren().add(loadEmptyCard(message));
     }
 
     private void renderHistory(List<TransactionDto> transactions) {
@@ -105,13 +108,13 @@ public class HistoryController {
 
         if (auctionTransactions.isEmpty()) {
             biddingActivityContainer.getChildren().add(
-                createBiddingRow("No auction activity yet.", "Waiting for completed auction activity.", "-", "-", "PENDING")
+                loadBiddingRow("No auction activity yet.", "Waiting for completed auction activity.", "-", "-", "PENDING")
             );
             return;
         }
 
         for (TransactionDto transaction : auctionTransactions) {
-            biddingActivityContainer.getChildren().add(createBiddingRow(
+            biddingActivityContainer.getChildren().add(loadBiddingRow(
                 buildAuctionItemLabel(transaction),
                 buildAuctionSubtitle(transaction),
                 DisplayUtil.formatCurrency(transaction.getAmount()),
@@ -125,12 +128,12 @@ public class HistoryController {
         transactionRecordsContainer.getChildren().clear();
 
         if (transactions.isEmpty()) {
-            transactionRecordsContainer.getChildren().add(createEmptyCard("No transaction records yet."));
+            transactionRecordsContainer.getChildren().add(loadEmptyCard("No transaction records yet."));
             return;
         }
 
         for (TransactionDto transaction : transactions) {
-            transactionRecordsContainer.getChildren().add(createTransactionCard(transaction));
+            transactionRecordsContainer.getChildren().add(loadTransactionCard(transaction));
         }
     }
 
@@ -159,93 +162,43 @@ public class HistoryController {
         return label;
     }
 
-    private HBox createBiddingRow(String title, String subtitle, String amount, String dateTime, String status) {
-        HBox row = new HBox();
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.getStyleClass().add("table-row");
-
-        HBox itemCell = new HBox(16);
-        itemCell.setAlignment(Pos.CENTER_LEFT);
-        itemCell.setPrefWidth(320);
-
-        Pane placeholder = new Pane();
-        placeholder.setPrefSize(48, 48);
-        placeholder.getStyleClass().add("image-placeholder");
-
-        VBox textBox = new VBox(4);
-        Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().addAll("text-primary", "table-row-title");
-        Label subtitleLabel = new Label(subtitle);
-        subtitleLabel.getStyleClass().addAll("text-on-surface-variant", "table-row-subtitle");
-        textBox.getChildren().addAll(titleLabel, subtitleLabel);
-        itemCell.getChildren().addAll(placeholder, textBox);
-
-        Label amountLabel = new Label(amount);
-        amountLabel.setPrefWidth(180);
-        amountLabel.getStyleClass().addAll("text-secondary", "table-row-amount");
-
-        Label dateLabel = new Label(dateTime);
-        dateLabel.setPrefWidth(240);
-        dateLabel.getStyleClass().add("text-on-surface-variant");
-
-        HBox statusBox = new HBox();
-        statusBox.setAlignment(Pos.CENTER_RIGHT);
-        HBox.setHgrow(statusBox, Priority.ALWAYS);
-
-        Label statusLabel = new Label(status);
-        statusLabel.getStyleClass().add(resolveBadgeStyle(status));
-        statusBox.getChildren().add(statusLabel);
-
-        row.getChildren().addAll(itemCell, amountLabel, dateLabel, statusBox);
-        return row;
+    private Node loadBiddingRow(String title, String subtitle, String amount, String dateTime, String status) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/history/bidding-row.fxml"));
+            Node node = loader.load();
+            BiddingRowController controller = loader.getController();
+            controller.setData(title, subtitle, amount, dateTime, status);
+            return node;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Label("Error loading row");
+        }
     }
 
-    private HBox createTransactionCard(TransactionDto transaction) {
-        HBox card = new HBox(24);
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.getStyleClass().addAll("transaction-card", resolveTransactionBorderStyle(transaction));
-
-        HBox left = new HBox(16);
-        left.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(left, Priority.ALWAYS);
-
-        HBox iconCircle = new HBox();
-        iconCircle.setAlignment(Pos.CENTER);
-        iconCircle.getStyleClass().add("icon-circle");
-        Label iconLabel = new Label(resolveTransactionIcon(transaction));
-        iconLabel.getStyleClass().addAll("icon", "text-primary");
-        iconCircle.getChildren().add(iconLabel);
-
-        VBox textBox = new VBox(4);
-        Label titleLabel = new Label(resolveTransactionTitle(transaction));
-        titleLabel.getStyleClass().addAll("text-primary", "transaction-card-title");
-        Label idLabel = new Label("Transaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown"));
-        idLabel.getStyleClass().addAll("text-on-surface-variant", "transaction-card-id");
-        textBox.getChildren().addAll(titleLabel, idLabel);
-
-        left.getChildren().addAll(iconCircle, textBox);
-
-        VBox amountBox = new VBox(4);
-        amountBox.setAlignment(Pos.CENTER_RIGHT);
-        Label amountHeader = new Label("AMOUNT");
-        amountHeader.getStyleClass().add("table-header-text");
-        Label amountLabel = new Label(DisplayUtil.formatCurrency(transaction.getAmount()));
-        amountLabel.getStyleClass().addAll("amount-text", "text-primary");
-        amountBox.getChildren().addAll(amountHeader, amountLabel);
-
-        card.getChildren().addAll(left, amountBox);
-        return card;
+    private Node loadTransactionCard(TransactionDto transaction) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/history/transaction-card.fxml"));
+            Node node = loader.load();
+            TransactionCardController controller = loader.getController();
+            controller.setData(transaction);
+            return node;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Label("Error loading card");
+        }
     }
 
-    private HBox createEmptyCard(String message) {
-        HBox card = new HBox();
-        card.setAlignment(Pos.CENTER_LEFT);
-        card.getStyleClass().addAll("transaction-card", "border-gray");
-
-        Label messageLabel = new Label(message);
-        messageLabel.getStyleClass().add("text-on-surface-variant");
-        card.getChildren().add(messageLabel);
-        return card;
+    private Node loadEmptyCard(String message) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/history/empty-card.fxml"));
+            Node node = loader.load();
+            EmptyCardController controller = loader.getController();
+            controller.setMessage(message);
+            return node;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return new Label(message);
+        }
     }
 
     private boolean isAuctionTransaction(TransactionDto transaction) {
@@ -272,37 +225,6 @@ public class HistoryController {
             case AUCTION_PAY -> "WON";
             case AUCTION_PROFIT -> "PROFIT";
             default -> "DONE";
-        };
-    }
-
-    private String resolveBadgeStyle(String status) {
-        if ("WON".equals(status) || "PROFIT".equals(status))
-            return "badge-won";
-        return "badge-lost";
-    }
-
-    private String resolveTransactionBorderStyle(TransactionDto transaction) {
-        return switch (transaction.getType()) {
-            case DEPOSIT -> "border-green";
-            case WITHDRAW -> "border-gray";
-            case AUCTION_PAY, AUCTION_PROFIT -> "border-blue";
-        };
-    }
-
-    private String resolveTransactionIcon(TransactionDto transaction) {
-        return switch (transaction.getType()) {
-            case DEPOSIT -> "south";
-            case WITHDRAW -> "north";
-            case AUCTION_PAY, AUCTION_PROFIT -> "payments";
-        };
-    }
-
-    private String resolveTransactionTitle(TransactionDto transaction) {
-        return switch (transaction.getType()) {
-            case DEPOSIT -> "Wallet top up";
-            case WITHDRAW -> "Wallet withdrawal";
-            case AUCTION_PAY -> "Auction payment";
-            case AUCTION_PROFIT -> "Auction profit";
         };
     }
 }

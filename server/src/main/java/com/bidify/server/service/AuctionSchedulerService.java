@@ -16,7 +16,6 @@ import com.bidify.common.model.Event;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.Auction;
-import com.bidify.server.utility.AuctionMapper;
 
 // tự động chạy, update status của auction sau các khoảng thời gian nhất định, đảm bảo rằng auction sẽ được cập nhật đúng status khi đến thời điểm bắt đầu hoặc kết thúc
 public class AuctionSchedulerService {
@@ -75,7 +74,7 @@ public class AuctionSchedulerService {
 
     // phát Event về trạng thái mới của auction
     private void publishStatusEvent(EventType eventType, String message, Auction auction) {
-        AuctionDto auctionDto = AuctionMapper.toDto(auction);
+        AuctionDto auctionDto = auctionService.toAuctionDto(auction, false);
         RealtimeDatabase.getGlobalChannel().publish(new Event(eventType, message, auctionDto));
     }
 }

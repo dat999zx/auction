@@ -1,6 +1,7 @@
 package com.bidify.server.dao;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.jupiter.api.AfterEach;
@@ -15,10 +16,13 @@ import org.junit.jupiter.api.Test;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.model.Auction;
+import com.bidify.server.model.Item;
 
 class AuctionDaoTest {
     private AuctionDao auctionDao = AuctionDao.getInstance();
+    private ItemDao itemDao = ItemDao.getInstance();
     private String testAuctionId;
+    private final List<String> createdItemIds = new ArrayList<>();
 
     @BeforeAll
     static void initDatabase() {
@@ -37,6 +41,8 @@ class AuctionDaoTest {
             LocalDateTime.now().plusMinutes(1),
             LocalDateTime.now().plusHours(1)
         );
+        Item item = createItem("seller", "Test Auction Item");
+        auction.setItemId(item.getId());
         auctionDao.create(auction);
         testAuctionId = auction.getId();
     }
@@ -47,6 +53,9 @@ class AuctionDaoTest {
         if (testAuctionId != null) {
             auctionDao.deleteById(testAuctionId);
         }
+        for (String itemId : createdItemIds)
+            itemDao.deleteById(itemId);
+        createdItemIds.clear();
     }
 
     @Test
@@ -123,6 +132,8 @@ class AuctionDaoTest {
             LocalDateTime.now().minusMinutes(1), // Đã bắt đầu
             LocalDateTime.now().plusHours(1)
         );
+        Item item = createItem("seller2", "Active Auction Item");
+        activeAuction.setItemId(item.getId());
         auctionDao.create(activeAuction);
 
         // Tìm auctions theo status UPCOMING
@@ -136,5 +147,11 @@ class AuctionDaoTest {
 
         // Cleanup
         auctionDao.deleteById(activeAuction.getId());
+    }
+    private Item createItem(String ownerUsername, String name) {
+        Item item = new Item(ownerUsername, name, "Test Description", "General", "Electronics");
+        itemDao.create(item);
+        createdItemIds.add(item.getId());
+        return item;
     }
 }

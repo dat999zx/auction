@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -12,7 +13,9 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.ImageUtil;
+import com.bidify.server.model.Image;
 
 public class ImageService {
     private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
@@ -40,31 +43,35 @@ public class ImageService {
         return curPath.resolve("uploads").toString();
     }
 
-    public List<String> saveImages(String auctionId, List<String> base64Images) {
+    public List<Image> saveImages(List<String> base64Images) {
         if (base64Images == null || base64Images.isEmpty())
             return new ArrayList<>();
 
-        List<String> savedPaths = new ArrayList<>();
-        Path auctionDir = Paths.get(UPLOAD_DIR, auctionId);
+        List<Image> savedImages = new ArrayList<>();
+        Path uploadDir = Paths.get(UPLOAD_DIR);
 
         try {
-            Files.createDirectories(auctionDir);
-            for (int i = 0; i < base64Images.size(); i++) {
-                String base64 = base64Images.get(i);
-                String fileName = "img_" + i + ".png";
-                Path filePath = auctionDir.resolve(fileName);
-                
+            Files.createDirectories(uploadDir);
+            for (String base64 : base64Images) {
+                if (base64 == null || base64.isBlank())
+                    continue;
+
                 byte[] imageBytes = Base64.getDecoder().decode(base64);
                 imageBytes = ImageUtil.resizeImage(imageBytes, 800);
+                String imageId = IdGenerator.genImageId();
+                Path filePath = uploadDir.resolve(imageId + ".png");
                 Files.write(filePath, imageBytes);
-                savedPaths.add(filePath.toString());
+                savedImages.add(new Image(imageId, LocalDateTime.now(), filePath.toString()));
             }
         }
         catch (IOException e) {
-            logger.error("Error saving images for auction: " + auctionId, e);
+            logger.error("Error saving images", e);
+        }
+        catch (IllegalArgumentException e) {
+            logger.error("Error decoding images", e);
         }
 
-        return savedPaths;
+        return savedImages;
     }
 
     public String getBase64Image(String filePath) {

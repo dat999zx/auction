@@ -25,8 +25,7 @@ CREATE TABLE IF NOT EXISTS Auctions (
     createdAt TEXT NOT NULL,
     auctionName TEXT NOT NULL,
     description TEXT NOT NULL,
-    category TEXT,
-    type TEXT,
+    itemId TEXT NOT NULL,
     startingPrice REAL NOT NULL CHECK(startingPrice > 0),
     minIncrement REAL DEFAULT 0 CHECK(minIncrement >= 0),
     seller TEXT NOT NULL,
@@ -36,18 +35,42 @@ CREATE TABLE IF NOT EXISTS Auctions (
     startAt TEXT NOT NULL,
     endTime TEXT NOT NULL,
     CONSTRAINT time_check CHECK(endTime > startAt),
+    FOREIGN KEY (itemId) REFERENCES Items(id),
     FOREIGN KEY (seller) REFERENCES Users(username),
     FOREIGN KEY (currentBidder) REFERENCES Users(username)
 );
 
--- TABLE AuctionImages
-CREATE TABLE IF NOT EXISTS AuctionImages (
+-- TABLE Items
+CREATE TABLE IF NOT EXISTS Items (
     id TEXT UNIQUE NOT NULL PRIMARY KEY,
     createdAt TEXT NOT NULL,
-    auctionId TEXT NOT NULL,
-    filePath TEXT NOT NULL,
+    ownerUsername TEXT NOT NULL,
+    name TEXT NOT NULL,
+    description TEXT NOT NULL,
+    category TEXT,
+    productType TEXT,
+    availabilityStatus TEXT NOT NULL DEFAULT 'AVAILABLE'
+        CHECK(availabilityStatus IN ('AVAILABLE', 'LOCKED_IN_AUCTION')),
+    FOREIGN KEY (ownerUsername) REFERENCES Users(username)
+);
+
+-- TABLE Images
+CREATE TABLE IF NOT EXISTS Images (
+    id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
+    filePath TEXT NOT NULL
+);
+
+-- TABLE ItemImageLinks
+CREATE TABLE IF NOT EXISTS ItemImageLinks (
+    id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
+    itemId TEXT NOT NULL,
+    imageId TEXT NOT NULL,
+    displayOrder INTEGER NOT NULL DEFAULT 0,
     isPrimary INTEGER DEFAULT 0 CHECK(isPrimary IN (0, 1)),
-    FOREIGN KEY (auctionId) REFERENCES Auctions(id)
+    FOREIGN KEY (itemId) REFERENCES Items(id),
+    FOREIGN KEY (imageId) REFERENCES Images(id)
 );
 
 -- TABLE Bids
@@ -57,6 +80,7 @@ CREATE TABLE IF NOT EXISTS Bids (
     auctionId TEXT NOT NULL,
     bidder TEXT NOT NULL,
     amount REAL NOT NULL CHECK(amount > 0), -- phải là số dương
+    autoBidGenerated INTEGER NOT NULL DEFAULT 0 CHECK(autoBidGenerated IN (0, 1)),
     FOREIGN KEY (auctionId) REFERENCES Auctions(id),
     FOREIGN KEY (bidder) REFERENCES Users(username)
 );
@@ -87,3 +111,21 @@ CREATE INDEX IF NOT EXISTS bid_bidder_idx ON Bids(bidder);
 
 -- tìm kiếm lịch sử giao dịch theo username
 CREATE INDEX IF NOT EXISTS transaction_username_idx ON Transactions(username);
+
+-- tìm inventory theo owner
+CREATE INDEX IF NOT EXISTS item_owner_username_idx ON Items(ownerUsername);
+
+-- tìm inventory theo trạng thái khả dụng
+CREATE INDEX IF NOT EXISTS item_availability_status_idx ON Items(availabilityStatus);
+
+-- tìm inventory theo owner và trạng thái
+CREATE INDEX IF NOT EXISTS item_owner_status_idx ON Items(ownerUsername, availabilityStatus);
+
+-- tìm inventory theo category và productType
+CREATE INDEX IF NOT EXISTS item_category_product_type_idx ON Items(category, productType);
+
+-- lấy liên kết ảnh theo item
+CREATE INDEX IF NOT EXISTS item_image_link_item_id_idx ON ItemImageLinks(itemId);
+
+-- lấy item link theo image
+CREATE INDEX IF NOT EXISTS item_image_link_image_id_idx ON ItemImageLinks(imageId);

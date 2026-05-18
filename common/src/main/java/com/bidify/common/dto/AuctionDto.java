@@ -4,6 +4,7 @@ import java.util.List;
 
 public class AuctionDto {
     private String id;
+    private String itemId;
     private String createdAt;
     private String auctionName;
     private String description;
@@ -19,11 +20,15 @@ public class AuctionDto {
     private String status;
     private String thumbnailBase64;
     private List<String> galleryBase64;
+    private List<BidDto> bidHistory;
+    private boolean currentUserAutoBidActive;
+    private Double currentUserAutoBidMax;
 
-    public AuctionDto(String id, String createdAt, String auctionName, String description, String sellerUsername, 
+    public AuctionDto(String id, String itemId, String createdAt, String auctionName, String description, String sellerUsername, 
                       String currentBidderUsername, String category, String productType, double startingPrice, 
                       double currentBid, double minIncrement, String startTime, String endTime, String status) {
         this.id = id;
+        this.itemId = itemId;
         this.createdAt = createdAt;
         this.auctionName = auctionName;
         this.description = description;
@@ -40,6 +45,7 @@ public class AuctionDto {
     }
 
     public String getId() { return id; }
+    public String getItemId() { return itemId; }
     public String getCreatedAt() { return createdAt; }
     public String getAuctionName() { return auctionName; }
     public String getDescription() { return description; }
@@ -59,4 +65,12 @@ public class AuctionDto {
 
     public List<String> getGalleryBase64() { return galleryBase64; }
     public void setGalleryBase64(List<String> galleryBase64) { this.galleryBase64 = galleryBase64; }
+
+    public List<BidDto> getBidHistory() { return bidHistory; }
+    public void setBidHistory(List<BidDto> bidHistory) { this.bidHistory = bidHistory; }
+
+    public boolean isCurrentUserAutoBidActive() { return currentUserAutoBidActive; }
+    public void setCurrentUserAutoBidActive(boolean currentUserAutoBidActive) { this.currentUserAutoBidActive = currentUserAutoBidActive; }
+    public Double getCurrentUserAutoBidMax() { return currentUserAutoBidMax; }
+    public void setCurrentUserAutoBidMax(Double currentUserAutoBidMax) { this.currentUserAutoBidMax = currentUserAutoBidMax; }
 }

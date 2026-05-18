@@ -9,6 +9,11 @@ public enum RequestType {
     UPDATE_PROFILE,
     UPDATE_PASSWORD,
 
+    CREATE_ITEM,
+    GET_MY_INVENTORY,
+    GET_ITEM_DETAIL,
+    UPDATE_ITEM,
+
     CREATE_AUCTION,
     UPDATE_AUCTION,
     GET_LIVE_AUCTIONS,
@@ -18,6 +23,8 @@ public enum RequestType {
     SEARCH_AUCTIONS,
 
     PLACE_BID,
+    SET_AUTO_BID,
+    DISABLE_AUTO_BID,
     GET_BID_HISTORY,
 
     JOIN_AUCTION,

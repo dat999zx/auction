@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 
+import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.RequestType;
 
 public class RequestTest {
@@ -84,6 +85,32 @@ public class RequestTest {
         // Kiểm tra bid request được tạo đúng
         assertEquals(RequestType.PLACE_BID, request.getType());
         assertEquals(bidData, request.getData());
+    }
+
+    @Test
+    void createSetAutoBidRequest() {
+        SetAutoBidRequest autoBidData = new SetAutoBidRequest("auc-1", 2500.0);
+        Request request = new Request(RequestType.SET_AUTO_BID, autoBidData);
+
+        assertEquals(RequestType.SET_AUTO_BID, request.getType());
+        assertSame(autoBidData, request.getData());
+    }
+
+    @Test
+    void createDisableAutoBidRequest() {
+        DisableAutoBidRequest autoBidData = new DisableAutoBidRequest("auc-1");
+        Request request = new Request(RequestType.DISABLE_AUTO_BID, autoBidData);
+
+        assertEquals(RequestType.DISABLE_AUTO_BID, request.getType());
+        assertSame(autoBidData, request.getData());
+    }
+
+    @Test
+    void bidDtoCanMarkAutoBidGeneratedEntries() {
+        BidDto dto = new BidDto("bid-1", "2026-05-17T10:00:00", "auc-1", "alice", 1200.0, true);
+
+        assertTrue(dto.isAutoBidGenerated());
+        assertEquals("alice", dto.getBidderUsername());
     }
     
     @Test

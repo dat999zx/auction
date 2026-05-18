@@ -7,6 +7,7 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.CreateAuctionRequest;
+import com.bidify.common.model.DisableAutoBidRequest;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
@@ -14,6 +15,7 @@ import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.SearchAuctionRequest;
+import com.bidify.common.model.SetAutoBidRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.network.SocketClient;
@@ -78,6 +80,18 @@ public class AuctionClientService {
 
     public Response placeBid(String auctionId, double bidAmount) throws IOException {
         Response response = client.send(new Request(RequestType.PLACE_BID, new PlaceBidRequest(auctionId, bidAmount)));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    public Response setAutoBid(String auctionId, double maxBid) throws IOException {
+        Response response = client.send(new Request(RequestType.SET_AUTO_BID, new SetAutoBidRequest(auctionId, maxBid)));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    public Response disableAutoBid(String auctionId) throws IOException {
+        Response response = client.send(new Request(RequestType.DISABLE_AUTO_BID, new DisableAutoBidRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }

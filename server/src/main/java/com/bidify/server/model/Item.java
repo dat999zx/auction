@@ -2,30 +2,64 @@ package com.bidify.server.model;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.utility.IdGenerator;
 
-public abstract class Item extends Entity {
-    private String name, owner, imageUrl;
+public class Item extends Entity {
+    private String ownerUsername;
+    private String name;
+    private String description;
+    private String category;
+    private String productType;
+    private ItemStatus availabilityStatus;
 
-    protected Item(String name, String owner, String imageUrl) {
+    public Item(String ownerUsername, String name, String description, String category, String productType) {
         super(IdGenerator.genItemId(), LocalDateTime.now());
+        this.ownerUsername = ownerUsername;
         this.name = name;
-        this.owner = owner;
-        this.imageUrl = imageUrl;
+        this.description = description;
+        this.category = category;
+        this.productType = productType;
+        this.availabilityStatus = ItemStatus.AVAILABLE;
     }
 
-    protected Item(String id, LocalDateTime createdAt, String name, String owner, String imageUrl) {
+    public Item(
+        String id,
+        LocalDateTime createdAt,
+        String ownerUsername,
+        String name,
+        String description,
+        String category,
+        String productType,
+        ItemStatus availabilityStatus
+    ) {
         super(id, createdAt);
+        this.ownerUsername = ownerUsername;
         this.name = name;
-        this.owner = owner;
-        this.imageUrl = imageUrl;
+        this.description = description;
+        this.category = category;
+        this.productType = productType;
+        this.availabilityStatus = availabilityStatus == null ? ItemStatus.AVAILABLE : availabilityStatus;
     }
+
+    public String getOwnerUsername() { return ownerUsername; }
+    public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
+
+    public String getOwner() { return ownerUsername; }
+    public void setOwner(String ownerUsername) { this.ownerUsername = ownerUsername; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
-    public String getOwner() { return owner; }
-    public void setOwner(String owner) { this.owner = owner; }
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-}
 
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+
+    public String getProductType() { return productType; }
+    public void setProductType(String productType) { this.productType = productType; }
+
+    public ItemStatus getAvailabilityStatus() { return availabilityStatus; }
+    public void setAvailabilityStatus(ItemStatus availabilityStatus) { this.availabilityStatus = availabilityStatus; }
+}

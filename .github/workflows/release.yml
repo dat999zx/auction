@@ -23,15 +23,12 @@ jobs:
           java-version: '21'
           cache: 'maven'
 
-      - name: Prepare Version and Notes
+      - name: Prepare Version
         run: |
           TAG=${GITHUB_REF_NAME}
           VER=${TAG#v}
           echo "VERSION=$VER" >> $GITHUB_ENV
           mvn versions:set -DnewVersion=$VER -DgenerateBackupPoms=false
-          sed -n "/# 🚀 Changelog - ${TAG}/,/---/p" changelog.md | sed '/---/d' > notes.txt
-          PREV=$(git describe --tags --abbrev=0 ${TAG}^ 2>/dev/null || echo "")
-          [ -n "$PREV" ] && echo -e "\n**Full Changelog**: ${{ github.server_url }}/${{ github.repository }}/compare/${PREV}...${TAG}" >> notes.txt
 
       - run: mvn -B clean package -Puniversal -DskipTests
 
@@ -43,8 +40,6 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           name: Bidify ${{ github.ref_name }}
-          body_path: notes.txt
           files: |
             server/target/server-${{ env.VERSION }}.jar
             client/target/client-${{ env.VERSION }}.jar
-          generate_release_notes: false

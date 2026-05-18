@@ -113,7 +113,7 @@ public class UserProfileController {
     @FXML
     private void handleTopUp() {
         try {
-            UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Top up amount"));
+            UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
             topUpAmountField.clear();
             refreshProfile(updatedUser);
             NotificationUtil.success("Wallet updated successfully.");

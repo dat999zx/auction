@@ -18,7 +18,8 @@ if errorlevel 1 (
   exit /b 1
 )
 
-cmd /c "netstat -an | find ":%SERVER_PORT%" >nul"
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "if (Get-NetTCPConnection -State Listen -LocalPort %SERVER_PORT% -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
 if not errorlevel 1 goto startclient
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
@@ -33,7 +34,8 @@ set /a WAIT_SECONDS=0
 powershell -NoProfile -Command "Start-Sleep -Seconds 1"
 set /a WAIT_SECONDS+=1
 
-netstat -an | find ":%SERVER_PORT%" >nul
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+  "if (Get-NetTCPConnection -State Listen -LocalPort %SERVER_PORT% -ErrorAction SilentlyContinue) { exit 0 } else { exit 1 }"
 if not errorlevel 1 goto startclient
 
 if exist "%SERVER_PID%" (

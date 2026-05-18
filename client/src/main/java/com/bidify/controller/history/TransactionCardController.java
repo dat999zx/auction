@@ -1,0 +1,62 @@
+package com.bidify.controller.history;
+
+import com.bidify.common.dto.TransactionDto;
+import com.bidify.common.utility.DisplayUtil;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
+
+public class TransactionCardController {
+    @FXML
+    private HBox card;
+
+    @FXML
+    private Label iconLabel;
+
+    @FXML
+    private Label titleLabel;
+
+    @FXML
+    private Label idLabel;
+
+    @FXML
+    private Label amountLabel;
+
+    public void setData(TransactionDto transaction) {
+        titleLabel.setText(resolveTransactionTitle(transaction));
+        idLabel.setText("Transaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown"));
+        amountLabel.setText(DisplayUtil.formatCurrency(transaction.getAmount()));
+        iconLabel.setText(resolveTransactionIcon(transaction));
+
+        card.getStyleClass().removeAll("border-green", "border-gray", "border-blue");
+        card.getStyleClass().add(resolveTransactionBorderStyle(transaction));
+    }
+
+    private String resolveTransactionBorderStyle(TransactionDto transaction) {
+        if (transaction.getType() == null) return "border-gray";
+        return switch (transaction.getType()) {
+            case DEPOSIT -> "border-green";
+            case WITHDRAW -> "border-gray";
+            case AUCTION_PAY, AUCTION_PROFIT -> "border-blue";
+        };
+    }
+
+    private String resolveTransactionIcon(TransactionDto transaction) {
+        if (transaction.getType() == null) return "help";
+        return switch (transaction.getType()) {
+            case DEPOSIT -> "Deposit";
+            case WITHDRAW -> "Withdraw";
+            case AUCTION_PAY, AUCTION_PROFIT -> "Payment";
+        };
+    }
+
+    private String resolveTransactionTitle(TransactionDto transaction) {
+        if (transaction.getType() == null) return "Transaction";
+        return switch (transaction.getType()) {
+            case DEPOSIT -> "Wallet Deposit";
+            case WITHDRAW -> "Wallet Withdraw";
+            case AUCTION_PAY -> "Auction Payment";
+            case AUCTION_PROFIT -> "Auction Profit";
+        };
+    }
+}

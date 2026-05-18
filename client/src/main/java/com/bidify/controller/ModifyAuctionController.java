@@ -1,15 +1,18 @@
 package com.bidify.controller;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
@@ -20,12 +23,14 @@ import com.bidify.service.AuctionClientService;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextArea;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 
 public class ModifyAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(ModifyAuctionController.class);
@@ -35,12 +40,14 @@ public class ModifyAuctionController {
     // before switching to this view.
     private static String currentAuctionId;
 
-    @FXML private TextField productNameField;
-    @FXML private TextArea descriptionArea;
-    @FXML private ComboBox<String> categoryComboBox;
-    @FXML private ComboBox<String> productTypeComboBox;
+    @FXML private Label itemNameLabel;
+    @FXML private Label itemDescriptionLabel;
+    @FXML private Label categoryLabel;
+    @FXML private Label productTypeLabel;
+    @FXML private Label itemStatusLabel;
+    @FXML private ImageView linkedItemImageView;
     @FXML private TextField startingPriceField;
-    @FXML private TextField minIncrementField; // Optional: Only if you want to allow editing this field
+    @FXML private TextField minIncrementField;
     @FXML private DatePicker startDatePicker;
     @FXML private TextField startTimeField;
     @FXML private DatePicker endDatePicker;
@@ -62,32 +69,69 @@ public class ModifyAuctionController {
 
     @FXML
     private void initialize() {
-        // Setup dropdowns
-        categoryComboBox.getItems().setAll("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other");
-        productTypeComboBox.getItems().setAll("New", "Used", "Rare", "Vintage", "Limited");
-
-        // UI logic: If we have an ID, we should ideally fetch existing data here
-        if (currentAuctionId != null) {
-            loadAuctionData(currentAuctionId);
+        if (currentAuctionId == null || currentAuctionId.isBlank()) {
+            NotificationUtil.error("No auction selected for modification.");
+            return;
         }
+        
+        loadAuctionData(currentAuctionId);
     }
 
     private void loadAuctionData(String auctionId) {
-        // Implementation: Fetch data from auctionClientService and populate fields
-        // e.g., productNameField.setText(fetchedAuction.getName());
+        // Start background thread to fetch data (similar to AuctionDetailsController)
+        Thread loader = new Thread(() -> {
+            try {
+                // Fetch from service
+                AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
+                
+                // Update UI on the JavaFX Thread
+                Platform.runLater(() -> bindAuctionToFields(auction));
+                
+            } catch (IOException | AuctionException e) {
+                logger.error("Failed to load auction data", e);
+                Platform.runLater(() -> {
+                    NotificationUtil.error("Failed to load auction: " + e.getMessage());
+                });
+            }
+        });
+        loader.setDaemon(true);
+        loader.start();
+    }
+
+    private void bindAuctionToFields(AuctionDto data) {
+        itemNameLabel.setText(defaultText(data.getAuctionName(), "Unnamed item"));
+        itemDescriptionLabel.setText(defaultText(data.getDescription(), "No description."));
+        categoryLabel.setText(defaultText(data.getCategory(), "-"));
+        productTypeLabel.setText(defaultText(data.getProductType(), "-"));
+        itemStatusLabel.setText("Linked inventory item is locked by this auction.");
+        linkedItemImageView.setImage(decodeBase64Image(data.getThumbnailBase64()));
+
+        startingPriceField.setText(String.valueOf(data.getStartingPrice()));
+
+        try {
+            LocalDateTime start = LocalDateTime.parse(data.getStartTime());
+            LocalDateTime end = LocalDateTime.parse(data.getEndTime());
+
+            startDatePicker.setValue(start.toLocalDate());
+            startTimeField.setText(start.toLocalTime().format(TIME_FORMATTER));
+            
+            endDatePicker.setValue(end.toLocalDate());
+            endTimeField.setText(end.toLocalTime().format(TIME_FORMATTER));
+        } catch (Exception e) {
+            logger.warn("Could not parse auction dates: {}", e.getMessage());
+        }
     }
 
     @FXML
     private void handleSaveChanges() {
+        saveChangesButton.setText("Saving..."); // Prevent multiple clicks
+        saveChangesButton.setDisable(true);
         if (currentAuctionId == null) {
             NotificationUtil.error("No auction selected for modification.");
             return;
         }
 
         try {
-            // 1. Collect Data from UI
-            String name = productNameField.getText().trim();
-            String desc = descriptionArea.getText().trim();
             double price = parseAmount(startingPriceField.getText(), "Starting Price");
             
             LocalDate startDate = startDatePicker.getValue();
@@ -104,12 +148,10 @@ public class ModifyAuctionController {
             }
 
             double minIncrement = parseAmount(minIncrementField.getText(), "Minimum Increment");
-            // 3. Construct the Request (Mapping to your UpdateAuctionRequest model)
-            // Note: Message is added as a blank/default string if not present in your FXML
             UpdateAuctionRequest request = new UpdateAuctionRequest(
                 currentAuctionId,
-                name,
-                desc,
+                "",
+                "",
                 price,
                 minIncrement, startDateTime.toString(),
                 endDateTime.toString(),
@@ -121,7 +163,10 @@ public class ModifyAuctionController {
 
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction updated successfully.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                //redirect to auction details page
+                AuctionDetailsController.setAuctionId(currentAuctionId);
+                SceneManager.clearCache("auctiondetail.fxml");
+                SceneManager.switchScene("auctiondetail.fxml", false, false);
             } else {
                 NotificationUtil.error(response.getMessage());
             }
@@ -133,6 +178,10 @@ public class ModifyAuctionController {
             logger.error("IOException while updating auction", e);
         } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
+        }
+        finally {
+            saveChangesButton.setText("Save Changes");
+            saveChangesButton.setDisable(false);
         }
     }
 
@@ -159,5 +208,23 @@ public class ModifyAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format.");
         }
+    }
+
+    private Image decodeBase64Image(String base64) {
+        if (base64 == null || base64.isBlank()) return null;
+        try {
+            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+        }
+        catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
+    private String defaultText(String value, String fallback) {
+        return safe(value).isBlank() ? fallback : value;
+    }
+
+    private String safe(String value) {
+        return value == null ? "" : value;
     }
 }

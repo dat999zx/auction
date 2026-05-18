@@ -11,17 +11,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Auction extends Entity {
-    private String auctionName, description, sellerUsername, currentBidderUsername, category, productType;
+    private String auctionName;
+    private String description;
+    private String sellerUsername;
+    private String itemId;
+    private String currentBidderUsername;
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
     private LocalDateTime endTime, startTime;
     private List<Bid> bids = new ArrayList<>();
+    private List<AutoBid> autoBids = new ArrayList<>();
 
-    public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+    public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(IdGenerator.genAuctionId(), LocalDateTime.now());
-        this.auctionName = auctionName;
-        this.description = description;
         this.sellerUsername = sellerUsername;
+        this.itemId = itemId;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -31,15 +35,20 @@ public class Auction extends Entity {
         else
             this.status = AuctionStatus.ACTIVE;
     }
+
+    public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        this(sellerUsername, null, startingPrice, startTime, endTime);
+        this.auctionName = auctionName;
+        this.description = description;
+    }
     
-    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String currentBidderUsername, String category, String productType, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
+    public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String itemId, String currentBidderUsername, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
         super(id, createdAt);
         this.auctionName = auctionName;
         this.description = description;
         this.sellerUsername = sellerUsername;
+        this.itemId = itemId;
         this.currentBidderUsername = currentBidderUsername;
-        this.category = category;
-        this.productType = productType;
         this.startingPrice = startingPrice;
         this.minIncrement = minIncrement;
         this.startTime = startTime;
@@ -102,16 +111,41 @@ public class Auction extends Entity {
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String username) { this.sellerUsername = username; }
 
+    public String getItemId() { return itemId; }
+    public void setItemId(String itemId) { this.itemId = itemId; }
+
     public int getBidCount(){ return bids.size(); }
     
-    public String getProductType(){ return productType; }
-    public void setProductType(String type){ this.productType = type; }
+    public String getProductType(){ return null; }
+    public void setProductType(String type){}
 
-    public String getCategory() { return category; }
-    public void setCategory(String category) { this.category = category; }
+    public String getCategory() { return null; }
+    public void setCategory(String category) {}
 
     public double getMinIncrement() { return minIncrement; }
     public void setMinIncrement(double num) { this.minIncrement = num; }
 
     public List<Bid> getBids() { return bids; }
+
+    public synchronized List<AutoBid> getAutoBids() {
+        return new ArrayList<>(autoBids);
+    }
+
+    public synchronized AutoBid getAutoBid(String username) {
+        if (username == null) return null;
+        return autoBids.stream()
+                .filter(autoBid -> username.equals(autoBid.getUsername()) && autoBid.isEnabled())
+                .findFirst()
+                .orElse(null);
+    }
+
+    public synchronized void upsertAutoBid(AutoBid autoBid) {
+        autoBids.removeIf(existing -> existing.getUsername().equals(autoBid.getUsername()));
+        autoBids.add(autoBid);
+    }
+
+    public synchronized void disableAutoBid(String username) {
+        AutoBid autoBid = getAutoBid(username);
+        if (autoBid != null) autoBid.disable();
+    }
 }
