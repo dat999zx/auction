@@ -142,6 +142,9 @@ public class HubController {
                 return;
             }
 
+            if (relocateAuctionIfNeeded(updatedAuction))
+                return;
+
             if (!"ACTIVE".equalsIgnoreCase(updatedAuction.getStatus())) {
                 loadHubSections();
                 return;
@@ -465,6 +468,42 @@ public class HubController {
             patchCard(searchCardControllers, updatedAuction);
     }
 
+    private boolean relocateAuctionIfNeeded(AuctionDto updatedAuction) {
+        String auctionId = updatedAuction.getId();
+        if (auctionId == null || auctionId.isBlank())
+            return false;
+
+        boolean isActive = "ACTIVE".equalsIgnoreCase(updatedAuction.getStatus());
+        boolean isUpcoming = "UPCOMING".equalsIgnoreCase(updatedAuction.getStatus());
+        boolean existsInLive = containsAuction(liveAuctions, auctionId);
+        boolean existsInUpcoming = containsAuction(upcomingAuctions, auctionId);
+
+        if (isActive && existsInUpcoming) {
+            upcomingAuctions = removeAuction(upcomingAuctions, auctionId);
+            liveAuctions = upsertAuction(liveAuctions, updatedAuction);
+            renderUpcomingSection();
+            renderLiveSection();
+            patchSearchResult(updatedAuction);
+            return true;
+        }
+
+        if (isUpcoming && existsInLive) {
+            liveAuctions = removeAuction(liveAuctions, auctionId);
+            upcomingAuctions = upsertAuction(upcomingAuctions, updatedAuction);
+            renderLiveSection();
+            renderUpcomingSection();
+            patchSearchResult(updatedAuction);
+            return true;
+        }
+
+        return false;
+    }
+
+    private void patchSearchResult(AuctionDto updatedAuction) {
+        if (replaceAuction(searchResults, updatedAuction))
+            patchCard(searchCardControllers, updatedAuction);
+    }
+
     private boolean replaceAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
         if (auctions == null || updatedAuction == null || updatedAuction.getId() == null)
             return false;
@@ -480,6 +519,52 @@ public class HubController {
         }
 
         return false;
+    }
+
+    private boolean containsAuction(AuctionDto[] auctions, String auctionId) {
+        if (auctions == null || auctionId == null || auctionId.isBlank())
+            return false;
+
+        for (AuctionDto auction : auctions) {
+            if (auction == null || auction.getId() == null)
+                continue;
+            if (auctionId.equals(auction.getId()))
+                return true;
+        }
+
+        return false;
+    }
+
+    private AuctionDto[] removeAuction(AuctionDto[] auctions, String auctionId) {
+        if (auctions == null || auctions.length == 0 || auctionId == null || auctionId.isBlank())
+            return new AuctionDto[0];
+
+        List<AuctionDto> remaining = new ArrayList<>();
+        for (AuctionDto auction : auctions) {
+            if (auction == null || auction.getId() == null || auctionId.equals(auction.getId()))
+                continue;
+            remaining.add(auction);
+        }
+        return remaining.toArray(AuctionDto[]::new);
+    }
+
+    private AuctionDto[] upsertAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
+        if (updatedAuction == null || updatedAuction.getId() == null || updatedAuction.getId().isBlank())
+            return auctions == null ? new AuctionDto[0] : auctions;
+
+        List<AuctionDto> next = new ArrayList<>(Arrays.asList(auctions == null ? new AuctionDto[0] : auctions));
+        for (int i = 0; i < next.size(); i++) {
+            AuctionDto existing = next.get(i);
+            if (existing == null || existing.getId() == null)
+                continue;
+            if (!updatedAuction.getId().equals(existing.getId()))
+                continue;
+            next.set(i, updatedAuction);
+            return next.toArray(AuctionDto[]::new);
+        }
+
+        next.add(updatedAuction);
+        return next.toArray(AuctionDto[]::new);
     }
 
     private void patchCard(Map<String, AuctionCardController> controllerMap, AuctionDto updatedAuction) {
