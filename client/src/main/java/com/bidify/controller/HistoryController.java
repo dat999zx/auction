@@ -3,9 +3,9 @@ package com.bidify.controller;
 import java.io.IOException;
 import java.util.List;
 
+import com.bidify.common.dto.BidDto;
 import com.bidify.common.dto.TransactionDto;
 import com.bidify.common.enums.EventType;
-import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
@@ -13,6 +13,7 @@ import com.bidify.controller.history.BiddingRowController;
 import com.bidify.controller.history.EmptyCardController;
 import com.bidify.controller.history.TransactionCardController;
 import com.bidify.event.EventManager;
+import com.bidify.service.BidClientService;
 import com.bidify.service.TransactionClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
@@ -34,6 +35,7 @@ public class HistoryController {
     @FXML
     private VBox transactionRecordsContainer;
 
+    private final BidClientService bidClientService = new BidClientService();
     private final TransactionClientService transactionClientService = new TransactionClientService();
 
     @FXML
@@ -67,8 +69,9 @@ public class HistoryController {
     private void loadHistory() {
         Thread loaderThread = new Thread(() -> {
             try {
+                List<BidDto> bids = bidClientService.getBidHistory();
                 List<TransactionDto> transactions = transactionClientService.getTransactionHistory();
-                Platform.runLater(() -> renderHistory(transactions));
+                Platform.runLater(() -> renderHistory(bids, transactions));
             } catch (IOException e) {
                 Platform.runLater(() -> {
                     renderErrorState("Cannot connect to server.");
@@ -93,33 +96,29 @@ public class HistoryController {
         transactionRecordsContainer.getChildren().add(loadEmptyCard(message));
     }
 
-    private void renderHistory(List<TransactionDto> transactions) {
-        renderBiddingActivity(transactions);
+    private void renderHistory(List<BidDto> bids, List<TransactionDto> transactions) {
+        renderBiddingActivity(bids);
         renderTransactionRecords(transactions);
     }
 
-    private void renderBiddingActivity(List<TransactionDto> transactions) {
+    private void renderBiddingActivity(List<BidDto> bids) {
         biddingActivityContainer.getChildren().clear();
         biddingActivityContainer.getChildren().add(createBiddingHeader());
 
-        List<TransactionDto> auctionTransactions = transactions.stream()
-            .filter(this::isAuctionTransaction)
-            .toList();
-
-        if (auctionTransactions.isEmpty()) {
+        if (bids.isEmpty()) {
             biddingActivityContainer.getChildren().add(
-                loadBiddingRow("No auction activity yet.", "Waiting for completed auction activity.", "-", "-", "PENDING")
+                loadBiddingRow("No bids placed yet.", "Your bidding activity will appear here.", "-", "-", "PENDING")
             );
             return;
         }
 
-        for (TransactionDto transaction : auctionTransactions) {
+        for (BidDto bid : bids) {
             biddingActivityContainer.getChildren().add(loadBiddingRow(
-                buildAuctionItemLabel(transaction),
-                buildAuctionSubtitle(transaction),
-                DisplayUtil.formatCurrency(transaction.getAmount()),
-                DisplayUtil.formatDateTime(transaction.getCreatedAt(), "Unknown"),
-                buildAuctionStatus(transaction)
+                buildAuctionItemLabel(bid),
+                buildAuctionSubtitle(bid),
+                DisplayUtil.formatCurrency(bid.getAmount()),
+                DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown"),
+                buildAuctionStatus(bid)
             ));
         }
     }
@@ -201,30 +200,19 @@ public class HistoryController {
         }
     }
 
-    private boolean isAuctionTransaction(TransactionDto transaction) {
-        return transaction.getType() == TransactionType.AUCTION_PAY
-            || transaction.getType() == TransactionType.AUCTION_PROFIT;
+    private String buildAuctionItemLabel(BidDto bid) {
+        if (bid.getAuctionId() != null && !bid.getAuctionId().isBlank())
+            return "Auction " + bid.getAuctionId();
+        return "Auction bid";
     }
 
-    private String buildAuctionItemLabel(TransactionDto transaction) {
-        if (transaction.getAuctionId() != null && !transaction.getAuctionId().isBlank())
-            return "Auction " + transaction.getAuctionId();
-        return "Auction activity";
+    private String buildAuctionSubtitle(BidDto bid) {
+        return bid.isAutoBidGenerated()
+            ? "AutoBid placed"
+            : "Manual bid placed";
     }
 
-    private String buildAuctionSubtitle(TransactionDto transaction) {
-        return switch (transaction.getType()) {
-            case AUCTION_PAY -> "Winning bidder payment recorded";
-            case AUCTION_PROFIT -> "Seller payout recorded";
-            default -> "Auction settlement";
-        };
-    }
-
-    private String buildAuctionStatus(TransactionDto transaction) {
-        return switch (transaction.getType()) {
-            case AUCTION_PAY -> "WON";
-            case AUCTION_PROFIT -> "PROFIT";
-            default -> "DONE";
-        };
+    private String buildAuctionStatus(BidDto bid) {
+        return bid.isAutoBidGenerated() ? "AUTO" : "PLACED";
     }
 }

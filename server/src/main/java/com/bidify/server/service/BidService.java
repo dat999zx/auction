@@ -45,9 +45,10 @@ public class BidService {
                 dtos.add(new BidDto(
                         bid.getId(),
                         bid.getCreatedAt().toString(),
-                        bid.getBidderUsername(),
                         bid.getAuctionId(),
-                        bid.getAmount()
+                        bid.getBidderUsername(),
+                        bid.getAmount(),
+                        bid.isAutoBidGenerated()
                 ));
             }
             return new Response(RequestStatus.SUCCESS, "Bid history loaded", dtos);
