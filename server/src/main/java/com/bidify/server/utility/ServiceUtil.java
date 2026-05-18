@@ -1,6 +1,7 @@
 package com.bidify.server.utility;
 
 import com.bidify.common.enums.RequestStatus;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.exception.*;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
@@ -22,7 +23,7 @@ public class ServiceUtil {
 
     private ServiceUtil() {}
 
-    // gọi cái này để đỡ phải try-catch
+    // gá»i cÃ¡i nÃ y Ä‘á»ƒ Ä‘á»¡ pháº£i try-catch
     public static Response handleRequest(Supplier<Response> action) {
         try {
             return action.get();
@@ -39,7 +40,7 @@ public class ServiceUtil {
         }
     }
 
-    // load user từ RAM nếu có, ko thì load từ database và tính lockedBalance
+    // load user tá»« RAM náº¿u cÃ³, ko thÃ¬ load tá»« database vÃ  tÃ­nh lockedBalance
     public static User getOrLoadUser(String username) {
         ValidationUtil.validateUsername(username);
         
@@ -55,13 +56,47 @@ public class ServiceUtil {
         return user;
     }
 
-    // kiểm tra session hợp lệ
+    // kiá»ƒm tra session há»£p lá»‡
     public static void requireSession(ClientHandler client) {
         if (client == null || !client.isInSession())
             throw new ValidationException("Invalid session");
     }
 
-    // kiểm tra request data
+    public static User requireSessionUser(ClientHandler client) {
+        requireSession(client);
+        return getOrLoadUser(client.getCurrentUsername());
+    }
+
+    public static boolean isAdmin(User user) {
+        return user != null && user.getRole() == UserRole.ADMIN;
+    }
+
+    public static boolean isAdminUsername(String username) {
+        return isAdmin(getOrLoadUser(username));
+    }
+
+    public static void requireAdmin(ClientHandler client) {
+        if (!isAdmin(requireSessionUser(client)))
+            throw new AuthException("Admin permission required");
+    }
+
+    public static void requireNonAdmin(User user, String message) {
+        if (isAdmin(user))
+            throw new AuthException(message);
+    }
+
+    public static void requireUserRole(User user, String message) {
+        if (isAdmin(user))
+            throw new AuthException(message);
+    }
+
+    public static boolean isOwnerOrAdmin(String ownerUsername, String currentUsername) {
+        ValidationUtil.validateUsername(ownerUsername);
+        ValidationUtil.validateUsername(currentUsername);
+        return ownerUsername.equals(currentUsername) || isAdminUsername(currentUsername);
+    }
+
+    // kiá»ƒm tra request data
     public static void validateRequestData(Object data) {
         if (data == null)
             throw new ValidationException("Invalid request");

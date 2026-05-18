@@ -3,6 +3,7 @@ package com.bidify.server;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.service.AuctionSchedulerService;
 import com.bidify.server.service.AuctionService;
+import com.bidify.server.service.AdminService;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.service.BidService;
 import com.bidify.server.service.ItemService;
@@ -42,6 +43,7 @@ public class ServerApp {
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
         
         AuthService.getInstance().initialize();
+        AdminService.getInstance().initialize();
         auctionService.initialize();
         UserProfileService.getInstance().initialize();
         BidService.getInstance().initialize();
