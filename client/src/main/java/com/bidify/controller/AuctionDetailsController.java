@@ -58,6 +58,8 @@ public class AuctionDetailsController {
     @FXML
     private Label currentprice;
     @FXML
+    private Label fullCurrentPriceLabel;
+    @FXML
     private Label enddate;
     @FXML
     private TextField inputprice;
@@ -79,6 +81,8 @@ public class AuctionDetailsController {
     private Label openingBidderLabel;
     @FXML
     private Label openingBidAmountLabel;
+    @FXML
+    private Label fullStartingPriceLabel;
     @FXML
     private Label opendate;
     @FXML
@@ -111,7 +115,8 @@ public class AuctionDetailsController {
     private Double currentUserAutoBidMax;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
-
+    private double minIncrement;
+    private double currentValue;
     // The gatekeeper calls this first
     public static void setAuctionId(String auctionId) {
         selectedAuctionId = auctionId;
@@ -224,7 +229,7 @@ public class AuctionDetailsController {
         }
 
         if (bidAmount <= currentDisplayedPrice) {
-            NotificationUtil.error("Your bid must be higher than the current price.");
+            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice) + minIncrement + ".");
             return;
         }
 
@@ -378,11 +383,14 @@ public class AuctionDetailsController {
 
         // bid values and date
         double startingValue = data.getStartingPrice();
-        double currentValue = data.getCurrentBid();
+        this.currentValue= data.getCurrentBid();
+        this.minIncrement = data.getMinIncrement();
         currentDisplayedPrice = currentValue > 0 ? currentValue : startingValue;
         
-        openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
-        currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
+        openingBidAmountLabel.setText(DisplayUtil.formatCashSuffix(startingValue));
+        fullStartingPriceLabel.setText(DisplayUtil.formatCurrency(startingValue));
+        currentprice.setText(DisplayUtil.formatCashSuffix(currentDisplayedPrice));
+        fullCurrentPriceLabel.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
         configureAuctionState(isUpcoming, startingValue, currentValue);
         startTimer();
@@ -405,7 +413,7 @@ public class AuctionDetailsController {
         if (isUpcoming || ClientSession.getInstance().isAdmin()) {
             leftMetricLabel.setText("STARTING PRICE");
             rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
-            currentprice.setText(DisplayUtil.formatCurrency(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
+            currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
             openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
             endDateLabel.setText("Ends at:");
             recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
@@ -418,7 +426,7 @@ public class AuctionDetailsController {
 
         leftMetricLabel.setText("STARTING PRICE");
         rightMetricLabel.setText("CURRENT BID");
-        currentprice.setText(DisplayUtil.formatCurrency(currentValue > 0 ? currentValue : startingValue));
+        currentprice.setText(DisplayUtil.formatCashSuffix(currentValue > 0 ? currentValue : startingValue));
         openDateLabel.setText("Open at:");
         endDateLabel.setText("End at:");
         recentActivityLabel.setText("RECENT ACTIVITY");
@@ -583,7 +591,7 @@ public class AuctionDetailsController {
                     : DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder");
             activityList.getChildren().add(createActivityRow(
                     bidderText,
-                    DisplayUtil.formatCurrency(bid.getAmount()),
+                    DisplayUtil.formatCashSuffix(bid.getAmount()),
                     DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown")
             ));
         }

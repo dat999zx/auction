@@ -39,6 +39,12 @@ public class UserProfileController {
     private Label lockedBalanceLabel;
 
     @FXML
+    private Label fullWalletBalance;
+
+    @FXML
+    private Label fullLockedBalance;
+
+    @FXML
     private Label memberStatusLabel;
 
     @FXML
@@ -198,8 +204,12 @@ public class UserProfileController {
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
-        walletBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
-        lockedBalanceLabel.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
+        walletBalanceLabel.setText(DisplayUtil.formatCashSuffix(user.getWallet().getBalance()));
+        fullWalletBalance.setText(DisplayUtil.formatCurrency(user.getWallet().getBalance()));
+
+        lockedBalanceLabel.setText(DisplayUtil.formatCashSuffix(user.getWallet().getLockedBalance()));
+        fullLockedBalance.setText(DisplayUtil.formatCurrency(user.getWallet().getLockedBalance()));
+        
         memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);

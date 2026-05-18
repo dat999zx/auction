@@ -59,10 +59,10 @@ public class AuctionCardController {
 
         //dealing with no one bidded yet case
         if (auction.getCurrentBid() == 0) {
-            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getStartingPrice()));
+            currentBidValue.setText(DisplayUtil.formatCashSuffix(auction.getStartingPrice()));
             currentBidder.setText("No bids yet");
         } else {
-            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getCurrentBid()));
+            currentBidValue.setText(DisplayUtil.formatCashSuffix(auction.getCurrentBid()));
             currentBidder.setText(auction.getCurrentBidderUsername());
         }
         sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSellerUsername(), "Unknown"));

@@ -1,5 +1,10 @@
 package com.bidify.controller;
 
+import java.io.IOException;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
@@ -7,16 +12,14 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
-import java.io.IOException;
+
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javafx.scene.input.KeyCode;
 
 public class RegisterController {
     private static final Logger logger = LoggerFactory.getLogger(RegisterController.class);
@@ -44,6 +47,24 @@ public class RegisterController {
             passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
             passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
             setPasswordVisibility(false);
+        });
+        usernameField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                passwordField.requestFocus();
+                event.consume(); // Prevents the event from traveling further
+            }
+        });
+        passwordField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                passwordConfirmField.requestFocus();
+                event.consume(); // Prevents the event from traveling further
+            }
+        });
+        passwordConfirmField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                handleRegister();
+                event.consume(); // Prevents the event from traveling further
+            }
         });
     }
 
