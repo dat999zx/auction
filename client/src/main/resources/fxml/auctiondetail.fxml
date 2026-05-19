@@ -119,6 +119,15 @@
                                             </children>
                                         </HBox>
                                     </VBox>
+
+                                    <VBox fx:id="analyticsSection" spacing="10.0">
+                                        <Label styleClass="section-label" text="BIDDING TREND" />
+
+                                        <VBox spacing="12.0" styleClass="analytics-card">
+                                            <StackPane fx:id="biddingChartHost" minHeight="200.0" prefHeight="200.0" styleClass="analytics-chart-host" />
+                                            <Label fx:id="biddingChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true" />
+                                        </VBox>
+                                    </VBox>
       
                                     <VBox fx:id="recentActivitySection" spacing="10.0" VBox.vgrow="ALWAYS">
                                         <Label fx:id="recentActivityLabel" styleClass="section-label" text="RECENT ACTIVITY" />
@@ -139,7 +148,7 @@
                                                 <Label styleClass="activity-header-text right" text="Time" GridPane.columnIndex="2" />
                                             </GridPane>
             
-                                            <ScrollPane fitToWidth="true" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
+                                            <ScrollPane fitToWidth="true" minHeight="280.0" prefHeight="320.0" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
                                                 <content>
                                                     <VBox fx:id="activityList" spacing="0.0" />
                                                 </content>

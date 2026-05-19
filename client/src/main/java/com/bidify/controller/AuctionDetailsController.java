@@ -1,6 +1,12 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -27,9 +33,14 @@ import com.bidify.utility.UiUpdateScheduler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
@@ -37,10 +48,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.StringConverter;
 
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
+    private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH:mm");
 
     private static String selectedAuctionId;
 
@@ -107,6 +121,12 @@ public class AuctionDetailsController {
     private VBox activityList;
     @FXML
     private VBox bidActionSection;
+    @FXML
+    private VBox analyticsSection;
+    @FXML
+    private StackPane biddingChartHost;
+    @FXML
+    private Label biddingChartStateLabel;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -117,6 +137,9 @@ public class AuctionDetailsController {
     private final AuthClientService authClientService = new AuthClientService();
     private double minIncrement;
     private double currentValue;
+    private LineChart<Number, Number> biddingChart;
+    private NumberAxis biddingTimeAxis;
+    private NumberAxis biddingAmountAxis;
     // The gatekeeper calls this first
     public static void setAuctionId(String auctionId) {
         selectedAuctionId = auctionId;
@@ -128,6 +151,7 @@ public class AuctionDetailsController {
         EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
         EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
         EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
+        initializeBiddingChart();
 
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
@@ -396,6 +420,7 @@ public class AuctionDetailsController {
         startTimer();
 
         renderRecentActivity(data, isUpcoming);
+        renderBiddingTrend(data, isUpcoming);
         refreshAutoBidStatusLabel();
         renderAudienceStats(data, isUpcoming);
 
@@ -500,6 +525,7 @@ public class AuctionDetailsController {
 
         enddate.setText("Loading...");
         activityList.getChildren().clear();
+        showBiddingChartState("Loading bid history...");
 
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
@@ -568,6 +594,184 @@ public class AuctionDetailsController {
         boolean isUpcoming = "UPCOMING".equalsIgnoreCase(currentAuction.getStatus());
         String targetTime = isUpcoming ? currentAuction.getStartTime() : currentAuction.getEndTime();
         enddate.setText(DisplayUtil.formatRemainingTime(targetTime));
+    }
+
+    private void initializeBiddingChart() {
+        if (biddingChartHost == null) {
+            return;
+        }
+
+        biddingTimeAxis = new NumberAxis();
+        biddingAmountAxis = new NumberAxis();
+
+        biddingTimeAxis.setLabel("Bid time");
+        biddingTimeAxis.setForceZeroInRange(false);
+        biddingTimeAxis.setMinorTickVisible(false);
+
+        biddingAmountAxis.setLabel("Bid amount");
+        biddingAmountAxis.setForceZeroInRange(false);
+        biddingAmountAxis.setMinorTickVisible(false);
+        biddingAmountAxis.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return DisplayUtil.formatCurrency(value.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
+
+        biddingChart = new LineChart<>(biddingTimeAxis, biddingAmountAxis);
+        biddingChart.setAnimated(false);
+        biddingChart.setLegendVisible(false);
+        biddingChart.setCreateSymbols(true);
+        biddingChart.setAlternativeRowFillVisible(false);
+        biddingChart.setAlternativeColumnFillVisible(false);
+        biddingChart.setHorizontalGridLinesVisible(true);
+        biddingChart.setVerticalGridLinesVisible(false);
+        biddingChart.setMinHeight(200.0);
+        biddingChart.setPrefHeight(200.0);
+        biddingChart.getStyleClass().add("bidding-line-chart");
+
+        biddingChartHost.getChildren().setAll(biddingChart);
+        showBiddingChartState("Loading bid history...");
+    }
+
+    private void renderBiddingTrend(AuctionDto data, boolean isUpcoming) {
+        if (analyticsSection == null || biddingChart == null) {
+            return;
+        }
+
+        analyticsSection.setManaged(true);
+        analyticsSection.setVisible(true);
+
+        if (isUpcoming) {
+            biddingChart.getData().clear();
+            showBiddingChartState("Chart appears after first live bid.");
+            return;
+        }
+
+        List<BidDto> bidHistory = data.getBidHistory();
+        if (bidHistory == null || bidHistory.isEmpty()) {
+            biddingChart.getData().clear();
+            showBiddingChartState("No bids yet. First live bid will appear here.");
+            return;
+        }
+
+        List<BidDto> sortedBids = bidHistory.stream()
+                .sorted(Comparator.comparing(this::parseBidCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+
+        LocalDateTime firstBidTime = parseBidCreatedAt(sortedBids.getFirst());
+        LocalDateTime lastBidTime = parseBidCreatedAt(sortedBids.getLast());
+        biddingTimeAxis.setTickLabelFormatter(createTimeAxisFormatter(firstBidTime, lastBidTime));
+
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        for (BidDto bid : sortedBids) {
+            series.getData().add(createBidPoint(bid));
+        }
+
+        biddingChart.getData().setAll(series);
+        if (series.getNode() != null) {
+            series.getNode().getStyleClass().add("bidding-line-series");
+        }
+        hideBiddingChartState();
+    }
+
+    private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {
+        XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), bid.getAmount());
+        point.nodeProperty().addListener((observable, oldNode, newNode) -> configureBidPointNode(newNode, bid));
+        return point;
+    }
+
+    private void configureBidPointNode(Node node, BidDto bid) {
+        if (node == null) {
+            return;
+        }
+
+        node.getStyleClass().add(bid.isAutoBidGenerated() ? "bid-point-auto" : "bid-point-manual");
+        Tooltip.install(node, new Tooltip(buildBidTooltipText(bid)));
+    }
+
+    private String buildBidTooltipText(BidDto bid) {
+        String bidType = bid.isAutoBidGenerated() ? "AutoBid" : "Manual bid";
+        return DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
+                + "\n" + DisplayUtil.formatCurrency(bid.getAmount())
+                + "\n" + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
+                + "\n" + bidType;
+    }
+
+    private void showBiddingChartState(String message) {
+        if (biddingChartHost != null) {
+            biddingChartHost.setManaged(false);
+            biddingChartHost.setVisible(false);
+        }
+        if (biddingChartStateLabel != null) {
+            biddingChartStateLabel.setText(message);
+            biddingChartStateLabel.setManaged(true);
+            biddingChartStateLabel.setVisible(true);
+        }
+    }
+
+    private void hideBiddingChartState() {
+        if (biddingChartHost != null) {
+            biddingChartHost.setManaged(true);
+            biddingChartHost.setVisible(true);
+        }
+        if (biddingChartStateLabel != null) {
+            biddingChartStateLabel.setManaged(false);
+            biddingChartStateLabel.setVisible(false);
+        }
+    }
+
+    private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
+        boolean useFullFormatter = firstBidTime != null
+                && lastBidTime != null
+                && firstBidTime.toLocalDate().isBefore(lastBidTime.toLocalDate());
+
+        return new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                LocalDateTime dateTime = fromEpochSeconds(value.longValue());
+                return dateTime == null
+                        ? ""
+                        : dateTime.format(useFullFormatter ? CHART_FULL_TIME_FORMATTER : CHART_SHORT_TIME_FORMATTER);
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        };
+    }
+
+    private LocalDateTime parseBidCreatedAt(BidDto bid) {
+        if (bid == null || bid.getCreatedAt() == null || bid.getCreatedAt().isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(bid.getCreatedAt());
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private long toEpochSeconds(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return 0L;
+        }
+        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+    }
+
+    private LocalDateTime fromEpochSeconds(long epochSeconds) {
+        try {
+            return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private void renderRecentActivity(AuctionDto data, boolean isUpcoming) {

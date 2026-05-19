@@ -352,6 +352,75 @@
     -fx-border-radius: 12px;
 }
 
+.analytics-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-border-color: #d8e3fb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-padding: 16px;
+}
+
+.analytics-chart-host {
+    -fx-background-color: #f8faff;
+    -fx-background-radius: 10px;
+    -fx-border-color: #e1e9ff;
+    -fx-border-radius: 10px;
+    -fx-padding: 8px;
+}
+
+.analytics-empty-text {
+    -fx-text-fill: #516173;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.bidding-line-chart {
+    -fx-background-color: transparent;
+    -fx-padding: 8px;
+}
+
+.bidding-line-chart .chart-plot-background {
+    -fx-background-color: #f8faff;
+    -fx-background-insets: 0;
+    -fx-background-radius: 8px;
+}
+
+.bidding-line-chart .chart-vertical-grid-lines,
+.bidding-line-chart .chart-horizontal-grid-lines {
+    -fx-stroke: #d8e3fb;
+}
+
+.bidding-line-chart .chart-series-line {
+    -fx-stroke: #0b5cad;
+    -fx-stroke-width: 2px;
+}
+
+.bidding-line-chart .axis {
+    -fx-tick-label-fill: #516173;
+    -fx-font-size: 10px;
+}
+
+.bidding-line-chart .axis-label {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.chart-line-symbol.bid-point-manual {
+    -fx-background-color: #0b5cad;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.chart-line-symbol.bid-point-auto {
+    -fx-background-color: #d97706;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
 .activity-header {
     -fx-background-color: #e7eeff;
     -fx-padding: 10 16 10 16;
