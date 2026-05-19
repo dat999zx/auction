@@ -130,3 +130,20 @@ CREATE INDEX IF NOT EXISTS item_image_link_item_id_idx ON ItemImageLinks(itemId)
 
 -- lấy item link theo image
 CREATE INDEX IF NOT EXISTS item_image_link_image_id_idx ON ItemImageLinks(imageId);
+
+-- TABLE WalletRequests
+CREATE TABLE IF NOT EXISTS WalletRequests (
+    id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
+    reviewedAt TEXT,
+    username TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('DEPOSIT', 'WITHDRAW')),
+    amount REAL NOT NULL CHECK(amount > 0),
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'APPROVED', 'DENIED')),
+    reviewedBy TEXT,
+    FOREIGN KEY (username) REFERENCES Users(username),
+    FOREIGN KEY (reviewedBy) REFERENCES Users(username)
+);
+
+CREATE INDEX IF NOT EXISTS wallet_request_username_created_idx ON WalletRequests(username, createdAt);
+CREATE INDEX IF NOT EXISTS wallet_request_status_created_idx ON WalletRequests(status, createdAt);
