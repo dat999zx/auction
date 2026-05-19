@@ -1,12 +1,16 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
@@ -21,9 +25,13 @@ import com.bidify.utility.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 public class UserProfileController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
@@ -71,7 +79,16 @@ public class UserProfileController {
     @FXML
     private PasswordField confirmPasswordField;
 
+    @FXML
+    private VBox requestsContainer;
+
     private final UserProfileClientService userProfileClientService = new UserProfileClientService();
+
+    // Store listener references so unsubscribe can remove the exact same object.
+    private final Consumer<Event> onWalletChanged = e -> Platform.runLater(() -> refreshProfileFromEvent(e));
+    private final Consumer<Event> onLockedBalanceChanged = e -> Platform.runLater(() -> refreshProfileFromEvent(e));
+    private final Consumer<Event> onServerNotice = e -> Platform.runLater(() -> NotificationUtil.info(e.getMessage()));
+    private final Consumer<Event> onWalletRequestsChanged = e -> Platform.runLater(this::loadRequests);
 
     @FXML
     private void initialize() {
@@ -80,27 +97,17 @@ public class UserProfileController {
             populateProfile();
         });
 
-        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
-        EventManager.getInstance().subscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
-        EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
-    }
-
-    private void handleWalletChanged(Event event) {
-        Platform.runLater(() -> refreshProfileFromEvent(event));
-    }
-
-    private void handleLockedBalanceChanged(Event event) {
-        Platform.runLater(() -> refreshProfileFromEvent(event));
-    }
-
-    private void handleServerNotice(Event event) {
-        Platform.runLater(() -> NotificationUtil.info(event.getMessage()));
+        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, onWalletChanged);
+        EventManager.getInstance().subscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
+        EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, onServerNotice);
+        EventManager.getInstance().subscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
     public void cleanup() {
-        EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
-        EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
-        EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
+        EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, onWalletChanged);
+        EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
+        EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, onServerNotice);
+        EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
     @FXML
@@ -121,10 +128,10 @@ public class UserProfileController {
     @FXML
     private void handleTopUp() {
         try {
-            UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
+            userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
             topUpAmountField.clear();
-            refreshProfile(updatedUser);
-            NotificationUtil.success("Wallet updated successfully.");
+            NotificationUtil.success("Deposit request submitted — pending admin approval.");
+            loadRequests();
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -137,10 +144,11 @@ public class UserProfileController {
     @FXML
     private void handleWithdraw() {
         try {
-            UserDto updatedUser = userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
+            userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
             withdrawAmountField.clear();
-            refreshProfile(updatedUser);
-            NotificationUtil.success("Wallet updated successfully.");
+            NotificationUtil.success("Withdraw request submitted — pending admin approval.");
+            // Reload profile since locked balance changed
+            populateProfile();
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -188,6 +196,60 @@ public class UserProfileController {
         }
 
         profileImageHintLabel.setText("Profile image upload placeholder");
+        loadRequests();
+    }
+
+    private void loadRequests() {
+        if (requestsContainer == null) return;
+        try {
+            List<WalletRequestDto> requests = userProfileClientService.getUserWalletRequests();
+            renderRequests(requests);
+        } catch (Exception e) {
+            requestsContainer.getChildren().clear();
+            requestsContainer.getChildren().add(new Label("Failed to load requests."));
+        }
+    }
+
+    private void renderRequests(List<WalletRequestDto> requests) {
+        requestsContainer.getChildren().clear();
+        if (requests == null || requests.isEmpty()) {
+            Label empty = new Label("No request history.");
+            empty.getStyleClass().add("section-copy");
+            requestsContainer.getChildren().add(empty);
+            return;
+        }
+
+        for (WalletRequestDto req : requests) {
+            HBox row = new HBox(12);
+            row.getStyleClass().add("wallet-req-row");
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            VBox details = new VBox(3);
+            HBox.setHgrow(details, Priority.ALWAYS);
+
+            String reqTypeStr = req.getType() == TransactionType.DEPOSIT ? "Deposit" : "Withdraw";
+            Label title = new Label(reqTypeStr + "  •  $" + String.format("%.2f", req.getAmount()));
+            title.getStyleClass().add("wallet-req-title");
+
+            String created = req.getCreatedAt().length() >= 16
+                ? req.getCreatedAt().substring(0, 16).replace('T', ' ')
+                : req.getCreatedAt();
+            Label sub = new Label("Submitted " + created);
+            sub.getStyleClass().add("wallet-req-sub");
+
+            details.getChildren().addAll(title, sub);
+
+            String statusStyle = switch (req.getStatus()) {
+                case PENDING -> "wallet-req-status-pending";
+                case APPROVED -> "wallet-req-status-approved";
+                case DENIED -> "wallet-req-status-denied";
+            };
+            Label status = new Label(req.getStatus().name());
+            status.getStyleClass().addAll("wallet-req-status", statusStyle);
+
+            row.getChildren().addAll(details, status);
+            requestsContainer.getChildren().add(row);
+        }
     }
 
     private void refreshProfileFromEvent(Event event) {

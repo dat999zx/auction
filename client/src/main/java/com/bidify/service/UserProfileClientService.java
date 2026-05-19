@@ -2,8 +2,12 @@ package com.bidify.service;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.dto.WalletDto;
+import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserRole;
@@ -61,16 +65,37 @@ public class UserProfileClientService {
         return consumeProfileResponse(response, "Cannot update profile.");
     }
 
-    public UserDto addWalletBalance(double amount) throws IOException {
+    public void addWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
         Response response = client.send(new Request(RequestType.DEPOSIT, new WalletRequest(amount)));
-        return consumeProfileResponse(response, "Cannot update wallet.");
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot submit deposit request." : response.getMessage());
     }
 
-    public UserDto withdrawWalletBalance(double amount) throws IOException {
+    public void withdrawWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
         Response response = client.send(new Request(RequestType.WITHDRAW, new WalletRequest(amount)));
-        return consumeProfileResponse(response, "Cannot update wallet.");
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot submit withdraw request." : response.getMessage());
+    }
+
+    public List<WalletRequestDto> getUserWalletRequests() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_WALLET_REQUEST_HISTORY, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot load wallet requests." : response.getMessage());
+
+        List<?> rawRequests = JsonUtil.fromMap(response.getData(), List.class);
+        List<WalletRequestDto> requests = new ArrayList<>();
+        if (rawRequests == null)
+            return requests;
+
+        for (Object rawReq : rawRequests) {
+            WalletRequestDto req = JsonUtil.fromMap(rawReq, WalletRequestDto.class);
+            if (req != null)
+                requests.add(req);
+        }
+
+        return requests;
     }
 
     public void changePassword(String currentPassword, String newPassword, String confirmPassword) throws IOException {

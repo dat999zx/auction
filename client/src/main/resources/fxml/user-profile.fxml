@@ -180,6 +180,15 @@
                                         <Button onAction="#handleChangePassword" styleClass="primary-action-button" text="Validate Password Change" />
                                     </HBox>
                                 </VBox>
+
+                                <VBox spacing="14.0" styleClass="section-card">
+                                    <padding>
+                                        <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                    </padding>
+                                    <Label styleClass="section-title" text="Wallet Request History" />
+                                    <Label styleClass="section-copy" text="History of your deposit and withdraw requests." wrapText="true" />
+                                    <VBox fx:id="requestsContainer" spacing="10.0" />
+                                </VBox>
                             </VBox>
                         </HBox>
                     </VBox>
