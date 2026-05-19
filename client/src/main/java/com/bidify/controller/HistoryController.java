@@ -38,8 +38,10 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class HistoryController {
@@ -407,40 +409,54 @@ public class HistoryController {
 
     private XYChart.Data<Number, Number> createMoneyFlowPoint(TransactionDto transaction, double runningTotal) {
         XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseTransactionCreatedAt(transaction)), runningTotal);
-        point.nodeProperty().addListener((observable, oldNode, newNode) -> configureMoneyFlowPointNode(newNode, transaction, runningTotal));
+        point.setNode(createMoneyFlowPointNode(transaction, runningTotal));
         return point;
     }
 
     private XYChart.Data<Number, Number> createBiddingActivityPoint(BidDto bid, int runningCount) {
         XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), runningCount);
-        point.nodeProperty().addListener((observable, oldNode, newNode) -> configureBiddingActivityPointNode(newNode, bid, runningCount));
+        point.setNode(createBiddingActivityPointNode(bid, runningCount));
         return point;
     }
 
-    private void configureMoneyFlowPointNode(Node node, TransactionDto transaction, double runningTotal) {
-        if (node == null) {
-            return;
-        }
-
-        node.getStyleClass().add(isPositiveFlow(transaction) ? "money-flow-point-positive" : "money-flow-point-negative");
-        Tooltip.install(node, new Tooltip(buildMoneyFlowTooltipText(transaction, runningTotal)));
+    private Node createMoneyFlowPointNode(TransactionDto transaction, double runningTotal) {
+        StackPane node = new StackPane();
+        node.getStyleClass().addAll(
+            "chart-line-symbol",
+            isPositiveFlow(transaction) ? "money-flow-point-positive" : "money-flow-point-negative"
+        );
+        node.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPrefSize(10, 10);
+        node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPickOnBounds(true);
+        attachTooltip(node, createDetailedTooltip(buildMoneyFlowTooltipText(transaction, runningTotal)));
+        return node;
     }
 
-    private void configureBiddingActivityPointNode(Node node, BidDto bid, int runningCount) {
-        if (node == null) {
-            return;
-        }
-
-        node.getStyleClass().add(bid.isAutoBidGenerated() ? "bid-activity-point-auto" : "bid-activity-point-manual");
-        Tooltip.install(node, new Tooltip(buildBiddingActivityTooltipText(bid, runningCount)));
+    private Node createBiddingActivityPointNode(BidDto bid, int runningCount) {
+        StackPane node = new StackPane();
+        node.getStyleClass().addAll(
+            "chart-line-symbol",
+            bid.isAutoBidGenerated() ? "bid-activity-point-auto" : "bid-activity-point-manual"
+        );
+        node.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPrefSize(10, 10);
+        node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPickOnBounds(true);
+        attachTooltip(node, createDetailedTooltip(buildBiddingActivityTooltipText(bid, runningCount)));
+        return node;
     }
 
     private String buildMoneyFlowTooltipText(TransactionDto transaction, double runningTotal) {
         String direction = isPositiveFlow(transaction) ? "Inflow" : "Outflow";
-        return buildTransactionLabel(transaction)
-            + "\n" + direction + ": " + DisplayUtil.formatCurrency(Math.abs(transaction.getAmount()))
+        return "Money Flow Detail"
+            + "\nType: " + buildTransactionLabel(transaction)
+            + "\nDirection: " + direction
+            + "\nAmount: " + DisplayUtil.formatCurrency(Math.abs(transaction.getAmount()))
             + "\nNet total: " + DisplayUtil.formatCurrency(runningTotal)
-            + "\n" + DisplayUtil.formatDateTime(transaction.getCreatedAt(), "Unknown time");
+            + "\nTime: " + DisplayUtil.formatDateTime(transaction.getCreatedAt(), "Unknown time")
+            + "\nAuction: " + DisplayUtil.defaultText(transaction.getAuctionId(), "N/A")
+            + "\nTransaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown");
     }
 
     private String buildBiddingActivityTooltipText(BidDto bid, int runningCount) {
@@ -449,12 +465,33 @@ public class HistoryController {
             : "Auction " + bid.getAuctionId();
         String bidType = bid.isAutoBidGenerated() ? "AutoBid" : "Manual bid";
 
-        return auctionLabel
-            + "\n" + DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
-            + "\n" + DisplayUtil.formatCurrency(bid.getAmount())
+        return "Bidding Activity Detail"
+            + "\nAuction: " + auctionLabel
+            + "\nBidder: " + DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
+            + "\nAmount: " + DisplayUtil.formatCurrency(bid.getAmount())
             + "\nBid count: " + runningCount
-            + "\n" + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
-            + "\n" + bidType;
+            + "\nTime: " + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
+            + "\nType: " + bidType
+            + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
+    }
+
+    private Tooltip createDetailedTooltip(String text) {
+        Tooltip tooltip = new Tooltip(text);
+        tooltip.getStyleClass().add("chart-tooltip");
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(300);
+        return tooltip;
+    }
+
+    private void attachTooltip(Node node, Tooltip tooltip) {
+        node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
+        node.setOnMouseMoved(event -> {
+            if (tooltip.isShowing()) {
+                tooltip.setAnchorX(event.getScreenX() + 14);
+                tooltip.setAnchorY(event.getScreenY() + 14);
+            }
+        });
+        node.setOnMouseExited(event -> tooltip.hide());
     }
 
     private void showChartState(StackPane chartHost, Label stateLabel, String message) {

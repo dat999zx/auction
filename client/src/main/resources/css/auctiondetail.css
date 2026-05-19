@@ -410,15 +410,35 @@
 .chart-line-symbol.bid-point-manual {
     -fx-background-color: #0b5cad;
     -fx-background-insets: 0;
-    -fx-background-radius: 6px;
-    -fx-padding: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 3px;
 }
 
 .chart-line-symbol.bid-point-auto {
     -fx-background-color: #d97706;
     -fx-background-insets: 0;
-    -fx-background-radius: 6px;
-    -fx-padding: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 3px;
+}
+
+.chart-tooltip {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-border-color: #d8e3fb;
+    -fx-border-radius: 12px;
+    -fx-border-width: 1px;
+    -fx-padding: 12px 14px;
+    -fx-text-fill: #001e40;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-line-spacing: 2px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 30, 64, 0.18), 18, 0.18, 0, 6);
+}
+
+.chart-tooltip .label {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
 }
 
 .activity-header {

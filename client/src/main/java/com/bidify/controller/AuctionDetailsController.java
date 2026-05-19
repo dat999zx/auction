@@ -47,8 +47,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class AuctionDetailsController {
@@ -685,25 +687,48 @@ public class AuctionDetailsController {
 
     private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {
         XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), bid.getAmount());
-        point.nodeProperty().addListener((observable, oldNode, newNode) -> configureBidPointNode(newNode, bid));
+        point.setNode(createBidPointNode(bid));
         return point;
     }
 
-    private void configureBidPointNode(Node node, BidDto bid) {
-        if (node == null) {
-            return;
-        }
-
-        node.getStyleClass().add(bid.isAutoBidGenerated() ? "bid-point-auto" : "bid-point-manual");
-        Tooltip.install(node, new Tooltip(buildBidTooltipText(bid)));
+    private Node createBidPointNode(BidDto bid) {
+        StackPane node = new StackPane();
+        node.getStyleClass().addAll("chart-line-symbol", bid.isAutoBidGenerated() ? "bid-point-auto" : "bid-point-manual");
+        node.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPrefSize(10, 10);
+        node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPickOnBounds(true);
+        attachTooltip(node, createDetailedTooltip(buildBidTooltipText(bid)));
+        return node;
     }
 
     private String buildBidTooltipText(BidDto bid) {
         String bidType = bid.isAutoBidGenerated() ? "AutoBid" : "Manual bid";
-        return DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
-                + "\n" + DisplayUtil.formatCurrency(bid.getAmount())
-                + "\n" + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
-                + "\n" + bidType;
+        return "Bid Detail"
+                + "\nBidder: " + DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
+                + "\nAmount: " + DisplayUtil.formatCurrency(bid.getAmount())
+                + "\nTime: " + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
+                + "\nType: " + bidType
+                + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
+    }
+
+    private Tooltip createDetailedTooltip(String text) {
+        Tooltip tooltip = new Tooltip(text);
+        tooltip.getStyleClass().add("chart-tooltip");
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(300);
+        return tooltip;
+    }
+
+    private void attachTooltip(Node node, Tooltip tooltip) {
+        node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
+        node.setOnMouseMoved(event -> {
+            if (tooltip.isShowing()) {
+                tooltip.setAnchorX(event.getScreenX() + 14);
+                tooltip.setAnchorY(event.getScreenY() + 14);
+            }
+        });
+        node.setOnMouseExited(event -> tooltip.hide());
     }
 
     private void showBiddingChartState(String message) {
