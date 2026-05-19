@@ -19,6 +19,7 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
+import com.bidify.server.dao.WalletRequestDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
@@ -120,7 +121,7 @@ public class AuthService {
             if (RealtimeDatabase.isUserOnline(username))
                 throw new AuthException("Another session is already active");
 
-            double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+            double lockedBalance = auctionDao.sumWinningBidsForUser(username) + WalletRequestDao.getInstance().sumPendingWithdrawsForUser(username);
             user.getWallet().setlockedBalance(lockedBalance);
 
             client.setCurrentUsername(username);

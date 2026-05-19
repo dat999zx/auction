@@ -6,6 +6,7 @@ import com.bidify.common.exception.*;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.WalletRequestDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.exception.DatabaseException;
@@ -54,7 +55,7 @@ public class ServiceUtil {
         user = userDao.findByUsername(username);
         if (user == null) throw new AuthException("User not found: " + username);
 
-        double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+        double lockedBalance = auctionDao.sumWinningBidsForUser(username) + WalletRequestDao.getInstance().sumPendingWithdrawsForUser(username);
         user.getWallet().setlockedBalance(lockedBalance);
 
         return user;

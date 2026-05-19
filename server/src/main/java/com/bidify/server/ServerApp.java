@@ -9,6 +9,7 @@ import com.bidify.server.service.BidService;
 import com.bidify.server.service.ItemService;
 import com.bidify.server.service.TransactionService;
 import com.bidify.server.service.UserProfileService;
+import com.bidify.server.service.AdminWalletRequestService;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
@@ -49,6 +50,7 @@ public class ServerApp {
         BidService.getInstance().initialize();
         ItemService.getInstance().initialize();
         TransactionService.getInstance().initialize();
+        AdminWalletRequestService.getInstance().initialize();
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
