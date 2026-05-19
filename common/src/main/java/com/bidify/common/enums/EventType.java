@@ -7,6 +7,7 @@ public enum EventType {
     BID_PLACED,
     USER_JOINED_AUCTION,
     SERVER_NOTICE,
+    FORCED_LOGOUT,
     ERROR,
     AUCTION_DELETED,
     WALLET_CHANGED,

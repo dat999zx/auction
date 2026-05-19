@@ -9,6 +9,8 @@ public enum RequestType {
     UPDATE_PROFILE,
     UPDATE_PASSWORD,
     GET_ADMIN_USERS,
+    PROMOTE_ADMIN,
+    DEMOTE_ADMIN,
     BAN_USER,
     UNBAN_USER,
     DELETE_USER,

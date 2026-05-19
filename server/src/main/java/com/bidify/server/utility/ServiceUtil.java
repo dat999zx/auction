@@ -84,6 +84,12 @@ public class ServiceUtil {
             throw new AuthException("Admin permission required");
     }
 
+    public static void requireBootstrapAdmin(ClientHandler client) {
+        User user = requireSessionUser(client);
+        if (!AuthService.isBootstrapAdminUsername(user.getUsername()))
+            throw new AuthException("Bootstrap admin permission required");
+    }
+
     public static void requireNonAdmin(User user, String message) {
         if (isAdmin(user))
             throw new AuthException(message);

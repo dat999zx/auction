@@ -1,5 +1,9 @@
 package com.bidify;
 
+import com.bidify.common.enums.EventType;
+import com.bidify.common.model.Event;
+import com.bidify.event.EventManager;
+import com.bidify.utility.NotificationUtil;
 import javafx.application.Application;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -40,6 +44,7 @@ public class MainApp extends Application {
         });
 
         SceneManager.setStage(stage);
+        registerGlobalEventHandlers();
 
         SceneManager.preloadScenes("login.fxml", "register.fxml");
 
@@ -75,5 +80,17 @@ public class MainApp extends Application {
             logger.warn("Invalid server.port '{}', using default {}", rawPort, DEFAULT_SERVER_PORT);
             return DEFAULT_SERVER_PORT;
         }
+    }
+
+    private static void registerGlobalEventHandlers() {
+        EventManager.getInstance().subscribe(EventType.FORCED_LOGOUT, MainApp::handleForcedLogout);
+    }
+
+    private static void handleForcedLogout(Event event) {
+        SocketClient.getClient().getClientSession().clear();
+        SceneManager.clearAllCache();
+        if (event != null && event.getMessage() != null && !event.getMessage().isBlank())
+            NotificationUtil.info(event.getMessage());
+        SceneManager.switchScene("login.fxml", true, false);
     }
 }

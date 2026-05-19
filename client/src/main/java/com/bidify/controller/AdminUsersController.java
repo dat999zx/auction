@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 
 import com.bidify.common.dto.AdminUserDto;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.model.ClientSession;
@@ -24,6 +25,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 public class AdminUsersController {
+    private static final String BOOTSTRAP_ADMIN_USERNAME = "admin";
     private final AdminClientService adminClientService = new AdminClientService();
 
     @FXML
@@ -118,6 +120,7 @@ public class AdminUsersController {
         inventoryButton.getStyleClass().add("admin-action-button");
         inventoryButton.setOnAction(event -> openInventory(user.getUsername()));
 
+        Button roleButton = createRoleButton(user);
         Button toggleBanButton = new Button(user.getStatus() == UserStatus.BANNED ? "Unban" : "Ban");
         toggleBanButton.getStyleClass().add("admin-action-button");
         toggleBanButton.setOnAction(event -> handleBanToggle(user));
@@ -126,7 +129,10 @@ public class AdminUsersController {
         deleteButton.getStyleClass().addAll("admin-action-button", "admin-danger-button");
         deleteButton.setOnAction(event -> handleDelete(user.getUsername()));
 
-        row.getChildren().addAll(details, status, inventoryButton, toggleBanButton, deleteButton);
+        row.getChildren().addAll(details, status, inventoryButton);
+        if (roleButton != null)
+            row.getChildren().add(roleButton);
+        row.getChildren().addAll(toggleBanButton, deleteButton);
         return row;
     }
 
@@ -153,6 +159,42 @@ public class AdminUsersController {
         catch (ValidationException e) {
             NotificationUtil.error(e.getMessage());
         }
+    }
+
+    private Button createRoleButton(AdminUserDto user) {
+        if (!isBootstrapAdminSession())
+            return null;
+        if (BOOTSTRAP_ADMIN_USERNAME.equals(user.getUsername()))
+            return null;
+
+        Button roleButton = new Button(user.getRole() == UserRole.ADMIN ? "Remove Admin" : "Make Admin");
+        roleButton.getStyleClass().add("admin-action-button");
+        roleButton.setOnAction(event -> handleRoleToggle(user));
+        return roleButton;
+    }
+
+    private void handleRoleToggle(AdminUserDto user) {
+        try {
+            if (user.getRole() == UserRole.ADMIN) {
+                adminClientService.demoteAdmin(user.getUsername());
+                NotificationUtil.success("Admin removed successfully.");
+            }
+            else {
+                adminClientService.promoteAdmin(user.getUsername());
+                NotificationUtil.success("User promoted to admin successfully.");
+            }
+            loadUsers();
+        }
+        catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+        }
+        catch (ValidationException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    private boolean isBootstrapAdminSession() {
+        return BOOTSTRAP_ADMIN_USERNAME.equals(ClientSession.getInstance().getCurrentUsername());
     }
 
     private void handleDelete(String username) {

@@ -41,6 +41,14 @@ public class AdminClientService {
         executeUserAction(RequestType.BAN_USER, username, "Cannot ban user.");
     }
 
+    public void promoteAdmin(String username) throws IOException {
+        executeUserAction(RequestType.PROMOTE_ADMIN, username, "Cannot promote user.");
+    }
+
+    public void demoteAdmin(String username) throws IOException {
+        executeUserAction(RequestType.DEMOTE_ADMIN, username, "Cannot remove admin.");
+    }
+
     public void unbanUser(String username) throws IOException {
         executeUserAction(RequestType.UNBAN_USER, username, "Cannot unban user.");
     }

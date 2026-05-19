@@ -7,6 +7,7 @@ import com.bidify.common.dto.AdminUserDto;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
@@ -50,6 +51,8 @@ public class AdminService {
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_ADMIN_USERS, (client, req) -> getUsers(client));
+        router.register(RequestType.PROMOTE_ADMIN, this::promoteAdmin);
+        router.register(RequestType.DEMOTE_ADMIN, this::demoteAdmin);
         router.register(RequestType.BAN_USER, this::banUser);
         router.register(RequestType.UNBAN_USER, this::unbanUser);
         router.register(RequestType.DELETE_USER, this::deleteUser);
@@ -74,7 +77,7 @@ public class AdminService {
             User target = requireManageableTarget(request);
             target.setStatus(UserStatus.BANNED);
             userDao.save(target, false);
-            disconnectUser(target.getUsername(), "Your account has been banned.");
+            forceLogoutUser(target.getUsername(), "Your account has been banned.");
 
             return new Response(RequestStatus.SUCCESS, "User banned successfully");
         });
@@ -115,38 +118,87 @@ public class AdminService {
         });
     }
 
+    public Response promoteAdmin(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireBootstrapAdmin(client);
+
+            User target = requireAdminRoleTarget(request);
+            if (target.getRole() == UserRole.ADMIN)
+                throw new ValidationException("User is already an admin");
+
+            target.setRole(UserRole.ADMIN);
+            userDao.save(target, false);
+            forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
+
+            return new Response(RequestStatus.SUCCESS, "User promoted to admin successfully");
+        });
+    }
+
+    public Response demoteAdmin(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireBootstrapAdmin(client);
+
+            User target = requireAdminRoleTarget(request);
+            if (target.getRole() != UserRole.ADMIN)
+                throw new ValidationException("User is not an admin");
+
+            target.setRole(UserRole.USER);
+            userDao.save(target, false);
+            forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
+
+            return new Response(RequestStatus.SUCCESS, "Admin removed successfully");
+        });
+    }
+
     private User requireManageableTarget(Request request) {
+        User target = requireExistingTarget(request);
+        ServiceUtil.requireNonAdmin(target, "Cannot manage admin accounts");
+        return target;
+    }
+
+    private User requireAdminRoleTarget(Request request) {
+        return requireExistingTarget(request);
+    }
+
+    private User requireExistingTarget(Request request) {
         UserTargetRequest data = JsonUtil.fromMap(request.getData(), UserTargetRequest.class);
         ServiceUtil.validateRequestData(data);
 
         String username = data.getUsername();
         ValidationUtil.validateUsername(username);
 
-        User target = userDao.findByUsername(username);
-        if (target == null)
-            throw new ValidationException("User not found");
         if (AuthService.BOOTSTRAP_ADMIN_USERNAME.equals(username))
             throw new AuthException("Cannot manage the bootstrap admin account");
-
-        ServiceUtil.requireNonAdmin(target, "Cannot manage admin accounts");
-        return target;
+        return ServiceUtil.getOrLoadUser(username);
     }
 
     private void disconnectUser(String username, String message) {
-        User activeUser = RealtimeDatabase.getActiveUser(username);
         ClientHandler clientHandler = RealtimeDatabase.getUserClient(username);
+        clearActiveSession(username);
+        if (clientHandler != null) {
+            clientHandler.sendEvent(new Event(EventType.SERVER_NOTICE, message));
+            clientHandler.setCurrentUsername(null);
+            clientHandler.closeConnection();
+        }
+    }
+
+    private void forceLogoutUser(String username, String message) {
+        ClientHandler clientHandler = RealtimeDatabase.getUserClient(username);
+        clearActiveSession(username);
+        if (clientHandler != null) {
+            clientHandler.sendEvent(new Event(EventType.FORCED_LOGOUT, message));
+            clientHandler.setCurrentUsername(null);
+        }
+    }
+
+    private void clearActiveSession(String username) {
+        User activeUser = RealtimeDatabase.getActiveUser(username);
         if (activeUser != null)
             userDao.save(activeUser, false);
 
         List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
         for (String auctionId : affectedAuctionIds)
             AuctionService.getInstance().publishLiveAudienceUpdate(auctionId);
-
-        if (clientHandler != null) {
-            clientHandler.sendEvent(new Event(EventType.SERVER_NOTICE, message));
-            clientHandler.setCurrentUsername(null);
-            clientHandler.closeConnection();
-        }
     }
 
     private void deleteAuctionCascade(Auction auction) {
