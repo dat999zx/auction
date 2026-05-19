@@ -171,6 +171,94 @@
     -fx-padding: 0;
 }
 
+.analytics-card {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-padding: 18 20;
+}
+
+.analytics-chart-host {
+    -fx-background-color: #f7f9fc;
+    -fx-background-radius: 12;
+    -fx-border-color: #e6e8eb;
+    -fx-border-radius: 12;
+    -fx-padding: 8;
+}
+
+.analytics-empty-text {
+    -fx-text-fill: #667085;
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+}
+
+.analytics-line-chart {
+    -fx-background-color: transparent;
+    -fx-padding: 8px;
+}
+
+.analytics-line-chart .chart-plot-background {
+    -fx-background-color: #f7f9fc;
+    -fx-background-insets: 0;
+    -fx-background-radius: 10px;
+}
+
+.analytics-line-chart .chart-vertical-grid-lines,
+.analytics-line-chart .chart-horizontal-grid-lines {
+    -fx-stroke: #e6e8eb;
+}
+
+.analytics-line-chart .chart-series-line {
+    -fx-stroke: #0048d8;
+    -fx-stroke-width: 2px;
+}
+
+.analytics-line-chart .axis {
+    -fx-tick-label-fill: #667085;
+    -fx-font-size: 10px;
+}
+
+.analytics-line-chart .axis-label {
+    -fx-text-fill: #000666;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.money-flow-chart .chart-series-line {
+    -fx-stroke: #16a34a;
+}
+
+.bidding-activity-chart .chart-series-line {
+    -fx-stroke: #0048d8;
+}
+
+.chart-line-symbol.money-flow-point-positive {
+    -fx-background-color: #16a34a;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.chart-line-symbol.money-flow-point-negative {
+    -fx-background-color: #dc2626;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.chart-line-symbol.bid-activity-point-manual {
+    -fx-background-color: #0048d8;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.chart-line-symbol.bid-activity-point-auto {
+    -fx-background-color: #f59e0b;
+    -fx-background-insets: 0;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
 .table-header {
     -fx-background-color: #f2f4f7;
     -fx-padding: 16 24;

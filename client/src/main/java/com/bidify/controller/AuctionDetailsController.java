@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
@@ -55,6 +56,8 @@ public class AuctionDetailsController {
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
     private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+    private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
+    private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
     private static String selectedAuctionId;
 
@@ -727,9 +730,7 @@ public class AuctionDetailsController {
     }
 
     private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
-        boolean useFullFormatter = firstBidTime != null
-                && lastBidTime != null
-                && firstBidTime.toLocalDate().isBefore(lastBidTime.toLocalDate());
+        DateTimeFormatter formatter = resolveTimeAxisFormatter(firstBidTime, lastBidTime);
 
         return new StringConverter<>() {
             @Override
@@ -737,7 +738,7 @@ public class AuctionDetailsController {
                 LocalDateTime dateTime = fromEpochSeconds(value.longValue());
                 return dateTime == null
                         ? ""
-                        : dateTime.format(useFullFormatter ? CHART_FULL_TIME_FORMATTER : CHART_SHORT_TIME_FORMATTER);
+                        : dateTime.format(formatter);
             }
 
             @Override
@@ -745,6 +746,26 @@ public class AuctionDetailsController {
                 return 0;
             }
         };
+    }
+
+    private DateTimeFormatter resolveTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
+        if (firstBidTime == null || lastBidTime == null) {
+            return CHART_SHORT_TIME_FORMATTER;
+        }
+
+        long totalHours = Math.abs(ChronoUnit.HOURS.between(firstBidTime, lastBidTime));
+        long totalDays = Math.abs(ChronoUnit.DAYS.between(firstBidTime.toLocalDate(), lastBidTime.toLocalDate()));
+
+        if (totalHours < 24) {
+            return CHART_SHORT_TIME_FORMATTER;
+        }
+        if (totalDays <= 14) {
+            return CHART_DAY_FORMATTER;
+        }
+        if (totalDays <= 90) {
+            return CHART_FULL_TIME_FORMATTER;
+        }
+        return CHART_YEAR_FORMATTER;
     }
 
     private LocalDateTime parseBidCreatedAt(BidDto bid) {
