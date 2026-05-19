@@ -37,10 +37,13 @@ public class TransactionService {
     private final UserDao userDao = UserDao.getInstance();
     private final WalletRequestDao walletRequestDao = WalletRequestDao.getInstance();
 
+    // dùng để tạo một đối tượng TransactionService
     private TransactionService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static TransactionService getInstance() { return instance; }
 
+    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_TRANSACTION_HISTORY, (client, req) -> getUserTransactions(client));
@@ -49,6 +52,7 @@ public class TransactionService {
         router.register(RequestType.WITHDRAW, this::withdraw);
     }
 
+    // dùng để nạp tiền
     public Response deposit(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             com.bidify.common.model.WalletRequest data = JsonUtil.fromMap(request.getData(), com.bidify.common.model.WalletRequest.class);
@@ -63,12 +67,14 @@ public class TransactionService {
             walletRequestDao.create(walletRequest);
 
             UserDto userDto = UserMapper.toDto(user);
+            // dùng để phát sự kiện ví danh sách yêu cầu changed
             publishWalletRequestsChanged(client);
 
             return new Response(RequestStatus.SUCCESS, "Deposit request created successfully", userDto);
         });
     }
 
+    // dùng để rút tiền
     public Response withdraw(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             User user = ServiceUtil.requireSessionUser(client);
@@ -96,13 +102,16 @@ public class TransactionService {
             }
 
             UserDto userDto = UserMapper.toDto(user);
+            // dùng để phát sự kiện ví changed
             publishWalletChanged(client, userDto);
+            // dùng để phát sự kiện ví danh sách yêu cầu changed
             publishWalletRequestsChanged(client);
 
             return new Response(RequestStatus.SUCCESS, "Withdraw request created successfully", userDto);
         });
     }
 
+    // dùng để lấy người dùng danh sách giao dịch
     public Response getUserTransactions(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
@@ -126,6 +135,7 @@ public class TransactionService {
         });
     }
 
+    // dùng để lấy người dùng ví danh sách yêu cầu
     public Response getUserWalletRequests(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
@@ -151,11 +161,13 @@ public class TransactionService {
         });
     }
 
+    // dùng để phát sự kiện ví changed
     private void publishWalletChanged(ClientHandler client, UserDto userDto) {
         if (client == null || userDto == null) return;
         client.sendEvent(new Event(EventType.WALLET_CHANGED, "Wallet changed", userDto));
     }
 
+    // dùng để báo cho toàn bộ admin đang online biết có yêu cầu ví mới để reload UI
     private void publishWalletRequestsChanged(ClientHandler client) {
         if (client == null) return;
         // Only notify admin clients — they manage the approval queue.

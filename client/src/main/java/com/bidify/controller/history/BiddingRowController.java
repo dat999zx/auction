@@ -23,6 +23,7 @@ public class BiddingRowController {
     @FXML
     private Label statusLabel;
 
+    // dùng để thiết lập data
     public void setData(String title, String subtitle, String amount, String dateTime, String status) {
         titleLabel.setText(title);
         subtitleLabel.setText(subtitle);
@@ -34,6 +35,7 @@ public class BiddingRowController {
         statusLabel.getStyleClass().add(resolveBadgeStyle(status));
     }
 
+    // dùng để giải quyết badge style
     private String resolveBadgeStyle(String status) {
         if ("WON".equals(status) || "PROFIT".equals(status) || "PLACED".equals(status) || "AUTO".equals(status) || "PENDING".equals(status))
             return "badge-won";

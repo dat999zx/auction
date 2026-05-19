@@ -40,6 +40,7 @@ public class AdminWalletRequestsController {
     @FXML
     private Label summaryLabel;
 
+    // dùng để khởi tạo trang quản lý request ví và lắng nghe sự thay đổi từ server
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
@@ -51,19 +52,24 @@ public class AdminWalletRequestsController {
 
             MissionBarUtil.setup(NavPage.ADMIN_WALLET_REQUESTS, false, null, this::cleanup);
             EventManager.getInstance().subscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
+            // dùng để tải danh sách yêu cầu
             loadRequests();
         });
     }
 
+    // dùng để huỷ đăng ký event tránh leak bộ nhớ
     private void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
+    // dùng để load lại danh sách thủ công
     @FXML
     private void handleRefresh() {
+        // dùng để tải danh sách yêu cầu
         loadRequests();
     }
 
+    // dùng để gửi request lấy các yêu cầu nạp/rút chưa duyệt từ server
     private void loadRequests() {
         Platform.runLater(() -> {
             try {
@@ -82,6 +88,7 @@ public class AdminWalletRequestsController {
         });
     }
 
+    // dùng để vẽ danh sách các yêu cầu nạp/rút lên bảng điều khiển
     private void renderRequests(List<WalletRequestDto> requests) {
         requestsContainer.getChildren().clear();
         if (requests == null || requests.isEmpty()) {
@@ -95,6 +102,7 @@ public class AdminWalletRequestsController {
             requestsContainer.getChildren().add(createRequestRow(req));
     }
 
+    // dùng để tạo giao diện hiển thị khi không có yêu cầu nào đang chờ
     private VBox createEmptyState() {
         VBox box = new VBox(10);
         box.getStyleClass().add("admin-empty-state");
@@ -106,6 +114,7 @@ public class AdminWalletRequestsController {
         return box;
     }
 
+    // dùng để tạo một hàng hiển thị thông tin nạp/rút kèm nút duyệt/từ chối
     private HBox createRequestRow(WalletRequestDto req) {
         HBox row = new HBox(12);
         row.getStyleClass().add("admin-user-row");
@@ -136,11 +145,13 @@ public class AdminWalletRequestsController {
         return row;
     }
 
+    // dùng để gửi quyết định duyệt (Approve) hoặc từ chối (Deny) lên server
     private void handleReview(String requestId, boolean approved) {
         try {
             adminClientService.reviewWalletRequest(requestId, approved);
             NotificationUtil.success("Request " + (approved ? "approved" : "denied") + " successfully.");
             // Wait for event or just reload
+            // dùng để tải danh sách yêu cầu
             loadRequests();
         }
         catch (IOException e) {

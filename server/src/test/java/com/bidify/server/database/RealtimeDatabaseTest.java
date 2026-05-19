@@ -13,11 +13,13 @@ import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 
 public class RealtimeDatabaseTest {
+    // dùng để dọn dẹp tài nguyên
     @AfterEach
     void cleanup() {
         RealtimeDatabase.clearAll();
     }
 
+    // dùng để thêm active người dùng should store người dùng and client
     @Test
     void addActiveUserShouldStoreUserAndClient() {
         ClientHandler client = new ClientHandler(null);
@@ -32,6 +34,7 @@ public class RealtimeDatabaseTest {
         assertNotNull(RealtimeDatabase.getUserSession("test"));
     }
 
+    // dùng để thêm runtime đấu giá should store upcoming đấu giá
     @Test
     void addRuntimeAuctionShouldStoreUpcomingAuction() {
         Auction auction = new Auction(
@@ -51,6 +54,7 @@ public class RealtimeDatabaseTest {
         assertEquals(1, RealtimeDatabase.getRuntimeAuctionsByStatus(AuctionStatus.UPCOMING).size());
     }
 
+    // dùng để đăng ký lắng nghe sự kiện đấu giá kênh truyền tải should mark người dùng watching đấu giá
     @Test
     void subscribeAuctionChannelShouldMarkUserWatchingAuction() {
         ClientHandler client = new ClientHandler(null);
@@ -72,6 +76,7 @@ public class RealtimeDatabaseTest {
         assertTrue(RealtimeDatabase.isWatchingAuction("user", auction.getId()));
     }
 
+    // dùng để xóa active người dùng should hủy đăng ký lắng nghe sự kiện người dùng từ đấu giá kênh truyền tải
     @Test
     void removeActiveUserShouldUnsubscribeUserFromAuctionChannel() {
         ClientHandler client = new ClientHandler(null);

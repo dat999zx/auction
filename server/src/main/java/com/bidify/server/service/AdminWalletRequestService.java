@@ -35,16 +35,20 @@ public class AdminWalletRequestService {
     private final UserDao userDao = UserDao.getInstance();
     private final TransactionDao transactionDao = TransactionDao.getInstance();
 
+    // dùng để tạo một đối tượng AdminWalletRequestService
     private AdminWalletRequestService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static AdminWalletRequestService getInstance() { return instance; }
 
+    // dùng để đăng ký API routes với router hệ thống cho phần duyệt tiền
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_PENDING_WALLET_REQUESTS, (client, req) -> getPendingRequests(client));
         router.register(RequestType.REVIEW_WALLET_REQUEST, this::reviewRequest);
     }
 
+    // dùng để lấy danh sách các request nạp/rút đang chờ duyệt (chỉ dành cho admin)
     public Response getPendingRequests(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);
@@ -69,6 +73,7 @@ public class AdminWalletRequestService {
         });
     }
 
+    // dùng để xử lý admin approve hoặc deny một request nạp/rút
     public Response reviewRequest(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             User admin = ServiceUtil.requireSessionUser(client);
@@ -118,6 +123,7 @@ public class AdminWalletRequestService {
             }
 
             // Publish events
+            // dùng để phát sự kiện ví danh sách yêu cầu changed
             publishWalletRequestsChanged(client);
             publishUserRequestsChanged(walletRequest.getUsername());
             
@@ -133,6 +139,7 @@ public class AdminWalletRequestService {
         });
     }
 
+    // dùng để báo cho toàn bộ admin đang online biết danh sách request đã thay đổi để reload UI
     private void publishWalletRequestsChanged(ClientHandler client) {
         if (client == null) return;
         // Only send to admin clients, not every connected user.
@@ -146,6 +153,7 @@ public class AdminWalletRequestService {
     }
 
     /** Notify the target user that their own request list changed. */
+    // dùng để báo cho user có request được duyệt biết để cập nhật lịch sử nạp/rút của họ
     private void publishUserRequestsChanged(String username) {
         if (username == null) return;
         ClientHandler targetClient = RealtimeDatabase.getUserClient(username);

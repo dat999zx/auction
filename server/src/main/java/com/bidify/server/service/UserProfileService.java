@@ -22,10 +22,13 @@ public class UserProfileService {
     private static UserProfileService instance = new UserProfileService();
     private final UserDao userDao = UserDao.getInstance();
 
+    // dùng để tạo một đối tượng UserProfileService
     private UserProfileService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static UserProfileService getInstance() { return instance; }
 
+    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
@@ -33,6 +36,7 @@ public class UserProfileService {
         router.register(RequestType.UPDATE_PASSWORD, this::updatePassword);
     }
 
+    // dùng để lấy thông tin tài khoản
     public Response getProfile(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());
@@ -40,6 +44,7 @@ public class UserProfileService {
         });
     }
 
+    // dùng để cập nhật thông tin tài khoản
     public Response updateProfile(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
@@ -64,6 +69,7 @@ public class UserProfileService {
         });
     }
 
+    // dùng để cập nhật mật khẩu
     public Response updatePassword(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdatePasswordRequest data = JsonUtil.fromMap(request.getData(), UpdatePasswordRequest.class);

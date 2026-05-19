@@ -13,10 +13,13 @@ import java.util.List;
 public class WalletRequestDao {
     private static WalletRequestDao instance = new WalletRequestDao();
 
+    // dùng để tạo một đối tượng WalletRequestDao
     private WalletRequestDao() {}
 
+    // dùng để lấy đối tượng Singleton
     public static WalletRequestDao getInstance() { return instance; }
 
+    // dùng để chèn một yêu cầu ví mới vào cơ sở dữ liệu SQLite
     public void create(WalletRequest request) throws DatabaseException {
         String sql = "INSERT INTO WalletRequests(id, createdAt, reviewedAt, username, type, amount, status, reviewedBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         SQLiteHelper.update(sql,
@@ -31,6 +34,7 @@ public class WalletRequestDao {
         );
     }
 
+    // dùng để cập nhật thông tin duyệt yêu cầu (status, reviewer, thời gian duyệt)
     public void update(WalletRequest request) throws DatabaseException {
         String sql = "UPDATE WalletRequests SET reviewedAt = ?, status = ?, reviewedBy = ? WHERE id = ?";
         SQLiteHelper.update(sql,
@@ -41,22 +45,26 @@ public class WalletRequestDao {
         );
     }
 
+    // dùng để tìm kiếm một yêu cầu ví cụ thể theo ID
     public WalletRequest findById(String id) throws DatabaseException {
         String sql = "SELECT * FROM WalletRequests WHERE id = ?";
         List<WalletRequest> list = SQLiteHelper.query(sql, this::mapResultSet, id);
         return list.isEmpty() ? null : list.get(0);
     }
 
+    // dùng để lấy toàn bộ lịch sử yêu cầu của một người dùng cụ thể
     public List<WalletRequest> findByUsername(String username) throws DatabaseException {
         String sql = "SELECT * FROM WalletRequests WHERE username = ? ORDER BY createdAt DESC";
         return SQLiteHelper.query(sql, this::mapResultSet, username);
     }
 
+    // dùng để lấy danh sách các yêu cầu nạp/rút đang ở trạng thái chờ duyệt
     public List<WalletRequest> findPending() throws DatabaseException {
         String sql = "SELECT * FROM WalletRequests WHERE status = 'PENDING' ORDER BY createdAt ASC";
         return SQLiteHelper.query(sql, this::mapResultSet);
     }
 
+    // dùng để tính tổng số tiền đang bị giữ ở các yêu cầu rút tiền đang chờ duyệt của user
     public double sumPendingWithdrawsForUser(String username) throws DatabaseException {
         String sql = "SELECT SUM(amount) FROM WalletRequests WHERE username = ? AND type = 'WITHDRAW' AND status = 'PENDING'";
         return SQLiteHelper.query(sql, rs -> {

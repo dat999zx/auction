@@ -90,10 +90,13 @@ public class UserProfileController {
     private final Consumer<Event> onServerNotice = e -> Platform.runLater(() -> NotificationUtil.info(e.getMessage()));
     private final Consumer<Event> onWalletRequestsChanged = e -> Platform.runLater(this::loadRequests);
 
+    // dùng để hiển thị profile hiện tại và đăng ký lắng nghe sự kiện từ server
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
+            // dùng để liên kết dữ liệu top bar
             bindTopBar();
+            // dùng để đổ dữ liệu vào thông tin tài khoản
             populateProfile();
         });
 
@@ -103,6 +106,7 @@ public class UserProfileController {
         EventManager.getInstance().subscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
+    // dùng để hủy lắng nghe sự kiện tránh bị rò rỉ bộ nhớ (memory leak)
     public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, onWalletChanged);
         EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
@@ -110,10 +114,12 @@ public class UserProfileController {
         EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
+    // dùng để gửi yêu cầu lưu thay đổi nickname của user lên server
     @FXML
     private void handleSaveProfile() {
         try {
             UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
+            // dùng để refresh thông tin tài khoản
             refreshProfile(updatedUser);
             NotificationUtil.success("Profile updated successfully.");
         }
@@ -125,12 +131,14 @@ public class UserProfileController {
         }
     }
 
+    // dùng để nạp tiền (gửi request chờ admin duyệt)
     @FXML
     private void handleTopUp() {
         try {
             userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
             topUpAmountField.clear();
             NotificationUtil.success("Deposit request submitted — pending admin approval.");
+            // dùng để tải danh sách yêu cầu
             loadRequests();
         }
         catch (IOException e) {
@@ -141,6 +149,7 @@ public class UserProfileController {
         }
     }
 
+    // dùng để rút tiền (gửi request khóa số dư chờ admin duyệt)
     @FXML
     private void handleWithdraw() {
         try {
@@ -148,6 +157,7 @@ public class UserProfileController {
             withdrawAmountField.clear();
             NotificationUtil.success("Withdraw request submitted — pending admin approval.");
             // Reload profile since locked balance changed
+            // dùng để đổ dữ liệu vào thông tin tài khoản
             populateProfile();
         }
         catch (IOException e) {
@@ -158,6 +168,7 @@ public class UserProfileController {
         }
     }
 
+    // dùng để thay đổi mật khẩu tài khoản
     @FXML
     private void handleChangePassword() {
         try {
@@ -179,11 +190,13 @@ public class UserProfileController {
         }
     }
 
+    // dùng để xử lý thông tin tài khoản hình ảnh placeholder
     @FXML
     private void handleProfileImagePlaceholder() {
         NotificationUtil.info("Profile image upload is a UI placeholder right now.");
     }
 
+    // dùng để load thông tin người dùng từ server hoặc cache
     private void populateProfile() {
         try {
             refreshProfile(userProfileClientService.getCurrentProfile());
@@ -196,13 +209,16 @@ public class UserProfileController {
         }
 
         profileImageHintLabel.setText("Profile image upload placeholder");
+        // dùng để tải danh sách yêu cầu
         loadRequests();
     }
 
+    // dùng để lấy danh sách lịch sử nạp/rút từ server
     private void loadRequests() {
         if (requestsContainer == null) return;
         try {
             List<WalletRequestDto> requests = userProfileClientService.getUserWalletRequests();
+            // dùng để hiển thị danh sách yêu cầu
             renderRequests(requests);
         } catch (Exception e) {
             requestsContainer.getChildren().clear();
@@ -210,6 +226,7 @@ public class UserProfileController {
         }
     }
 
+    // dùng để vẽ danh sách các yêu cầu nạp/rút tiền lên UI
     private void renderRequests(List<WalletRequestDto> requests) {
         requestsContainer.getChildren().clear();
         if (requests == null || requests.isEmpty()) {
@@ -252,17 +269,21 @@ public class UserProfileController {
         }
     }
 
+    // dùng để tự động reload lại số dư khi nhận được event đổi ví từ server
     private void refreshProfileFromEvent(Event event) {
         if (event != null && event.getData() != null) {
             UserDto updatedUser = JsonUtil.fromMap(event.getData(), UserDto.class);
             if (updatedUser != null) {
+                // dùng để refresh thông tin tài khoản
                 refreshProfile(updatedUser);
                 return;
             }
         }
+        // dùng để đổ dữ liệu vào thông tin tài khoản
         populateProfile();
     }
 
+    // dùng để refresh thông tin tài khoản
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
@@ -283,6 +304,7 @@ public class UserProfileController {
         }
     }
 
+    // dùng để phân tích cú pháp số tiền
     private double parseAmount(String rawValue, String fieldName) {
         String value = rawValue == null ? "" : rawValue.trim();
         if (value.isBlank()) {
@@ -297,10 +319,12 @@ public class UserProfileController {
         }
     }
 
+    // dùng để liên kết dữ liệu top bar
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.PROFILE, false, null, this::cleanup);
     }
 
+    // dùng để giải quyết ảnh đại diện letter
     private String resolveAvatarLetter(String nickname, String username) {
         String source = nickname;
         if (source == null || source.isBlank()) {
@@ -312,6 +336,7 @@ public class UserProfileController {
         return source.substring(0, 1).toUpperCase();
     }
 
+    // dùng để bật tắt ví controls
     private void toggleWalletControls(boolean visible) {
         if (topUpAmountField != null && topUpAmountField.getParent() != null && topUpAmountField.getParent().getParent() != null) {
             topUpAmountField.getParent().getParent().setManaged(visible);

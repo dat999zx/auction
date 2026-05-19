@@ -20,6 +20,7 @@ public class MissionBarUtil {
     private static final AuthClientService authClientService = new AuthClientService();
     private static final ClientSession clientSession = ClientSession.getInstance();
 
+    // dùng để mission bar tiện ích
     private MissionBarUtil() {}
 
     private static Runnable currentCleanupAction;
@@ -31,10 +32,13 @@ public class MissionBarUtil {
 - searchHandler: EventHandler Ä‘á»ƒ xá»­ lÃ½ sá»± kiá»‡n khi ngÆ°á»i dÃ¹ng thá»±c hiá»‡n tÃ¬m kiáº¿m (náº¿u showSearch = true).
 */
 
+    // dùng để cấu hình thanh menu (mission bar) cho màn hình hiện tại
     public static void setup(NavPage activePage, boolean showSearch, EventHandler<ActionEvent> searchHandler) {
+        // dùng để setup
         setup(activePage, showSearch, searchHandler, null);
     }
 
+    // dùng để cấu hình thanh menu (mission bar) kèm theo hàm dọn dẹp tài nguyên
     public static void setup(NavPage activePage, boolean showSearch, EventHandler<ActionEvent> searchHandler, Runnable cleanupAction) {
         currentCleanupAction = cleanupAction;
         MissionBarController missionBarController = SceneManager.getMissionBarController();
@@ -70,10 +74,12 @@ public class MissionBarUtil {
         missionBarController.setAvatarText(resolveAvatarLetter());
 
         // Ä‘Ã¡nh dáº¥u page hiá»‡n táº¡i Ä‘ang active trÃªn mission bar
+        // dùng để thiết lập active trang
         setActivePage(missionBarController, activePage);
     }
 
     // xá»­ lÃ½ sá»± kiá»‡n khi ngÆ°á»i dÃ¹ng click vÃ o cÃ¡c button trÃªn mission bar
+    // dùng để xử lý sự kiện chuyển trang khi người dùng nhấn nút trên thanh menu
     private static void handleNavigation(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) return;
 
@@ -107,6 +113,7 @@ public class MissionBarUtil {
         else if (selectedButton == controller.getLogoutLinkButton()) handleLogout();
     }
 
+    // dùng để gửi yêu cầu đăng xuất đến server và xóa session client
     private static void handleLogout() {
         try {
             Response response = authClientService.logout();
@@ -126,6 +133,7 @@ public class MissionBarUtil {
         }
     }
 
+    // dùng để tô sáng (highlight) mục menu tương ứng với trang đang hiển thị
     private static void setActivePage(MissionBarController controller, NavPage activePage) {
         if (activePage == null || activePage == NavPage.NONE) {
             controller.setActiveNavigation(null);
@@ -144,7 +152,7 @@ public class MissionBarUtil {
         }
     }
 
-    // Láº¥y chá»¯ cÃ¡i Ä‘áº§u tiÃªn cá»§a username Ä‘á»ƒ hiá»ƒn thá»‹ trÃªn avatar, náº¿u khÃ´ng cÃ³ username thÃ¬ hiá»ƒn thá»‹ "U" máº·c Ä‘á»‹nh.
+    // dùng để lấy chữ cái đầu tiên của tên đăng nhập làm avatar
     private static String resolveAvatarLetter() {
         String username = SocketClient.getClient().getCurrentUsername();
         if (username == null || username.isBlank()) return "U";

@@ -8,9 +8,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public final class ImageUtil {
+    // dùng để tạo một đối tượng ImageUtil
     private ImageUtil() {}
 
     // resize ảnh nếu như quá to
+    // dùng để resize hình ảnh
     public static byte[] resizeImage(byte[] imageData, int maxDimension) throws IOException {
         if (imageData == null || imageData.length == 0) return imageData;
 

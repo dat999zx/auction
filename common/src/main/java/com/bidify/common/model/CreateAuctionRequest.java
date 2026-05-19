@@ -22,15 +22,21 @@ public class CreateAuctionRequest {
         this.endTime = endTime;
     }
 
+    // dùng để lấy seller
     public String getSeller(){ return seller; }
 
+    // dùng để lấy sản phẩm ID
     public String getItemId() { return itemId; }
 
+    // dùng để lấy starting giá sản phẩm
     public double getStartingPrice() { return startingPrice; }
 
+    // dùng để lấy min increment
     public double getMinIncrement() { return minIncrement; }
 
+    // dùng để lấy end thời gian
     public String getEndTime() { return endTime; }
 
+    // dùng để lấy bắt đầu thời gian
     public String getStartTime() { return startTime; }
 }

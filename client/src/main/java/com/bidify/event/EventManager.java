@@ -15,8 +15,10 @@ import com.bidify.common.model.Event;
 public class EventManager extends Router<EventType, List<Consumer<Event>>> {
     private static final EventManager instance = new EventManager();
 
+    // dùng để tạo một đối tượng EventManager
     private EventManager() {}
 
+    // dùng để lấy đối tượng Singleton
     public static EventManager getInstance() {
         return instance;
     }
@@ -25,6 +27,7 @@ public class EventManager extends Router<EventType, List<Consumer<Event>>> {
      * Subscribe to an event type.
      * Uses atomic computeIfAbsent to ensure thread-safety for collection management.
      */
+    // dùng để đăng ký lắng nghe sự kiện
     public void subscribe(EventType type, Consumer<Event> listener) {
         if (type == null || listener == null) return;
         routes.computeIfAbsent(type, k -> new CopyOnWriteArrayList<>()).add(listener);
@@ -33,6 +36,7 @@ public class EventManager extends Router<EventType, List<Consumer<Event>>> {
     /**
      * Unsubscribe from an event type.
      */
+    // dùng để hủy đăng ký lắng nghe sự kiện
     public void unsubscribe(EventType type, Consumer<Event> listener) {
         if (type == null || listener == null) return;
         List<Consumer<Event>> handlers = routes.get(type);
@@ -44,6 +48,7 @@ public class EventManager extends Router<EventType, List<Consumer<Event>>> {
     /**
      * Publish an event to all subscribers.
      */
+    // dùng để phát sự kiện
     public void publish(Event event) {
         if (event == null || event.getType() == null) return;
 

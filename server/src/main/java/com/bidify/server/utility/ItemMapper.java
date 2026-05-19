@@ -4,8 +4,10 @@ import com.bidify.common.dto.ItemDto;
 import com.bidify.server.model.Item;
 
 public class ItemMapper {
+    // dùng để tạo một đối tượng ItemMapper
     private ItemMapper() {}
 
+    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
     public static ItemDto toDto(Item item) {
         if (item == null) return null;
 

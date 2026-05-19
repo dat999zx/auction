@@ -11,6 +11,7 @@ public class EmptyCardController {
     @FXML
     private Label messageLabel;
 
+    // dùng để thiết lập tin nhắn
     public void setMessage(String message) {
         messageLabel.setText(message);
     }

@@ -64,10 +64,12 @@ public class ModifyAuctionController {
      * Static method to set the Auction ID to be modified.
      * Call this before switching to modify-auction.fxml
      */
+    // dùng để thiết lập đấu giá ID
     public static void setAuctionId(String auctionId) {
         currentAuctionId = auctionId;
     }
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         if (currentAuctionId == null || currentAuctionId.isBlank()) {
@@ -75,9 +77,11 @@ public class ModifyAuctionController {
             return;
         }
         
+        // dùng để tải đấu giá data
         loadAuctionData(currentAuctionId);
     }
 
+    // dùng để tải đấu giá data
     private void loadAuctionData(String auctionId) {
         // Start background thread to fetch data (similar to AuctionDetailsController)
         Thread loader = new Thread(() -> {
@@ -99,6 +103,7 @@ public class ModifyAuctionController {
         loader.start();
     }
 
+    // dùng để liên kết dữ liệu đấu giá chuyển thành fields
     private void bindAuctionToFields(AuctionDto data) {
         itemNameLabel.setText(defaultText(data.getAuctionName(), "Unnamed item"));
         itemDescriptionLabel.setText(defaultText(data.getDescription(), "No description."));
@@ -123,6 +128,7 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để xử lý lưu changes
     @FXML
     private void handleSaveChanges() {
         saveChangesButton.setText("Saving..."); // Prevent multiple clicks
@@ -186,11 +192,13 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để xử lý hủy bỏ
     @FXML
     private void handleCancel() {
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
+    // dùng để xử lý xóa đấu giá
     @FXML
     private void handleDeleteAuction() {
         if (currentAuctionId == null || currentAuctionId.isBlank()) {
@@ -216,6 +224,7 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để phân tích cú pháp số tiền
     private double parseAmount(String value, String fieldName) {
         String parseValue = (value == null) ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
@@ -226,6 +235,7 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để phân tích cú pháp thời gian
     private LocalTime parseTime(String value, String fieldName) {
         String parseValue = (value == null) ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
@@ -236,6 +246,7 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để decode base64image
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
@@ -246,10 +257,12 @@ public class ModifyAuctionController {
         }
     }
 
+    // dùng để default text
     private String defaultText(String value, String fallback) {
         return safe(value).isBlank() ? fallback : value;
     }
 
+    // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
     }

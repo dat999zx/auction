@@ -84,11 +84,15 @@ public class CreateAuctionController {
     @FXML
     private TextField endTimeField;
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
+            // dùng để liên kết dữ liệu top bar
             bindTopBar();
+            // dùng để configure kho đồ selection
             configureInventorySelection();
+            // dùng để tải kho đồ danh sách sản phẩm
             loadInventoryItems();
 
             startDatePicker.setEditable(false);
@@ -100,9 +104,11 @@ public class CreateAuctionController {
         });
     }
 
+    // dùng để tạo đấu giá
     @FXML
     private void createAuction() {
         try {
+            // dùng để kiểm tra tính hợp lệ inputs
             validateInputs();
 
             ItemDto selectedItem = inventoryItemComboBox.getValue();
@@ -152,14 +158,17 @@ public class CreateAuctionController {
         }
     }
 
+    // dùng để configure kho đồ selection
     private void configureInventorySelection() {
         inventoryItemComboBox.setConverter(new StringConverter<>() {
+            // dùng để chuyển thành string
             @Override
             public String toString(ItemDto item) {
                 if (item == null) return "";
                 return item.getName() + " • " + safe(item.getCategory()) + " • " + safe(item.getProductType());
             }
 
+            // dùng để từ string
             @Override
             public ItemDto fromString(String string) {
                 return null;
@@ -169,6 +178,7 @@ public class CreateAuctionController {
         inventoryItemComboBox.valueProperty().addListener((obs, oldValue, newValue) -> updateSelectedItemPreview(newValue));
     }
 
+    // dùng để tải kho đồ danh sách sản phẩm
     private void loadInventoryItems() {
         try {
             List<ItemDto> items = inventoryClientService.getMyInventory().stream()
@@ -180,20 +190,24 @@ public class CreateAuctionController {
                 inventoryItemComboBox.setValue(items.get(0));
             }
             else {
+                // dùng để cập nhật selected sản phẩm preview
                 updateSelectedItemPreview(null);
             }
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot load inventory.");
             logger.error("Exception occurred", e);
+            // dùng để cập nhật selected sản phẩm preview
             updateSelectedItemPreview(null);
         }
         catch (ValidationException e) {
             NotificationUtil.error(e.getMessage());
+            // dùng để cập nhật selected sản phẩm preview
             updateSelectedItemPreview(null);
         }
     }
 
+    // dùng để cập nhật selected sản phẩm preview
     private void updateSelectedItemPreview(ItemDto item) {
         if (item == null) {
             selectedItemNameLabel.setText("No item selected");
@@ -213,6 +227,7 @@ public class CreateAuctionController {
         selectedItemImageView.setImage(decodeBase64Image(item.getThumbnailBase64()));
     }
 
+    // dùng để kiểm tra tính hợp lệ inputs
     private void validateInputs() {
         if (inventoryItemComboBox.getValue() == null)
             throw new ValidationException("Please select an inventory item");
@@ -222,6 +237,7 @@ public class CreateAuctionController {
             throw new ValidationException("Please select an end date");
     }
 
+    // dùng để phân tích cú pháp số tiền
     private double parseAmount(String value, String fieldName) {
         String parseValue = value == null ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
@@ -236,6 +252,7 @@ public class CreateAuctionController {
         }
     }
 
+    // dùng để phân tích cú pháp thời gian
     private LocalTime parseTime(String value, String fieldName) {
         String parseValue = value == null ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
@@ -248,6 +265,7 @@ public class CreateAuctionController {
         }
     }
 
+    // dùng để decode base64image
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
@@ -258,14 +276,17 @@ public class CreateAuctionController {
         }
     }
 
+    // dùng để default text
     private String defaultText(String value, String fallback) {
         return safe(value).isBlank() ? fallback : value;
     }
 
+    // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
     }
 
+    // dùng để liên kết dữ liệu top bar
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.CREATE_AUCTION, false, null);
     }

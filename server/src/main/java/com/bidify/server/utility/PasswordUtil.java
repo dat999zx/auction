@@ -7,8 +7,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class PasswordUtil {
+    // dùng để tạo một đối tượng PasswordUtil
     private PasswordUtil(){}
 
+    // dùng để băm
     public static String hash(String iniPassword){
         if (iniPassword == null) throw new IllegalArgumentException("Password cannot be null");
         try {
@@ -28,6 +30,7 @@ public class PasswordUtil {
         }
     }
 
+    // dùng để so khớp
     public static boolean matches(String rawPass, String hashedPass){
         if (rawPass == null || hashedPass == null) return false;
         return hash(rawPass).equals(hashedPass);

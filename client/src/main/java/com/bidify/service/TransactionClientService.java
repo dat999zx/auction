@@ -16,6 +16,7 @@ import com.bidify.network.SocketClient;
 public class TransactionClientService {
     private final SocketClient client = SocketClient.getClient();
 
+    // dùng để lấy giao dịch lịch sử
     public List<TransactionDto> getTransactionHistory() throws IOException {
         Response response = client.send(new Request(RequestType.GET_TRANSACTION_HISTORY, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {

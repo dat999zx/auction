@@ -23,17 +23,22 @@ import com.bidify.network.SocketClient;
 public class InventoryClientService {
     private final SocketClient client = SocketClient.getClient();
 
+    // dùng để lấy my kho đồ
     public List<ItemDto> getMyInventory() throws IOException {
         Response response = client.send(new Request(RequestType.GET_MY_INVENTORY, new GetInventoryRequest()));
+        // dùng để xử lý kết quả kho đồ kết quả trả về (Response)
         return consumeInventoryResponse(response, "Cannot load inventory.");
     }
 
+    // dùng để lấy kho đồ cho chủ sở hữu
     public List<ItemDto> getInventoryForOwner(String ownerUsername) throws IOException {
         ValidationUtil.validateUsername(ownerUsername);
         Response response = client.send(new Request(RequestType.GET_USER_INVENTORY, new GetUserInventoryRequest(ownerUsername)));
+        // dùng để xử lý kết quả kho đồ kết quả trả về (Response)
         return consumeInventoryResponse(response, "Cannot load user inventory.");
     }
 
+    // dùng để xử lý kết quả kho đồ kết quả trả về (Response)
     private List<ItemDto> consumeInventoryResponse(Response response, String fallbackMessage) {
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
             throw new ValidationException(
@@ -59,6 +64,7 @@ public class InventoryClientService {
             throws IOException {
         String ownerUsername = client.getCurrentUsername();
         ValidationUtil.validateUsername(ownerUsername);
+        // dùng để kiểm tra tính hợp lệ sản phẩm fields
         validateItemFields(name, description, category, productType);
 
         Response response = client.send(
@@ -87,6 +93,7 @@ public class InventoryClientService {
         return item;
     }
 
+    // dùng để lấy sản phẩm chi tiết
     public ItemDto getItemDetail(String itemId) throws IOException {
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
 
@@ -108,6 +115,7 @@ public class InventoryClientService {
         String ownerUsername = client.getCurrentUsername();
         ValidationUtil.validateUsername(ownerUsername);
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
+        // dùng để kiểm tra tính hợp lệ sản phẩm fields
         validateItemFields(name, description, category, productType);
 
         Response response = client.send(
@@ -126,6 +134,7 @@ public class InventoryClientService {
         return item;
     }
 
+    // dùng để xóa sản phẩm
     public void deleteItem(String itemId) throws IOException {
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
 
@@ -137,6 +146,7 @@ public class InventoryClientService {
             throw new ValidationException(response.getMessage() == null ? "Cannot delete item." : response.getMessage());
     }
 
+    // dùng để kiểm tra tính hợp lệ sản phẩm fields
     private void validateItemFields(String name, String description, String category, String productType) {
         ValidationUtil.requiresNonBlank(name, "Item name");
         ValidationUtil.requiresNonBlank(description, "Description");

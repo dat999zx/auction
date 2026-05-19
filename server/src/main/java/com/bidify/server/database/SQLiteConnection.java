@@ -14,8 +14,10 @@ import com.bidify.server.exception.DatabaseException;
 public class SQLiteConnection {
     private static final String URL = "jdbc:sqlite:" + resolveDbPath();
 
+    // dùng để tạo một đối tượng SQLiteConnection
     private SQLiteConnection(){}
 
+    // dùng để kết nối
     public static Connection connect() throws DatabaseException { // tạo kết nối với data.db
         try {
             SQLiteConfig config = new SQLiteConfig();
@@ -31,6 +33,7 @@ public class SQLiteConnection {
         }
     }
 
+    // dùng để giải quyết cơ sở dữ liệu path
     private static String resolveDbPath() { // lấy đường dẫn tới data.db
         String customPath = System.getProperty("db.path");
         // có thể override đường dẫn tới data.db bằng cách set system property "db.path" khi chạy ứng dụng, vd: java -Ddb.path="C:\custom\path\data.db" -jar server.jar

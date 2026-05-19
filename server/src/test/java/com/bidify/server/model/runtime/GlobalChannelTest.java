@@ -13,12 +13,14 @@ public class GlobalChannelTest {
     private class TestObserver implements Observer {
         private int count = 0;
 
+        // dùng để xử lý sự kiện sự kiện
         @Override
         public void onEvent(Event event) {
             count++;
         }
     }
 
+    // dùng để phát sự kiện subscribed observers
     @Test
     void publishSubscribedObservers() { // test publish thì observer sẽ nhận được event
         GlobalChannel channel = new GlobalChannel();
@@ -29,10 +31,13 @@ public class GlobalChannelTest {
         channel.subscribe(observer2);
         channel.publish(new Event(EventType.SERVER_NOTICE, "Test event"));
 
+        // dùng để assert equals
         assertEquals(1, observer1.count);
+        // dùng để assert equals
         assertEquals(1, observer2.count);
     }
 
+    // dùng để dọn dẹp tài nguyên observers
     @Test
     void cleanupObservers() { // test clear thì observer sẽ không nhận được event nữa
         GlobalChannel channel = new GlobalChannel();
@@ -42,6 +47,7 @@ public class GlobalChannelTest {
         channel.clear();
         channel.publish(new Event(EventType.SERVER_NOTICE, "Test event"));
 
+        // dùng để assert equals
         assertEquals(0, observer.count);
     }
 }

@@ -6,5 +6,6 @@ import com.bidify.server.network.ClientHandler;
 
 @FunctionalInterface
 public interface RequestHandler {
+    // dùng để xử lý
     Response handle(ClientHandler client, Request request);
 }

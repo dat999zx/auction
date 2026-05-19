@@ -23,16 +23,20 @@ public final class DisplayUtil {
         CURRENCY_FORMAT.setMaximumFractionDigits(2);
     }
 
+    // dùng để tạo một đối tượng DisplayUtil
     private DisplayUtil() {}
 
+    // dùng để default text
     public static String defaultText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
     }
 
+    // dùng để định dạng đơn vị tiền tệ
     public static String formatCurrency(double amount) {
         return CURRENCY_FORMAT.format(amount);
     }
 
+    // dùng để định dạng remaining thời gian
     public static String formatRemainingTime(String endTime) {
         if (endTime == null || endTime.isBlank()) {
             return "Unknown";
@@ -57,6 +61,7 @@ public final class DisplayUtil {
         }
     }
 
+    // dùng để định dạng ngày thời gian
     public static String formatDateTime(String rawDate, String fallback) {
         if (rawDate == null || rawDate.isBlank() || "Unknown".equals(rawDate)) {
             return fallback;
@@ -91,6 +96,7 @@ public final class DisplayUtil {
         "CENT", "UNCENT"
     };
 
+    // dùng để định dạng tiền mặt suffix
     public static String formatCashSuffix(Double number) {
         BigDecimal bd = new BigDecimal(number);
         

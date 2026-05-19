@@ -107,12 +107,17 @@ public class HubController {
     private String currentLiveSort = SORT_POPULARITY;
     private String currentSearchSort = SORT_NEWEST;
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(this::bindTopBar);
+        // dùng để setup sort controls
         setupSortControls();
+        // dùng để setup dòng hiển thị navigation
         setupRowNavigation(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton);
+        // dùng để setup dòng hiển thị navigation
         setupRowNavigation(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton);
+        // dùng để tải hub sections
         loadHubSections();
 
         EventManager.getInstance().subscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
@@ -122,6 +127,7 @@ public class HubController {
         EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleAuctionEvent);
     }
 
+    // dùng để xử lý đấu giá sự kiện
     private void handleAuctionEvent(Event event) {
         if (event == null) return;
 
@@ -129,6 +135,7 @@ public class HubController {
             if (event.getType() == EventType.AUCTION_CREATED
                     || event.getType() == EventType.AUCTION_DELETED
                     || event.getType() == EventType.AUCTION_ENDED) {
+                // dùng để tải hub sections
                 loadHubSections();
                 return;
             }
@@ -138,6 +145,7 @@ public class HubController {
 
             AuctionDto updatedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
             if (updatedAuction == null || updatedAuction.getId() == null || updatedAuction.getId().isBlank()) {
+                // dùng để tải hub sections
                 loadHubSections();
                 return;
             }
@@ -146,15 +154,19 @@ public class HubController {
                 return;
 
             if (!"ACTIVE".equalsIgnoreCase(updatedAuction.getStatus())) {
+                // dùng để tải hub sections
                 loadHubSections();
                 return;
             }
 
+            // dùng để patch đấu giá
             patchAuction(updatedAuction);
         });
     }
 
+    // dùng để dọn dẹp tài nguyên
     public void cleanup() {
+        // dùng để dọn dẹp tài nguyên all rendered cards
         cleanupAllRenderedCards();
         EventManager.getInstance().unsubscribe(EventType.AUCTION_CREATED, this::handleAuctionEvent);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_UPDATED, this::handleAuctionEvent);
@@ -163,6 +175,7 @@ public class HubController {
         EventManager.getInstance().unsubscribe(EventType.BID_PLACED, this::handleAuctionEvent);
     }
 
+    // dùng để tải hub sections
     private void loadHubSections() {
         try {
             AuctionDto[] live = auctionClientService.getLiveAuctions();
@@ -172,35 +185,46 @@ public class HubController {
             upcomingAuctions = upcoming == null ? new AuctionDto[0] : upcoming;
 
             Platform.runLater(() -> {
+                // dùng để hiển thị default sections
                 showDefaultSections();
+                // dùng để hiển thị live section
                 renderLiveSection();
+                // dùng để hiển thị upcoming section
                 renderUpcomingSection();
             });
         } catch (IOException e) {
             logger.error("Failed to load hub auctions", e);
             Platform.runLater(() -> {
+                // dùng để hiển thị default sections
                 showDefaultSections();
+                // dùng để hiển thị section
                 renderSection(liveAuctionsContainer, liveEmptyStateLabel, new AuctionDto[0], liveCardControllers, "Cannot connect to server.");
+                // dùng để hiển thị section
                 renderSection(upcomingAuctionsContainer, upcomingEmptyStateLabel, new AuctionDto[0], upcomingCardControllers, "Cannot connect to server.");
             });
         } catch (AuctionException e) {
             Platform.runLater(() -> {
+                // dùng để hiển thị default sections
                 showDefaultSections();
                 renderSection(liveAuctionsContainer, liveEmptyStateLabel, new AuctionDto[0], liveCardControllers, e.getMessage());
+                // dùng để hiển thị section
                 renderSection(upcomingAuctionsContainer, upcomingEmptyStateLabel, new AuctionDto[0], upcomingCardControllers, "No upcoming auctions right now.");
             });
         }
     }
 
+    // dùng để hiển thị default sections
     private void showDefaultSections() {
         defaultSections.setVisible(true);
         defaultSections.setManaged(true);
         searchSection.setVisible(false);
         searchSection.setManaged(false);
+        // dùng để dọn dẹp tài nguyên controllers
         cleanupControllers(searchCardControllers);
         searchResultsContainer.getChildren().clear();
     }
 
+    // dùng để hiển thị tìm kiếm section
     private void showSearchSection() {
         defaultSections.setVisible(false);
         defaultSections.setManaged(false);
@@ -210,14 +234,17 @@ public class HubController {
 
     private void renderSection(HBox container, Label emptyLabel, AuctionDto[] auctions,
             Map<String, AuctionCardController> controllerMap, String emptyMessage) {
+        // dùng để dọn dẹp tài nguyên controllers
         cleanupControllers(controllerMap);
         container.getChildren().clear();
+        // dùng để đặt lại navigation cho container
         resetNavigationForContainer(container);
 
         if (auctions == null || auctions.length == 0) {
             emptyLabel.setText(emptyMessage);
             emptyLabel.setVisible(true);
             emptyLabel.setManaged(true);
+            // dùng để refresh navigation cho container
             refreshNavigationForContainer(container);
             return;
         }
@@ -228,9 +255,11 @@ public class HubController {
         for (AuctionDto auction : auctions)
             container.getChildren().add(loadAuctionCard(auction, controllerMap));
 
+        // dùng để refresh navigation cho container
         refreshNavigationForContainer(container);
     }
 
+    // dùng để tải đấu giá card
     private AnchorPane loadAuctionCard(AuctionDto auction, Map<String, AuctionCardController> controllerMap) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
@@ -245,22 +274,29 @@ public class HubController {
         }
     }
 
+    // dùng để dọn dẹp tài nguyên controllers
     private void cleanupControllers(Map<String, AuctionCardController> controllerMap) {
         for (AuctionCardController controller : controllerMap.values())
             controller.cleanup();
         controllerMap.clear();
     }
 
+    // dùng để dọn dẹp tài nguyên all rendered cards
     private void cleanupAllRenderedCards() {
+        // dùng để dọn dẹp tài nguyên controllers
         cleanupControllers(liveCardControllers);
+        // dùng để dọn dẹp tài nguyên controllers
         cleanupControllers(upcomingCardControllers);
+        // dùng để dọn dẹp tài nguyên controllers
         cleanupControllers(searchCardControllers);
     }
 
+    // dùng để tìm kiếm
     private void search() {
         TextField searchBar = SceneManager.getMissionBarController().getSearchBar();
         String query = searchBar.getText();
         if (query == null || query.isBlank()) {
+            // dùng để tải hub sections
             loadHubSections();
             return;
         }
@@ -270,19 +306,24 @@ public class HubController {
             searchResults = results == null ? new AuctionDto[0] : results;
 
             Platform.runLater(() -> {
+                // dùng để hiển thị tìm kiếm section
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
+                // dùng để hiển thị tìm kiếm section
                 renderSearchSection("No auctions or sellers found matching '" + query + "'.");
             });
         } catch (IOException e) {
             logger.error("Search failed", e);
             Platform.runLater(() -> {
+                // dùng để hiển thị tìm kiếm section
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
+                // dùng để hiển thị section
                 renderSection(searchResultsContainer, searchEmptyStateLabel, new AuctionDto[0], searchCardControllers, "Search failed: Network error.");
             });
         } catch (AuctionException e) {
             Platform.runLater(() -> {
+                // dùng để hiển thị tìm kiếm section
                 showSearchSection();
                 searchTitleLabel.setText("Results for '" + query + "'");
                 renderSection(searchResultsContainer, searchEmptyStateLabel, new AuctionDto[0], searchCardControllers, e.getMessage());
@@ -290,15 +331,18 @@ public class HubController {
         }
     }
 
+    // dùng để xử lý live sort changed
     @FXML
     private void handleLiveSortChanged() {
         if (liveSortComboBox == null || liveSortComboBox.getValue() == null)
             return;
 
         currentLiveSort = liveSortComboBox.getValue();
+        // dùng để hiển thị live section
         renderLiveSection();
     }
 
+    // dùng để xử lý tìm kiếm sort changed
     @FXML
     private void handleSearchSortChanged() {
         if (searchSortComboBox == null || searchSortComboBox.getValue() == null)
@@ -306,33 +350,44 @@ public class HubController {
 
         currentSearchSort = searchSortComboBox.getValue();
         if (searchSection.isVisible())
+            // dùng để hiển thị tìm kiếm section
             renderSearchSection("No auctions found.");
     }
 
+    // dùng để liên kết dữ liệu top bar
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.HOME, true, event -> search(), this::cleanup);
     }
 
+    // dùng để scroll live left
     @FXML
     private void scrollLiveLeft() {
+        // dùng để scroll dòng hiển thị bởi card
         scrollRowByCard(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton, -1);
     }
 
+    // dùng để scroll live right
     @FXML
     private void scrollLiveRight() {
+        // dùng để scroll dòng hiển thị bởi card
         scrollRowByCard(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton, 1);
     }
 
+    // dùng để scroll upcoming left
     @FXML
     private void scrollUpcomingLeft() {
+        // dùng để scroll dòng hiển thị bởi card
         scrollRowByCard(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton, -1);
     }
 
+    // dùng để scroll upcoming right
     @FXML
     private void scrollUpcomingRight() {
+        // dùng để scroll dòng hiển thị bởi card
         scrollRowByCard(upcomingAuctionsScrollPane, upcomingScrollLeftButton, upcomingScrollRightButton, 1);
     }
 
+    // dùng để setup dòng hiển thị navigation
     private void setupRowNavigation(ScrollPane scrollPane, Button leftButton, Button rightButton) {
         scrollPane.hvalueProperty().addListener((observable, oldValue, newValue) ->
                 updateRowNavigationButtons(scrollPane, leftButton, rightButton));
@@ -343,6 +398,7 @@ public class HubController {
                     Platform.runLater(() -> updateRowNavigationButtons(scrollPane, leftButton, rightButton)));
     }
 
+    // dùng để đặt lại navigation cho container
     private void resetNavigationForContainer(HBox container) {
         if (container == liveAuctionsContainer)
             liveAuctionsScrollPane.setHvalue(0);
@@ -350,9 +406,11 @@ public class HubController {
             upcomingAuctionsScrollPane.setHvalue(0);
     }
 
+    // dùng để refresh navigation cho container
     private void refreshNavigationForContainer(HBox container) {
         Platform.runLater(() -> {
             if (container == liveAuctionsContainer)
+                // dùng để cập nhật dòng hiển thị navigation buttons
                 updateRowNavigationButtons(liveAuctionsScrollPane, liveScrollLeftButton, liveScrollRightButton);
             else if (container == upcomingAuctionsContainer)
                 updateRowNavigationButtons(upcomingAuctionsScrollPane, upcomingScrollLeftButton,
@@ -360,12 +418,14 @@ public class HubController {
         });
     }
 
+    // dùng để scroll dòng hiển thị bởi card
     void scrollRowByCard(ScrollPane scrollPane, Button leftButton, Button rightButton, int direction) {
         if (scrollPane.getContent() == null) return;
 
         double targetHValue = calculateTargetHValue(scrollPane.getHvalue(), scrollPane.getContent().getLayoutBounds().getWidth(),
                 scrollPane.getViewportBounds().getWidth(), direction * (AUCTION_CARD_WIDTH + AUCTION_ROW_SPACING));
         if (Double.compare(targetHValue, scrollPane.getHvalue()) == 0) {
+            // dùng để cập nhật dòng hiển thị navigation buttons
             updateRowNavigationButtons(scrollPane, leftButton, rightButton);
             return;
         }
@@ -377,6 +437,7 @@ public class HubController {
         timeline.play();
     }
 
+    // dùng để cập nhật dòng hiển thị navigation buttons
     void updateRowNavigationButtons(ScrollPane scrollPane, Button leftButton, Button rightButton) {
         if (scrollPane.getContent() == null || !hasHorizontalOverflow(scrollPane.getContent().getLayoutBounds().getWidth(),
                 scrollPane.getViewportBounds().getWidth())) {
@@ -400,14 +461,17 @@ public class HubController {
         return targetPixel / scrollableWidth;
     }
 
+    // dùng để kiểm tra xem có horizontal overflow
     static boolean hasHorizontalOverflow(double contentWidth, double viewportWidth) {
         return contentWidth > viewportWidth + 1;
     }
 
+    // dùng để clamp
     private static double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
     }
 
+    // dùng để setup sort controls
     private void setupSortControls() {
         if (liveSortComboBox != null) {
             liveSortComboBox.getItems().setAll(SORT_POPULARITY, SORT_ENDING_SOON, SORT_NEWEST);
@@ -419,18 +483,23 @@ public class HubController {
         }
     }
 
+    // dùng để hiển thị live section
     private void renderLiveSection() {
         renderSection(liveAuctionsContainer, liveEmptyStateLabel, sortLiveAuctions(liveAuctions), liveCardControllers, "No live auctions right now.");
     }
 
+    // dùng để hiển thị upcoming section
     private void renderUpcomingSection() {
+        // dùng để hiển thị section
         renderSection(upcomingAuctionsContainer, upcomingEmptyStateLabel, upcomingAuctions, upcomingCardControllers, "No upcoming auctions right now.");
     }
 
+    // dùng để hiển thị tìm kiếm section
     private void renderSearchSection(String emptyMessage) {
         renderSection(searchResultsContainer, searchEmptyStateLabel, sortSearchResults(searchResults), searchCardControllers, emptyMessage);
     }
 
+    // dùng để sort live danh sách đấu giá
     private AuctionDto[] sortLiveAuctions(AuctionDto[] source) {
         List<AuctionDto> auctions = new ArrayList<>(Arrays.asList(source == null ? new AuctionDto[0] : source));
         Comparator<AuctionDto> comparator = switch (currentLiveSort) {
@@ -449,25 +518,31 @@ public class HubController {
         return auctions.toArray(AuctionDto[]::new);
     }
 
+    // dùng để sort tìm kiếm results
     private AuctionDto[] sortSearchResults(AuctionDto[] source) {
         List<AuctionDto> auctions = new ArrayList<>(Arrays.asList(source == null ? new AuctionDto[0] : source));
         auctions.sort(Comparator.comparing(this::parseCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())));
         return auctions.toArray(AuctionDto[]::new);
     }
 
+    // dùng để patch đấu giá
     private void patchAuction(AuctionDto updatedAuction) {
         boolean updatedLive = replaceAuction(liveAuctions, updatedAuction);
         if (updatedLive) {
             if (SORT_NEWEST.equals(currentLiveSort))
+                // dùng để patch card
                 patchCard(liveCardControllers, updatedAuction);
             else
+                // dùng để hiển thị live section
                 renderLiveSection();
         }
 
         if (replaceAuction(searchResults, updatedAuction))
+            // dùng để patch card
             patchCard(searchCardControllers, updatedAuction);
     }
 
+    // dùng để relocate đấu giá if needed
     private boolean relocateAuctionIfNeeded(AuctionDto updatedAuction) {
         String auctionId = updatedAuction.getId();
         if (auctionId == null || auctionId.isBlank())
@@ -481,8 +556,11 @@ public class HubController {
         if (isActive && existsInUpcoming) {
             upcomingAuctions = removeAuction(upcomingAuctions, auctionId);
             liveAuctions = upsertAuction(liveAuctions, updatedAuction);
+            // dùng để hiển thị upcoming section
             renderUpcomingSection();
+            // dùng để hiển thị live section
             renderLiveSection();
+            // dùng để patch tìm kiếm result
             patchSearchResult(updatedAuction);
             return true;
         }
@@ -490,8 +568,11 @@ public class HubController {
         if (isUpcoming && existsInLive) {
             liveAuctions = removeAuction(liveAuctions, auctionId);
             upcomingAuctions = upsertAuction(upcomingAuctions, updatedAuction);
+            // dùng để hiển thị live section
             renderLiveSection();
+            // dùng để hiển thị upcoming section
             renderUpcomingSection();
+            // dùng để patch tìm kiếm result
             patchSearchResult(updatedAuction);
             return true;
         }
@@ -499,11 +580,14 @@ public class HubController {
         return false;
     }
 
+    // dùng để patch tìm kiếm result
     private void patchSearchResult(AuctionDto updatedAuction) {
         if (replaceAuction(searchResults, updatedAuction))
+            // dùng để patch card
             patchCard(searchCardControllers, updatedAuction);
     }
 
+    // dùng để replace đấu giá
     private boolean replaceAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
         if (auctions == null || updatedAuction == null || updatedAuction.getId() == null)
             return false;
@@ -521,6 +605,7 @@ public class HubController {
         return false;
     }
 
+    // dùng để contains đấu giá
     private boolean containsAuction(AuctionDto[] auctions, String auctionId) {
         if (auctions == null || auctionId == null || auctionId.isBlank())
             return false;
@@ -535,6 +620,7 @@ public class HubController {
         return false;
     }
 
+    // dùng để xóa đấu giá
     private AuctionDto[] removeAuction(AuctionDto[] auctions, String auctionId) {
         if (auctions == null || auctions.length == 0 || auctionId == null || auctionId.isBlank())
             return new AuctionDto[0];
@@ -548,6 +634,7 @@ public class HubController {
         return remaining.toArray(AuctionDto[]::new);
     }
 
+    // dùng để upsert đấu giá
     private AuctionDto[] upsertAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
         if (updatedAuction == null || updatedAuction.getId() == null || updatedAuction.getId().isBlank())
             return auctions == null ? new AuctionDto[0] : auctions;
@@ -567,20 +654,24 @@ public class HubController {
         return next.toArray(AuctionDto[]::new);
     }
 
+    // dùng để patch card
     private void patchCard(Map<String, AuctionCardController> controllerMap, AuctionDto updatedAuction) {
         AuctionCardController controller = controllerMap.get(updatedAuction.getId());
         if (controller != null)
             controller.bind(updatedAuction);
     }
 
+    // dùng để phân tích cú pháp created tại
     private LocalDateTime parseCreatedAt(AuctionDto auction) {
         return parseDateTime(auction == null ? null : auction.getCreatedAt());
     }
 
+    // dùng để phân tích cú pháp end thời gian
     private LocalDateTime parseEndTime(AuctionDto auction) {
         return parseDateTime(auction == null ? null : auction.getEndTime());
     }
 
+    // dùng để phân tích cú pháp ngày thời gian
     private LocalDateTime parseDateTime(String value) {
         if (value == null || value.isBlank())
             return null;

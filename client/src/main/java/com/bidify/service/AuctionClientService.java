@@ -24,6 +24,7 @@ import com.bidify.network.SocketClient;
 public class AuctionClientService {
     private final SocketClient client = SocketClient.getClient();
 
+    // dùng để tìm kiếm danh sách đấu giá
     public AuctionDto[] searchAuctions(String query) throws IOException {
         Response response = client.send(new Request(RequestType.SEARCH_AUCTIONS, new SearchAuctionRequest(query)));
         if (response.getStatus() != RequestStatus.SUCCESS) {
@@ -34,6 +35,7 @@ public class AuctionClientService {
         return (results != null) ? results : new AuctionDto[0];
     }
 
+    // dùng để lấy live danh sách đấu giá
     public AuctionDto[] getLiveAuctions() throws IOException {
         Response response = client.send(new Request(RequestType.GET_LIVE_AUCTIONS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
@@ -45,6 +47,7 @@ public class AuctionClientService {
         return auctions;
     }
 
+    // dùng để lấy upcoming danh sách đấu giá
     public AuctionDto[] getUpcomingAuctions() throws IOException {
         Response response = client.send(new Request(RequestType.GET_UPCOMING_AUCTIONS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
@@ -55,6 +58,7 @@ public class AuctionClientService {
         return auctions;
     }
 
+    // dùng để lấy đấu giá chi tiết
     public AuctionDto getAuctionDetail(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.GET_AUCTION_DETAIL, new GetAuctionDetailRequest(auctionId)));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
@@ -66,18 +70,21 @@ public class AuctionClientService {
         return auction;
     }
 
+    // dùng để tạo đấu giá
     public Response createAuction(CreateAuctionRequest data) throws IOException {
         Response response = client.send(new Request(RequestType.CREATE_AUCTION, data));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để cập nhật đấu giá
     public Response updateAuction(UpdateAuctionRequest data) throws IOException {
         Response response = client.send(new Request(RequestType.UPDATE_AUCTION, data));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để xóa đấu giá
     public Response deleteAuction(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
@@ -85,30 +92,35 @@ public class AuctionClientService {
     }
 
 
+    // dùng để place lượt đặt giá
     public Response placeBid(String auctionId, double bidAmount) throws IOException {
         Response response = client.send(new Request(RequestType.PLACE_BID, new PlaceBidRequest(auctionId, bidAmount)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để thiết lập auto lượt đặt giá
     public Response setAutoBid(String auctionId, double maxBid) throws IOException {
         Response response = client.send(new Request(RequestType.SET_AUTO_BID, new SetAutoBidRequest(auctionId, maxBid)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để disable auto lượt đặt giá
     public Response disableAutoBid(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.DISABLE_AUTO_BID, new DisableAutoBidRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để tham gia
     public Response join(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.JOIN_AUCTION, new JoinAuctionRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
 
+    // dùng để rời khỏi
     public Response leave(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.LEAVE_AUCTION, new LeaveAuctionRequest(auctionId)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;

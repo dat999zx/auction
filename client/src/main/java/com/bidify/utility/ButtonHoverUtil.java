@@ -26,17 +26,22 @@ public final class ButtonHoverUtil {
     private static final double PRESSED_SCALE = 0.97;
     private static final double POP_SCALE = 1.08;
 
+    // dùng để tạo một đối tượng ButtonHoverUtil
     private ButtonHoverUtil() {}
 
+    // dùng để áp dụng
     public static void apply(Parent root) {
         if (root == null) return;
+        // dùng để áp dụng xử lý sự kiện node
         applyOnNode(root);
     }
 
+    // dùng để áp dụng xử lý sự kiện node
     private static void applyOnNode(Node node) {
         if (node == null) return;
 
         if (node instanceof Button button)
+            // dùng để áp dụng xử lý sự kiện nút nhấn
             applyOnButton(button);
 
         if (node instanceof ScrollPane scrollPane)
@@ -45,9 +50,11 @@ public final class ButtonHoverUtil {
         if (!(node instanceof Parent parent)) return;
 
         for (Node child : parent.getChildrenUnmodifiable())
+            // dùng để áp dụng xử lý sự kiện node
             applyOnNode(child);
     }
 
+    // dùng để áp dụng xử lý sự kiện nút nhấn
     private static void applyOnButton(Button button) {
         if (Boolean.TRUE.equals(button.getProperties().get(PROCESSED_KEY))) return;
 
@@ -66,6 +73,7 @@ public final class ButtonHoverUtil {
 
         button.addEventHandler(MouseEvent.MOUSE_PRESSED, event -> {
             if (event.getButton() != MouseButton.PRIMARY) return;
+            // dùng để tạo hiệu ứng chuyển động scale
             animateScale(button, PRESSED_SCALE, PRESS_DURATION);
         });
 
@@ -76,11 +84,14 @@ public final class ButtonHoverUtil {
 
         button.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
             if (event.getButton() != MouseButton.PRIMARY) return;
+            // dùng để tạo hiệu ứng chuyển động click pop
             animateClickPop(button);
         });
     }
 
+    // dùng để tạo hiệu ứng chuyển động scale
     private static void animateScale(Button button, double targetScale, Duration duration) {
+        // dùng để dừng active animation
         stopActiveAnimation(button);
 
         ScaleTransition transition = new ScaleTransition(duration, button);
@@ -95,7 +106,9 @@ public final class ButtonHoverUtil {
         transition.playFromStart();
     }
 
+    // dùng để tạo hiệu ứng chuyển động click pop
     private static void animateClickPop(Button button) {
+        // dùng để dừng active animation
         stopActiveAnimation(button);
 
         double currentScaleX = button.getScaleX();
@@ -123,12 +136,14 @@ public final class ButtonHoverUtil {
         transition.playFromStart();
     }
 
+    // dùng để dừng active animation
     private static void stopActiveAnimation(Button button) {
         Object existing = button.getProperties().get(ACTIVE_TRANSITION_KEY);
         if (existing instanceof Animation animation)
             animation.stop();
     }
 
+    // dùng để lấy resting scale
     private static double getRestingScale(Button button) {
         return Boolean.TRUE.equals(button.getProperties().get(HOVERED_KEY)) ? HOVER_SCALE : 1.0;
     }

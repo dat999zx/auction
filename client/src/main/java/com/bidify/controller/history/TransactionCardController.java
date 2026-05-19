@@ -26,6 +26,7 @@ public class TransactionCardController {
     @FXML
     private Label fullValue;
 
+    // dùng để thiết lập data
     public void setData(TransactionDto transaction) {
         titleLabel.setText(resolveTransactionTitle(transaction));
         idLabel.setText("Transaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown"));
@@ -37,6 +38,7 @@ public class TransactionCardController {
         card.getStyleClass().add(resolveTransactionBorderStyle(transaction));
     }
 
+    // dùng để giải quyết giao dịch border style
     private String resolveTransactionBorderStyle(TransactionDto transaction) {
         if (transaction.getType() == null) return "border-gray";
         return switch (transaction.getType()) {
@@ -46,6 +48,7 @@ public class TransactionCardController {
         };
     }
 
+    // dùng để giải quyết giao dịch icon
     private String resolveTransactionIcon(TransactionDto transaction) {
         if (transaction.getType() == null) return "help";
         return switch (transaction.getType()) {
@@ -55,6 +58,7 @@ public class TransactionCardController {
         };
     }
 
+    // dùng để giải quyết giao dịch title
     private String resolveTransactionTitle(TransactionDto transaction) {
         if (transaction.getType() == null) return "Transaction";
         return switch (transaction.getType()) {

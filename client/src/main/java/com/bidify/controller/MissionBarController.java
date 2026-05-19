@@ -83,6 +83,7 @@ public class MissionBarController {
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         leftSideActiveButton = auctionsButton; // Máº·c Ä‘á»‹nh active home
@@ -94,52 +95,67 @@ public class MissionBarController {
         sidebarContent.setTranslateX(-hiddenOffset);
     }
     
+    // dùng để xử lý ảnh đại diện click
     @FXML
     private void handleAvatarClick(MouseEvent event) {
     }
 
+    // dùng để bật tắt thanh bên điều hướng
     public void toggleSidebar() {
         if (sidebarAnimating) { return; }
         if (sidebarVisible) {
+            // dùng để ẩn thanh bên điều hướng
             hideSidebar();
             return;
         }
+        // dùng để hiển thị thanh bên điều hướng
         showSidebar();
     }
 
+    // dùng để đóng thanh bên điều hướng
     public void closeSidebar() {
         if (!sidebarVisible || sidebarAnimating) { return; }
+        // dùng để ẩn thanh bên điều hướng
         hideSidebar();
     }
 
+    // dùng để xử lý lớp phủ click
     @FXML
     private void handleOverlayClick() {
+        // dùng để đóng thanh bên điều hướng
         closeSidebar();
     }
 
+    // dùng để xử lý thanh bên điều hướng click
     @FXML
     private void handleSidebarClick(ActionEvent event) {
         if (!(event.getSource() instanceof Button clickedButton)) return;
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(clickedButton);
     }
 
+    // dùng để xử lý account bật tắt
     @FXML
     private void handleAccountToggle(ActionEvent event) {
         boolean isVisible = accountSubMenu.isVisible();
         accountSubMenu.setVisible(!isVisible);
         accountSubMenu.setManaged(!isVisible);
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(myAccountButton);
     }
 
+    // dùng để xử lý activities bật tắt
     @FXML
     private void handleActivitiesToggle(ActionEvent event) {
         boolean isVisible = myActivitiesSubMenu.isVisible();
         myActivitiesSubMenu.setVisible(!isVisible);
         myActivitiesSubMenu.setManaged(!isVisible);
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(myActivitiesButton);
     }
 
     // check xem náº¿u nhÆ° button nÃ o Ä‘Æ°á»£c click thÃ¬ sáº½ Ä‘á»•i style cá»§a button Ä‘Ã³ thÃ nh active, cÃ²n láº¡i sáº½ lÃ  normal
+    // dùng để cập nhật thanh bên điều hướng nút nhấn style
     private void updateSidebarButtonStyle(Button activeButton) {
         if (leftSideActiveButton == activeButton) return;
         leftSideActiveButton.getStyleClass().removeAll("side-nav-button", "side-nav-button-active");
@@ -149,6 +165,7 @@ public class MissionBarController {
     }
     
 
+    // dùng để hiển thị thanh bên điều hướng
     private void showSidebar() {
         sidebarAnimating = true;
         double hiddenOffset = getSidebarWidth();
@@ -174,27 +191,40 @@ public class MissionBarController {
     }
 
     // thÃªm cÃ¡c getter Ä‘á»ƒ sá»­ dá»¥ng cho cÃ¡c file fxml cÃ³ missionbar controller
+    // dùng để lấy khám phá nút nhấn
     public Button getExploreButton() { return exploreButton; }
+    // dùng để lấy tìm kiếm bar
     public TextField getSearchBar() { return searchBar; }
+    // dùng để lấy danh sách đấu giá nút nhấn
     public Button getAuctionsButton() { return auctionsButton; }
+    // dùng để lấy tạo đấu giá nút nhấn
     public Button getCreateAuctionButton() { return createAuctionButton; }
+    // dùng để lấy đăng xuất nút nhấn
     public Button getLogoutButton() { return logoutButton; }
+    // dùng để lấy đăng xuất link nút nhấn
     public Button getLogoutLinkButton() { return logoutLinkButton; }
+    // dùng để lấy lịch sử nút nhấn
     public Button getHistoryButton() { return historyButton; }
+    // dùng để lấy kho đồ nút nhấn
     public Button getInventoryButton() { return inventoryButton; }
+    // dùng để lấy quản trị viên (admin) danh sách người dùng nút nhấn
     public Button getAdminUsersButton() { return adminUsersButton; }
+    // dùng để lấy nút xem các yêu cầu ví trong thanh quản trị
     public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
 
+    // dùng để thiết lập hiển thị khám phá
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
         exploreButton.setVisible(visible);
     }
 
+    // dùng để thiết lập hiển thị tìm kiếm
     public void setShowSearch(boolean visible) {
         searchContainer.setManaged(visible);
         searchContainer.setVisible(visible);
     }
 
+    // dùng để thiết lập use inline đăng xuất
     public void setUseInlineLogout(boolean useInlineLogout) {
         logoutButton.setManaged(useInlineLogout);
         logoutButton.setVisible(useInlineLogout);
@@ -202,6 +232,7 @@ public class MissionBarController {
         logoutLinkButton.setVisible(!useInlineLogout);
     }
 
+    // dùng để thiết lập hiển thị quản trị viên (admin) controls
     public void setShowAdminControls(boolean visible) {
         if (adminUsersButton != null) {
             adminUsersButton.setManaged(visible);
@@ -213,12 +244,14 @@ public class MissionBarController {
         }
     }
 
+    // dùng để thiết lập hiển thị tạo đấu giá
     public void setShowCreateAuction(boolean visible) {
         if (createAuctionButton == null) return;
         createAuctionButton.setManaged(visible);
         createAuctionButton.setVisible(visible);
     }
 
+    // dùng để thiết lập selection trình xử lý
     public void setSelectionHandler(EventHandler<ActionEvent> handler) {
         auctionsButton.setOnAction(handler);
         createAuctionButton.setOnAction(handler);
@@ -237,30 +270,38 @@ public class MissionBarController {
         }
     }
 
+    // dùng để thiết lập ảnh đại diện trình xử lý
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {
         avatarContainer.setOnMouseClicked(handler);
     }
 
+    // dùng để thiết lập khám phá trình xử lý
     public void setExploreHandler(EventHandler<ActionEvent> handler) {
         exploreButton.setOnAction(handler);
     }
 
+    // dùng để thiết lập đăng xuất trình xử lý
     public void setLogoutHandler(EventHandler<ActionEvent> handler) {
         logoutButton.setOnAction(handler);
     }
 
+    // dùng để thiết lập ảnh đại diện text
     public void setAvatarText(String value) {
         avatarText.setText(value == null || value.isBlank() ? "U" : value);
     }
 
+    // dùng để thiết lập active navigation
     public void setActiveNavigation(Button activeButton) {
         if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
+            // dùng để cập nhật thanh bên điều hướng nút nhấn style
             updateSidebarButtonStyle(activeButton);
         }
         
+        // dùng để cập nhật nav nút nhấn style
         updateNavButtonStyle(logoutLinkButton, activeButton == logoutLinkButton);
     }
 
+    // dùng để ẩn thanh bên điều hướng
     private void hideSidebar() {
         sidebarAnimating = true;
         double hiddenOffset = getSidebarWidth();
@@ -285,6 +326,7 @@ public class MissionBarController {
         sidebarSlide.play();
     }
 
+    // dùng để cập nhật nav nút nhấn style
     private void updateNavButtonStyle(Button button, boolean active) {
         if (button == null) return;
 
@@ -292,6 +334,7 @@ public class MissionBarController {
         button.getStyleClass().add(active ? "top-link-active" : "top-link");
     }
 
+    // dùng để lấy thanh bên điều hướng width
     private double getSidebarWidth() {
         if (sidebarContent == null) {
             return 340.0;

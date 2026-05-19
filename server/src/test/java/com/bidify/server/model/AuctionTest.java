@@ -14,6 +14,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AuctionTest {
+    // dùng để cập nhật đấu giá after place lượt đặt giá successfully
     @Test
     void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
         Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
@@ -27,6 +28,7 @@ public class AuctionTest {
         assertEquals(1, auction.getBidCount());
     }
 
+    // dùng để place lượt đặt giá lower than min increment
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
         Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
@@ -41,6 +43,7 @@ public class AuctionTest {
         assertEquals(0, auction.getBidCount());
     }
 
+    // dùng để place lượt đặt giá when đấu giá kiểm tra xem not active
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
         Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now().plusDays(1), LocalDateTime.now());
@@ -53,6 +56,7 @@ public class AuctionTest {
         assertEquals(0, auction.getBidCount());
     }
 
+    // dùng để xử lý concurrent lượt đặt giá safely
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
         Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));

@@ -52,11 +52,13 @@ class AuctionServiceTest {
     private final List<String> createdItemIds = new ArrayList<>();
     private final List<String> createdUsernames = new ArrayList<>();
 
+    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         SQLiteHelper.init();
     }
 
+    // dùng để thiết lập up
     @BeforeEach
     void setUp() {
         RealtimeDatabase.clearAll();
@@ -65,6 +67,7 @@ class AuctionServiceTest {
         createdUsernames.clear();
     }
 
+    // dùng để tear down
     @AfterEach
     void tearDown() {
         RealtimeDatabase.clearAll();
@@ -87,9 +90,11 @@ class AuctionServiceTest {
         }
     }
 
+    // dùng để lấy live danh sách đấu giá successfully returns list
     @Test
     void getLiveAuctionsSuccessfullyReturnsList() {
         // Seed dữ liệu
+        // dùng để tạo test đấu giá
         createTestAuction("Test Active", AuctionStatus.ACTIVE);
         
         // Gọi service xử lý
@@ -102,6 +107,7 @@ class AuctionServiceTest {
         assertFalse(data.isEmpty());
     }
 
+    // dùng để place lượt đặt giá successfully updates đấu giá and creates lượt đặt giá
     @Test
     void placeBidSuccessfullyUpdatesAuctionAndCreatesBid() {
         String bidderUsername = uniqueUsername("bidder");
@@ -131,6 +137,7 @@ class AuctionServiceTest {
         assertEquals(bidderUsername, bids.get(bids.size() - 1).getBidderUsername());
     }
 
+    // dùng để place lượt đặt giá fails when client not logged trong
     @Test
     void placeBidFailsWhenClientNotLoggedIn() {
         Auction auction = createTestAuction("Bid Auction", AuctionStatus.ACTIVE);
@@ -145,6 +152,7 @@ class AuctionServiceTest {
         assertEquals(RequestStatus.FAILED, response.getStatus());
     }
 
+    // dùng để place lượt đặt giá fails when đấu giá kiểm tra xem not active
     @Test
     void placeBidFailsWhenAuctionIsNotActive() {
         String bidderUsername = uniqueUsername("bidder");
@@ -164,6 +172,7 @@ class AuctionServiceTest {
         assertEquals(RequestStatus.FAILED, response.getStatus());
     }
 
+    // dùng để thiết lập auto lượt đặt giá can immediately overtake tại minimum needed số tiền
     @Test
     void setAutoBidCanImmediatelyOvertakeAtMinimumNeededAmount() {
         String bidder1 = uniqueUsername("autoA");
@@ -192,6 +201,7 @@ class AuctionServiceTest {
         assertEquals(1300.0, updated.getCurrentBid());
     }
 
+    // dùng để raising leader auto lượt đặt giá max does not tạo extra lịch sử entry when visible lượt đặt giá stays same
     @Test
     void raisingLeaderAutoBidMaxDoesNotCreateExtraHistoryEntryWhenVisibleBidStaysSame() {
         String bidder = uniqueUsername("leader");
@@ -215,6 +225,7 @@ class AuctionServiceTest {
         assertEquals(before, bidDao.findByAuctionId(auction.getId()).size());
     }
 
+    // dùng để disable auto lượt đặt giá succeeds cho leading bidder
     @Test
     void disableAutoBidSucceedsForLeadingBidder() {
         String bidder = uniqueUsername("autoDisable");
@@ -245,6 +256,7 @@ class AuctionServiceTest {
         assertEquals(1200.0, updated.getCurrentBid());
     }
 
+    // dùng để lấy đấu giá chi tiết marks current danh sách người dùng active auto lượt đặt giá
     @Test
     void getAuctionDetailMarksCurrentUsersActiveAutoBid() {
         String bidder = uniqueUsername("autoDetail");
@@ -265,6 +277,7 @@ class AuctionServiceTest {
 
         assertEquals(RequestStatus.SUCCESS, detail.getStatus());
         AuctionDto dto = (AuctionDto) detail.getData();
+        // dùng để assert not null
         assertNotNull(dto);
         assertTrue(dto.isCurrentUserAutoBidActive());
         assertEquals(2000.0, dto.getCurrentUserAutoBidMax());
@@ -272,6 +285,7 @@ class AuctionServiceTest {
 
     // --- Helper Methods ---
 
+    // dùng để tạo test người dùng
     private User createTestUser(String username, String rawPassword) {
         User user = new User(username, username, PasswordUtil.hash(rawPassword));
         userDao.create(user);
@@ -279,6 +293,7 @@ class AuctionServiceTest {
         return user;
     }
 
+    // dùng để tạo funded active người dùng
     private User createFundedActiveUser(String username, double balance) {
         User user = createTestUser(username, "secret123");
         user.getWallet().deposit(balance);
@@ -286,9 +301,11 @@ class AuctionServiceTest {
         return user;
     }
 
+    // dùng để tạo test đấu giá
     private Auction createTestAuction(String name, AuctionStatus status) {
         // Bắt buộc tạo một mock Seller trước khi tạo Auction để giữ toàn vẹn khóa ngoại (FK)
         String sellerUsername = uniqueUsername("seller");
+        // dùng để tạo test người dùng
         createTestUser(sellerUsername, "sellerPass");
 
         Item item = new Item(sellerUsername, name, "Test description", "Cat", "Type");
@@ -317,10 +334,12 @@ class AuctionServiceTest {
         return auction;
     }
 
+    // dùng để unique username
     private String uniqueUsername(String prefix) {
         return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
 
+    // dùng để session client
     private TestClientHandler sessionClient(User user) {
         TestClientHandler client = new TestClientHandler();
         client.setCurrentUsername(user.getUsername());
@@ -331,10 +350,13 @@ class AuctionServiceTest {
     // --- Mock Classes ---
     
     private static class TestClientHandler extends ClientHandler {
+        // dùng để test client trình xử lý
         TestClientHandler() {
+            // dùng để super
             super(null);
         }
 
+        // dùng để kiểm tra xem trong phiên làm việc
         @Override
         public boolean isInSession() {
             return getCurrentUsername() != null;
