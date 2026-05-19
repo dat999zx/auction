@@ -18,7 +18,9 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.model.WalletRequest;
+import com.bidify.common.model.WalletReviewRequest;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
@@ -54,6 +56,8 @@ class TransactionServiceTest {
         // Làm sạch bộ nhớ tạm (RAM) và danh sách dọn dẹp trước mỗi test để đảm bảo các test độc lập, không ảnh hưởng lẫn nhau
         RealtimeDatabase.clearAll();
         createdUsernames.clear();
+        SQLiteHelper.update("DELETE FROM WalletRequests");
+        SQLiteHelper.update("DELETE FROM Transactions");
     }
 
     // dùng để tear down
@@ -63,6 +67,7 @@ class TransactionServiceTest {
         
         // Dọn dẹp dữ liệu giao dịch và users để không làm rác DB thật
         for (String username : createdUsernames) {
+            SQLiteHelper.update("DELETE FROM WalletRequests WHERE username = ?", username);
             SQLiteHelper.update("DELETE FROM Transactions WHERE username = ?", username);
             SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
         }
@@ -89,6 +94,23 @@ class TransactionServiceTest {
         // 3. Kiểm tra kết quả (Assert)
         // Đảm bảo request được xử lý thành công
         assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        // Phê duyệt yêu cầu nạp tiền
+        List<com.bidify.server.model.WalletRequest> pending = com.bidify.server.dao.WalletRequestDao.getInstance().findPending();
+        assertEquals(1, pending.size());
+        com.bidify.server.model.WalletRequest wr = pending.get(0);
+
+        TestClientHandler adminClient = new TestClientHandler();
+        adminClient.setCurrentUsername("admin");
+        User adminUser = createTestUser("admin", "admin123");
+        adminUser.setRole(UserRole.ADMIN);
+        RealtimeDatabase.addActiveUser(adminClient, adminUser);
+
+        Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
+            adminClient,
+            new Request(RequestType.REVIEW_WALLET_REQUEST, new WalletReviewRequest(wr.getId(), true))
+        );
+        assertEquals(RequestStatus.SUCCESS, reviewResp.getStatus());
 
         // Đọc lại thông tin user từ DB để xác nhận số dư đã tăng đúng 500
         User updatedUser = userDao.findByUsername(username);
@@ -148,6 +170,23 @@ class TransactionServiceTest {
 
         // 3. Kiểm tra (Assert)
         assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        // Phê duyệt yêu cầu rút tiền
+        List<com.bidify.server.model.WalletRequest> pending = com.bidify.server.dao.WalletRequestDao.getInstance().findPending();
+        assertEquals(1, pending.size());
+        com.bidify.server.model.WalletRequest wr = pending.get(0);
+
+        TestClientHandler adminClient = new TestClientHandler();
+        adminClient.setCurrentUsername("admin");
+        User adminUser = createTestUser("admin", "admin123");
+        adminUser.setRole(UserRole.ADMIN);
+        RealtimeDatabase.addActiveUser(adminClient, adminUser);
+
+        Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
+            adminClient,
+            new Request(RequestType.REVIEW_WALLET_REQUEST, new WalletReviewRequest(wr.getId(), true))
+        );
+        assertEquals(RequestStatus.SUCCESS, reviewResp.getStatus());
 
         // Kiểm tra xem số dư có bị trừ chính xác không (1000 - 400 = 600)
         User updatedUser = userDao.findByUsername(username);
