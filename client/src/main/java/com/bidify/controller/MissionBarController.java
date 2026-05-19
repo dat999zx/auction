@@ -51,6 +51,9 @@ public class MissionBarController {
     private Button adminUsersButton;
 
     @FXML
+    private Button adminWalletRequestsButton;
+
+    @FXML
     private Label avatarText;
 
     @FXML
@@ -180,6 +183,7 @@ public class MissionBarController {
     public Button getHistoryButton() { return historyButton; }
     public Button getInventoryButton() { return inventoryButton; }
     public Button getAdminUsersButton() { return adminUsersButton; }
+    public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
 
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
@@ -199,9 +203,14 @@ public class MissionBarController {
     }
 
     public void setShowAdminControls(boolean visible) {
-        if (adminUsersButton == null) return;
-        adminUsersButton.setManaged(visible);
-        adminUsersButton.setVisible(visible);
+        if (adminUsersButton != null) {
+            adminUsersButton.setManaged(visible);
+            adminUsersButton.setVisible(visible);
+        }
+        if (adminWalletRequestsButton != null) {
+            adminWalletRequestsButton.setManaged(visible);
+            adminWalletRequestsButton.setVisible(visible);
+        }
     }
 
     public void setShowCreateAuction(boolean visible) {
@@ -223,6 +232,9 @@ public class MissionBarController {
         if (adminUsersButton != null) {
             adminUsersButton.setOnAction(handler);
         }
+        if (adminWalletRequestsButton != null) {
+            adminWalletRequestsButton.setOnAction(handler);
+        }
     }
 
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {
@@ -242,7 +254,7 @@ public class MissionBarController {
     }
 
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton) {
+        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
             updateSidebarButtonStyle(activeButton);
         }
         

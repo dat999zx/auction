@@ -7,6 +7,7 @@ public enum NavPage {
     INVENTORY,
     HISTORY,
     ADMIN_USERS,
+    ADMIN_WALLET_REQUESTS,
     PROFILE,
     NONE
 }

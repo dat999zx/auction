@@ -100,6 +100,10 @@ public class MissionBarUtil {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("admin-users.fxml", false, true);
         }
+        else if (selectedButton == controller.getAdminWalletRequestsButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("admin-wallet-requests.fxml", false, true);
+        }
         else if (selectedButton == controller.getLogoutLinkButton()) handleLogout();
     }
 
@@ -135,6 +139,7 @@ public class MissionBarUtil {
             case INVENTORY -> controller.setActiveNavigation(controller.getInventoryButton());
             case HISTORY -> controller.setActiveNavigation(controller.getHistoryButton());
             case ADMIN_USERS -> controller.setActiveNavigation(controller.getAdminUsersButton());
+            case ADMIN_WALLET_REQUESTS -> controller.setActiveNavigation(controller.getAdminWalletRequestsButton());
             default -> controller.setActiveNavigation(null);
         }
     }
