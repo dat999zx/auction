@@ -116,7 +116,7 @@ public class HistoryController {
             biddingActivityContainer.getChildren().add(loadBiddingRow(
                 buildAuctionItemLabel(bid),
                 buildAuctionSubtitle(bid),
-                DisplayUtil.formatCurrency(bid.getAmount()),
+                DisplayUtil.formatCashSuffix(bid.getAmount()),
                 DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown"),
                 buildAuctionStatus(bid)
             ));

@@ -17,7 +17,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="720" prefWidth="1080" styleClass="detail-shell" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ItemDetailController">
+<BorderPane prefHeight="720" prefWidth="1080" styleClass="detail-shell" stylesheets="@../css/item-detail.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ItemDetailController">
     <top>
         <HBox alignment="CENTER_LEFT" spacing="16" styleClass="detail-header">
             <Button onAction="#handleBack" styleClass="icon-button" text="&lt;" />

@@ -71,11 +71,13 @@
                                 <VBox spacing="6.0">
                                     <Label styleClass="meta-label" text="AVAILABLE WALLET" />
                                     <Label fx:id="walletBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
+                           <Label fx:id="fullWalletBalance" maxWidth="300.0" styleClass="meta-label" text="fullWalletBalance" />
                                 </VBox>
                         <VBox spacing="6.0">
                            <children>
                               <Label prefHeight="15.0" prefWidth="192.0" styleClass="meta-label" text="LOCKED BALANCE (Pending for auction)" />
                               <Label fx:id="lockedBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
+                              <Label fx:id="fullLockedBalance" maxWidth="300.0" styleClass="meta-label" text="fullLockedBalance" />
                            </children>
                         </VBox>
                         <HBox.margin>

@@ -2,6 +2,7 @@ package com.bidify.controller.history;
 
 import com.bidify.common.dto.TransactionDto;
 import com.bidify.common.utility.DisplayUtil;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -22,10 +23,14 @@ public class TransactionCardController {
     @FXML
     private Label amountLabel;
 
+    @FXML
+    private Label fullValue;
+
     public void setData(TransactionDto transaction) {
         titleLabel.setText(resolveTransactionTitle(transaction));
         idLabel.setText("Transaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown"));
-        amountLabel.setText(DisplayUtil.formatCurrency(transaction.getAmount()));
+        amountLabel.setText(DisplayUtil.formatCashSuffix(transaction.getAmount()));
+        fullValue.setText(DisplayUtil.formatCurrency(transaction.getAmount()));
         iconLabel.setText(resolveTransactionIcon(transaction));
 
         card.getStyleClass().removeAll("border-green", "border-gray", "border-blue");

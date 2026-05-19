@@ -5,17 +5,17 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox fx:id="row" alignment="CENTER_LEFT" styleClass="table-row" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.history.BiddingRowController">
-    <HBox spacing="16" alignment="CENTER_LEFT" prefWidth="320">
-        <Pane prefWidth="48" prefHeight="48" styleClass="image-placeholder"/>
+<HBox fx:id="row" alignment="CENTER_LEFT" styleClass="table-row" stylesheets="@../../css/history.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.history.BiddingRowController">
+    <HBox alignment="CENTER_LEFT" prefWidth="320" spacing="16">
+        <Pane prefHeight="48" prefWidth="48" styleClass="image-placeholder" />
         <VBox spacing="4">
-            <Label fx:id="titleLabel" styleClass="text-primary, table-row-title"/>
-            <Label fx:id="subtitleLabel" styleClass="text-on-surface-variant, table-row-subtitle"/>
+            <Label fx:id="titleLabel" styleClass="text-primary, table-row-title" />
+            <Label fx:id="subtitleLabel" styleClass="text-on-surface-variant, table-row-subtitle" />
         </VBox>
     </HBox>
-    <Label fx:id="amountLabel" prefWidth="180" styleClass="text-secondary, table-row-amount"/>
-    <Label fx:id="dateLabel" prefWidth="240" styleClass="text-on-surface-variant"/>
+    <Label fx:id="amountLabel" prefWidth="180" styleClass="text-secondary, table-row-amount" text="Value" />
+    <Label fx:id="dateLabel" prefWidth="240" styleClass="text-on-surface-variant" text="date" />
     <HBox fx:id="statusBox" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-        <Label fx:id="statusLabel"/>
+        <Label fx:id="statusLabel" text="status" />
     </HBox>
 </HBox>
