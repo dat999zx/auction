@@ -1,6 +1,13 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.Comparator;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -16,6 +23,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
+import com.bidify.model.ClientSession;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.ImageCache;
@@ -26,19 +34,32 @@ import com.bidify.utility.UiUpdateScheduler;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
+import javafx.util.StringConverter;
 
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
+    private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+    private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
+    private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
     private static String selectedAuctionId;
 
@@ -55,6 +76,8 @@ public class AuctionDetailsController {
     private Label description;
     @FXML
     private Label currentprice;
+    @FXML
+    private Label fullCurrentPriceLabel;
     @FXML
     private Label enddate;
     @FXML
@@ -78,6 +101,8 @@ public class AuctionDetailsController {
     @FXML
     private Label openingBidAmountLabel;
     @FXML
+    private Label fullStartingPriceLabel;
+    @FXML
     private Label opendate;
     @FXML
     private Label leftMetricLabel;
@@ -88,6 +113,12 @@ public class AuctionDetailsController {
     @FXML
     private Label endDateLabel;
     @FXML
+    private HBox audienceStatsRow;
+    @FXML
+    private Label watcherCountLabel;
+    @FXML
+    private Label activeBidderCountLabel;
+    @FXML
     private Label recentActivityLabel;
     @FXML
     private VBox recentActivitySection;
@@ -95,6 +126,12 @@ public class AuctionDetailsController {
     private VBox activityList;
     @FXML
     private VBox bidActionSection;
+    @FXML
+    private VBox analyticsSection;
+    @FXML
+    private StackPane biddingChartHost;
+    @FXML
+    private Label biddingChartStateLabel;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -103,7 +140,11 @@ public class AuctionDetailsController {
     private Double currentUserAutoBidMax;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
-
+    private double minIncrement;
+    private double currentValue;
+    private LineChart<Number, Number> biddingChart;
+    private NumberAxis biddingTimeAxis;
+    private NumberAxis biddingAmountAxis;
     // The gatekeeper calls this first
     public static void setAuctionId(String auctionId) {
         selectedAuctionId = auctionId;
@@ -111,6 +152,12 @@ public class AuctionDetailsController {
 
     @FXML
     private void initialize() {
+        EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
+        EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
+        EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
+        initializeBiddingChart();
+
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
             loadAuctionDetails(selectedAuctionId);
@@ -125,8 +172,11 @@ public class AuctionDetailsController {
         AuctionDto updatedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
         if (updatedAuction != null && selectedAuctionId.equals(updatedAuction.getId())) {
             Platform.runLater(() -> {
+                updatedAuction.setCurrentUserAutoBidActive(currentUserAutoBidActive);
+                updatedAuction.setCurrentUserAutoBidMax(currentUserAutoBidMax);
                 bindAuctionData(updatedAuction);
-                NotificationUtil.info(event.getMessage());
+                if (event.getType() == EventType.BID_PLACED)
+                    NotificationUtil.info(event.getMessage());
             });
         }
     }
@@ -208,7 +258,7 @@ public class AuctionDetailsController {
         }
 
         if (bidAmount <= currentDisplayedPrice) {
-            NotificationUtil.error("Your bid must be higher than the current price.");
+            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice) + minIncrement + ".");
             return;
         }
 
@@ -362,17 +412,22 @@ public class AuctionDetailsController {
 
         // bid values and date
         double startingValue = data.getStartingPrice();
-        double currentValue = data.getCurrentBid();
+        this.currentValue= data.getCurrentBid();
+        this.minIncrement = data.getMinIncrement();
         currentDisplayedPrice = currentValue > 0 ? currentValue : startingValue;
         
-        openingBidAmountLabel.setText(DisplayUtil.formatCurrency(startingValue));
-        currentprice.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
+        openingBidAmountLabel.setText(DisplayUtil.formatCashSuffix(startingValue));
+        fullStartingPriceLabel.setText(DisplayUtil.formatCurrency(startingValue));
+        currentprice.setText(DisplayUtil.formatCashSuffix(currentDisplayedPrice));
+        fullCurrentPriceLabel.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
         configureAuctionState(isUpcoming, startingValue, currentValue);
         startTimer();
 
         renderRecentActivity(data, isUpcoming);
+        renderBiddingTrend(data, isUpcoming);
         refreshAutoBidStatusLabel();
+        renderAudienceStats(data, isUpcoming);
 
         // set primary image
         if (data.getThumbnailBase64() != null)
@@ -385,13 +440,13 @@ public class AuctionDetailsController {
     }
 
     private void configureAuctionState(boolean isUpcoming, double startingValue, double currentValue) {
-        if (isUpcoming) {
+        if (isUpcoming || ClientSession.getInstance().isAdmin()) {
             leftMetricLabel.setText("STARTING PRICE");
-            rightMetricLabel.setText("OPENING BID");
-            currentprice.setText(DisplayUtil.formatCurrency(startingValue));
-            openDateLabel.setText("Starts at:");
+            rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
+            currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
+            openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
             endDateLabel.setText("Ends at:");
-            recentActivityLabel.setText("AUCTION STATUS");
+            recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
             bidActionSection.setManaged(false);
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
@@ -401,13 +456,26 @@ public class AuctionDetailsController {
 
         leftMetricLabel.setText("STARTING PRICE");
         rightMetricLabel.setText("CURRENT BID");
-        currentprice.setText(DisplayUtil.formatCurrency(currentValue > 0 ? currentValue : startingValue));
+        currentprice.setText(DisplayUtil.formatCashSuffix(currentValue > 0 ? currentValue : startingValue));
         openDateLabel.setText("Open at:");
         endDateLabel.setText("End at:");
         recentActivityLabel.setText("RECENT ACTIVITY");
         bidActionSection.setManaged(true);
         bidActionSection.setVisible(true);
         placebid.setDisable(false);
+    }
+
+    private void renderAudienceStats(AuctionDto data, boolean isUpcoming) {
+        if (audienceStatsRow == null)
+            return;
+
+        audienceStatsRow.setManaged(!isUpcoming);
+        audienceStatsRow.setVisible(!isUpcoming);
+        if (isUpcoming)
+            return;
+
+        watcherCountLabel.setText(formatCount(data.getWatcherCount(), "watching", "watching"));
+        activeBidderCountLabel.setText(formatCount(data.getActiveBidderCount(), "active bidder", "active bidders"));
     }
 
     private void setupThumbnailGallery(AuctionDto data) {
@@ -462,6 +530,7 @@ public class AuctionDetailsController {
 
         enddate.setText("Loading...");
         activityList.getChildren().clear();
+        showBiddingChartState("Loading bid history...");
 
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
@@ -502,6 +571,10 @@ public class AuctionDetailsController {
         return String.format("%.2f", value);
     }
 
+    private String formatCount(int count, String singular, String plural) {
+        return count + " " + (count == 1 ? singular : plural);
+    }
+
     private void startTimer() {
         stopTimer();
         if (currentAuction == null) return;
@@ -528,6 +601,225 @@ public class AuctionDetailsController {
         enddate.setText(DisplayUtil.formatRemainingTime(targetTime));
     }
 
+    private void initializeBiddingChart() {
+        if (biddingChartHost == null) {
+            return;
+        }
+
+        biddingTimeAxis = new NumberAxis();
+        biddingAmountAxis = new NumberAxis();
+
+        biddingTimeAxis.setLabel("Bid time");
+        biddingTimeAxis.setForceZeroInRange(false);
+        biddingTimeAxis.setMinorTickVisible(false);
+
+        biddingAmountAxis.setLabel("Bid amount");
+        biddingAmountAxis.setForceZeroInRange(false);
+        biddingAmountAxis.setMinorTickVisible(false);
+        biddingAmountAxis.setTickLabelFormatter(new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                return DisplayUtil.formatCurrency(value.doubleValue());
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        });
+
+        biddingChart = new LineChart<>(biddingTimeAxis, biddingAmountAxis);
+        biddingChart.setAnimated(false);
+        biddingChart.setLegendVisible(false);
+        biddingChart.setCreateSymbols(true);
+        biddingChart.setAlternativeRowFillVisible(false);
+        biddingChart.setAlternativeColumnFillVisible(false);
+        biddingChart.setHorizontalGridLinesVisible(true);
+        biddingChart.setVerticalGridLinesVisible(false);
+        biddingChart.setMinHeight(200.0);
+        biddingChart.setPrefHeight(200.0);
+        biddingChart.getStyleClass().add("bidding-line-chart");
+
+        biddingChartHost.getChildren().setAll(biddingChart);
+        showBiddingChartState("Loading bid history...");
+    }
+
+    private void renderBiddingTrend(AuctionDto data, boolean isUpcoming) {
+        if (analyticsSection == null || biddingChart == null) {
+            return;
+        }
+
+        analyticsSection.setManaged(true);
+        analyticsSection.setVisible(true);
+
+        if (isUpcoming) {
+            biddingChart.getData().clear();
+            showBiddingChartState("Chart appears after first live bid.");
+            return;
+        }
+
+        List<BidDto> bidHistory = data.getBidHistory();
+        if (bidHistory == null || bidHistory.isEmpty()) {
+            biddingChart.getData().clear();
+            showBiddingChartState("No bids yet. First live bid will appear here.");
+            return;
+        }
+
+        List<BidDto> sortedBids = bidHistory.stream()
+                .sorted(Comparator.comparing(this::parseBidCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
+                .toList();
+
+        LocalDateTime firstBidTime = parseBidCreatedAt(sortedBids.getFirst());
+        LocalDateTime lastBidTime = parseBidCreatedAt(sortedBids.getLast());
+        biddingTimeAxis.setTickLabelFormatter(createTimeAxisFormatter(firstBidTime, lastBidTime));
+
+        XYChart.Series<Number, Number> series = new XYChart.Series<>();
+        for (BidDto bid : sortedBids) {
+            series.getData().add(createBidPoint(bid));
+        }
+
+        biddingChart.getData().setAll(series);
+        if (series.getNode() != null) {
+            series.getNode().getStyleClass().add("bidding-line-series");
+        }
+        hideBiddingChartState();
+    }
+
+    private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {
+        XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), bid.getAmount());
+        point.setNode(createBidPointNode(bid));
+        return point;
+    }
+
+    private Node createBidPointNode(BidDto bid) {
+        StackPane node = new StackPane();
+        node.getStyleClass().addAll("chart-line-symbol", bid.isAutoBidGenerated() ? "bid-point-auto" : "bid-point-manual");
+        node.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPrefSize(10, 10);
+        node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        node.setPickOnBounds(true);
+        attachTooltip(node, createDetailedTooltip(buildBidTooltipText(bid)));
+        return node;
+    }
+
+    private String buildBidTooltipText(BidDto bid) {
+        String bidType = bid.isAutoBidGenerated() ? "AutoBid" : "Manual bid";
+        return "Bid Detail"
+                + "\nBidder: " + DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder")
+                + "\nAmount: " + DisplayUtil.formatCurrency(bid.getAmount())
+                + "\nTime: " + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
+                + "\nType: " + bidType
+                + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
+    }
+
+    private Tooltip createDetailedTooltip(String text) {
+        Tooltip tooltip = new Tooltip(text);
+        tooltip.getStyleClass().add("chart-tooltip");
+        tooltip.setWrapText(true);
+        tooltip.setMaxWidth(300);
+        return tooltip;
+    }
+
+    private void attachTooltip(Node node, Tooltip tooltip) {
+        node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
+        node.setOnMouseMoved(event -> {
+            if (tooltip.isShowing()) {
+                tooltip.setAnchorX(event.getScreenX() + 14);
+                tooltip.setAnchorY(event.getScreenY() + 14);
+            }
+        });
+        node.setOnMouseExited(event -> tooltip.hide());
+    }
+
+    private void showBiddingChartState(String message) {
+        if (biddingChartHost != null) {
+            biddingChartHost.setManaged(false);
+            biddingChartHost.setVisible(false);
+        }
+        if (biddingChartStateLabel != null) {
+            biddingChartStateLabel.setText(message);
+            biddingChartStateLabel.setManaged(true);
+            biddingChartStateLabel.setVisible(true);
+        }
+    }
+
+    private void hideBiddingChartState() {
+        if (biddingChartHost != null) {
+            biddingChartHost.setManaged(true);
+            biddingChartHost.setVisible(true);
+        }
+        if (biddingChartStateLabel != null) {
+            biddingChartStateLabel.setManaged(false);
+            biddingChartStateLabel.setVisible(false);
+        }
+    }
+
+    private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
+        DateTimeFormatter formatter = resolveTimeAxisFormatter(firstBidTime, lastBidTime);
+
+        return new StringConverter<>() {
+            @Override
+            public String toString(Number value) {
+                LocalDateTime dateTime = fromEpochSeconds(value.longValue());
+                return dateTime == null
+                        ? ""
+                        : dateTime.format(formatter);
+            }
+
+            @Override
+            public Number fromString(String string) {
+                return 0;
+            }
+        };
+    }
+
+    private DateTimeFormatter resolveTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
+        if (firstBidTime == null || lastBidTime == null) {
+            return CHART_SHORT_TIME_FORMATTER;
+        }
+
+        long totalHours = Math.abs(ChronoUnit.HOURS.between(firstBidTime, lastBidTime));
+        long totalDays = Math.abs(ChronoUnit.DAYS.between(firstBidTime.toLocalDate(), lastBidTime.toLocalDate()));
+
+        if (totalHours < 24) {
+            return CHART_SHORT_TIME_FORMATTER;
+        }
+        if (totalDays <= 14) {
+            return CHART_DAY_FORMATTER;
+        }
+        if (totalDays <= 90) {
+            return CHART_FULL_TIME_FORMATTER;
+        }
+        return CHART_YEAR_FORMATTER;
+    }
+
+    private LocalDateTime parseBidCreatedAt(BidDto bid) {
+        if (bid == null || bid.getCreatedAt() == null || bid.getCreatedAt().isBlank()) {
+            return null;
+        }
+
+        try {
+            return LocalDateTime.parse(bid.getCreatedAt());
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+    private long toEpochSeconds(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return 0L;
+        }
+        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+    }
+
+    private LocalDateTime fromEpochSeconds(long epochSeconds) {
+        try {
+            return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
     private void renderRecentActivity(AuctionDto data, boolean isUpcoming) {
         if (activityList == null) return;
 
@@ -549,7 +841,7 @@ public class AuctionDetailsController {
                     : DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder");
             activityList.getChildren().add(createActivityRow(
                     bidderText,
-                    DisplayUtil.formatCurrency(bid.getAmount()),
+                    DisplayUtil.formatCashSuffix(bid.getAmount()),
                     DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown")
             ));
         }

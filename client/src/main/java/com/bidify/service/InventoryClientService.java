@@ -9,8 +9,10 @@ import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateItemRequest;
+import com.bidify.common.model.DeleteItemRequest;
 import com.bidify.common.model.GetItemDetailRequest;
 import com.bidify.common.model.GetInventoryRequest;
+import com.bidify.common.model.GetUserInventoryRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateItemRequest;
@@ -23,9 +25,19 @@ public class InventoryClientService {
 
     public List<ItemDto> getMyInventory() throws IOException {
         Response response = client.send(new Request(RequestType.GET_MY_INVENTORY, new GetInventoryRequest()));
+        return consumeInventoryResponse(response, "Cannot load inventory.");
+    }
+
+    public List<ItemDto> getInventoryForOwner(String ownerUsername) throws IOException {
+        ValidationUtil.validateUsername(ownerUsername);
+        Response response = client.send(new Request(RequestType.GET_USER_INVENTORY, new GetUserInventoryRequest(ownerUsername)));
+        return consumeInventoryResponse(response, "Cannot load user inventory.");
+    }
+
+    private List<ItemDto> consumeInventoryResponse(Response response, String fallbackMessage) {
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
             throw new ValidationException(
-                response.getMessage() == null ? "Cannot load inventory." : response.getMessage()
+                response.getMessage() == null ? fallbackMessage : response.getMessage()
             );
         }
 
@@ -112,6 +124,17 @@ public class InventoryClientService {
         if (item == null)
             throw new ValidationException("Update item came back in an unexpected format.");
         return item;
+    }
+
+    public void deleteItem(String itemId) throws IOException {
+        ValidationUtil.requiresNonBlank(itemId, "Item ID");
+
+        Response response = client.send(
+            new Request(RequestType.DELETE_ITEM, new DeleteItemRequest(itemId))
+        );
+
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot delete item." : response.getMessage());
     }
 
     private void validateItemFields(String name, String description, String category, String productType) {

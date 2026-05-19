@@ -3,6 +3,7 @@ package com.bidify.server;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.service.AuctionSchedulerService;
 import com.bidify.server.service.AuctionService;
+import com.bidify.server.service.AdminService;
 import com.bidify.server.service.AuthService;
 import com.bidify.server.service.BidService;
 import com.bidify.server.service.ItemService;
@@ -24,7 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class ServerApp {
     private static final Logger logger = LoggerFactory.getLogger(ServerApp.class);
-    private static final int PORT = 5000;
+    private static final int DEFAULT_PORT = 5000;
     private static final String KEYSTORE_PATH = "/keystore/server.jks";
     private static final char[] KEYSTORE_PASSWORD = "blablablabidifyserver".toCharArray();
 
@@ -42,6 +43,7 @@ public class ServerApp {
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
         
         AuthService.getInstance().initialize();
+        AdminService.getInstance().initialize();
         auctionService.initialize();
         UserProfileService.getInstance().initialize();
         BidService.getInstance().initialize();
@@ -62,9 +64,10 @@ public class ServerApp {
         try {
             SSLContext sslContext = createServerSslContext();
             SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
+            int port = resolvePort();
 
-            try (SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(PORT)) {
-                logger.info("Server running on port: " + PORT);
+            try (SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port)) {
+                logger.info("Server running on port: " + port);
 
                 while (!serverSocket.isClosed()) {
                     SSLSocket socket = (SSLSocket) serverSocket.accept();
@@ -93,5 +96,19 @@ public class ServerApp {
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(kmf.getKeyManagers(), null, new SecureRandom());
         return context;
+    }
+
+    private static int resolvePort() {
+        String rawPort = System.getProperty("server.port");
+        if (rawPort == null || rawPort.isBlank())
+            return DEFAULT_PORT;
+
+        try {
+            return Integer.parseInt(rawPort.trim());
+        }
+        catch (NumberFormatException e) {
+            logger.warn("Invalid server.port '{}', using default {}", rawPort, DEFAULT_PORT);
+            return DEFAULT_PORT;
+        }
     }
 }

@@ -17,7 +17,7 @@ import java.net.SocketException;
 
 import javax.net.ssl.SSLSocket;
 
-// lắng nghe client
+// láº¯ng nghe client
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -55,12 +55,12 @@ public class ClientHandler implements Runnable, Observer {
         }
     }
 
-    public void sendResponse(Response response) { // gửi response đến client
+    public void sendResponse(Response response) { // gá»­i response Ä‘áº¿n client
         if (out != null)
             out.println(JsonUtil.toJson(response));
     }
 
-    public void sendEvent(Event event) { // gửi event đến client
+    public void sendEvent(Event event) { // gá»­i event Ä‘áº¿n client
         if (out != null)
             out.println(JsonUtil.toJson(event));
     }
@@ -70,19 +70,29 @@ public class ClientHandler implements Runnable, Observer {
         sendEvent(event);
     }
 
-    public void setCurrentUsername(String username) { // thiết lập username của client
+    public void setCurrentUsername(String username) { // thiáº¿t láº­p username cá»§a client
         this.currentUsername = username;
     }
 
-    public String getCurrentUsername() { // lấy username của client
+    public String getCurrentUsername() { // láº¥y username cá»§a client
         return currentUsername;
     }
 
-    public boolean isInSession(){ // xác thực client đã đăng nhập chưa
+    public boolean isInSession(){ // xÃ¡c thá»±c client Ä‘Ã£ Ä‘Äƒng nháº­p chÆ°a
         return socket != null && currentUsername != null;
     }
 
-    private void handleDisconnect() { // xử lý khi client ngắt kết nối
+    public void closeConnection() {
+        try {
+            if (socket != null && !socket.isClosed())
+                socket.close();
+        }
+        catch (IOException e) {
+            logger.warn("Exception occurred", e);
+        }
+    }
+
+    private void handleDisconnect() { // xá»­ lÃ½ khi client ngáº¯t káº¿t ná»‘i
         logger.info("Client disconnected: {}", socket.getInetAddress());
         if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());

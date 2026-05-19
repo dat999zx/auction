@@ -6,6 +6,7 @@ import com.bidify.common.dto.UserDto;
 import com.bidify.common.dto.WalletDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
@@ -23,7 +24,7 @@ public class UserProfileClientService {
 
     public UserDto getCurrentProfile() throws IOException {
         if (clientSession.getCurrentUsername() == null || clientSession.getCurrentUsername().isBlank()) {
-            return new UserDto("Guest", "Guest", new WalletDto(0, 0));
+            return new UserDto("Guest", "Guest", new WalletDto(0, 0), UserRole.USER);
         }
 
         Response response = client.send(new Request(RequestType.GET_PROFILE, null));
@@ -47,10 +48,10 @@ public class UserProfileClientService {
 
         String username = clientSession.getCurrentUsername();
         if (username == null || username.isBlank()) {
-            return new UserDto("Guest", "Guest", new WalletDto(0, 0));
+            return new UserDto("Guest", "Guest", new WalletDto(0, 0), UserRole.USER);
         }
 
-        return new UserDto(username, username, new WalletDto(0, 0));
+        return new UserDto(username, username, new WalletDto(0, 0), UserRole.USER);
     }
 
     public UserDto updateProfile(String nickname) throws IOException {

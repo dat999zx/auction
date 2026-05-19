@@ -24,6 +24,7 @@
                         <Label styleClass="header-title" text="Modify Auction" />
                     </VBox>
                     <HBox spacing="15">
+                        <Button fx:id="deleteAuctionButton" onAction="#handleDeleteAuction" styleClass="btn-secondary" text="Delete Auction" />
                         <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
                         <Button fx:id="saveChangesButton" onAction="#handleSaveChanges" styleClass="btn-primary" text="Save Changes" />
                     </HBox>

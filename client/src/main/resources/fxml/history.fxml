@@ -6,6 +6,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane fx:id="historyRoot"
@@ -41,6 +42,20 @@
                             </HBox>
                         </right>
                     </BorderPane>
+
+                    <HBox spacing="16">
+                        <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
+                            <Label text="MONEY FLOW" styleClass="table-header-text"/>
+                            <StackPane fx:id="moneyFlowChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
+                            <Label fx:id="moneyFlowChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No transaction history yet." visible="false" wrapText="true"/>
+                        </VBox>
+
+                        <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
+                            <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
+                            <StackPane fx:id="biddingActivityChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
+                            <Label fx:id="biddingActivityChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true"/>
+                        </VBox>
+                    </HBox>
 
                     <VBox fx:id="biddingActivityContainer" styleClass="table-container">
                         <!-- Table Header -->

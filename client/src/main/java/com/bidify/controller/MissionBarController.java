@@ -48,6 +48,9 @@ public class MissionBarController {
     private Button inventoryButton;
 
     @FXML
+    private Button adminUsersButton;
+
+    @FXML
     private Label avatarText;
 
     @FXML
@@ -79,7 +82,7 @@ public class MissionBarController {
 
     @FXML
     private void initialize() {
-        leftSideActiveButton = auctionsButton; // Mặc định active home
+        leftSideActiveButton = auctionsButton; // Máº·c Ä‘á»‹nh active home
         double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
@@ -133,7 +136,7 @@ public class MissionBarController {
         updateSidebarButtonStyle(myActivitiesButton);
     }
 
-    // check xem nếu như button nào được click thì sẽ đổi style của button đó thành active, còn lại sẽ là normal
+    // check xem náº¿u nhÆ° button nÃ o Ä‘Æ°á»£c click thÃ¬ sáº½ Ä‘á»•i style cá»§a button Ä‘Ã³ thÃ nh active, cÃ²n láº¡i sáº½ lÃ  normal
     private void updateSidebarButtonStyle(Button activeButton) {
         if (leftSideActiveButton == activeButton) return;
         leftSideActiveButton.getStyleClass().removeAll("side-nav-button", "side-nav-button-active");
@@ -167,7 +170,7 @@ public class MissionBarController {
         sidebarSlide.play();
     }
 
-    // thêm các getter để sử dụng cho các file fxml có missionbar controller
+    // thÃªm cÃ¡c getter Ä‘á»ƒ sá»­ dá»¥ng cho cÃ¡c file fxml cÃ³ missionbar controller
     public Button getExploreButton() { return exploreButton; }
     public TextField getSearchBar() { return searchBar; }
     public Button getAuctionsButton() { return auctionsButton; }
@@ -176,6 +179,7 @@ public class MissionBarController {
     public Button getLogoutLinkButton() { return logoutLinkButton; }
     public Button getHistoryButton() { return historyButton; }
     public Button getInventoryButton() { return inventoryButton; }
+    public Button getAdminUsersButton() { return adminUsersButton; }
 
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
@@ -194,6 +198,18 @@ public class MissionBarController {
         logoutLinkButton.setVisible(!useInlineLogout);
     }
 
+    public void setShowAdminControls(boolean visible) {
+        if (adminUsersButton == null) return;
+        adminUsersButton.setManaged(visible);
+        adminUsersButton.setVisible(visible);
+    }
+
+    public void setShowCreateAuction(boolean visible) {
+        if (createAuctionButton == null) return;
+        createAuctionButton.setManaged(visible);
+        createAuctionButton.setVisible(visible);
+    }
+
     public void setSelectionHandler(EventHandler<ActionEvent> handler) {
         auctionsButton.setOnAction(handler);
         createAuctionButton.setOnAction(handler);
@@ -203,6 +219,9 @@ public class MissionBarController {
         }
         if (inventoryButton != null) {
             inventoryButton.setOnAction(handler);
+        }
+        if (adminUsersButton != null) {
+            adminUsersButton.setOnAction(handler);
         }
     }
 
@@ -223,7 +242,7 @@ public class MissionBarController {
     }
 
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton) {
+        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton) {
             updateSidebarButtonStyle(activeButton);
         }
         

@@ -14,6 +14,7 @@ CREATE TABLE IF NOT EXISTS Users (
     email TEXT,
     phoneNumber TEXT,
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
+    role TEXT NOT NULL DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     createdAt TEXT NOT NULL,
     lastLogin TEXT,
     balance REAL DEFAULT 0 CHECK(balance >= 0)

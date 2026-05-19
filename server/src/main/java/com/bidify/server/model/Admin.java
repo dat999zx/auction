@@ -3,20 +3,21 @@ package com.bidify.server.model;
 import com.bidify.common.model.Event;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.runtime.GlobalChannel;
-import com.bidify.server.contract.*;
 import com.bidify.server.network.ClientHandler;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 
 public class Admin extends User {
     public Admin(String username, String nickname, String password) {
         super(username, nickname, password);
+        setRole(UserRole.ADMIN);
     }
 
     public Admin(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double wallet) {
-        super(username, nickname, password, email, phone, status, createdAt, lastLogin, wallet);
+        super(username, nickname, password, email, phone, status, UserRole.ADMIN, createdAt, lastLogin, wallet);
     }
 
     public void banUser(String username){ // ban user

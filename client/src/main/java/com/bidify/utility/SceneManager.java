@@ -110,6 +110,7 @@ public final class SceneManager {
                 Platform.runLater(() -> {
                     if (token != navigationToken.get()) return;
                     completed.set(true);
+                    ButtonHoverUtil.apply(root);
 
                     Scene scene = stage.getScene();
                     if (scene == null) {
@@ -264,6 +265,7 @@ public final class SceneManager {
                 FXMLLoader loader = new FXMLLoader(SceneManager.class.getResource("/fxml/includes/mission-bar.fxml"));
                 missionBarRoot = loader.load();
                 missionBarController = loader.getController();
+                ButtonHoverUtil.apply(missionBarRoot);
             } catch (Exception e) {
                 throw new IllegalStateException("FXML not found: /fxml/includes/mission-bar.fxml", e);
             }

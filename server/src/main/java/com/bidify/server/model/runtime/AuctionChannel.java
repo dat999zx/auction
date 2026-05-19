@@ -31,5 +31,9 @@ public class AuctionChannel implements Channel {
         return observers.contains(observer);
     }
 
+    public int getObserverCount() {
+        return observers.size();
+    }
+
     public void clear() { observers.clear(); }
 }

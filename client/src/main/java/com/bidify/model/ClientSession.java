@@ -1,6 +1,7 @@
 package com.bidify.model;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.enums.UserRole;
 
 public final class ClientSession {
     private static final ClientSession instance = new ClientSession();
@@ -29,6 +30,14 @@ public final class ClientSession {
     public void setCurrentUser(UserDto currentUser) {
         this.currentUser = currentUser;
         this.currentUsername = currentUser == null ? null : currentUser.getUsername();
+    }
+
+    public boolean isLoggedIn() {
+        return currentUsername != null && !currentUsername.isBlank();
+    }
+
+    public boolean isAdmin() {
+        return currentUser != null && currentUser.getRole() == UserRole.ADMIN;
     }
 
     public void clear() {

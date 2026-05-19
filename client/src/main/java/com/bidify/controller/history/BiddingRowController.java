@@ -35,7 +35,8 @@ public class BiddingRowController {
     }
 
     private String resolveBadgeStyle(String status) {
-        if ("WON".equals(status) || "PROFIT".equals(status)) return "badge-won";
+        if ("WON".equals(status) || "PROFIT".equals(status) || "PLACED".equals(status) || "AUTO".equals(status) || "PENDING".equals(status))
+            return "badge-won";
         return "badge-lost";
     }
 }

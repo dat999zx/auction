@@ -27,7 +27,7 @@
                     <Label text="Inventory" styleClass="page-title"/>
                     <Label text="Manage your product catalog and items." styleClass="muted-text"/>
                 </VBox>
-                <Button onAction="#handleAddItem" text="+ Add Item" styleClass="primary-button"/>
+                <Button fx:id="addItemButton" onAction="#handleAddItem" text="+ Add Item" styleClass="primary-button"/>
             </HBox>
 
             <VBox styleClass="card" spacing="0">

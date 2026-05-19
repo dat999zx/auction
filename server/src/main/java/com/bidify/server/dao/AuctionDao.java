@@ -45,6 +45,33 @@ public class AuctionDao {
         }, status.toString());
     }
 
+    public List<Auction> findBySellerUsername(String sellerUsername) throws DatabaseException {
+        String sql = "SELECT * FROM Auctions WHERE seller = ? ORDER BY createdAt DESC";
+        return SQLiteHelper.query(sql, rs -> {
+            List<Auction> auctions = new ArrayList<>();
+            while (rs.next()) {
+                Auction auction = new Auction(
+                    rs.getString("id"),
+                    LocalDateTime.parse(rs.getString("createdAt")),
+                    rs.getString("auctionName"),
+                    rs.getString("description"),
+                    rs.getString("seller"),
+                    rs.getString("itemId"),
+                    rs.getString("currentBidder"),
+                    rs.getDouble("startingPrice"),
+                    rs.getDouble("minIncrement"),
+                    LocalDateTime.parse(rs.getString("startAt")),
+                    LocalDateTime.parse(rs.getString("endTime")),
+                    AuctionStatus.valueOf(rs.getString("status"))
+                );
+                auction.setCurrentBid(rs.getDouble("currentBid"));
+                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
+                auctions.add(auction);
+            }
+            return auctions;
+        }, sellerUsername);
+    }
+
     public Auction findById(String id) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {

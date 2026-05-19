@@ -88,4 +88,18 @@ public class ImageService {
         }
         return null;
     }
+
+    public void deleteImageFile(String filePath) {
+        if (filePath == null || filePath.isBlank())
+            return;
+
+        try {
+            Path path = Paths.get(filePath);
+            if (Files.exists(path))
+                Files.delete(path);
+        }
+        catch (IOException e) {
+            logger.error("Error deleting image file: " + filePath, e);
+        }
+    }
 }

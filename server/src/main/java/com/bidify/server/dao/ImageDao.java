@@ -28,6 +28,10 @@ public class ImageDao {
         return SQLiteHelper.query(sql, rs -> rs.next() ? mapImage(rs) : null, imageId);
     }
 
+    public void deleteById(String imageId) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM Images WHERE id = ?", imageId);
+    }
+
     public void createItemImageLink(ItemImageLink link) throws DatabaseException {
         String sql = "INSERT INTO ItemImageLinks(id, createdAt, itemId, imageId, displayOrder, isPrimary) VALUES (?, ?, ?, ?, ?, ?)";
         SQLiteHelper.update(

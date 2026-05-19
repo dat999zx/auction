@@ -2,6 +2,7 @@ package com.bidify.controller;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.model.ClientSession;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.SceneManager;
@@ -11,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 
 public class AuctionCardController {
     @FXML
@@ -31,6 +33,12 @@ public class AuctionCardController {
     private Label currentBidder;
     @FXML
     private Label sellerLabel;
+    @FXML
+    private FlowPane liveStatsRow;
+    @FXML
+    private Label watcherCountLabel;
+    @FXML
+    private Label activeBidderCountLabel;
 
     private AuctionDto auction;
     private String timerSubscriptionId;
@@ -51,13 +59,14 @@ public class AuctionCardController {
 
         //dealing with no one bidded yet case
         if (auction.getCurrentBid() == 0) {
-            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getStartingPrice()));
+            currentBidValue.setText(DisplayUtil.formatCashSuffix(auction.getStartingPrice()));
             currentBidder.setText("No bids yet");
         } else {
-            currentBidValue.setText(DisplayUtil.formatCurrency(auction.getCurrentBid()));
+            currentBidValue.setText(DisplayUtil.formatCashSuffix(auction.getCurrentBid()));
             currentBidder.setText(auction.getCurrentBidderUsername());
         }
         sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSellerUsername(), "Unknown"));
+        bindLiveStats(isUpcoming);
 
         if (auction.getThumbnailBase64() != null && !auction.getThumbnailBase64().isEmpty()) {
             String cacheKey = "auction_" + auction.getId() + "_thumb";
@@ -66,6 +75,27 @@ public class AuctionCardController {
         } else {
             auctionImageView.setImage(null);
         }
+    }
+
+    public String getAuctionId() {
+        return auction == null ? null : auction.getId();
+    }
+
+    private void bindLiveStats(boolean isUpcoming) {
+        if (liveStatsRow == null)
+            return;
+
+        liveStatsRow.setManaged(!isUpcoming);
+        liveStatsRow.setVisible(!isUpcoming);
+        if (isUpcoming)
+            return;
+
+        watcherCountLabel.setText(formatCount(auction.getWatcherCount(), "watching", "watching"));
+        activeBidderCountLabel.setText(formatCount(auction.getActiveBidderCount(), "active bidder", "active bidders"));
+    }
+
+    private String formatCount(int count, String singular, String plural) {
+        return count + " " + (count == 1 ? singular : plural);
     }
 
     public void cleanup() {
@@ -93,7 +123,10 @@ public class AuctionCardController {
         String sellerUsername = auction.getSellerUsername();
 
         // 2. Decide the destination
-        if (sellerUsername != null && sellerUsername.equals(currentUsername) && "UPCOMING".equals(auction.getStatus())) {
+        boolean canModifyUpcoming = "UPCOMING".equals(auction.getStatus())
+            && ((sellerUsername != null && sellerUsername.equals(currentUsername)) || ClientSession.getInstance().isAdmin());
+
+        if (canModifyUpcoming) {
             // User owns it -> Go to Modify
             ModifyAuctionController.setAuctionId(auctionId);
             SceneManager.clearCache("modifyauction.fxml");

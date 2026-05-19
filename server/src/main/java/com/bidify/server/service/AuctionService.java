@@ -3,7 +3,9 @@ package com.bidify.server.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +139,8 @@ public class AuctionService {
             CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
             ServiceUtil.validateRequestData(data);
 
-            ServiceUtil.requireSession(client);
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(sessionUser, "Admin accounts cannot create auctions");
 
             String sellerUsername = client.getCurrentUsername();
             String itemId = data.getItemId();
@@ -235,14 +238,7 @@ public class AuctionService {
                 throw new AuctionException("Cannot delete auction after it has started");
 
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
-
-            if (auction.getItemId() != null && !auction.getItemId().isBlank())
-                itemDao.updateAvailabilityStatus(auction.getItemId(), ItemStatus.AVAILABLE);
-
-            auctionDao.deleteById(auctionId);
-            RealtimeDatabase.removeRuntimeAuction(auctionId);
-
-            RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.AUCTION_DELETED, "Auction deleted", auctionId));
+            deleteAuctionCascade(auction, true);
 
             return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
         });
@@ -367,6 +363,7 @@ public class AuctionService {
             RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
             AuctionDto auctionDto = toAuctionDto(auction, false);
+            publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         });
     }
@@ -386,6 +383,9 @@ public class AuctionService {
                 throw new AuctionException("You are not watching this auction");
 
             RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
+            if (auction != null)
+                publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
         });
     }
@@ -394,7 +394,8 @@ public class AuctionService {
         return ServiceUtil.handleRequest(() -> {
             PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(sessionUser, "Admin accounts cannot place bids");
 
             String auctionId = data.getAuctionId();
             double bidAmount = data.getBidAmount();
@@ -465,7 +466,8 @@ public class AuctionService {
         return ServiceUtil.handleRequest(() -> {
             SetAutoBidRequest data = JsonUtil.fromMap(request.getData(), SetAutoBidRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(sessionUser, "Admin accounts cannot configure auto bid");
 
             String username = client.getCurrentUsername();
             Auction auction = requireActiveAuction(data.getAuctionId());
@@ -503,7 +505,8 @@ public class AuctionService {
         return ServiceUtil.handleRequest(() -> {
             DisableAutoBidRequest data = JsonUtil.fromMap(request.getData(), DisableAutoBidRequest.class);
             ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ServiceUtil.requireUserRole(sessionUser, "Admin accounts cannot disable auto bid");
 
             Auction auction = requireActiveAuction(data.getAuctionId());
             synchronized (auction) {
@@ -679,7 +682,7 @@ public class AuctionService {
     }
 
     private void requireSeller(Auction auction, String username, String message) {
-        if (auction == null || username == null || !username.equals(auction.getSellerUsername()))
+        if (auction == null || username == null || !ServiceUtil.isOwnerOrAdmin(auction.getSellerUsername(), username))
             throw new ValidationException(message);
     }
 
@@ -709,7 +712,98 @@ public class AuctionService {
 
     public AuctionDto toAuctionDto(Auction auction, Item item, boolean includeGallery) {
         List<String> gallery = includeGallery ? getGallery(item) : null;
-        return AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
+        AuctionDto dto = AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
+        dto.setWatcherCount(resolveWatcherCount(auction));
+        dto.setActiveBidderCount(resolveActiveBidderCount(auction));
+        return dto;
+    }
+
+    private int resolveWatcherCount(Auction auction) {
+        if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE)
+            return 0;
+
+        AuctionChannel channel = RealtimeDatabase.getAuctionChannel(auction.getId());
+        return channel == null ? 0 : channel.getObserverCount();
+    }
+
+    private int resolveActiveBidderCount(Auction auction) {
+        if (auction == null || auction.getBids() == null || auction.getBids().isEmpty())
+            return 0;
+
+        Set<String> bidders = new LinkedHashSet<>();
+        for (Bid bid : auction.getBids()) {
+            if (bid == null || bid.getBidderUsername() == null || bid.getBidderUsername().isBlank())
+                continue;
+            bidders.add(bid.getBidderUsername());
+        }
+        return bidders.size();
+    }
+
+    private void publishAuctionUpdate(Auction auction, String message) {
+        if (auction == null) return;
+
+        AuctionDto auctionDto = toAuctionDto(auction, false);
+        AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auction.getId());
+        Event event = new Event(EventType.AUCTION_UPDATED, message, auctionDto);
+        if (auctionChannel != null)
+            auctionChannel.publish(event);
+        RealtimeDatabase.getGlobalChannel().publish(event);
+    }
+
+    public void publishLiveAudienceUpdate(String auctionId) {
+        if (auctionId == null || auctionId.isBlank())
+            return;
+
+        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
+        if (auction == null)
+            return;
+
+        publishAuctionUpdate(auction, "Auction watcher count updated");
+    }
+
+    public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
+        if (auction == null)
+            return;
+
+        releaseCurrentLeaderLock(auction);
+
+        if (restoreLinkedItemToSeller && auction.getItemId() != null && !auction.getItemId().isBlank())
+            itemDao.updateAvailabilityStatus(auction.getItemId(), ItemStatus.AVAILABLE);
+
+        bidDao.deleteByAuctionId(auction.getId());
+        transactionDao.deleteByAuctionId(auction.getId());
+        RealtimeDatabase.removeRuntimeAuction(auction.getId());
+        auctionDao.deleteById(auction.getId());
+        RealtimeDatabase.getGlobalChannel().publish(
+            new Event(EventType.AUCTION_DELETED, "Auction deleted", auction.getId())
+        );
+    }
+
+    private void releaseCurrentLeaderLock(Auction auction) {
+        String currentBidderUsername = auction.getCurrentBidderUsername();
+        double currentBid = auction.getCurrentBid();
+
+        if (currentBidderUsername == null || currentBid <= 0)
+            return;
+
+        User activeBidder = RealtimeDatabase.getActiveUser(currentBidderUsername);
+        if (activeBidder == null)
+            return;
+
+        Wallet wallet = activeBidder.getWallet();
+        if (wallet == null || wallet.getLockedBalance() < currentBid)
+            return;
+
+        wallet.unlockBalance(currentBid);
+        userDao.save(activeBidder, false);
+
+        ClientHandler clientHandler = RealtimeDatabase.getUserClient(currentBidderUsername);
+        if (clientHandler != null) {
+            clientHandler.sendEvent(new Event(
+                EventType.LOCKED_BALANCE_CHANGED,
+                "Locked balance changed: -" + currentBid
+            ));
+        }
     }
 
     private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {

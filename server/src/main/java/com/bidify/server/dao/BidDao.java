@@ -69,4 +69,12 @@ public class BidDao {
         String sql = "DELETE FROM Bids WHERE id = ?";
         SQLiteHelper.update(sql, bidId);
     }
+
+    public void deleteByAuctionId(String auctionId) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM Bids WHERE auctionId = ?", auctionId);
+    }
+
+    public void deleteByUsername(String username) throws DatabaseException {
+        SQLiteHelper.update("DELETE FROM Bids WHERE bidder = ?", username);
+    }
 }

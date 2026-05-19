@@ -14,6 +14,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
+import com.bidify.utility.SceneManager;
 
 public class AuthClientService {
     private final SocketClient client = SocketClient.getClient();
@@ -52,6 +53,7 @@ public class AuthClientService {
         Response response = client.send(new Request(RequestType.LOGOUT, new LogoutRequest()));
         if (response.getStatus() == RequestStatus.SUCCESS) {
             client.getClientSession().clear();
+            SceneManager.clearAllCache();
             return response;
         }
         throw new AuthException(response.getMessage());

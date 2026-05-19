@@ -4,11 +4,12 @@ import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.server.exception.ServerTimeOutException;
 
 public class User extends Entity {
-    // khóa Object User để tránh race condition
+    // khÃ³a Object User Ä‘á»ƒ trÃ¡nh race condition
     private final ReentrantLock lock = new ReentrantLock();
 
     private String nickname;
@@ -19,9 +20,10 @@ public class User extends Entity {
 
     private LocalDateTime lastLogin;
     private UserStatus status;
+    private UserRole role;
     private Wallet wallet;
 
-    // Đăng kí tài khoản
+    // ÄÄƒng kÃ­ tÃ i khoáº£n
     public User(String username, String nickname, String password) {
         super(username, LocalDateTime.now());
 
@@ -30,12 +32,13 @@ public class User extends Entity {
         this.password = password;
 
         this.status = UserStatus.ACTIVE;
+        this.role = UserRole.USER;
         this.lastLogin = null;
         this.wallet = new Wallet(0);
     }
 
-    // load lại dữ liệu người dùng
-     public User(String username, String nickname, String password, String email, String phone, UserStatus status, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
+    // load láº¡i dá»¯ liá»‡u ngÆ°á»i dÃ¹ng
+     public User(String username, String nickname, String password, String email, String phone, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
         super(username, createdAt);
 
         this.username = username;
@@ -45,6 +48,7 @@ public class User extends Entity {
         this.phoneNumber = phone;
 
         this.status = status;
+        this.role = role == null ? UserRole.USER : role;
         this.lastLogin = lastLogin;
         this.wallet = new Wallet(balance);
     }
@@ -62,6 +66,8 @@ public class User extends Entity {
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public UserStatus getStatus() { return status; }
     public void setStatus(UserStatus status) { this.status = status; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role == null ? UserRole.USER : role; }
     public Wallet getWallet() { return wallet; }
 
     public void lock() { lock.lock(); }

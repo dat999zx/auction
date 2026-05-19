@@ -1,0 +1,86 @@
+.admin-users-page {
+    -fx-background-color: linear-gradient(to bottom, #f7f8fb, #eef2f7);
+}
+
+.admin-card {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: rgba(26, 43, 78, 0.08);
+    -fx-padding: 0 0 20 0;
+}
+
+.admin-card-header {
+    -fx-padding: 20 24 18 24;
+    -fx-border-color: transparent transparent rgba(26, 43, 78, 0.08) transparent;
+}
+
+.admin-user-list {
+    -fx-padding: 20 24 0 24;
+}
+
+.admin-user-row {
+    -fx-background-color: #f8fafd;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: rgba(26, 43, 78, 0.08);
+}
+
+.admin-user-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #14213d;
+}
+
+.admin-user-copy {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5c6b80;
+}
+
+.admin-status-pill {
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 999;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+}
+
+.admin-status-active {
+    -fx-background-color: rgba(28, 126, 84, 0.14);
+    -fx-text-fill: #196b48;
+}
+
+.admin-status-banned {
+    -fx-background-color: rgba(184, 58, 58, 0.14);
+    -fx-text-fill: #9d2424;
+}
+
+.admin-action-button {
+    -fx-background-color: white;
+    -fx-border-color: rgba(20, 33, 61, 0.14);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 8 14 8 14;
+    -fx-font-weight: 600;
+}
+
+.admin-danger-button {
+    -fx-text-fill: #9d2424;
+    -fx-border-color: rgba(157, 36, 36, 0.22);
+}
+
+.admin-empty-state {
+    -fx-background-color: #f8fafd;
+    -fx-background-radius: 14;
+    -fx-padding: 24;
+}
+
+.admin-empty-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #14213d;
+}
+
+.admin-empty-copy {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5c6b80;
+}

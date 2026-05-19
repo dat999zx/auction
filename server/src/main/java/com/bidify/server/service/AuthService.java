@@ -1,11 +1,14 @@
 package com.bidify.server.service;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.model.LoginRequest;
@@ -25,10 +28,14 @@ import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
 public class AuthService {
+    public static final String BOOTSTRAP_ADMIN_USERNAME = "admin";
+    public static final String BOOTSTRAP_ADMIN_PASSWORD = "admin123";
+    public static final String BOOTSTRAP_ADMIN_NICKNAME = "Administrator";
     private static AuthService instance = new AuthService();
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private final UserDao userDao = UserDao.getInstance();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
+    private final AuctionService auctionService = AuctionService.getInstance();
 
     private AuthService() {}
 
@@ -39,6 +46,20 @@ public class AuthService {
         router.register(RequestType.REGISTER, (client, req) -> register(req));
         router.register(RequestType.LOGIN, this::login);
         router.register(RequestType.LOGOUT, (client, req) -> logout(client));
+    }
+
+    public static boolean isBootstrapAdminUsername(String username) {
+        return BOOTSTRAP_ADMIN_USERNAME.equals(username);
+    }
+
+    public static User createBootstrapAdminUser() {
+        User admin = new User(
+            BOOTSTRAP_ADMIN_USERNAME,
+            BOOTSTRAP_ADMIN_NICKNAME,
+            PasswordUtil.hash(BOOTSTRAP_ADMIN_PASSWORD)
+        );
+        admin.setRole(UserRole.ADMIN);
+        return admin;
     }
 
     // đăng kí
@@ -59,7 +80,7 @@ public class AuthService {
             ValidationUtil.validateNickname(nickname);
             ValidationUtil.validatePassword(password);
 
-            if (userDao.existsByUsername(username))
+            if (userDao.existsByUsername(username) || isBootstrapAdminUsername(username))
                 throw new AuthException("Username already exists");
 
             User user = new User(username, nickname, PasswordUtil.hash(password));
@@ -84,12 +105,11 @@ public class AuthService {
             if (client.isInSession())
                 throw new AuthException("You are already logged in");
 
-            if (!userDao.existsByUsername(username))
-                throw new AuthException("Username or password is incorrect");
-
-            User user = userDao.findByUsername(username);
+            User user = isBootstrapAdminUsername(username)
+                ? createBootstrapAdminUser()
+                : userDao.findByUsername(username);
             if (user == null)
-                throw new AuthException("Failed to get user data");
+                throw new AuthException("Username or password is incorrect");
             
             if (!PasswordUtil.matches(password, user.getPassword()))
                 throw new AuthException("Username or password is incorrect");
@@ -122,9 +142,12 @@ public class AuthService {
             if (user == null)
                 throw new AuthException("Session is inactive");
 
-            userDao.save(user);
+            if (!isBootstrapAdminUsername(username))
+                userDao.save(user);
             client.setCurrentUsername(null);
-            RealtimeDatabase.removeActiveUser(username);
+            List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
+            for (String auctionId : affectedAuctionIds)
+                auctionService.publishLiveAudienceUpdate(auctionId);
 
             return new Response(RequestStatus.SUCCESS, "Logout successfully");
         });
@@ -135,7 +158,9 @@ public class AuthService {
     }
 
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
-        for (User user : RealtimeDatabase.getAllActiveUsers())
-            userDao.save(user, saveLastLogin);
+        for (User user : RealtimeDatabase.getAllActiveUsers()) {
+            if (!isBootstrapAdminUsername(user.getUsername()))
+                userDao.save(user, saveLastLogin);
+        }
     }
 }

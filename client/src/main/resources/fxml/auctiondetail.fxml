@@ -16,157 +16,177 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
     <children>
         <BorderPane prefHeight="720.0" prefWidth="1280.0" styleClass="viewport-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <center>
-                <VBox spacing="16.0" styleClass="main-content" BorderPane.alignment="CENTER">
-                    <padding>
-                        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
-                    </padding>
-    
-                    <HBox alignment="CENTER_LEFT" />
-                     <Button onAction="#tomenu" prefHeight="40.0" styleClass="ghost-nav-button" text="&lt; Back to Auctions" />
-    
-                    <GridPane hgap="32.0" VBox.vgrow="ALWAYS">
-                        <columnConstraints>
-                            <ColumnConstraints percentWidth="58.0" />
-                            <ColumnConstraints percentWidth="42.0" />
-                        </columnConstraints>
-                        <rowConstraints>
-                            <RowConstraints />
-                        </rowConstraints>
-    
-                        <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
-                            <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
-                                <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
-                            </StackPane>
-    
-                            <GridPane fx:id="thumbnailGrid" hgap="12.0">
+                <ScrollPane fitToWidth="true" fitToHeight="true" BorderPane.alignment="CENTER">
+                    <content>
+                        <VBox spacing="16.0" styleClass="main-content">
+                            <padding>
+                                <Insets bottom="24.0" left="24.0" right="24.0" top="12.0" />
+                            </padding>
+         
+                            <HBox alignment="CENTER_LEFT" />
+     
+                            <Button onAction="#tomenu" prefHeight="40.0" styleClass="ghost-nav-button" text="&lt; Back to Auctions" />
+            
+                            <GridPane hgap="32.0" VBox.vgrow="ALWAYS">
                                 <columnConstraints>
-                                    <ColumnConstraints percentWidth="25.0" />
-                                    <ColumnConstraints percentWidth="25.0" />
-                                    <ColumnConstraints percentWidth="25.0" />
-                                    <ColumnConstraints percentWidth="25.0" />
+                                    <ColumnConstraints percentWidth="58.0" />
+                                    <ColumnConstraints percentWidth="42.0" />
                                 </columnConstraints>
                                 <rowConstraints>
                                     <RowConstraints />
                                 </rowConstraints>
-                                <!-- Dynamic thumbnails -->
-                            </GridPane>
-                        </VBox>
-    
-                        <VBox fillWidth="true" spacing="20.0" GridPane.columnIndex="1">
-                            <VBox spacing="10.0">
-                                <VBox spacing="6.0">
-                                    <Label fx:id="name" styleClass="item-title" text="Auction title" />
-    
-                                              <Label fx:id="openingBidderLabel" alignment="CENTER" styleClass="bidder-name" text="openingBidderLabel" />
-                                    <Region maxWidth="513.0" prefHeight="3.0" prefWidth="517.0" styleClass="title-accent" />
-                                </VBox>
-    
-                                <Label fx:id="description" styleClass="item-description" text="Auction description" wrapText="true" />
-                            </VBox>
-    
-                            <VBox fx:id="statusCard" spacing="12.0" styleClass="status-card">
-                      <HBox prefHeight="0.0" prefWidth="472.0" />
-                                <GridPane hgap="16.0">
-                                    <columnConstraints>
-                                        <ColumnConstraints percentWidth="50.0" />
-                                        <ColumnConstraints percentWidth="50.0" />
-                                    </columnConstraints>
-                                    <rowConstraints>
-                                        <RowConstraints />
-                                    </rowConstraints>
-    
-                                    <VBox spacing="4.0" GridPane.columnIndex="0">
-                                        <Label fx:id="leftMetricLabel" styleClass="metric-label" text="STARTING PRICE" />
-                                        <Label fx:id="openingBidAmountLabel" styleClass="metric-secondary" text="openingBidAmountLabel" />
-                                    </VBox>
-
-                                    <VBox alignment="CENTER_RIGHT" spacing="4.0" GridPane.columnIndex="1">
-                                        <Label fx:id="rightMetricLabel" styleClass="metric-label" text="CURRENT BID" />
-                                        <Label fx:id="currentprice" styleClass="metric-primary" text="\$0.00" />
-                                    </VBox>
-                                </GridPane>
-    
-                                <VBox spacing="8.0">
-                                    <HBox alignment="CENTER_LEFT">
-                                        <HBox alignment="CENTER_LEFT" spacing="6.0">
-                                            <Label fx:id="openDateLabel" styleClass="timer-icon" text="Open at:" />
-                                            <Label fx:id="opendate" styleClass="timer-text" text="Loading..." />
-                                        </HBox>
-                                        <Region HBox.hgrow="ALWAYS" />
-                            <HBox alignment="CENTER_LEFT" spacing="6.0">
-                               <children>
-                                  <Label fx:id="endDateLabel" styleClass="timer-icon" text="End at:" />
-                                  <Label fx:id="enddate" styleClass="timer-text" text="Loading..." />
-                               </children>
-                            </HBox>
-                                    </HBox>
-    
-                                    <StackPane maxHeight="6.0" prefHeight="6.0" styleClass="progress-track">
-                                        <Region maxHeight="6.0" prefHeight="6.0" prefWidth="260.0" styleClass="progress-fill" StackPane.alignment="CENTER_LEFT" />
+            
+                                <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
+                                    <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
+                                        <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
                                     </StackPane>
-                                </VBox>
-                            </VBox>
-    
-                            <VBox fx:id="recentActivitySection" spacing="10.0" VBox.vgrow="ALWAYS">
-                                <Label fx:id="recentActivityLabel" styleClass="section-label" text="RECENT ACTIVITY" />
-    
-                                <VBox spacing="0.0" styleClass="activity-card" VBox.vgrow="ALWAYS">
-                                    <GridPane styleClass="activity-header">
+            
+                                    <GridPane fx:id="thumbnailGrid" hgap="12.0">
                                         <columnConstraints>
-                                            <ColumnConstraints percentWidth="34.0" />
-                                            <ColumnConstraints percentWidth="33.0" />
-                                            <ColumnConstraints percentWidth="33.0" />
+                                            <ColumnConstraints percentWidth="25.0" />
+                                            <ColumnConstraints percentWidth="25.0" />
+                                            <ColumnConstraints percentWidth="25.0" />
+                                            <ColumnConstraints percentWidth="25.0" />
                                         </columnConstraints>
                                         <rowConstraints>
                                             <RowConstraints />
                                         </rowConstraints>
-    
-                                        <Label styleClass="activity-header-text" text="Bidder" GridPane.columnIndex="0" />
-                                        <Label styleClass="activity-header-text right" text="Amount" GridPane.columnIndex="1" />
-                                        <Label styleClass="activity-header-text right" text="Time" GridPane.columnIndex="2" />
-                                    </GridPane>
-    
-                                    <ScrollPane fitToWidth="true" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
-                                        <content>
-                                            <VBox fx:id="activityList" spacing="0.0" />
-                                        </content>
-                                    </ScrollPane>
+                                        </GridPane>
                                 </VBox>
-                            </VBox>
-    
-                            <VBox fx:id="bidActionSection" spacing="12.0">
-                                <HBox alignment="CENTER_LEFT" styleClass="bid-input-wrap">
-                                    <Label styleClass="bid-currency" text="\$" />
-                                    <TextField fx:id="inputprice" onAction="#handlePlaceBid" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
-                                </HBox>
+            
+                                <VBox fillWidth="true" spacing="20.0" GridPane.columnIndex="1">
+                                    <VBox spacing="10.0">
+                                        <VBox spacing="6.0">
+                                            <Label fx:id="name" styleClass="item-title" text="Auction title" />
+                                            <Label fx:id="openingBidderLabel" alignment="CENTER" styleClass="bidder-name" text="openingBidderLabel" />
+                                            <Region maxWidth="513.0" prefHeight="3.0" prefWidth="517.0" styleClass="title-accent" />
+                                        </VBox>
+                                        <Label fx:id="description" styleClass="item-description" text="Auction description" wrapText="true" />
+                                    </VBox>
+            
+                                    <VBox fx:id="statusCard" spacing="12.0" styleClass="status-card">
+                                        <HBox prefHeight="0.0" prefWidth="472.0" />
+                                        <GridPane hgap="16.0">
+                                            <columnConstraints>
+                                                <ColumnConstraints percentWidth="50.0" />
+                                                <ColumnConstraints percentWidth="50.0" />
+                                            </columnConstraints>
+                                            <rowConstraints>
+                                                <RowConstraints />
+                                            </rowConstraints>
+            
+                                            <VBox spacing="4.0" GridPane.columnIndex="0">
+                                                <Label fx:id="leftMetricLabel" styleClass="metric-label" text="STARTING PRICE" />
+                                                <Label fx:id="openingBidAmountLabel" styleClass="metric-secondary" text="openingBidAmountLabel" />
+                                                <Label fx:id="fullStartingPriceLabel" maxWidth="300.0" styleClass="metric-label" text="fullStartingPriceLabel" />
+                                            </VBox>
+            
+                                            <VBox alignment="CENTER_RIGHT" GridPane.columnIndex="1">
+                                                <Label fx:id="rightMetricLabel" styleClass="metric-label" text="CURRENT BID" />
+                                                <Label fx:id="currentprice" styleClass="metric-primary" text="\$0.00" />
+                                                <Label fx:id="fullCurrentPriceLabel" alignment="CENTER_RIGHT" maxWidth="300.0" styleClass="metric-label" text="fullCurrentPriceLabel" />
+                                            </VBox>
+                                        </GridPane>
+            
+                                        <VBox spacing="8.0">
+                                            <HBox alignment="CENTER_LEFT">
+                                                <HBox alignment="CENTER_LEFT" spacing="6.0">
+                                                    <Label fx:id="openDateLabel" styleClass="timer-icon" text="Open at:" />
+                                                    <Label fx:id="opendate" styleClass="timer-text" text="Loading..." />
+                                                </HBox>
+                                                <Region HBox.hgrow="ALWAYS" />
+                                                <HBox alignment="CENTER_LEFT" spacing="6.0">
+                                                    <children>
+                                                        <Label fx:id="endDateLabel" styleClass="timer-icon" text="End at:" />
+                                                        <Label fx:id="enddate" styleClass="timer-text" text="Loading..." />
+                                                    </children>
+                                                </HBox>
+                                            </HBox>
+            
+                                            <StackPane maxHeight="6.0" prefHeight="6.0" styleClass="progress-track">
+                                                <Region maxHeight="6.0" prefHeight="6.0" prefWidth="260.0" styleClass="progress-fill" StackPane.alignment="CENTER_LEFT" />
+                                            </StackPane>
+                                        </VBox>
+            
+                                        <HBox fx:id="audienceStatsRow" alignment="CENTER_LEFT" spacing="8.0">
+                                            <children>
+                                                <Label fx:id="watcherCountLabel" styleClass="audience-pill" text="0 watching" />
+                                                <Label fx:id="activeBidderCountLabel" styleClass="audience-pill" text="0 active bidders" />
+                                            </children>
+                                        </HBox>
+                                    </VBox>
 
-                                <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
+                                    <VBox fx:id="analyticsSection" spacing="10.0">
+                                        <Label styleClass="section-label" text="BIDDING TREND" />
 
-                                <VBox spacing="8.0">
-                                    <Label styleClass="section-label" text="AUTOBID" />
-                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                                        <TextField fx:id="autoBidMaxInput" onAction="#handleSaveAutoBid" promptText="Set hidden max bid" styleClass="autobid-field" HBox.hgrow="ALWAYS" />
-                                        <Button fx:id="saveAutoBidButton" onAction="#handleSaveAutoBid" styleClass="autobid-save-button" text="Save AutoBid" />
-                                    </HBox>
-                                    <HBox alignment="CENTER_LEFT" spacing="8.0">
-                                        <Button fx:id="disableAutoBidButton" onAction="#handleDisableAutoBid" styleClass="autobid-disable-button" text="Disable AutoBid" />
-                                        <Label fx:id="autoBidStatusLabel" styleClass="footnote-text" text="No AutoBid configured" />
-                                    </HBox>
+                                        <VBox spacing="12.0" styleClass="analytics-card">
+                                            <StackPane fx:id="biddingChartHost" minHeight="200.0" prefHeight="200.0" styleClass="analytics-chart-host" />
+                                            <Label fx:id="biddingChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true" />
+                                        </VBox>
+                                    </VBox>
+      
+                                    <VBox fx:id="recentActivitySection" spacing="10.0" VBox.vgrow="ALWAYS">
+                                        <Label fx:id="recentActivityLabel" styleClass="section-label" text="RECENT ACTIVITY" />
+            
+                                        <VBox spacing="0.0" styleClass="activity-card" VBox.vgrow="ALWAYS">
+                                            <GridPane styleClass="activity-header">
+                                                <columnConstraints>
+                                                    <ColumnConstraints percentWidth="34.0" />
+                                                    <ColumnConstraints percentWidth="33.0" />
+                                                    <ColumnConstraints percentWidth="33.0" />
+                                                </columnConstraints>
+                                                <rowConstraints>
+                                                    <RowConstraints />
+                                                </rowConstraints>
+            
+                                                <Label styleClass="activity-header-text" text="Bidder" GridPane.columnIndex="0" />
+                                                <Label styleClass="activity-header-text right" text="Amount" GridPane.columnIndex="1" />
+                                                <Label styleClass="activity-header-text right" text="Time" GridPane.columnIndex="2" />
+                                            </GridPane>
+            
+                                            <ScrollPane fitToWidth="true" minHeight="280.0" prefHeight="320.0" styleClass="activity-scroll" VBox.vgrow="ALWAYS">
+                                                <content>
+                                                    <VBox fx:id="activityList" spacing="0.0" />
+                                                </content>
+                                            </ScrollPane>
+                                        </VBox>
+                                    </VBox>
+            
+                                    <VBox fx:id="bidActionSection" spacing="12.0">
+                                        <HBox alignment="CENTER_LEFT" styleClass="bid-input-wrap">
+                                            <Label styleClass="bid-currency" text="\$" />
+                                            <TextField fx:id="inputprice" onAction="#handlePlaceBid" promptText="Enter amount" styleClass="bid-field" HBox.hgrow="ALWAYS" />
+                                        </HBox>
+            
+                                        <Button fx:id="placebid" onAction="#handlePlaceBid" styleClass="place-bid-button" text="Place Bid" />
+            
+                                        <VBox spacing="8.0">
+                                            <Label styleClass="section-label" text="AUTOBID" />
+                                            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                                <TextField fx:id="autoBidMaxInput" onAction="#handleSaveAutoBid" promptText="Set hidden max bid" styleClass="autobid-field" HBox.hgrow="ALWAYS" />
+                                                <Button fx:id="saveAutoBidButton" onAction="#handleSaveAutoBid" styleClass="autobid-save-button" text="Save AutoBid" />
+                                            </HBox>
+                                            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                                <Button fx:id="disableAutoBidButton" onAction="#handleDisableAutoBid" styleClass="autobid-disable-button" text="Disable AutoBid" />
+                                                <Label fx:id="autoBidStatusLabel" styleClass="footnote-text" text="No AutoBid configured" />
+                                            </HBox>
+                                        </VBox>
+            
+                                        <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
+                                    </VBox>
                                 </VBox>
-
-                                <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
-                            </VBox>
+                            </GridPane>
                         </VBox>
-                    </GridPane>
-                </VBox>
+                    </content>
+                </ScrollPane>
             </center>
         </BorderPane>
     </children>
-   <padding>
-      <Insets top="11.0" />
-   </padding>
+    <padding>
+        <Insets top="11.0" />
+    </padding>
 </AnchorPane>

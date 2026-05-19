@@ -77,15 +77,21 @@ public class RealtimeDatabase {
         return clients;
     }
 
-    public static void removeActiveUser(String username){ // xóa user khỏi database
-        if (username == null) return;
+    public static List<String> removeActiveUser(String username){ // xóa user khỏi database
+        List<String> affectedAuctionIds = new ArrayList<>();
+        if (username == null) return affectedAuctionIds;
         ClientSession session = activeUsers.remove(username);
-        if (session == null) return;
+        if (session == null) return affectedAuctionIds;
         ClientHandler client = session.getClientHandler();
-        if (client == null) return;
+        if (client == null) return affectedAuctionIds;
         globalChannel.unsubscribe(client);
-        for (AuctionChannel channel : auctionChannels.values())
+        for (AuctionChannel channel : auctionChannels.values()) {
+            if (channel == null || !channel.hasObserver(client))
+                continue;
             channel.unsubscribe(client);
+            affectedAuctionIds.add(channel.getAuctionId());
+        }
+        return affectedAuctionIds;
     }
 
     public static void addRuntimeAuction(Auction auction){ // thêm cuộc đấu giá UPCOMING / ACTIVE vào runtime
