@@ -10,6 +10,16 @@
     -fx-padding: 0 0 20 0;
 }
 
+.primary-button {
+    -fx-background-color: #0f172a;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.15), 10, 0, 0, 4);
+}
+
 .admin-card-header {
     -fx-padding: 20 24 18 24;
     -fx-border-color: transparent transparent rgba(26, 43, 78, 0.08) transparent;
