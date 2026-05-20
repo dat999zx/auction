@@ -45,13 +45,27 @@
 
                     <HBox spacing="16">
                         <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
-                            <Label text="MONEY FLOW" styleClass="table-header-text"/>
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                    <Label text="MONEY FLOW" styleClass="table-header-text"/>
+                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value"/>
+                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral"/>
+                                </VBox>
+                                <Label text="\$" styleClass="analytics-symbol analytics-symbol-blue"/>
+                            </HBox>
                             <StackPane fx:id="moneyFlowChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
                             <Label fx:id="moneyFlowChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No transaction history yet." visible="false" wrapText="true"/>
                         </VBox>
 
                         <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
-                            <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
+                            <HBox alignment="CENTER_LEFT" spacing="12">
+                                <VBox spacing="3" HBox.hgrow="ALWAYS">
+                                    <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
+                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value"/>
+                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral"/>
+                                </VBox>
+                                <Label text="&#8599;" styleClass="analytics-symbol analytics-symbol-green"/>
+                            </HBox>
                             <StackPane fx:id="biddingActivityChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
                             <Label fx:id="biddingActivityChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true"/>
                         </VBox>

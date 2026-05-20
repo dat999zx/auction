@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane pickOnBounds="false" stylesheets="@../../css/hub.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
+<AnchorPane pickOnBounds="false" stylesheets="@../../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MissionBarController">
     <children>
         <HBox alignment="CENTER_LEFT" spacing="24.0" styleClass="top-bar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <padding>
@@ -35,26 +35,12 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <Button fx:id="logoutButton" styleClass="ghost-nav-button" text="Logout" />
-                    <StackPane fx:id="notificationRoot" pickOnBounds="false">
-                        <Button fx:id="notificationButton" onAction="#handleNotificationBell" styleClass="icon-button" text="🔔" />
-                        <Label fx:id="notificationBadge" managed="false" styleClass="notification-badge" text="0" visible="false" StackPane.alignment="TOP_RIGHT" />
-                    </StackPane>
                     <StackPane fx:id="avatarContainer" onMouseClicked="#handleAvatarClick" prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
                         <Label fx:id="avatarText" styleClass="avatar-text" text="U" />
                     </StackPane>
                 </HBox>
             </HBox>
         </HBox>
-
-        <VBox fx:id="notificationPanel" managed="false" maxWidth="340.0" prefWidth="340.0" spacing="10.0" styleClass="notification-panel" visible="false" AnchorPane.rightAnchor="88.0" AnchorPane.topAnchor="70.0">
-            <HBox alignment="CENTER_LEFT" spacing="8.0">
-                <Label styleClass="notification-panel-title" text="Notifications" />
-                <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="clearNotificationsButton" onAction="#handleClearNotifications" styleClass="notification-clear-button" text="Clear" />
-            </HBox>
-            <VBox fx:id="notificationList" spacing="8.0" />
-            <Label fx:id="emptyNotificationsLabel" styleClass="notification-empty" text="No notifications yet." />
-        </VBox>
 
         <AnchorPane fx:id="sidebarLayer" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="78.0">
             <children>

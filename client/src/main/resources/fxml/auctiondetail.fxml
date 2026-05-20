@@ -16,7 +16,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
+<AnchorPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@../css/auctiondetail.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.AuctionDetailsController">
     <children>
         <BorderPane prefHeight="720.0" prefWidth="1280.0" styleClass="viewport-container" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
             <center>
@@ -124,6 +124,14 @@
                                         <Label styleClass="section-label" text="BIDDING TREND" />
 
                                         <VBox spacing="12.0" styleClass="analytics-card">
+                                            <HBox alignment="CENTER_LEFT" spacing="12.0">
+                                                <VBox spacing="3.0" HBox.hgrow="ALWAYS">
+                                                    <Label text="BID MOMENTUM" styleClass="activity-header-text" />
+                                                    <Label fx:id="biddingTrendMetricLabel" text="\$0.00" styleClass="analytics-value" />
+                                                    <Label fx:id="biddingTrendChangeLabel" text="Chart appears after first live bid." styleClass="analytics-trend-neutral" />
+                                                </VBox>
+                                                <Label text="&#8599;" styleClass="analytics-symbol analytics-symbol-blue" />
+                                            </HBox>
                                             <StackPane fx:id="biddingChartHost" minHeight="200.0" prefHeight="200.0" styleClass="analytics-chart-host" />
                                             <Label fx:id="biddingChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true" />
                                         </VBox>
