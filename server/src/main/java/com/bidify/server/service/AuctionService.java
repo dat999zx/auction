@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.ItemStatus;
@@ -20,6 +21,7 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.ConfirmDeliveryRequest;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.DisableAutoBidRequest;
@@ -27,8 +29,10 @@ import com.bidify.common.model.Event;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
+import com.bidify.common.model.PayAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
+import com.bidify.common.model.ResolveAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.SetAutoBidRequest;
@@ -92,6 +96,10 @@ public class AuctionService {
         router.register(RequestType.SET_AUTO_BID, this::setAutoBid);
         router.register(RequestType.DISABLE_AUTO_BID, this::disableAutoBid);
         router.register(RequestType.SEARCH_AUCTIONS, (client, req) -> search(req));
+        router.register(RequestType.PAY_AUCTION, this::payAuction);
+        router.register(RequestType.CONFIRM_AUCTION_DELIVERY, this::confirmAuctionDelivery);
+        router.register(RequestType.RESOLVE_AUCTION, this::resolveAuction);
+        router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
     }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
@@ -909,43 +917,21 @@ public class AuctionService {
     public void settleAuction(Auction auction) {
         String sellerUsername = auction.getSellerUsername();
         String winnerUsername = auction.getCurrentBidderUsername();
-        double finalBid = auction.getCurrentBid();
 
         if (winnerUsername != null) {
-            User winner = ServiceUtil.getOrLoadUser(winnerUsername);
-            User seller = ServiceUtil.getOrLoadUser(sellerUsername);
-            
-            winner.getWallet().payWinAuction(finalBid);
-            transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_PAY, finalBid, auction.getId()));
-
-            seller.getWallet().deposit(finalBid);
-            transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
-
-            // dùng để cập nhật đấu giá sản phẩm state
-            updateAuctionItemState(auction, winnerUsername, ItemStatus.AVAILABLE);
-
-            auction.setStatus(AuctionStatus.ENDED);
-
-            userDao.save(winner, false);
-            userDao.save(seller, false);
-
-            // dùng để phát sự kiện số dư change
-            publishBalanceChange(winnerUsername, finalBid);
-            // dùng để phát sự kiện locked số dư change
-            publishLockedBalanceChange(winnerUsername, -finalBid);
-            // dùng để phát sự kiện số dư change
-            publishBalanceChange(sellerUsername, finalBid);
+            auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
+            auctionDao.save(auction);
+            // dùng để phát sự kiện đấu giá cập nhật
+            publishAuctionUpdate(auction, "Auction ended, awaiting payment from winner");
         }
         else {
             // dùng để cập nhật đấu giá sản phẩm state
             updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
-            auction.setEndTime(LocalDateTime.now());
             auction.setStatus(AuctionStatus.CANCELED);
+            auctionDao.save(auction);
         }
-        
-        auctionDao.save(auction);
 
-        logger.info("auction settled: {} - {}", auction.getAuctionName(), auction.getId());
+        logger.info("auction settled: {} - {} (status: {})", auction.getAuctionName(), auction.getId(), auction.getStatus());
     }
 
     // Event cập nhật wallet của User
@@ -964,5 +950,178 @@ public class AuctionService {
         if (userClient == null) return;
         Event event = new Event(EventType.LOCKED_BALANCE_CHANGED, "Locked balance changed: " + diff);
         userClient.sendEvent(event);
+    }
+
+    public Response getUserSettlements(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User user = ServiceUtil.requireSessionUser(client);
+            List<Auction> auctions = auctionDao.findUserSettlements(user.getUsername());
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : auctions) {
+                result.add(toAuctionDto(auction, false));
+            }
+            return new Response(RequestStatus.SUCCESS, "Get user settlements successfully", result);
+        });
+    }
+
+    public Response payAuction(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User winner = ServiceUtil.requireSessionUser(client);
+            PayAuctionRequest data = JsonUtil.fromMap(request.getData(), PayAuctionRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (auction.getStatus() != AuctionStatus.AWAITING_PAYMENT) {
+                    throw new AuctionException("Auction is not awaiting payment");
+                }
+                if (!winner.getUsername().equals(auction.getCurrentBidderUsername())) {
+                    throw new AuctionException("Only the winning bidder can pay for this auction");
+                }
+                double finalBid = auction.getCurrentBid();
+                if (finalBid <= 0) {
+                    throw new AuctionException("Invalid final bid amount");
+                }
+
+                winner.tryLock(5);
+                try {
+                    winner.getWallet().payWinAuction(finalBid);
+                    userDao.save(winner, false);
+                } finally {
+                    winner.unlock();
+                }
+
+                transactionDao.create(new Transaction(winner.getUsername(), TransactionType.AUCTION_PAY, finalBid, auction.getId()));
+
+                auction.setStatus(AuctionStatus.AWAITING_DELIVERY);
+                auctionDao.save(auction);
+
+                publishBalanceChange(winner.getUsername(), -finalBid);
+                publishLockedBalanceChange(winner.getUsername(), -finalBid);
+                publishAuctionUpdate(auction, "Winner has paid for the auction");
+
+                return new Response(RequestStatus.SUCCESS, "Paid for auction successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    public Response confirmAuctionDelivery(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ConfirmDeliveryRequest data = JsonUtil.fromMap(request.getData(), ConfirmDeliveryRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (auction.getStatus() != AuctionStatus.AWAITING_DELIVERY) {
+                    throw new AuctionException("Auction is not awaiting delivery");
+                }
+                if (!sessionUser.getUsername().equals(auction.getSellerUsername()) && !ServiceUtil.isAdmin(sessionUser)) {
+                    throw new AuctionException("Only the seller or an admin can confirm delivery");
+                }
+
+                completePaidAuction(auction);
+
+                return new Response(RequestStatus.SUCCESS, "Delivery confirmed successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    public Response resolveAuction(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireAdmin(client);
+            ResolveAuctionRequest data = JsonUtil.fromMap(request.getData(), ResolveAuctionRequest.class);
+            ServiceUtil.validateRequestData(data);
+            if (data.getAction() == null) {
+                throw new ValidationException("Action cannot be null");
+            }
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (data.getAction() == AuctionResolutionAction.COMPLETE) {
+                    if (auction.getStatus() != AuctionStatus.AWAITING_DELIVERY) {
+                        throw new AuctionException("Only auctions awaiting delivery can be resolved as complete");
+                    }
+                    completePaidAuction(auction);
+                } else if (data.getAction() == AuctionResolutionAction.CANCEL) {
+                    if (auction.getStatus() == AuctionStatus.AWAITING_PAYMENT) {
+                        cancelAwaitingPaymentAuction(auction);
+                    } else if (auction.getStatus() == AuctionStatus.AWAITING_DELIVERY) {
+                        cancelAwaitingDeliveryAuction(auction);
+                    } else {
+                        throw new AuctionException("Cannot cancel auction in status: " + auction.getStatus());
+                    }
+                } else {
+                    throw new AuctionException("Unknown resolution action");
+                }
+
+                return new Response(RequestStatus.SUCCESS, "Auction resolved successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    private Auction loadAuctionForSettlement(String auctionId) throws DatabaseException {
+        ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
+        Auction auction = auctionDao.findById(auctionId);
+        if (auction == null) {
+            throw new AuctionException("Auction not found");
+        }
+        return auction;
+    }
+
+    private void completePaidAuction(Auction auction) throws DatabaseException {
+        String sellerUsername = auction.getSellerUsername();
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User seller = ServiceUtil.getOrLoadUser(sellerUsername);
+        seller.getWallet().deposit(finalBid);
+        userDao.save(seller, false);
+
+        transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
+
+        updateAuctionItemState(auction, winnerUsername, ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.COMPLETED);
+        auctionDao.save(auction);
+
+        publishBalanceChange(sellerUsername, finalBid);
+        publishAuctionUpdate(auction, "Auction completed successfully");
+    }
+
+    private void cancelAwaitingPaymentAuction(Auction auction) throws DatabaseException {
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User winner = ServiceUtil.getOrLoadUser(winnerUsername);
+        winner.getWallet().unlockBalance(finalBid);
+        userDao.save(winner, false);
+
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishLockedBalanceChange(winnerUsername, -finalBid);
+        publishAuctionUpdate(auction, "Auction canceled by admin");
+    }
+
+    private void cancelAwaitingDeliveryAuction(Auction auction) throws DatabaseException {
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User winner = ServiceUtil.getOrLoadUser(winnerUsername);
+        winner.getWallet().deposit(finalBid);
+        userDao.save(winner, false);
+
+        transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_REFUND, finalBid, auction.getId()));
+
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishBalanceChange(winnerUsername, finalBid);
+        publishAuctionUpdate(auction, "Auction canceled and refunded by admin");
     }
 }

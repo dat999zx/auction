@@ -87,6 +87,7 @@
                                     <Insets left="20.0" />
                                 </padding>
                                 <Button fx:id="historyButton" styleClass="side-nav-sub-button" text="• History" maxWidth="Infinity" />
+                                <Button fx:id="settlementsButton" styleClass="side-nav-sub-button" text="• Settlements" maxWidth="Infinity" />
                                 <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
                                 <Button fx:id="createAuctionButton" styleClass="side-nav-sub-button" text="• Create Auctions" maxWidth="Infinity" />
                             </VBox>

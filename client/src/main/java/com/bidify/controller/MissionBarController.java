@@ -48,6 +48,9 @@ public class MissionBarController {
     private Button inventoryButton;
 
     @FXML
+    private Button settlementsButton;
+
+    @FXML
     private Button adminUsersButton;
 
     @FXML
@@ -207,6 +210,8 @@ public class MissionBarController {
     public Button getHistoryButton() { return historyButton; }
     // dùng để lấy kho đồ nút nhấn
     public Button getInventoryButton() { return inventoryButton; }
+    // dùng để lấy settlements nút nhấn
+    public Button getSettlementsButton() { return settlementsButton; }
     // dùng để lấy quản trị viên (admin) danh sách người dùng nút nhấn
     public Button getAdminUsersButton() { return adminUsersButton; }
     // dùng để lấy nút xem các yêu cầu ví trong thanh quản trị
@@ -262,6 +267,9 @@ public class MissionBarController {
         if (inventoryButton != null) {
             inventoryButton.setOnAction(handler);
         }
+        if (settlementsButton != null) {
+            settlementsButton.setOnAction(handler);
+        }
         if (adminUsersButton != null) {
             adminUsersButton.setOnAction(handler);
         }
@@ -292,7 +300,7 @@ public class MissionBarController {
 
     // dùng để thiết lập active navigation
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
+        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == settlementsButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
             // dùng để cập nhật thanh bên điều hướng nút nhấn style
             updateSidebarButtonStyle(activeButton);
         }

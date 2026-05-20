@@ -13,6 +13,10 @@ import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
+import com.bidify.common.model.PayAuctionRequest;
+import com.bidify.common.model.ConfirmDeliveryRequest;
+import com.bidify.common.model.ResolveAuctionRequest;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.SearchAuctionRequest;
@@ -126,4 +130,38 @@ public class AuctionClientService {
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
         throw new AuctionException(response.getMessage());
     }
+
+    // dùng để thanh toán đấu giá
+    public Response payAuction(String auctionId) throws IOException {
+        Response response = client.send(new Request(RequestType.PAY_AUCTION, new PayAuctionRequest(auctionId)));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    // dùng để xác nhận giao hàng đấu giá
+    public Response confirmAuctionDelivery(String auctionId) throws IOException {
+        Response response = client.send(new Request(RequestType.CONFIRM_AUCTION_DELIVERY, new ConfirmDeliveryRequest(auctionId)));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    // dùng để giải quyết đấu giá (cho admin)
+    public Response resolveAuction(String auctionId, AuctionResolutionAction action) throws IOException {
+        Response response = client.send(new Request(RequestType.RESOLVE_AUCTION, new ResolveAuctionRequest(auctionId, action)));
+        if (response.getStatus() == RequestStatus.SUCCESS) return response;
+        throw new AuctionException(response.getMessage());
+    }
+
+    // dùng để lấy các phiên đấu giá đã kết thúc cần xử lý của user
+    public AuctionDto[] getUserSettlements() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_USER_SETTLEMENTS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
+            throw new AuctionException(response.getMessage() == null ? "Cannot load user settlements." : response.getMessage());
+        }
+
+        AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        if (auctions == null) throw new AuctionException("Cannot load user settlements.");
+        return auctions;
+    }
 }
+

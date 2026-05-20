@@ -178,6 +178,23 @@
             
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
                                     </VBox>
+
+                                    <VBox fx:id="settlementActionSection" spacing="12.0" visible="false" managed="false">
+                                        <Label styleClass="section-label" text="POST-AUCTION SETTLEMENT" />
+                                        
+                                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="settlement-status-box">
+                                            <Label fx:id="settlementStatusLabel" styleClass="settlement-status-label" text="Status: AWAITING PAYMENT" />
+                                        </HBox>
+                                        
+                                        <Button fx:id="payNowButton" onAction="#handlePayNow" styleClass="place-bid-button" text="Pay Now" visible="false" managed="false" />
+                                        
+                                        <Button fx:id="confirmDeliveryButton" onAction="#handleConfirmDelivery" styleClass="place-bid-button" text="Confirm Delivery" visible="false" managed="false" />
+                                        
+                                        <HBox spacing="8.0">
+                                            <Button fx:id="adminCompleteButton" onAction="#handleAdminComplete" styleClass="place-bid-button" text="Admin Complete" visible="false" managed="false" HBox.hgrow="ALWAYS" />
+                                            <Button fx:id="adminCancelButton" onAction="#handleAdminCancel" styleClass="autobid-disable-button" text="Admin Cancel" visible="false" managed="false" HBox.hgrow="ALWAYS" />
+                                        </HBox>
+                                    </VBox>
                                 </VBox>
                             </GridPane>
                         </VBox>
