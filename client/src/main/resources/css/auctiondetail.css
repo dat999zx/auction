@@ -627,3 +627,19 @@
     -fx-pref-width: 48px;
     -fx-pref-height: 48px;
 }
+
+.settlement-status-box {
+    -fx-background-color: #f0f3ff;
+    -fx-border-color: #d8e3fb;
+    -fx-border-width: 1px;
+    -fx-border-radius: 12px;
+    -fx-background-radius: 12px;
+    -fx-padding: 12 16 12 16;
+    -fx-min-height: 48px;
+}
+
+.settlement-status-label {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+}

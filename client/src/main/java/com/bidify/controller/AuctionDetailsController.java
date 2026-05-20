@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
@@ -126,6 +127,18 @@ public class AuctionDetailsController {
     private VBox activityList;
     @FXML
     private VBox bidActionSection;
+    @FXML
+    private VBox settlementActionSection;
+    @FXML
+    private Label settlementStatusLabel;
+    @FXML
+    private Button payNowButton;
+    @FXML
+    private Button confirmDeliveryButton;
+    @FXML
+    private Button adminCompleteButton;
+    @FXML
+    private Button adminCancelButton;
     @FXML
     private VBox analyticsSection;
     @FXML
@@ -448,7 +461,7 @@ public class AuctionDetailsController {
         fullCurrentPriceLabel.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
         // dùng để configure đấu giá state
-        configureAuctionState(isUpcoming, startingValue, currentValue);
+        configureAuctionState(data.getStatus(), startingValue, currentValue);
         // dùng để bắt đầu timer
         startTimer();
 
@@ -474,30 +487,77 @@ public class AuctionDetailsController {
     }
 
     // dùng để configure đấu giá state
-    private void configureAuctionState(boolean isUpcoming, double startingValue, double currentValue) {
-        if (isUpcoming || ClientSession.getInstance().isAdmin()) {
-            leftMetricLabel.setText("STARTING PRICE");
-            rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
-            currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
-            openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
-            endDateLabel.setText("Ends at:");
-            recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
+    private void configureAuctionState(String status, double startingValue, double currentValue) {
+        boolean isUpcoming = "UPCOMING".equalsIgnoreCase(status);
+        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
+        boolean isAdmin = ClientSession.getInstance().isAdmin();
+        String currentUsername = ClientSession.getInstance().getCurrentUsername();
+
+        leftMetricLabel.setText("STARTING PRICE");
+        rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
+        currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
+        openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
+        endDateLabel.setText("Ends at:");
+        recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
+
+        if (isActive && !isAdmin) {
+            bidActionSection.setManaged(true);
+            bidActionSection.setVisible(true);
+            placebid.setDisable(false);
+        } else {
             bidActionSection.setManaged(false);
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
             inputprice.clear();
-            return;
         }
 
-        leftMetricLabel.setText("STARTING PRICE");
-        rightMetricLabel.setText("CURRENT BID");
-        currentprice.setText(DisplayUtil.formatCashSuffix(currentValue > 0 ? currentValue : startingValue));
-        openDateLabel.setText("Open at:");
-        endDateLabel.setText("End at:");
-        recentActivityLabel.setText("RECENT ACTIVITY");
-        bidActionSection.setManaged(true);
-        bidActionSection.setVisible(true);
-        placebid.setDisable(false);
+        if (settlementActionSection != null) {
+            boolean showSettlementSection = false;
+            boolean showPay = false;
+            boolean showConfirm = false;
+            boolean showAdminComplete = false;
+            boolean showAdminCancel = false;
+            String statusText = "";
+
+            if ("AWAITING_PAYMENT".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: AWAITING PAYMENT (Winner: " + currentAuction.getCurrentBidderUsername() + ")";
+                if (currentUsername != null && currentUsername.equals(currentAuction.getCurrentBidderUsername())) {
+                    showPay = true;
+                }
+                if (isAdmin) {
+                    showAdminCancel = true;
+                }
+            } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: AWAITING DELIVERY";
+                boolean isSeller = currentUsername != null && currentUsername.equals(currentAuction.getSellerUsername());
+                if (isSeller || isAdmin) {
+                    showConfirm = true;
+                }
+                if (isAdmin) {
+                    showAdminComplete = true;
+                    showAdminCancel = true;
+                }
+            } else if ("COMPLETED".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: COMPLETED (Winner: " + currentAuction.getCurrentBidderUsername() + " paid and received)";
+            }
+
+            settlementActionSection.setManaged(showSettlementSection);
+            settlementActionSection.setVisible(showSettlementSection);
+            if (showSettlementSection) {
+                settlementStatusLabel.setText(statusText);
+                payNowButton.setManaged(showPay);
+                payNowButton.setVisible(showPay);
+                confirmDeliveryButton.setManaged(showConfirm);
+                confirmDeliveryButton.setVisible(showConfirm);
+                adminCompleteButton.setManaged(showAdminComplete);
+                adminCompleteButton.setVisible(showAdminComplete);
+                adminCancelButton.setManaged(showAdminCancel);
+                adminCancelButton.setVisible(showAdminCancel);
+            }
+        }
     }
 
     // dùng để hiển thị audience stats
@@ -1031,4 +1091,79 @@ public class AuctionDetailsController {
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
+    @FXML
+    private void handlePayNow() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.payAuction(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Paid for auction successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Payment failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleConfirmDelivery() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.confirmAuctionDelivery(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Delivery confirmed successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Delivery confirmation failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAdminComplete() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.COMPLETE);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction resolved as completed successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAdminCancel() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.CANCEL);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction resolved as canceled successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
 }
