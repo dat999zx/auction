@@ -145,6 +145,10 @@ public class AuctionDetailsController {
     private StackPane biddingChartHost;
     @FXML
     private Label biddingChartStateLabel;
+    @FXML
+    private Label biddingTrendMetricLabel;
+    @FXML
+    private Label biddingTrendChangeLabel;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -631,6 +635,7 @@ public class AuctionDetailsController {
         activityList.getChildren().clear();
         // dùng để hiển thị bidding chart state
         showBiddingChartState("Loading bid history...");
+        updateBiddingTrendDetail("$0.00", "Loading bid trend...", "neutral");
 
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
@@ -769,6 +774,7 @@ public class AuctionDetailsController {
             biddingChart.getData().clear();
             // dùng để hiển thị bidding chart state
             showBiddingChartState("Chart appears after first live bid.");
+            updateBiddingTrendDetail("$0.00", "Waiting for opening bid.", "neutral");
             return;
         }
 
@@ -777,6 +783,7 @@ public class AuctionDetailsController {
             biddingChart.getData().clear();
             // dùng để hiển thị bidding chart state
             showBiddingChartState("No bids yet. First live bid will appear here.");
+            updateBiddingTrendDetail(DisplayUtil.formatCurrency(data.getCurrentBid()), "No bid movement yet.", "neutral");
             return;
         }
 
@@ -794,11 +801,56 @@ public class AuctionDetailsController {
         }
 
         biddingChart.getData().setAll(series);
+        updateBiddingTrendDetail(data, sortedBids);
         if (series.getNode() != null) {
             series.getNode().getStyleClass().add("bidding-line-series");
         }
         // dùng để ẩn bidding chart state
         hideBiddingChartState();
+    }
+
+    private void updateBiddingTrendDetail(AuctionDto data, List<BidDto> sortedBids) {
+        BidDto latestBid = sortedBids.getLast();
+        if (sortedBids.size() < 2) {
+            updateBiddingTrendDetail(
+                DisplayUtil.formatCurrency(latestBid.getAmount()),
+                "New bid activity | 1 bid | " + (latestBid.isAutoBidGenerated() ? "AutoBid" : "Manual") + " latest",
+                "success"
+            );
+            return;
+        }
+
+        double baseline = data.getStartingPrice() > 0 ? data.getStartingPrice() : sortedBids.getFirst().getAmount();
+        double latestAmount = latestBid.getAmount();
+        double percentChange = baseline == 0.0 ? 0.0 : ((latestAmount - baseline) / baseline) * 100.0;
+        String trendStyle = percentChange >= 0.0 ? "success" : "danger";
+        String trendWord = percentChange >= 0.0 ? "↑ Increased" : "↓ Decreased";
+        String bidType = latestBid.isAutoBidGenerated() ? "AutoBid" : "Manual";
+        String trendText = String.format(
+            "%s %+.1f%% from start | %d %s | %s latest",
+            trendWord,
+            percentChange,
+            sortedBids.size(),
+            sortedBids.size() == 1 ? "bid" : "bids",
+            bidType
+        );
+
+        updateBiddingTrendDetail(DisplayUtil.formatCurrency(latestAmount), trendText, trendStyle);
+    }
+
+    private void updateBiddingTrendDetail(String metric, String trend, String trendStyle) {
+        if (biddingTrendMetricLabel != null) {
+            biddingTrendMetricLabel.setText(metric);
+        }
+        if (biddingTrendChangeLabel != null) {
+            biddingTrendChangeLabel.setText(trend);
+            biddingTrendChangeLabel.getStyleClass().removeAll(
+                "analytics-trend-success",
+                "analytics-trend-danger",
+                "analytics-trend-neutral"
+            );
+            biddingTrendChangeLabel.getStyleClass().add("analytics-trend-" + trendStyle);
+        }
     }
 
     private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {

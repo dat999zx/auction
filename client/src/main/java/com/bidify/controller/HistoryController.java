@@ -64,10 +64,22 @@ public class HistoryController {
     private Label moneyFlowChartStateLabel;
 
     @FXML
+    private Label moneyFlowMetricLabel;
+
+    @FXML
+    private Label moneyFlowTrendLabel;
+
+    @FXML
     private StackPane biddingActivityChartHost;
 
     @FXML
     private Label biddingActivityChartStateLabel;
+
+    @FXML
+    private Label biddingActivityMetricLabel;
+
+    @FXML
+    private Label biddingActivityTrendLabel;
 
     private final BidClientService bidClientService = new BidClientService();
     private final TransactionClientService transactionClientService = new TransactionClientService();
@@ -147,6 +159,8 @@ public class HistoryController {
         showChartState(moneyFlowChartHost, moneyFlowChartStateLabel, "Loading transaction history...");
         // dùng để hiển thị chart state
         showChartState(biddingActivityChartHost, biddingActivityChartStateLabel, "Loading bid history...");
+        updateChartDetail(moneyFlowMetricLabel, moneyFlowTrendLabel, "$0.00", "Loading flow trend...", "neutral");
+        updateChartDetail(biddingActivityMetricLabel, biddingActivityTrendLabel, "0 bids", "Loading bid trend...", "neutral");
         renderBiddingActivity(List.of());
         renderTransactionRecords(List.of());
     }
@@ -158,6 +172,8 @@ public class HistoryController {
         // dùng để hiển thị chart state
         showChartState(biddingActivityChartHost, biddingActivityChartStateLabel, message);
         renderBiddingActivity(List.of());
+        updateChartDetail(moneyFlowMetricLabel, moneyFlowTrendLabel, "$0.00", message, "danger");
+        updateChartDetail(biddingActivityMetricLabel, biddingActivityTrendLabel, "0 bids", message, "danger");
         renderTransactionRecords(List.of());
         transactionRecordsContainer.getChildren().add(loadEmptyCard(message));
     }
@@ -266,6 +282,7 @@ public class HistoryController {
     // dùng để hiển thị money flow trend
     private void renderMoneyFlowTrend(List<TransactionDto> transactions) {
         if (moneyFlowChart == null) {
+            updateChartDetail(moneyFlowMetricLabel, moneyFlowTrendLabel, "$0.00", "No money movement yet", "neutral");
             return;
         }
 
@@ -273,6 +290,7 @@ public class HistoryController {
             moneyFlowChart.getData().clear();
             // dùng để hiển thị chart state
             showChartState(moneyFlowChartHost, moneyFlowChartStateLabel, "No transaction history yet.");
+            updateChartDetail(moneyFlowMetricLabel, moneyFlowTrendLabel, "$0.00", "No money movement yet", "neutral");
             return;
         }
 
@@ -292,6 +310,7 @@ public class HistoryController {
         }
 
         moneyFlowChart.getData().setAll(series);
+        updateMoneyFlowDetail(sortedTransactions, runningTotal);
         // dùng để ẩn chart state
         hideChartState(moneyFlowChartHost, moneyFlowChartStateLabel);
     }
@@ -306,6 +325,7 @@ public class HistoryController {
             biddingActivityChart.getData().clear();
             // dùng để hiển thị chart state
             showChartState(biddingActivityChartHost, biddingActivityChartStateLabel, "No bids yet. First live bid will appear here.");
+            updateChartDetail(biddingActivityMetricLabel, biddingActivityTrendLabel, "0 bids", "No activity yet", "neutral");
             return;
         }
 
@@ -325,11 +345,96 @@ public class HistoryController {
         }
 
         biddingActivityChart.getData().setAll(series);
+        updateBiddingActivityDetail(sortedBids);
         // dùng để ẩn chart state
         hideChartState(biddingActivityChartHost, biddingActivityChartStateLabel);
     }
 
     // dùng để hiển thị bidding activity
+    private void updateMoneyFlowDetail(List<TransactionDto> transactions, double runningTotal) {
+        if (transactions.size() < 2) {
+            updateChartDetail(
+                moneyFlowMetricLabel,
+                moneyFlowTrendLabel,
+                DisplayUtil.formatCurrency(runningTotal),
+                "New money movement",
+                "success"
+            );
+            return;
+        }
+
+        int midpoint = Math.max(1, transactions.size() / 2);
+        double earlyFlow = transactions.subList(0, midpoint).stream()
+            .mapToDouble(this::toSignedAmount)
+            .sum();
+        double recentFlow = transactions.subList(midpoint, transactions.size()).stream()
+            .mapToDouble(this::toSignedAmount)
+            .sum();
+
+        boolean improved = recentFlow >= earlyFlow;
+        updateChartDetail(
+            moneyFlowMetricLabel,
+            moneyFlowTrendLabel,
+            DisplayUtil.formatCurrency(runningTotal),
+            buildTrendText(improved ? "↑ Increased" : "↓ Decreased", earlyFlow, recentFlow, "recent flow"),
+            improved ? "success" : "danger"
+        );
+    }
+
+    private void updateBiddingActivityDetail(List<BidDto> bids) {
+        if (bids.size() < 2) {
+            BidDto latestBid = bids.getFirst();
+            updateChartDetail(
+                biddingActivityMetricLabel,
+                biddingActivityTrendLabel,
+                "1 bid",
+                "New bid activity | latest " + DisplayUtil.formatCashSuffix(latestBid.getAmount()),
+                "success"
+            );
+            return;
+        }
+
+        int midpoint = Math.max(1, bids.size() / 2);
+        int earlyCount = midpoint;
+        int recentCount = bids.size() - midpoint;
+        BidDto latestBid = bids.getLast();
+        boolean improved = recentCount >= earlyCount;
+        String trendText = buildTrendText(improved ? "↑ Increased" : "↓ Decreased", earlyCount, recentCount, "recent bids")
+            + " | latest " + DisplayUtil.formatCashSuffix(latestBid.getAmount());
+
+        updateChartDetail(
+            biddingActivityMetricLabel,
+            biddingActivityTrendLabel,
+            bids.size() + (bids.size() == 1 ? " bid" : " bids"),
+            trendText,
+            improved ? "success" : "danger"
+        );
+    }
+
+    private String buildTrendText(String symbol, double previousValue, double currentValue, String label) {
+        if (Math.abs(previousValue) < 0.01) {
+            return "New " + label;
+        }
+
+        double percentChange = ((currentValue - previousValue) / Math.abs(previousValue)) * 100.0;
+        return symbol + " " + String.format("%+.1f%% %s", percentChange, label);
+    }
+
+    private void updateChartDetail(Label metricLabel, Label trendLabel, String metric, String trend, String trendStyle) {
+        if (metricLabel != null) {
+            metricLabel.setText(metric);
+        }
+        if (trendLabel != null) {
+            trendLabel.setText(trend);
+            trendLabel.getStyleClass().removeAll(
+                "analytics-trend-success",
+                "analytics-trend-danger",
+                "analytics-trend-neutral"
+            );
+            trendLabel.getStyleClass().add("analytics-trend-" + trendStyle);
+        }
+    }
+
     private void renderBiddingActivity(List<BidDto> bids) {
         biddingActivityContainer.getChildren().clear();
         biddingActivityContainer.getChildren().add(createBiddingHeader());
