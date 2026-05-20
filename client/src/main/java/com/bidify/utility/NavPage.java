@@ -6,6 +6,7 @@ public enum NavPage {
     CREATE_AUCTION,
     INVENTORY,
     HISTORY,
+    SETTLEMENTS,
     ADMIN_USERS,
     ADMIN_WALLET_REQUESTS,
     PROFILE,
