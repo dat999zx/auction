@@ -48,7 +48,7 @@ public class MainApp extends Application {
 
         SceneManager.preloadScenes("login.fxml", "register.fxml");
 
-        SceneManager.switchScene("myauctions.fxml");
+        SceneManager.switchScene("login.fxml");
         stage.show();
     }
 
