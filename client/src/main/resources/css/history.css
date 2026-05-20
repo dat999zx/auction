@@ -348,6 +348,14 @@
     -fx-border-width: 0 0 0 4;
 }
 
+.transaction-card-clickable {
+    -fx-cursor: hand;
+}
+
+.transaction-card-clickable:hover {
+    -fx-background-color: rgba(236,238,241,0.5);
+}
+
 .transaction-card-title {
     -fx-font-size: 18px;
     -fx-font-weight: 700;

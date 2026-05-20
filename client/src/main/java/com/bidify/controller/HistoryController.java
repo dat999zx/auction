@@ -336,7 +336,7 @@ public class HistoryController {
 
         if (bids.isEmpty()) {
             biddingActivityContainer.getChildren().add(
-                loadBiddingRow("No bids placed yet.", "Your bidding activity will appear here.", "-", "-", "PENDING")
+                loadBiddingRow("No bids placed yet.", "Your bidding activity will appear here.", "-", "-", "PENDING", null)
             );
             return;
         }
@@ -347,7 +347,8 @@ public class HistoryController {
                 buildAuctionSubtitle(bid),
                 DisplayUtil.formatCashSuffix(bid.getAmount()),
                 DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown"),
-                buildAuctionStatus(bid)
+                buildAuctionStatus(bid),
+                bid.getAuctionId()
             ));
         }
     }
@@ -394,12 +395,12 @@ public class HistoryController {
     }
 
     // dùng để tải bidding dòng hiển thị
-    private Node loadBiddingRow(String title, String subtitle, String amount, String dateTime, String status) {
+    private Node loadBiddingRow(String title, String subtitle, String amount, String dateTime, String status, String auctionId) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/history/bidding-row.fxml"));
             Node node = loader.load();
             BiddingRowController controller = loader.getController();
-            controller.setData(title, subtitle, amount, dateTime, status);
+            controller.setData(title, subtitle, amount, dateTime, status, auctionId);
             return node;
         } catch (IOException e) {
             e.printStackTrace();
@@ -652,6 +653,7 @@ public class HistoryController {
             case WITHDRAW -> "Withdrawal";
             case AUCTION_PAY -> "Auction payment";
             case AUCTION_PROFIT -> "Auction profit";
+            case AUCTION_REFUND -> "Auction refund";
         };
     }
 
@@ -662,7 +664,8 @@ public class HistoryController {
         }
 
         return transaction.getType() == TransactionType.DEPOSIT
-            || transaction.getType() == TransactionType.AUCTION_PROFIT;
+            || transaction.getType() == TransactionType.AUCTION_PROFIT
+            || transaction.getType() == TransactionType.AUCTION_REFUND;
     }
 
     // dùng để chuyển thành signed số tiền
