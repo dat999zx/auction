@@ -521,3 +521,93 @@
     /* dropshadow( <type>, <color>, <radius>, <spread>, <offset-x>, <offset-y> ) */
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);
 }
+
+/* ==========================================================================
+   Các kiểu dáng cho Trung tâm Thông báo (Notification Center)
+   ========================================================================== */
+
+/* Huy hiệu hiển thị số thông báo chưa đọc */
+.notification-badge {
+    -fx-background-color: #ba1a1a;
+    -fx-background-radius: 999;
+    -fx-text-fill: white;
+    -fx-font-size: 9px;
+    -fx-font-weight: 900;
+    -fx-padding: 2 5 2 5;
+    -fx-translate-x: 8;
+    -fx-translate-y: -6;
+}
+
+/* Bảng hiển thị danh sách các thông báo (dropdown panel) */
+.notification-panel {
+    -fx-background-color: white;
+    -fx-background-radius: 18;
+    -fx-border-color: #e7eeff;
+    -fx-border-radius: 18;
+    -fx-border-width: 1;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0, 30, 64, 0.16), 18, 0, 0, 8);
+}
+
+/* Tiêu đề của bảng dropdown thông báo */
+.notification-panel-title {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 14px;
+    -fx-font-weight: 900;
+}
+
+/* Nút xóa toàn bộ thông báo (Clear button) */
+.notification-clear-button {
+    -fx-background-color: #f0f3ff;
+    -fx-background-radius: 999;
+    -fx-text-fill: #516173;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-padding: 6 10;
+    -fx-cursor: hand;
+}
+
+.notification-clear-button:hover {
+    -fx-background-color: #dee8ff;
+    -fx-text-fill: #001e40;
+}
+
+/* Nhãn hiển thị trạng thái không có thông báo */
+.notification-empty {
+    -fx-text-fill: #737780;
+    -fx-font-size: 12px;
+    -fx-padding: 14 0 8 0;
+}
+
+/* Dòng hiển thị thông tin chi tiết một thông báo */
+.notification-row,
+.notification-row-unread {
+    -fx-background-color: #f9f9ff;
+    -fx-background-radius: 12;
+    -fx-padding: 10 12;
+}
+
+/* Dòng thông báo chưa đọc (nền sẽ sáng/đậm hơn để làm nổi bật) */
+.notification-row-unread {
+    -fx-background-color: #e7eeff;
+}
+
+/* Tiêu đề của từng mục thông báo */
+.notification-row-title {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 12px;
+    -fx-font-weight: 900;
+}
+
+/* Nội dung của thông báo */
+.notification-row-message {
+    -fx-text-fill: #516173;
+    -fx-font-size: 11px;
+}
+
+/* Thời gian nhận thông báo */
+.notification-row-time {
+    -fx-text-fill: #737780;
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+}

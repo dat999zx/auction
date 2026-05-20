@@ -16,9 +16,55 @@ import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
+// Nhập các thư viện cần thiết cho chức năng thông báo (Notification Center)
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+
+import com.bidify.common.enums.EventType;
+import com.bidify.common.model.Event;
+import com.bidify.event.EventManager;
+import com.bidify.model.NotificationEntry;
+import com.bidify.service.NotificationCenterService;
+
+import javafx.geometry.Pos;
+
 public class MissionBarController {
     private static final Duration ANIMATION_DURATION = Duration.millis(180);
     private Button leftSideActiveButton; 
+
+    // Định dạng thời gian hiển thị thông báo (giờ:phút)
+    private static final DateTimeFormatter NOTIFICATION_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    
+    // Dịch vụ trung tâm thông báo (Notification Center Service)
+    private final NotificationCenterService notificationCenterService = NotificationCenterService.getInstance();
+
+    // Container gốc của chuông thông báo và badge số lượng chưa đọc
+    @FXML
+    private StackPane notificationRoot;
+
+    // Nút nhấn chuông thông báo
+    @FXML
+    private Button notificationButton;
+
+    // Nhãn hiển thị số lượng thông báo chưa đọc (badge)
+    @FXML
+    private Label notificationBadge;
+
+    // Bảng hiển thị danh sách thông báo (dropdown panel)
+    @FXML
+    private VBox notificationPanel;
+
+    // VBox chứa các dòng thông báo được thêm động
+    @FXML
+    private VBox notificationList;
+
+    // Nhãn hiển thị khi không có thông báo nào
+    @FXML
+    private Label emptyNotificationsLabel;
+
+    // Nút để xóa toàn bộ thông báo hiện có
+    @FXML
+    private Button clearNotificationsButton;
 
     @FXML
     private HBox searchContainer;
@@ -86,6 +132,9 @@ public class MissionBarController {
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
+    // Biến cờ để kiểm tra xem đã đăng ký sự kiện EventManager chưa (tránh đăng ký trùng lặp)
+    private boolean eventsSubscribed = false;
+
     // dùng để khởi tạo
     @FXML
     private void initialize() {
@@ -96,6 +145,116 @@ public class MissionBarController {
         sidebarLayer.setMouseTransparent(true);
         sidebarOverlay.setOpacity(0.0);
         sidebarContent.setTranslateX(-hiddenOffset);
+
+        // Đăng ký dịch vụ lắng nghe và cập nhật thông báo
+        notificationCenterService.addListener(this::renderNotifications);
+        subscribeNotificationEvents();
+        renderNotifications(notificationCenterService.getNotifications());
+    }
+
+    // Đăng ký nhận các sự kiện thông báo thời gian thực từ EventManager
+    private void subscribeNotificationEvents() {
+        if (eventsSubscribed) return;
+        EventManager eventManager = EventManager.getInstance();
+        eventManager.subscribe(EventType.BID_PLACED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.AUCTION_UPDATED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.AUCTION_ENDED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.AUCTION_DELETED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.SERVER_NOTICE, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.FORCED_LOGOUT, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.WALLET_CHANGED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleNotificationEvent);
+        eventManager.subscribe(EventType.WALLET_REQUESTS_CHANGED, this::handleNotificationEvent);
+        eventsSubscribed = true;
+    }
+
+    // Xử lý khi có sự kiện nhận từ EventManager
+    private void handleNotificationEvent(Event event) {
+        if (event == null || event.getType() == null) return;
+        notificationCenterService.add(resolveNotificationTitle(event), resolveNotificationMessage(event));
+    }
+
+    // Xác định tiêu đề hiển thị cho mỗi loại sự kiện
+    private String resolveNotificationTitle(Event event) {
+        return switch (event.getType()) {
+            case BID_PLACED -> "Bid update";
+            case AUCTION_UPDATED -> "Auction updated";
+            case AUCTION_ENDED -> "Auction ended";
+            case AUCTION_DELETED -> "Auction deleted";
+            case SERVER_NOTICE -> "Server notice";
+            case FORCED_LOGOUT -> "Session notice";
+            case WALLET_CHANGED -> "Wallet updated";
+            case LOCKED_BALANCE_CHANGED -> "Locked balance updated";
+            case WALLET_REQUESTS_CHANGED -> "Wallet request updated";
+            default -> "Notification";
+        };
+    }
+
+    // Xác định nội dung tin nhắn hiển thị của sự kiện
+    private String resolveNotificationMessage(Event event) {
+        String message = event.getMessage();
+        if (message != null && !message.isBlank()) return message;
+        return "You have a new update.";
+    }
+
+    // Xử lý khi bấm nút chuông thông báo (ẩn/hiện bảng thông báo)
+    @FXML
+    private void handleNotificationBell() {
+        boolean nextVisible = !notificationPanel.isVisible();
+        notificationPanel.setVisible(nextVisible);
+        notificationPanel.setManaged(nextVisible);
+        if (nextVisible) {
+            // Khi mở bảng lên thì tự động đánh dấu đã đọc toàn bộ thông báo
+            notificationCenterService.markAllRead();
+        }
+    }
+
+    // Xử lý khi nhấn nút Clear (xóa sạch toàn bộ thông báo)
+    @FXML
+    private void handleClearNotifications() {
+        notificationCenterService.clear();
+    }
+
+    // Cập nhật và render lại danh sách các thông báo hiển thị (chạy trên FX Application Thread)
+    private void renderNotifications(List<NotificationEntry> notifications) {
+        javafx.application.Platform.runLater(() -> {
+            if (notificationList == null || notificationBadge == null) return;
+
+            notificationList.getChildren().clear();
+            int unreadCount = notificationCenterService.getUnreadCount();
+            boolean hasUnread = unreadCount > 0;
+            notificationBadge.setText(unreadCount > 99 ? "99+" : String.valueOf(unreadCount));
+            notificationBadge.setVisible(hasUnread);
+            notificationBadge.setManaged(hasUnread);
+
+            boolean empty = notifications == null || notifications.isEmpty();
+            emptyNotificationsLabel.setVisible(empty);
+            emptyNotificationsLabel.setManaged(empty);
+            clearNotificationsButton.setDisable(empty);
+            if (empty) return;
+
+            for (NotificationEntry entry : notifications) {
+                notificationList.getChildren().add(createNotificationRow(entry));
+            }
+        });
+    }
+
+    // Tạo phần tử hiển thị (dòng) cho mỗi thông báo
+    private VBox createNotificationRow(NotificationEntry entry) {
+        Label title = new Label(entry.getTitle());
+        title.getStyleClass().add("notification-row-title");
+
+        Label message = new Label(entry.getMessage());
+        message.getStyleClass().add("notification-row-message");
+        message.setWrapText(true);
+
+        Label time = new Label(entry.getCreatedAt().format(NOTIFICATION_TIME_FORMATTER));
+        time.getStyleClass().add("notification-row-time");
+
+        VBox row = new VBox(3, title, message, time);
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.getStyleClass().add(entry.isRead() ? "notification-row" : "notification-row-unread");
+        return row;
     }
     
     // dùng để xử lý ảnh đại diện click

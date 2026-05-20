@@ -35,14 +35,26 @@
 
                 <HBox alignment="CENTER_LEFT" spacing="12.0">
                     <Button fx:id="logoutButton" styleClass="ghost-nav-button" text="Logout" />
-                    <Button styleClass="icon-button" text="🔔" />
-                    <Button styleClass="icon-button" text="⟲" />
+                    <StackPane fx:id="notificationRoot" pickOnBounds="false">
+                        <Button fx:id="notificationButton" onAction="#handleNotificationBell" styleClass="icon-button" text="🔔" />
+                        <Label fx:id="notificationBadge" managed="false" styleClass="notification-badge" text="0" visible="false" StackPane.alignment="TOP_RIGHT" />
+                    </StackPane>
                     <StackPane fx:id="avatarContainer" onMouseClicked="#handleAvatarClick" prefHeight="40.0" prefWidth="40.0" styleClass="avatar-circle">
                         <Label fx:id="avatarText" styleClass="avatar-text" text="U" />
                     </StackPane>
                 </HBox>
             </HBox>
         </HBox>
+
+        <VBox fx:id="notificationPanel" managed="false" maxWidth="340.0" prefWidth="340.0" spacing="10.0" styleClass="notification-panel" visible="false" AnchorPane.rightAnchor="88.0" AnchorPane.topAnchor="70.0">
+            <HBox alignment="CENTER_LEFT" spacing="8.0">
+                <Label styleClass="notification-panel-title" text="Notifications" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button fx:id="clearNotificationsButton" onAction="#handleClearNotifications" styleClass="notification-clear-button" text="Clear" />
+            </HBox>
+            <VBox fx:id="notificationList" spacing="8.0" />
+            <Label fx:id="emptyNotificationsLabel" styleClass="notification-empty" text="No notifications yet." />
+        </VBox>
 
         <AnchorPane fx:id="sidebarLayer" pickOnBounds="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="78.0">
             <children>
@@ -68,33 +80,33 @@
                         <Button fx:id="auctionsButton" styleClass="side-nav-button-active" text="Home " />
                         
                         <VBox spacing="2.0">
-                            <Button fx:id="myAccountButton" onAction="#handleAccountToggle" styleClass="side-nav-button" text="My Account" maxWidth="Infinity" />
-                            <VBox fx:id="accountSubMenu" visible="false" managed="false" spacing="2.0">
+                            <Button fx:id="myAccountButton" maxWidth="Infinity" onAction="#handleAccountToggle" styleClass="side-nav-button" text="My Account" />
+                            <VBox fx:id="accountSubMenu" managed="false" spacing="2.0" visible="false">
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" maxWidth="Infinity" />
-                                <Button fx:id="inventoryButton" styleClass="side-nav-sub-button" text="• Inventory" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" maxWidth="Infinity" />
+                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" />
+                                <Button fx:id="inventoryButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Inventory" />
+                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" />
+                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" />
                             </VBox>
                         </VBox>
 
                         <VBox spacing="2.0">
-                            <Button fx:id="myActivitiesButton" onAction="#handleActivitiesToggle" styleClass="side-nav-button" text="My Activities" maxWidth="Infinity" />
-                            <VBox fx:id="myActivitiesSubMenu" visible="false" managed="false" spacing="2.0">
+                            <Button fx:id="myActivitiesButton" maxWidth="Infinity" onAction="#handleActivitiesToggle" styleClass="side-nav-button" text="My Activities" />
+                            <VBox fx:id="myActivitiesSubMenu" managed="false" spacing="2.0" visible="false">
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button fx:id="historyButton" styleClass="side-nav-sub-button" text="• History" maxWidth="Infinity" />
-                                <Button fx:id="settlementsButton" styleClass="side-nav-sub-button" text="• Settlements" maxWidth="Infinity" />
-                                <Button onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" maxWidth="Infinity" />
-                                <Button fx:id="createAuctionButton" styleClass="side-nav-sub-button" text="• Create Auctions" maxWidth="Infinity" />
+                                <Button fx:id="historyButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• History" />
+                                <Button fx:id="settlementsButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Settlements" />
+                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Watchlist" />
+                                <Button fx:id="createAuctionButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Create Auctions" />
                             </VBox>
                         </VBox>
 
-                        <Button fx:id="adminUsersButton" managed="false" styleClass="side-nav-button" text="Admin Users" visible="false" maxWidth="Infinity" />
-                        <Button fx:id="adminWalletRequestsButton" managed="false" styleClass="side-nav-button" text="Wallet Requests" visible="false" maxWidth="Infinity" />
+                        <Button fx:id="adminUsersButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Admin Users" visible="false" />
+                        <Button fx:id="adminWalletRequestsButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Wallet Requests" visible="false" />
                     </VBox>
                 </VBox>
             </children>
