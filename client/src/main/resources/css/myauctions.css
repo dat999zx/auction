@@ -63,14 +63,14 @@
     -fx-font-size: 14px;
 }
 .primary-button {
-    -fx-background-color: #000000;
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-padding: 9 22;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.20), 8, 0, 0, 2);
 }
-.primary-button:hover { -fx-opacity: .9; }
+.primary-button:hover { -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8); }
 
 .content { -fx-background-color: #f7f9fc; }
 .stat-card, .table-card, .market-card {
@@ -109,7 +109,7 @@
 .badge-draft { -fx-background-color: #e6e8eb; -fx-text-fill: #454652; -fx-border-color: #c6c5d4; -fx-border-radius: 999; }
 .badge-closed { -fx-background-color: rgba(34,197,94,0.10); -fx-text-fill: #22c55e; -fx-border-color: rgba(34,197,94,0.20); -fx-border-radius: 999; }
 .more-button { -fx-background-color: transparent; -fx-text-fill: #454652; -fx-font-size: 18px; -fx-cursor: hand; }
-.small-button { -fx-background-color: transparent; -fx-border-color: #c6c5d4; -fx-padding: 5 16; -fx-font-size: 14px; }
+.small-button { -fx-background-color: linear-gradient(to right, #f8fafc, #e9efff); -fx-border-color: #c6c5d4; -fx-padding: 5 16; -fx-font-size: 14px; -fx-text-fill: #104ddd; }
 .table-footer { -fx-background-color: #f2f4f7; }
 .pager-button { -fx-background-color: transparent; -fx-border-color: #c6c5d4; -fx-padding: 2 6; }
 
@@ -122,7 +122,7 @@
 .concierge-label { -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #bdc2ff; }
 .concierge-title { -fx-font-family: "Manrope"; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: white; }
 .concierge-body { -fx-font-size: 14px; -fx-text-fill: #e0e0ff; }
-.secondary-button { -fx-background-color: #104ddd; -fx-text-fill: white; -fx-font-weight: 700; -fx-background-radius: 10; -fx-padding: 8 20; }
+.secondary-button { -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb); -fx-text-fill: white; -fx-font-weight: 700; -fx-background-radius: 10; -fx-padding: 8 20; }
 .market-dot-blue { -fx-fill: #104ddd; }
 .market-dot-gray { -fx-fill: #454652; }
 .market-dot-light { -fx-fill: #3a69f6; }

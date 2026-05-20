@@ -1,5 +1,5 @@
 .create-auction-root {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
@@ -150,7 +150,7 @@
 }
 
 .primary-gradient-button {
-    -fx-background-color: linear-gradient(to right, #001e40, #003366);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
@@ -181,8 +181,8 @@
 }
 
 .page-title {
-    -fx-text-fill: #1A237E;
-    -fx-font-family: "Manrope";
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
     -fx-font-size: 28px;
     -fx-font-weight: 800;
 }
@@ -194,8 +194,8 @@
 }
 
 .section-title {
-    -fx-text-fill: #1A237E;
-    -fx-font-family: "Manrope";
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
     -fx-font-size: 16px;
     -fx-font-weight: 700;
 }
@@ -297,7 +297,7 @@
 }
 
 .upload-title {
-    -fx-text-fill: #1A237E;
+    -fx-text-fill: #000000;
     -fx-font-size: 13px;
     -fx-font-weight: 700;
 }
@@ -351,7 +351,7 @@
 
 .primary-button,
 .primary-button-large {
-    -fx-background-color: #1A237E;
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-background-radius: 10px;
     -fx-font-weight: 800;
@@ -370,7 +370,7 @@
 
 .primary-button:hover,
 .primary-button-large:hover {
-    -fx-background-color: #2a359d;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .secondary-button {
@@ -384,7 +384,8 @@
 }
 
 .secondary-button:hover {
-    -fx-background-color: #e6e8eb;
+    -fx-background-color: linear-gradient(to right, #eef3ff, #dfe8ff);
+    -fx-text-fill: #104ddd;
 }
 
 .footer-label {

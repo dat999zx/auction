@@ -1,10 +1,10 @@
 .root {
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
 }
 
 .viewport-container {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
 }
 
 .top-bar {
@@ -175,7 +175,7 @@
 }
 
 .primary-gradient-button {
-    -fx-background-color: linear-gradient(to right, #001e40, #003366);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
@@ -185,11 +185,11 @@
 }
 
 .primary-gradient-button:hover {
-    -fx-opacity: 0.95;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .main-content {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
 }
 
 .back-link {
@@ -206,10 +206,10 @@
 }
 
 .hero-image-card {
-    -fx-background-color: #f9f9ff;
-    -fx-background-radius: 12px;
-    -fx-border-color: #d8e3fb;
-    -fx-border-radius: 12px;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-border-color: #c6c5d4;
+    -fx-border-radius: 14px;
     -fx-border-width: 1px;
     -fx-padding: 0;
 }
@@ -258,7 +258,7 @@
 }
 
 .item-title {
-    -fx-text-fill: #111c2d;
+    -fx-text-fill: #000000;
     -fx-font-size: 30px;
     -fx-font-weight: 900;
 }
@@ -275,8 +275,8 @@
 }
 
 .status-card {
-    -fx-background-color: #f0f3ff;
-    -fx-background-radius: 12px;
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 14px;
     -fx-padding: 20px;
 }
 
@@ -346,18 +346,18 @@
 
 .activity-card {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 12px;
-    -fx-border-color: #d8e3fb;
+    -fx-background-radius: 14px;
+    -fx-border-color: #c6c5d4;
     -fx-border-width: 1px;
-    -fx-border-radius: 12px;
+    -fx-border-radius: 14px;
 }
 
 .analytics-card {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 12px;
-    -fx-border-color: #d8e3fb;
+    -fx-background-radius: 14px;
+    -fx-border-color: #c6c5d4;
     -fx-border-width: 1px;
-    -fx-border-radius: 12px;
+    -fx-border-radius: 14px;
     -fx-padding: 16px;
 }
 
@@ -373,6 +373,47 @@
     -fx-text-fill: #516173;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
+}
+
+.analytics-value {
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: 900;
+}
+
+.analytics-trend-success,
+.analytics-trend-danger,
+.analytics-trend-neutral {
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.analytics-trend-success {
+    -fx-text-fill: #13a75a;
+}
+
+.analytics-trend-danger {
+    -fx-text-fill: #ba1a1a;
+}
+
+.analytics-trend-neutral {
+    -fx-text-fill: #64748b;
+}
+
+.analytics-symbol {
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-alignment: center;
+    -fx-background-radius: 999px;
+    -fx-font-size: 22px;
+    -fx-font-weight: 900;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.24), 12, 0, 0, 3);
+}
+
+.analytics-symbol-blue {
+    -fx-background-color: linear-gradient(to bottom right, #dbeafe, #bfdbfe);
+    -fx-text-fill: #1d4ed8;
 }
 
 .bidding-line-chart {
@@ -522,7 +563,7 @@
 }
 
 .place-bid-button {
-    -fx-background-color: linear-gradient(to right, #001e40, #003366);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 900;
@@ -560,23 +601,23 @@
 }
 
 .autobid-save-button {
-    -fx-background-color: linear-gradient(to right, #0b5cad, #003d73);
+    -fx-background-color: linear-gradient(to right, #064e3b, #16a34a);
     -fx-text-fill: white;
 }
 
 .autobid-save-button:hover {
-    -fx-opacity: 0.94;
+    -fx-background-color: linear-gradient(to right, #047857, #22c55e);
 }
 
 .autobid-disable-button {
-    -fx-background-color: #fff2ef;
+    -fx-background-color: linear-gradient(to right, #fff7f5, #ffdad6);
     -fx-text-fill: #a03020;
     -fx-border-color: #f3c5bc;
     -fx-border-radius: 12px;
 }
 
 .autobid-disable-button:hover {
-    -fx-background-color: #ffe6e0;
+    -fx-background-color: linear-gradient(to right, #ffe6e0, #ffc7bf);
 }
 
 .footnote-text {

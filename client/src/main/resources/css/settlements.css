@@ -3,9 +3,9 @@
     -fx-background-color: #f7f9fc;
     -fx-text-fill: #191c1e;
 
-    -primary: #000666;
+    -primary: #000000;
     -primary-container: #1a237e;
-    -secondary: #0048d8;
+    -secondary: #104ddd;
     -surface: #f7f9fc;
     -surface-container-lowest: #ffffff;
     -surface-container-low: #f2f4f7;
@@ -27,31 +27,32 @@
 .page-scroll { -fx-background: -surface; -fx-background-color: -surface; }
 .inventory-page { -fx-background-color: -surface; }
 .brand-logo { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: -primary; }
-.page-title { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 48px; -fx-font-weight: 900; -fx-text-fill: -primary; }
-.muted-text { -fx-font-size: 14px; -fx-text-fill: #64748b; }
-.primary-button { -fx-background-color: -primary; -fx-text-fill: white; -fx-font-weight: 800; -fx-font-size: 14px; -fx-padding: 8 24 8 24; }
-.card { -fx-background-color: -surface-container-lowest; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: rgba(198,197,212,0.18); -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.08), 14, 0.15, 0, 3); }
+.page-title { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 40px; -fx-font-weight: 900; -fx-text-fill: -primary; }
+.muted-text { -fx-font-size: 14px; -fx-text-fill: -on-surface-variant; }
+.primary-button { -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb); -fx-text-fill: white; -fx-font-weight: 800; -fx-font-size: 14px; -fx-padding: 9 22 9 22; -fx-effect: dropshadow(gaussian, rgba(16,77,221,0.26), 10, 0, 0, 2); }
+.primary-button:hover { -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8); }
+.card { -fx-background-color: -surface-container-lowest; -fx-background-radius: 14; -fx-border-radius: 14; -fx-border-color: -outline-variant; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1); }
 .card-header { -fx-padding: 24 32 24 32; -fx-border-color: transparent transparent rgba(198,197,212,0.12) transparent; }
 .section-title { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 20px; -fx-font-weight: 800; -fx-text-fill: -primary; }
 .search-box { -fx-background-color: -surface-container-low; -fx-background-radius: 8; -fx-padding: 8 14 8 14; }
 .search-icon { -fx-font-size: 20px; -fx-text-fill: #94a3b8; }
 .plain-field { -fx-background-color: transparent; -fx-padding: 0; -fx-font-size: 14px; }
-.table-header { -fx-background-color: -surface-container-low; }
+.table-header { -fx-background-color: -surface-container-low; -fx-border-color: transparent transparent -outline-variant transparent; -fx-border-width: 0 0 1 0; }
 .table-heading, .table-heading-center { -fx-font-size: 11px; -fx-font-weight: 800; -fx-text-fill: #64748b; -fx-text-transform: uppercase; }
 .table-heading-center { -fx-alignment: center; }
 .table-row, .table-row-last { -fx-background-color: white; }
-.table-row { -fx-border-color: transparent transparent rgba(198,197,212,0.13) transparent; }
-.table-row:hover, .table-row-last:hover { -fx-background-color: rgba(242,244,247,0.55); }
+.table-row { -fx-border-color: transparent transparent rgba(198,197,212,0.35) transparent; }
+.table-row:hover, .table-row-last:hover { -fx-background-color: #f7f9fc; }
 .thumb { -fx-background-radius: 8; -fx-border-radius: 8; }
 .item-title { -fx-font-size: 18px; -fx-font-weight: 800; -fx-text-fill: -primary; }
 .item-description { -fx-font-size: 14px; -fx-text-fill: #64748b; -fx-line-spacing: 3px; }
 .sku-text { -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #94a3b8; }
-.outline-button { -fx-background-color: transparent; -fx-border-color: rgba(198,197,212,0.45); -fx-text-fill: #475569; -fx-font-weight: 600; -fx-padding: 8 14 8 14; }
-.outline-button:hover { -fx-background-color: -surface; -fx-text-fill: -primary; }
+.outline-button { -fx-background-color: linear-gradient(to right, #ffffff, #eef3ff); -fx-border-color: rgba(16,77,221,0.22); -fx-text-fill: #104ddd; -fx-font-weight: 700; -fx-padding: 8 14 8 14; }
+.outline-button:hover { -fx-background-color: linear-gradient(to right, #eef3ff, #dfe8ff); -fx-text-fill: #104ddd; }
 .pagination { -fx-background-color: rgba(242,244,247,0.35); -fx-padding: 22 32 22 32; }
 .pager-button, .pager-button-active { -fx-min-width: 40; -fx-min-height: 40; -fx-font-weight: 700; }
 .pager-button { -fx-background-color: transparent; -fx-border-color: rgba(198,197,212,0.2); -fx-text-fill: #64748b; }
-.pager-button-active { -fx-background-color: -primary; -fx-text-fill: white; }
+.pager-button-active { -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb); -fx-text-fill: white; }
 .footer { -fx-padding: 32 0 0 0; -fx-border-color: rgba(198,197,212,0.18) transparent transparent transparent; -fx-font-size: 10px; -fx-font-weight: 700; -fx-text-fill: #94a3b8; }
 .footer .hyperlink { -fx-text-fill: #94a3b8; -fx-border-color: transparent; }
 .footer .hyperlink:hover { -fx-text-fill: -primary; }
