@@ -274,6 +274,9 @@ public class MissionBarController {
         if (adminWalletRequestsButton != null) {
             adminWalletRequestsButton.setOnAction(handler);
         }
+        if (myAuctionsButton != null) {
+            myAuctionsButton.setOnAction(handler);
+        }
     }
 
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {

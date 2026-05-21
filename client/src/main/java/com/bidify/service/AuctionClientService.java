@@ -161,5 +161,16 @@ public class AuctionClientService {
         if (auctions == null) throw new AuctionException("Cannot load user settlements.");
         return auctions;
     }
+
+    public AuctionDto[] getMyAuctions() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_MY_AUCTIONS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
+            throw new AuctionException(response.getMessage() == null ? "Cannot load my auctions." : response.getMessage());
+        }
+
+        AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        if (auctions == null) throw new AuctionException("Cannot load my auctions.");
+        return auctions;
+    }
 }
 
