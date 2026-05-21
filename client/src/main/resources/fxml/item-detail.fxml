@@ -70,7 +70,7 @@
             <VBox prefWidth="360" spacing="18">
                 <Label styleClass="field-label" text="Item Media" />
                 <StackPane onMouseClicked="#handlePickImages" prefHeight="360" prefWidth="360" styleClass="image-drop-zone">
-                    <ImageView fx:id="primaryImageView" fitHeight="360" fitWidth="360" preserveRatio="false" />
+                    <ImageView fx:id="primaryImageView" fitHeight="360" fitWidth="360" pickOnBounds="true" preserveRatio="true" smooth="true" />
                     <VBox alignment="CENTER" spacing="12" styleClass="image-overlay">
                         <Label styleClass="overlay-hint" text="CLICK TO EDIT" />
                     </VBox>
