@@ -100,6 +100,7 @@ public class AuctionService {
         router.register(RequestType.CONFIRM_AUCTION_DELIVERY, this::confirmAuctionDelivery);
         router.register(RequestType.RESOLVE_AUCTION, this::resolveAuction);
         router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
+        router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
     }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
@@ -981,6 +982,21 @@ public class AuctionService {
                 result.add(toAuctionDto(auction, false));
             }
             return new Response(RequestStatus.SUCCESS, "Get user settlements successfully", result);
+        });
+    }
+
+    public Response getMyAuctions(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User user = ServiceUtil.requireSessionUser(client);
+            String username = user.getUsername();
+            List<Auction> dbAuctions = auctionDao.findBySellerUsername(username);
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : dbAuctions) {
+                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
+                Auction effective = runtime != null ? runtime : auction;
+                result.add(toAuctionDto(effective, false));
+            }
+            return new Response(RequestStatus.SUCCESS, "Get my auctions successfully", result);
         });
     }
 

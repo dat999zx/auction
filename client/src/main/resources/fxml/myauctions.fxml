@@ -4,52 +4,19 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.shape.Circle?>
 
-<BorderPane prefHeight="720.0" prefWidth="1280.0" stylesheets="@myauctions.css" styleClass="my-auctions-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
-    <left>
-        <VBox prefWidth="256.0" styleClass="sidebar">
-            <padding><Insets bottom="24" left="24" right="16" top="28" /></padding>
-            <Label text="Bidify" styleClass="brand" />
-            <VBox spacing="8" VBox.vgrow="ALWAYS">
-                <padding><Insets top="34" /></padding>
-                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="nav-button"><Label text="▦" styleClass="nav-icon" /><Label text="Dashboard" styleClass="nav-text" /></HBox>
-                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="nav-button-active"><Label text="◉" styleClass="nav-icon" /><Label text="My Bids" styleClass="nav-active-text" /></HBox>
-                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="nav-button"><Label text="⚖" styleClass="nav-icon" /><Label text="Live" styleClass="nav-text" /></HBox>
-                <HBox alignment="CENTER_LEFT" spacing="12" styleClass="nav-button"><Label text="⚙" styleClass="nav-icon" /><Label text="Settings" styleClass="nav-text" /></HBox>
-            </VBox>
-            <HBox alignment="CENTER_LEFT" spacing="12" styleClass="profile-card">
-                <Circle radius="20" styleClass="avatar" />
-                <VBox spacing="2">
-                    <Label text="Julian Thorne" styleClass="profile-name" />
-                    <Label text="Platinum Member" styleClass="caption" />
-                </VBox>
-            </HBox>
-        </VBox>
-    </left>
+<BorderPane prefHeight="720.0" prefWidth="1280.0" styleClass="my-auctions-root" stylesheets="@../css/myauctions.css" xmlns="http://javafx.com/javafx/25" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.MyAuctionsController">
 
     <center>
         <BorderPane>
-            <top>
-                <HBox alignment="CENTER_LEFT" prefHeight="64" spacing="16" styleClass="topbar">
-                    <padding><Insets left="32" right="32" /></padding>
-                    <Label text="My Auctions" styleClass="page-title" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Button text="⌕  Search..." styleClass="ghost-button" />
-                    <Button text="＋  Create New Auction" styleClass="primary-button" />
-                </HBox>
-            </top>
             <center>
                 <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content">
                     <VBox spacing="24">
@@ -62,24 +29,27 @@
                                 <ColumnConstraints hgrow="ALWAYS" percentWidth="33.3" />
                             </columnConstraints>
                             <VBox spacing="8" styleClass="stat-card" GridPane.columnIndex="0">
-                                <Label text="ACTIVE VOLUME" styleClass="label-caps" />
-                                <Label text="\$1,284,500" styleClass="stat-value" />
-                                <Label text="↗  +12.5% from last month" styleClass="success-text" />
+                                <Label styleClass="label-caps" text="ACTIVE VOLUME" />
+                                <Label fx:id="statActiveVolume" styleClass="stat-value" text="\$0.00" />
+                                <Label styleClass="success-text" text="Current active auction value" />
                             </VBox>
                             <VBox spacing="8" styleClass="stat-card" GridPane.columnIndex="1">
-                                <Label text="TOTAL PARTICIPANTS" styleClass="label-caps" />
-                                <Label text="3,492" styleClass="stat-value" />
-                                <Label text="👥  84 new this week" styleClass="success-text" />
+                                <Label styleClass="label-caps" text="TOTAL BIDS" />
+                                <Label fx:id="statParticipants" styleClass="stat-value" text="0" />
+                                <Label styleClass="success-text" text="Bids across all auctions" />
                             </VBox>
                             <VBox spacing="8" styleClass="stat-card" GridPane.columnIndex="2">
-                                <Label text="WIN RATE" styleClass="label-caps" />
-                                <Label text="68%" styleClass="stat-value" />
-                                <Label text="★  Top 5% of Sellers" styleClass="secondary-text" />
+                                <Label styleClass="label-caps" text="WIN RATE" />
+                                <Label fx:id="statWinRate" styleClass="stat-value" text="N/A" />
+                                <Label styleClass="secondary-text" text="Auctions sold vs total closed" />
                             </VBox>
+                            <rowConstraints>
+                                <RowConstraints />
+                            </rowConstraints>
                         </GridPane>
 
                         <VBox styleClass="table-card">
-                            <GridPane styleClass="table-header" hgap="20">
+                            <GridPane hgap="20" styleClass="table-header">
                                 <padding><Insets bottom="14" left="24" right="24" top="14" /></padding>
                                 <columnConstraints>
                                     <ColumnConstraints percentWidth="38" />
@@ -88,70 +58,48 @@
                                     <ColumnConstraints percentWidth="20" />
                                     <ColumnConstraints percentWidth="12" />
                                 </columnConstraints>
-                                <Label text="PRODUCT DETAILS" styleClass="label-caps" />
-                                <Label text="STATUS" styleClass="label-caps" GridPane.columnIndex="1" />
-                                <Label text="CURRENT BID" styleClass="label-caps" GridPane.columnIndex="2" />
-                                <Label text="TIME REMAINING" styleClass="label-caps" GridPane.columnIndex="3" />
-                                <Label text="ACTIONS" styleClass="label-caps" GridPane.columnIndex="4" />
+                                <Label styleClass="label-caps" text="PRODUCT DETAILS" />
+                                <Label styleClass="label-caps" text="STATUS" GridPane.columnIndex="1" />
+                                <Label styleClass="label-caps" text="CURRENT BID" GridPane.columnIndex="2" />
+                                <Label styleClass="label-caps" text="TIME REMAINING" GridPane.columnIndex="3" />
+                                <Label styleClass="label-caps" text="ACTIONS" GridPane.columnIndex="4" />
+                                <rowConstraints>
+                                    <RowConstraints />
+                                </rowConstraints>
                             </GridPane>
 
-                            <VBox>
-                                <GridPane styleClass="table-row" hgap="20"><padding><Insets bottom="13" left="24" right="24" top="13" /></padding><columnConstraints><ColumnConstraints percentWidth="38"/><ColumnConstraints percentWidth="14"/><ColumnConstraints percentWidth="16"/><ColumnConstraints percentWidth="20"/><ColumnConstraints percentWidth="12"/></columnConstraints>
-                                    <HBox alignment="CENTER_LEFT" spacing="14"><ImageView fitHeight="48" fitWidth="48" preserveRatio="false" styleClass="product-image"><image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuChLL5QzUCjH-Fam_w5tJzL27xw1j7S1VFEGKx4z_hwm6DZrJC3xQ83c1D81hrIgop4Mcx1m-NBhUgnZJP-OwzLPAnhYcbbI1TdSU84PHUewfnH_e1V3BCheU7OL8ABRX5q_o1sprcdI4nhyvCdh1QudusK9QUXdQVxWZQuh5QcHsZL-RbPxXdexAF-MTIGMx4BEfE0XAIPl4hppXCi5pPAmYpfuGhearMks7M9NovWQHCT9beuJ36jS06WCA5TY6BnlG4x1AWEupw" /></image></ImageView><VBox spacing="3"><Label text="1963 Rolex Daytona" styleClass="product-title"/><Label text="Ref. 6239 • Manual Wind" styleClass="product-subtitle"/></VBox></HBox>
-                                    <Label text="ACTIVE" styleClass="badge,badge-active" GridPane.columnIndex="1" />
-                                    <VBox spacing="2" GridPane.columnIndex="2"><Label text="\$425,000" styleClass="price-value"/><Label text="14 Bids total" styleClass="caption"/></VBox>
-                                    <Label text="◷  2d 14h 30m" styleClass="muted-text" GridPane.columnIndex="3" />
-                                    <Button text="⋮" styleClass="more-button" GridPane.columnIndex="4" />
-                                </GridPane>
-                                <GridPane styleClass="table-row" hgap="20"><padding><Insets bottom="13" left="24" right="24" top="13" /></padding><columnConstraints><ColumnConstraints percentWidth="38"/><ColumnConstraints percentWidth="14"/><ColumnConstraints percentWidth="16"/><ColumnConstraints percentWidth="20"/><ColumnConstraints percentWidth="12"/></columnConstraints>
-                                    <HBox alignment="CENTER_LEFT" spacing="14"><ImageView fitHeight="48" fitWidth="48" preserveRatio="false" styleClass="product-image"><image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuArrOxe2KLHd5IDk1kjCHN_IFwQQPoB65zYjQuPvIMZWgitfw6tAG9lEV7O3slOww0MW-IkVTtE18DNnBHzvqPg_6wsZ8L7C5q4J_REzGhFQTg9Kj7o6OcHuNKR2BBvOUWwegEh8SIMyA8Y-JscfXKWEKVCl0rCqq5ONNdjHqL1ctaelJR95sZyhZG37D7NdwB87jid8s4eBCYR641Xa5jNdXBmu7spDqDAvRcmthkGxthoandgJx-NfXbyEyRbE_lGl0Um-j8IYWU" /></image></ImageView><VBox spacing="3"><Label text="Nike Air Max Limited" styleClass="product-title"/><Label text="Collaboration • Size 10" styleClass="product-subtitle"/></VBox></HBox>
-                                    <Label text="ENDING SOON" styleClass="badge,badge-ending" GridPane.columnIndex="1" />
-                                    <VBox spacing="2" GridPane.columnIndex="2"><Label text="\$1,850" styleClass="price-value"/><Label text="42 Bids total" styleClass="caption"/></VBox>
-                                    <Label text="⏱  04h 12m 05s" styleClass="error-text" GridPane.columnIndex="3" />
-                                    <Button text="⋮" styleClass="more-button" GridPane.columnIndex="4" />
-                                </GridPane>
-                                <GridPane styleClass="table-row" hgap="20"><padding><Insets bottom="13" left="24" right="24" top="13" /></padding><columnConstraints><ColumnConstraints percentWidth="38"/><ColumnConstraints percentWidth="14"/><ColumnConstraints percentWidth="16"/><ColumnConstraints percentWidth="20"/><ColumnConstraints percentWidth="12"/></columnConstraints>
-                                    <HBox alignment="CENTER_LEFT" spacing="14"><ImageView fitHeight="48" fitWidth="48" preserveRatio="false" styleClass="product-image"><image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuC9_bBXpq_9WNK7aVQSPDNWXojqa-XUYi39NxANDEJqSw6eRB6oYdol4iLuV4fIQEG9UBgMdHXMuDxG4dxMcfONsjlHjtW25Jls6avtnGg81Z83Wl2VbUx75RmF8hqQHetNgKO6Bl43N6EgYhoc5-nJl4ROoAdX3TFFnVcG4SZc5VGaSPw_jiyAIK2z2udod1sihAdj2uLy0ndVpsfce0M7qjlB2kZZV2jMEYjuQVQtSVO4Qcr79gUi6mWaxrgP9iCyZvWOnjflXbk" /></image></ImageView><VBox spacing="3"><Label text="Porsche 911 Poster Set" styleClass="product-title"/><Label text="Original Prints • Set of 3" styleClass="product-subtitle"/></VBox></HBox>
-                                    <Label text="DRAFT" styleClass="badge,badge-draft" GridPane.columnIndex="1" />
-                                    <VBox spacing="2" GridPane.columnIndex="2"><Label text="—" styleClass="price-value"/><Label text="Not yet started" styleClass="caption"/></VBox>
-                                    <Label text="Scheduling..." styleClass="muted-text" GridPane.columnIndex="3" />
-                                    <Button text="Edit" styleClass="small-button" GridPane.columnIndex="4" />
-                                </GridPane>
-                                <GridPane styleClass="table-row" hgap="20"><padding><Insets bottom="13" left="24" right="24" top="13" /></padding><columnConstraints><ColumnConstraints percentWidth="38"/><ColumnConstraints percentWidth="14"/><ColumnConstraints percentWidth="16"/><ColumnConstraints percentWidth="20"/><ColumnConstraints percentWidth="12"/></columnConstraints>
-                                    <HBox alignment="CENTER_LEFT" spacing="14"><ImageView fitHeight="48" fitWidth="48" preserveRatio="false" styleClass="product-image"><image><Image url="https://lh3.googleusercontent.com/aida-public/AB6AXuCOMpacKOmQNFG4uf1OktvtbKSD6FoHjhnGi4xPhQFfbGI2nxIBWg1EIiXSqXlwl6sSMXRspYjsTHJrFvATd-rzx3UcIEz66Kk1V8bAngs3Atw8nBRT6ORarOR3amcDjImeNVvcseo5cHMBYQK5mwvw0tOA7Wfmsz7kS1mIRkkLb4PO-Si_a9Gz5fJqHgeuRKGW47HOfR1gAtZsJur6RSJtf-NJFtVKVwtiRYl9J5jQZ6OgOkI7anfsb0j-POOtpEw7aU240on5o1I" /></image></ImageView><VBox spacing="3"><Label text="Hermès Birkin 35" styleClass="product-title"/><Label text="Gold Togo • Palladium" styleClass="product-subtitle"/></VBox></HBox>
-                                    <Label text="CLOSED" styleClass="badge,badge-closed" GridPane.columnIndex="1" />
-                                    <VBox spacing="2" GridPane.columnIndex="2"><Label text="\$28,400" styleClass="price-value"/><Label text="Final Price" styleClass="caption"/></VBox>
-                                    <Label text="Ended Oct 24" styleClass="muted-text" GridPane.columnIndex="3" />
-                                    <Button text="▤" styleClass="more-button" GridPane.columnIndex="4" />
-                                </GridPane>
+                            <VBox fx:id="auctionRowsContainer">
+                                <!-- Dynamic rows will be added here by the controller -->
                             </VBox>
+
                             <HBox alignment="CENTER_LEFT" spacing="8" styleClass="table-footer">
                                 <padding><Insets bottom="10" left="24" right="24" top="10" /></padding>
-                                <Label text="Showing 4 of 24 auctions" styleClass="caption" />
+                                <Label fx:id="summaryLabel" styleClass="caption" text="Loading..." />
                                 <Region HBox.hgrow="ALWAYS" />
-                                <Button text="‹" disable="true" styleClass="pager-button" />
-                                <Button text="›" styleClass="pager-button" />
                             </HBox>
                         </VBox>
 
                         <GridPane hgap="24">
-                            <columnConstraints><ColumnConstraints percentWidth="50" hgrow="ALWAYS"/><ColumnConstraints percentWidth="50" hgrow="ALWAYS"/></columnConstraints>
+                            <columnConstraints><ColumnConstraints hgrow="ALWAYS" percentWidth="50" /><ColumnConstraints hgrow="ALWAYS" percentWidth="50" /></columnConstraints>
                             <VBox spacing="10" styleClass="concierge-card">
-                                <Label text="SELLER RANKING" styleClass="concierge-label" />
-                                <Label text="Unlock Concierge Access" styleClass="concierge-title" />
-                                <Label text="Reach Diamond Status for 0.5% reduced fees." styleClass="concierge-body" />
+                                <Label styleClass="concierge-label" text="SELLER RANKING" />
+                                <Label styleClass="concierge-title" text="Unlock Concierge Access" />
+                                <Label styleClass="concierge-body" text="Reach Diamond Status for 0.5% reduced fees." />
                                 <Region VBox.vgrow="ALWAYS" />
-                                <Button text="View Eligibility" styleClass="secondary-button" />
+                                <Button styleClass="secondary-button" text="View Eligibility" />
                             </VBox>
                             <VBox spacing="12" styleClass="market-card" GridPane.columnIndex="1">
                                 <padding><Insets bottom="24" left="24" right="24" top="24" /></padding>
-                                <Label text="MARKET PULSE" styleClass="label-caps" />
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-blue"/><Label text="Luxury Watches"/><Region HBox.hgrow="ALWAYS"/><Label text="+8.2%" styleClass="success-text"/></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-gray"/><Label text="Vintage Leather"/><Region HBox.hgrow="ALWAYS"/><Label text="-1.4%" styleClass="error-text"/></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-light"/><Label text="Art &amp; Prints"/><Region HBox.hgrow="ALWAYS"/><Label text="+15.7%" styleClass="success-text"/></HBox>
+                                <Label styleClass="label-caps" text="MARKET PULSE" />
+                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-blue" /><Label text="Luxury Watches" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="success-text" text="+8.2%" /></HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-gray" /><Label text="Vintage Leather" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="error-text" text="-1.4%" /></HBox>
+                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-light" /><Label text="Art &amp; Prints" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="success-text" text="+15.7%" /></HBox>
                                 <Region VBox.vgrow="ALWAYS" />
-                                <Label text="Full Market Report  →" styleClass="market-link" />
+                                <Label styleClass="market-link" text="Full Market Report  &#x2192;" />
                             </VBox>
+                            <rowConstraints>
+                                <RowConstraints />
+                            </rowConstraints>
                         </GridPane>
                     </VBox>
                 </ScrollPane>
@@ -159,13 +107,13 @@
             <bottom>
                 <HBox alignment="CENTER_LEFT" spacing="26" styleClass="footer">
                     <padding><Insets bottom="10" left="32" right="32" top="10" /></padding>
-                    <Circle radius="4" styleClass="status-dot" /><Label text="SYSTEM ONLINE" styleClass="footer-text" />
-                    <Label text="ACTIVE VOLUME: \$1.2M" styleClass="footer-text" />
-                    <Label text="PARTICIPANTS: 3,492" styleClass="footer-text" />
+                    <Circle radius="4" styleClass="status-dot" /><Label styleClass="footer-text" text="SYSTEM ONLINE" />
+                    <Label styleClass="footer-text" text="ACTIVE VOLUME: $1.2M" />
+                    <Label styleClass="footer-text" text="PARTICIPANTS: 3,492" />
                     <Region HBox.hgrow="ALWAYS" />
-                    <Label text="Support" styleClass="footer-link" />
-                    <Label text="Privacy" styleClass="footer-link" />
-                    <Label text="© 2024 Bidify Luxury" styleClass="footer-link" />
+                    <Label styleClass="footer-link" text="Support" />
+                    <Label styleClass="footer-link" text="Privacy" />
+                    <Label styleClass="footer-link" text="&#x00A9; 2024 Bidify Luxury" />
                 </HBox>
             </bottom>
         </BorderPane>

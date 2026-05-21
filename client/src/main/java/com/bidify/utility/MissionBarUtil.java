@@ -12,7 +12,6 @@ import javafx.scene.control.Button;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.UserDto;
-import com.bidify.utility.ImageCache;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
@@ -165,6 +164,7 @@ public class MissionBarUtil {
             case SETTLEMENTS -> controller.setActiveNavigation(controller.getSettlementsButton());
             case ADMIN_USERS -> controller.setActiveNavigation(controller.getAdminUsersButton());
             case ADMIN_WALLET_REQUESTS -> controller.setActiveNavigation(controller.getAdminWalletRequestsButton());
+            case MY_AUCTIONS -> controller.setActiveNavigation(controller.getMyAuctionsButton());
             default -> controller.setActiveNavigation(null);
         }
     }
