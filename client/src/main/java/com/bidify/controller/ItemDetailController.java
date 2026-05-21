@@ -32,7 +32,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 
 public class ItemDetailController {
-    private static final int MAX_IMAGES = 10;
+    private static final int MAX_IMAGES = 3;
     private static String currentItemId;
 
     private final InventoryClientService inventoryClientService = new InventoryClientService();
@@ -263,7 +263,8 @@ public class ItemDetailController {
         ImageView imageView = new ImageView(entry.toImage());
         imageView.setFitWidth(112);
         imageView.setFitHeight(112);
-        imageView.setPreserveRatio(false);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
         imageView.getStyleClass().add("secondary-thumb");
 
         Button removeButton = new Button("x");
@@ -311,9 +312,13 @@ public class ItemDetailController {
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
-            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            if (img.isError()) {
+                return null;
+            }
+            return img;
         }
-        catch (IllegalArgumentException e) {
+        catch (Exception e) {
             return null;
         }
     }
@@ -351,10 +356,20 @@ public class ItemDetailController {
 
         // dùng để chuyển thành hình ảnh
         private Image toImage() {
-            if (file != null)
-                return new Image(file.toURI().toString());
-            // dùng để decode base64image
-            return decodeBase64Image(base64);
+            try {
+                Image img = null;
+                if (file != null) {
+                    img = new Image(file.toURI().toString());
+                } else {
+                    img = decodeBase64Image(base64);
+                }
+                if (img != null && img.isError()) {
+                    return null;
+                }
+                return img;
+            } catch (Exception e) {
+                return null;
+            }
         }
 
         // dùng để chuyển thành base64

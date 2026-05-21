@@ -13,8 +13,6 @@ public class ClientSession {
         this.user = user;
     }
 
-    // dùng để lấy client trình xử lý
     public ClientHandler getClientHandler() { return clientHandler; }
-    // dùng để lấy người dùng
     public User getUser() { return user; }
 }

@@ -27,27 +27,22 @@ public class BidDto {
         this.autoBidGenerated = autoBidGenerated;
     }
 
-    // dùng để lấy ID
     public String getId() {
         return id;
     }
 
-    // dùng để lấy created tại
     public String getCreatedAt() {
         return createdAt;
     }
 
-    // dùng để lấy số tiền
     public double getAmount() {
         return amount;
     }
 
-    // dùng để lấy bidder username
     public String getBidderUsername() {
         return bidderUsername;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() {
         return auctionId;
     }

@@ -23,6 +23,15 @@ import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Base64;
+import javafx.stage.FileChooser;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import com.bidify.utility.ImageCache;
+import javafx.scene.shape.Circle;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -62,6 +71,12 @@ public class UserProfileController {
     private Label profileAvatarLabel;
 
     @FXML
+    private ImageView profileAvatarImageView;
+
+    @FXML
+    private ImageView heroAvatarImageView;
+
+    @FXML
     private TextField nicknameField;
 
     @FXML
@@ -93,6 +108,13 @@ public class UserProfileController {
     // dùng để hiển thị profile hiện tại và đăng ký lắng nghe sự kiện từ server
     @FXML
     private void initialize() {
+        // dùng để cắt ảnh đại diện thành hình tròn
+        Circle profileClip = new Circle(57, 57, 57);
+        profileAvatarImageView.setClip(profileClip);
+
+        Circle heroClip = new Circle(46, 46, 46);
+        heroAvatarImageView.setClip(heroClip);
+
         Platform.runLater(() -> {
             // dùng để liên kết dữ liệu top bar
             bindTopBar();
@@ -196,6 +218,34 @@ public class UserProfileController {
         NotificationUtil.info("Profile image upload is a UI placeholder right now.");
     }
 
+    // dùng để xử lý tải ảnh đại diện lên
+    @FXML
+    private void handleProfileImageUpload() {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        File file = chooser.showOpenDialog(
+            nicknameField != null && nicknameField.getScene() != null ? nicknameField.getScene().getWindow() : null
+        );
+        if (file == null)
+            return;
+
+        try {
+            String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
+            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText(), base64);
+            // dùng để refresh thông tin tài khoản
+            refreshProfile(updatedUser);
+            profileImageHintLabel.setText("Profile image updated");
+            NotificationUtil.success("Profile image updated successfully.");
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+        } catch (ValidationException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
     // dùng để load thông tin người dùng từ server hoặc cache
     private void populateProfile() {
         try {
@@ -208,7 +258,7 @@ public class UserProfileController {
             NotificationUtil.error(e.getMessage());
         }
 
-        profileImageHintLabel.setText("Profile image upload placeholder");
+        profileImageHintLabel.setText("Add photo");
         // dùng để tải danh sách yêu cầu
         loadRequests();
     }
@@ -296,12 +346,35 @@ public class UserProfileController {
         memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);
+        
+        // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu
+        renderProfileAvatar(user);
+        
         toggleWalletControls(!clientSession.isAdmin());
         
         var controller = SceneManager.getMissionBarController();
         if (controller != null) {
+            String base64 = user.getProfileImageBase64();
+            String cacheKey = "mission_avatar_" + user.getUsername() + "_" + (base64 == null ? 0 : base64.hashCode());
+            Image avatarImage = ImageCache.getInstance().get(cacheKey, base64);
+            controller.setAvatarImage(avatarImage);
             controller.setAvatarText(avatarLetter);
         }
+    }
+
+    // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu tùy theo trạng thái ảnh
+    private void renderProfileAvatar(UserDto user) {
+        String base64 = user == null ? null : user.getProfileImageBase64();
+        String cacheKey = "profile_" + (user == null ? "guest" : user.getUsername()) + "_" + (base64 == null ? 0 : base64.hashCode());
+        Image image = ImageCache.getInstance().get(cacheKey, base64);
+        boolean hasImage = image != null;
+
+        profileAvatarImageView.setImage(hasImage ? image : null);
+        heroAvatarImageView.setImage(hasImage ? image : null);
+        profileAvatarImageView.setVisible(hasImage);
+        heroAvatarImageView.setVisible(hasImage);
+        profileAvatarLabel.setVisible(!hasImage);
+        profileImageHintLabel.setVisible(!hasImage);
     }
 
     // dùng để phân tích cú pháp số tiền

@@ -38,12 +38,8 @@ public class Transaction extends Entity {
         this.auctionId = auctionId;
     }
 
-    // dùng để lấy username
     public String getUsername() { return username; }
-    // dùng để lấy type
     public TransactionType getType() { return type; }
-    // dùng để lấy số tiền
     public double getAmount() { return amount; }
-    // dùng để lấy đấu giá ID
     public String getAuctionId() { return auctionId; }
 }

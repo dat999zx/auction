@@ -111,7 +111,6 @@ public class TransactionService {
         });
     }
 
-    // dùng để lấy người dùng danh sách giao dịch
     public Response getUserTransactions(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
@@ -135,7 +134,6 @@ public class TransactionService {
         });
     }
 
-    // dùng để lấy người dùng ví danh sách yêu cầu
     public Response getUserWalletRequests(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();

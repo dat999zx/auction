@@ -48,7 +48,6 @@ public class AdminWalletRequestService {
         router.register(RequestType.REVIEW_WALLET_REQUEST, this::reviewRequest);
     }
 
-    // dùng để lấy danh sách các request nạp/rút đang chờ duyệt (chỉ dành cho admin)
     public Response getPendingRequests(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);

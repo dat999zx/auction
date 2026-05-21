@@ -107,37 +107,24 @@ public class Auction extends Entity {
 
     // dùng để lấy đấu giá tên
     public String getAuctionName() { return auctionName; }
-    // dùng để thiết lập đấu giá tên
     public void setAuctionName(String name) {this.auctionName = name; }
 
-    // dùng để lấy description
     public String getDescription() { return description; }
-    // dùng để thiết lập description
     public void setDescription(String description) { this.description = description; }
     
-    // dùng để lấy starting giá sản phẩm
     public double getStartingPrice() { return startingPrice; }
-    // dùng để thiết lập starting giá sản phẩm
     public void setStartingPrice(double price) {this.startingPrice = price; }
 
-    // dùng để lấy current lượt đặt giá
     public double getCurrentBid() { return currentBid; }
-    // dùng để thiết lập current lượt đặt giá
     public void setCurrentBid(double bid) { this.currentBid = bid; }
 
-    // dùng để lấy current bidder username
     public String getCurrentBidderUsername() { return currentBidderUsername; }
-    // dùng để thiết lập current bidder username
     public void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
 
-    // dùng để lấy bắt đầu thời gian
     public LocalDateTime getStartTime() { return startTime; }
-    // dùng để thiết lập bắt đầu thời gian
     public void setStartTime(LocalDateTime start) { this.startTime = start; }
 
-    // dùng để lấy end thời gian
     public LocalDateTime getEndTime() { return endTime; }
-    // dùng để thiết lập end thời gian
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
     public LocalDateTime getMaxEndTime() { return maxEndTime; }
@@ -150,7 +137,6 @@ public class Auction extends Entity {
     public void setAntiSnipingExtensionTime(Duration extensionTime) { this.antiSnipingExtensionTime = extensionTime; }
 
     public AuctionStatus getStatus() { return status; }
-    // dùng để thiết lập trạng thái
     public void setStatus(AuctionStatus status) { this.status = status; }
 
     // dùng để kiểm tra xem active
@@ -164,35 +150,23 @@ public class Auction extends Entity {
     // dùng để kiểm tra xem upcoming
     public boolean isUpcoming() { return status == AuctionStatus.UPCOMING; }
 
-    // dùng để lấy seller username
     public String getSellerUsername() { return sellerUsername; }
-    // dùng để thiết lập seller username
     public void setSellerUsername(String username) { this.sellerUsername = username; }
 
-    // dùng để lấy sản phẩm ID
     public String getItemId() { return itemId; }
-    // dùng để thiết lập sản phẩm ID
     public void setItemId(String itemId) { this.itemId = itemId; }
 
-    // dùng để lấy lượt đặt giá count
     public int getBidCount(){ return bids.size(); }
     
-    // dùng để lấy product type
     public String getProductType(){ return null; }
-    // dùng để thiết lập product type
     public void setProductType(String type){}
 
-    // dùng để lấy category
     public String getCategory() { return null; }
-    // dùng để thiết lập category
     public void setCategory(String category) {}
 
-    // dùng để lấy min increment
     public double getMinIncrement() { return minIncrement; }
-    // dùng để thiết lập min increment
     public void setMinIncrement(double num) { this.minIncrement = num; }
 
-    // dùng để lấy danh sách đặt giá
     public List<Bid> getBids() { return bids; }
 
     // dùng để lấy auto danh sách đặt giá

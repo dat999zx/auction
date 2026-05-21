@@ -30,7 +30,12 @@ public final class ImageCache {
         return cache.computeIfAbsent(key, k -> {
             try {
                 byte[] bytes = Base64.getDecoder().decode(base64String);
-                return new Image(new ByteArrayInputStream(bytes));
+                Image image = new Image(new ByteArrayInputStream(bytes));
+                if (image.isError()) {
+                    logger.error("Decoded image is in error state for key: " + key);
+                    return null;
+                }
+                return image;
             }
             catch (Exception e) {
                 logger.error("Failed to decode image for key: " + key, e);

@@ -33,7 +33,6 @@ public class BidService {
         router.register(RequestType.GET_BID_HISTORY, (client, req) -> getUserBids(client));
     }
 
-    // dùng để lấy người dùng danh sách đặt giá
     public Response getUserBids(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();

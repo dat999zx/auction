@@ -95,7 +95,14 @@ public class AuctionDetailsController {
     @FXML
     private ImageView previewimage;
     @FXML
-    private GridPane thumbnailGrid;
+    private Button prevImageButton;
+    @FXML
+    private Button nextImageButton;
+    @FXML
+    private HBox thumbnailContainer;
+
+    private final java.util.List<Image> carouselImages = new java.util.ArrayList<>();
+    private int currentCarouselIndex = 0;
     @FXML
     private Label openingBidderLabel;
     @FXML
@@ -152,6 +159,8 @@ public class AuctionDetailsController {
     private Label biddingTrendMetricLabel;
     @FXML
     private Label biddingTrendChangeLabel;
+    @FXML
+    private Button sellerCancelButton;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -498,6 +507,27 @@ public class AuctionDetailsController {
                     AntiSnipingVisualLabel.setText("Anti-sniping: trigger:" + data.getAntiSnipingTriggerTime() + " - extension: " + data.getAntiSnipingExtensionTime() + " - Max end Time: " + DisplayUtil.formatDateTime(data.getMaxEndTime(), "Unknown"));
                 } else {
                     AntiSnipingVisualLabel.setText("Anti-sniping not configured for this auction.");
+        // Populate carousel images
+        carouselImages.clear();
+        currentCarouselIndex = 0;
+
+        if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
+            String cacheKey = "auction_" + data.getId() + "_thumb";
+            Image img = ImageCache.getInstance().get(cacheKey, data.getThumbnailBase64());
+            if (img != null && !img.isError()) {
+                carouselImages.add(img);
+            }
+        }
+
+        if (data.getGalleryBase64() != null) {
+            int index = 0;
+            for (String base64 : data.getGalleryBase64()) {
+                if (base64 != null && !base64.isBlank()) {
+                    String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
+                    Image img = ImageCache.getInstance().get(cacheKey, base64);
+                    if (img != null && !img.isError() && !carouselImages.contains(img)) {
+                        carouselImages.add(img);
+                    }
                 }
             }
         }
@@ -508,10 +538,10 @@ public class AuctionDetailsController {
         else
             // dùng để thiết lập preview hình ảnh
             setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+        // Display current image and update navigation controls
+        updateCarouselDisplay();
 
-        // setup gallery
-        // dùng để setup thumbnail gallery
-        setupThumbnailGallery(data);
+
     }
 
     // dùng để configure đấu giá state
@@ -528,7 +558,9 @@ public class AuctionDetailsController {
         endDateLabel.setText("Ends at:");
         recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
 
-        if (isActive && !isAdmin) {
+        boolean isSeller = currentUsername != null && currentAuction != null && currentUsername.equals(currentAuction.getSellerUsername());
+
+        if (isActive && !isAdmin && !isSeller) {
             bidActionSection.setManaged(true);
             bidActionSection.setVisible(true);
             placebid.setDisable(false);
@@ -537,6 +569,12 @@ public class AuctionDetailsController {
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
             inputprice.clear();
+        }
+
+        boolean showSellerCancel = isActive && (isSeller || isAdmin);
+        if (sellerCancelButton != null) {
+            sellerCancelButton.setManaged(showSellerCancel);
+            sellerCancelButton.setVisible(showSellerCancel);
         }
 
         if (settlementActionSection != null) {
@@ -559,7 +597,6 @@ public class AuctionDetailsController {
             } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
                 showSettlementSection = true;
                 statusText = "Status: AWAITING DELIVERY";
-                boolean isSeller = currentUsername != null && currentUsername.equals(currentAuction.getSellerUsername());
                 if (isSeller || isAdmin) {
                     showConfirm = true;
                 }
@@ -602,40 +639,6 @@ public class AuctionDetailsController {
         activeBidderCountLabel.setText(formatCount(data.getActiveBidderCount(), "active bidder", "active bidders"));
     }
 
-    // dùng để setup thumbnail gallery
-    private void setupThumbnailGallery(AuctionDto data) {
-        if (thumbnailGrid == null) return;
-        thumbnailGrid.getChildren().clear();
-
-        if (data.getGalleryBase64() == null || data.getGalleryBase64().isEmpty()) return;
-
-        int col = 0;
-        int index = 0;
-        for (String base64 : data.getGalleryBase64()) {
-            if (col >= 4) break; // limit 4
-
-            StackPane thumbPane = new StackPane();
-            thumbPane.getStyleClass().add("thumb-card");
-            thumbPane.setPrefHeight(80.0);
-
-            String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
-            Image img = ImageCache.getInstance().get(cacheKey, base64);
-            
-            if (img != null) {
-                ImageView thumbView = new ImageView(img);
-                thumbView.setFitHeight(70.0);
-                thumbView.setFitWidth(150.0);
-                thumbView.setPreserveRatio(true);
-                thumbView.setSmooth(true);
-
-                thumbPane.getChildren().add(thumbView);
-                thumbPane.setOnMouseClicked(e -> previewimage.setImage(img));
-                thumbPane.setStyle("-fx-cursor: hand;");
-
-                thumbnailGrid.add(thumbPane, col++, 0);
-            }
-        }
-    }
 
     // dùng để đặt lại giao diện
     private void resetView() {
@@ -664,7 +667,21 @@ public class AuctionDetailsController {
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
 
-        if (thumbnailGrid != null) thumbnailGrid.getChildren().clear();
+        carouselImages.clear();
+        currentCarouselIndex = 0;
+        if (prevImageButton != null) {
+            prevImageButton.setVisible(false);
+            prevImageButton.setManaged(false);
+        }
+        if (nextImageButton != null) {
+            nextImageButton.setVisible(false);
+            nextImageButton.setManaged(false);
+        }
+        if (thumbnailContainer != null) {
+            thumbnailContainer.getChildren().clear();
+            thumbnailContainer.setVisible(false);
+            thumbnailContainer.setManaged(false);
+        }
 
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
@@ -1127,6 +1144,103 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để update carousel display
+    private void updateCarouselDisplay() {
+        if (carouselImages.isEmpty()) {
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+            if (prevImageButton != null) {
+                prevImageButton.setVisible(false);
+                prevImageButton.setManaged(false);
+            }
+            if (nextImageButton != null) {
+                nextImageButton.setVisible(false);
+                nextImageButton.setManaged(false);
+            }
+            renderThumbnails();
+            return;
+        }
+
+        if (currentCarouselIndex < 0) {
+            currentCarouselIndex = carouselImages.size() - 1;
+        } else if (currentCarouselIndex >= carouselImages.size()) {
+            currentCarouselIndex = 0;
+        }
+
+        previewimage.setImage(carouselImages.get(currentCarouselIndex));
+
+        boolean showNavigation = carouselImages.size() > 1;
+        if (prevImageButton != null) {
+            prevImageButton.setVisible(showNavigation);
+            prevImageButton.setManaged(showNavigation);
+        }
+        if (nextImageButton != null) {
+            nextImageButton.setVisible(showNavigation);
+            nextImageButton.setManaged(showNavigation);
+        }
+
+        renderThumbnails();
+    }
+
+    // dùng để handle prev image
+    @FXML
+    private void handlePrevImage() {
+        currentCarouselIndex--;
+        updateCarouselDisplay();
+    }
+
+    // dùng để handle next image
+    @FXML
+    private void handleNextImage() {
+        currentCarouselIndex++;
+        updateCarouselDisplay();
+    }
+
+    // dùng để hiển thị hình ảnh thumbnails
+    private void renderThumbnails() {
+        if (thumbnailContainer == null) return;
+        thumbnailContainer.getChildren().clear();
+
+        if (carouselImages.size() <= 1) {
+            thumbnailContainer.setVisible(false);
+            thumbnailContainer.setManaged(false);
+            return;
+        }
+
+        thumbnailContainer.setVisible(true);
+        thumbnailContainer.setManaged(true);
+
+        for (int i = 0; i < carouselImages.size(); i++) {
+            final int index = i;
+            Image img = carouselImages.get(i);
+
+            StackPane thumbPane = new StackPane();
+            thumbPane.getStyleClass().add("thumb-card");
+            thumbPane.setPrefSize(80, 80);
+
+            // Highlight selected thumbnail
+            if (i == currentCarouselIndex) {
+                thumbPane.setStyle("-fx-border-color: #00458f; -fx-border-width: 2px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            } else {
+                thumbPane.setStyle("-fx-border-color: #d8e3fb; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            }
+
+            ImageView thumbView = new ImageView(img);
+            thumbView.setFitHeight(72);
+            thumbView.setFitWidth(72);
+            thumbView.setPreserveRatio(true);
+            thumbView.setSmooth(true);
+
+            thumbPane.getChildren().add(thumbView);
+            thumbPane.setOnMouseClicked(e -> {
+                currentCarouselIndex = index;
+                updateCarouselDisplay();
+            });
+            thumbPane.setStyle(thumbPane.getStyle() + " -fx-cursor: hand;");
+
+            thumbnailContainer.getChildren().add(thumbPane);
+        }
+    }
+
     // dùng để xử lý đăng xuất
     @FXML
     private void handleLogout() {
@@ -1234,6 +1348,24 @@ public class AuctionDetailsController {
                 loadAuctionDetails(selectedAuctionId);
             } else {
                 NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+    @FXML
+    private void handleSellerCancel() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.deleteAuction(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction canceled successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Auction cancellation failed." : response.getMessage());
             }
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");

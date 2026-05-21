@@ -13,7 +13,6 @@ public class AuctionChannel implements Channel {
     
     // dùng để tạo một đối tượng AuctionChannel
     public AuctionChannel(String auctionId) { this.auctionId = auctionId; }
-    // dùng để lấy đấu giá ID
     public String getAuctionId() { return auctionId; }
 
     // dùng để đăng ký lắng nghe sự kiện
@@ -37,7 +36,6 @@ public class AuctionChannel implements Channel {
         return observers.contains(observer);
     }
 
-    // dùng để lấy observer count
     public int getObserverCount() {
         return observers.size();
     }

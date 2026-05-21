@@ -12,6 +12,5 @@ public class Image extends Entity {
         this.filePath = filePath;
     }
 
-    // dùng để lấy file path
     public String getFilePath() { return filePath; }
 }

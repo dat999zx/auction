@@ -62,7 +62,6 @@ public class AuctionClientService {
         return auctions;
     }
 
-    // dùng để lấy đấu giá chi tiết
     public AuctionDto getAuctionDetail(String auctionId) throws IOException {
         Response response = client.send(new Request(RequestType.GET_AUCTION_DETAIL, new GetAuctionDetailRequest(auctionId)));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
@@ -103,7 +102,6 @@ public class AuctionClientService {
         throw new AuctionException(response.getMessage());
     }
 
-    // dùng để thiết lập auto lượt đặt giá
     public Response setAutoBid(String auctionId, double maxBid) throws IOException {
         Response response = client.send(new Request(RequestType.SET_AUTO_BID, new SetAutoBidRequest(auctionId, maxBid)));
         if (response.getStatus() == RequestStatus.SUCCESS) return response;
@@ -161,6 +159,17 @@ public class AuctionClientService {
 
         AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
         if (auctions == null) throw new AuctionException("Cannot load user settlements.");
+        return auctions;
+    }
+
+    public AuctionDto[] getMyAuctions() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_MY_AUCTIONS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
+            throw new AuctionException(response.getMessage() == null ? "Cannot load my auctions." : response.getMessage());
+        }
+
+        AuctionDto[] auctions = JsonUtil.fromMap(response.getData(), AuctionDto[].class);
+        if (auctions == null) throw new AuctionException("Cannot load my auctions.");
         return auctions;
     }
 }

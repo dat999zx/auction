@@ -11,6 +11,5 @@ public class WalletRequest {
         this.amount = amount;
     }
 
-    // dùng để lấy số tiền
     public double getAmount() { return amount; }
 }

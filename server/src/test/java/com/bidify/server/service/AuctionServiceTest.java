@@ -30,7 +30,9 @@ import com.bidify.common.model.Response;
 import com.bidify.common.model.SetAutoBidRequest;
 import com.bidify.common.model.PayAuctionRequest;
 import com.bidify.common.model.ConfirmDeliveryRequest;
+import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.ResolveAuctionRequest;
+import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
 import com.bidify.server.dao.ItemDao;
@@ -506,6 +508,62 @@ class AuctionServiceTest {
         User updatedWinner = ServiceUtil.getOrLoadUser(bidderUsername);
         assertEquals(5000.0, updatedWinner.getWallet().getBalance());
         assertEquals(0.0, updatedWinner.getWallet().getLockedBalance());
+    }
+
+    @Test
+    void sellerCanCancelActiveAuctionAndUnlockCurrentBidder() {
+        Auction auction = createTestAuction("Seller Active Cancel Test", AuctionStatus.ACTIVE);
+        String sellerUsername = auction.getSellerUsername();
+        User seller = userDao.findByUsername(sellerUsername);
+
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auctionDao.save(auction);
+
+        TestClientHandler sellerClient = sessionClient(seller);
+
+        Response response = auctionService.delete(sellerClient, new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auction.getId())));
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertNotNull(updated);
+        assertEquals(AuctionStatus.CANCELED, updated.getStatus());
+        assertEquals(null, RealtimeDatabase.getRuntimeAuction(auction.getId()));
+
+        User updatedBidder = userDao.findByUsername(bidderUsername);
+        assertEquals(5000.0, updatedBidder.getWallet().getBalance());
+        assertEquals(0.0, updatedBidder.getWallet().getLockedBalance());
+
+        Item item = itemDao.findById(auction.getItemId());
+        assertEquals(sellerUsername, item.getOwnerUsername());
+        assertEquals(ItemStatus.AVAILABLE, item.getAvailabilityStatus());
+    }
+
+    @Test
+    void canceledActiveAuctionCannotBeUpdatedToStartAgain() {
+        Auction auction = createTestAuction("Canceled Cannot Restart Test", AuctionStatus.CANCELED);
+        User seller = userDao.findByUsername(auction.getSellerUsername());
+        TestClientHandler sellerClient = sessionClient(seller);
+
+        UpdateAuctionRequest request = new UpdateAuctionRequest(
+            auction.getId(),
+            "",
+            "",
+            1500.0,
+            100.0,
+            LocalDateTime.now().plusHours(1).toString(),
+            LocalDateTime.now().plusHours(2).toString(),
+            "Try to restart canceled auction"
+        );
+
+        Response response = auctionService.update(sellerClient, new Request(RequestType.UPDATE_AUCTION, request));
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().contains("Can only update auction before it starts"));
     }
 
     // --- Mock Classes ---

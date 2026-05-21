@@ -17,7 +17,7 @@ import java.net.SocketException;
 
 import javax.net.ssl.SSLSocket;
 
-// láº¯ng nghe client
+// lắng nghe client
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +60,13 @@ public class ClientHandler implements Runnable, Observer {
     }
 
     // dùng để gửi kết quả trả về (Response)
-    public void sendResponse(Response response) { // gá»­i response Ä‘áº¿n client
+    public void sendResponse(Response response) { // gửi response đến client
         if (out != null)
             out.println(JsonUtil.toJson(response));
     }
 
     // dùng để gửi sự kiện
-    public void sendEvent(Event event) { // gá»­i event Ä‘áº¿n client
+    public void sendEvent(Event event) { // gửi event đến client
         if (out != null)
             out.println(JsonUtil.toJson(event));
     }
@@ -78,18 +78,16 @@ public class ClientHandler implements Runnable, Observer {
         sendEvent(event);
     }
 
-    // dùng để thiết lập current username
-    public void setCurrentUsername(String username) { // thiáº¿t láº­p username cá»§a client
+    public void setCurrentUsername(String username) { // thiết lập username của client
         this.currentUsername = username;
     }
 
-    // dùng để lấy current username
-    public String getCurrentUsername() { // láº¥y username cá»§a client
+    public String getCurrentUsername() { // lấy username của client
         return currentUsername;
     }
 
     // dùng để kiểm tra xem trong phiên làm việc
-    public boolean isInSession(){ // xÃ¡c thá»±c client Ä‘Ã£ Ä‘Äƒng nháº­p chÆ°a
+    public boolean isInSession(){ // xác thực client đã đăng nhập chưa
         return socket != null && currentUsername != null;
     }
 
@@ -105,7 +103,7 @@ public class ClientHandler implements Runnable, Observer {
     }
 
     // dùng để xử lý ngắt kết nối
-    private void handleDisconnect() { // xá»­ lÃ½ khi client ngáº¯t káº¿t ná»‘i
+    private void handleDisconnect() { // xử lý khi client ngắt kết nối
         logger.info("Client disconnected: {}", socket.getInetAddress());
         if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());

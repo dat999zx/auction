@@ -90,7 +90,6 @@ public class ItemService {
         });
     }
 
-    // dùng để lấy my kho đồ
     public Response getMyInventory(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             User user = ServiceUtil.requireSessionUser(client);
@@ -98,7 +97,6 @@ public class ItemService {
         });
     }
 
-    // dùng để lấy người dùng kho đồ
     public Response getUserInventory(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);
@@ -111,7 +109,6 @@ public class ItemService {
         });
     }
 
-    // dùng để lấy sản phẩm chi tiết
     public Response getItemDetail(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             GetItemDetailRequest data = JsonUtil.fromMap(request.getData(), GetItemDetailRequest.class);

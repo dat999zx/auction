@@ -43,19 +43,17 @@
                                 <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
                                     <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
                                         <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
+                                        <HBox alignment="CENTER" pickOnBounds="false">
+                                            <padding>
+                                                <Insets left="16.0" right="16.0" />
+                                            </padding>
+                                            <Button fx:id="prevImageButton" onAction="#handlePrevImage" styleClass="carousel-button" visible="false" managed="false" text="‹" />
+                                            <Region HBox.hgrow="ALWAYS" pickOnBounds="false" />
+                                            <Button fx:id="nextImageButton" onAction="#handleNextImage" styleClass="carousel-button" visible="false" managed="false" text="›" />
+                                        </HBox>
                                     </StackPane>
-            
-                                    <GridPane fx:id="thumbnailGrid" hgap="12.0">
-                                        <columnConstraints>
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                        </columnConstraints>
-                                        <rowConstraints>
-                                            <RowConstraints />
-                                        </rowConstraints>
-                                        </GridPane>
+                                    <HBox fx:id="thumbnailContainer" spacing="12.0" alignment="CENTER_LEFT" visible="false" managed="false" />
+
                                 </VBox>
             
                                 <VBox fillWidth="true" spacing="20.0" GridPane.columnIndex="1">
@@ -193,7 +191,9 @@
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
                                     </VBox>
 
-                                    <VBox fx:id="settlementActionSection" managed="false" spacing="12.0" visible="false">
+                                    <Button fx:id="sellerCancelButton" onAction="#handleSellerCancel" styleClass="autobid-disable-button" text="Cancel Auction" visible="false" managed="false" />
+
+                                    <VBox fx:id="settlementActionSection" spacing="12.0" visible="false" managed="false">
                                         <Label styleClass="section-label" text="POST-AUCTION SETTLEMENT" />
                                         
                                         <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="settlement-status-box">

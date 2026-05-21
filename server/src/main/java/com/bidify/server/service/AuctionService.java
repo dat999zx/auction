@@ -101,6 +101,7 @@ public class AuctionService {
         router.register(RequestType.CONFIRM_AUCTION_DELIVERY, this::confirmAuctionDelivery);
         router.register(RequestType.RESOLVE_AUCTION, this::resolveAuction);
         router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
+        router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
     }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
@@ -268,23 +269,29 @@ public class AuctionService {
             String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
 
-            Auction auction = RealtimeDatabase.getUpcomingAuction(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction == null) auction = auctionDao.findById(auctionId);
             if (auction == null)
                 throw new AuctionException("Auction not found");
 
-            if (auction.getStatus() != AuctionStatus.UPCOMING)
-                throw new AuctionException("Cannot delete auction after it has started");
-
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
-            // dùng để xóa đấu giá cascade
-            deleteAuctionCascade(auction, true);
 
-            return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            if (auction.getStatus() == AuctionStatus.UPCOMING) {
+                deleteAuctionCascade(auction, true);
+                return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            }
+
+            if (auction.getStatus() == AuctionStatus.ACTIVE) {
+                synchronized (auction) {
+                    cancelActiveAuction(auction);
+                }
+                return new Response(RequestStatus.SUCCESS, "Auction canceled successfully", toAuctionDto(auction, false));
+            }
+
+            throw new AuctionException("Can only delete upcoming auctions or cancel active auctions");
         });
     }
 
-    // dùng để lấy chi tiết
     public Response getDetail(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
@@ -309,7 +316,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để lấy all live danh sách đấu giá
     public Response getAllLiveAuctions(){
         return ServiceUtil.handleRequest(() -> {
             List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
@@ -325,7 +331,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để lấy all upcoming danh sách đấu giá
     public Response getAllUpcomingAuctions(){
         return ServiceUtil.handleRequest(() -> {
             List<Auction> auctions = RealtimeDatabase.getAllUpcomingAuctions();
@@ -516,7 +521,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để thiết lập auto lượt đặt giá
     public Response setAutoBid(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             SetAutoBidRequest data = JsonUtil.fromMap(request.getData(), SetAutoBidRequest.class);
@@ -843,6 +847,22 @@ public class AuctionService {
         publishAuctionUpdate(auction, "Auction watcher count updated");
     }
 
+    private void cancelActiveAuction(Auction auction) throws DatabaseException {
+        if (auction == null)
+            throw new AuctionException("Auction not found");
+        if (auction.getStatus() != AuctionStatus.ACTIVE)
+            throw new AuctionException("Can only cancel active auctions");
+
+        releaseCurrentLeaderLock(auction);
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishAuctionUpdate(auction, "Auction canceled by seller");
+        RealtimeDatabase.removeRuntimeAuction(auction.getId());
+    }
+
     // dùng để xóa đấu giá cascade
     public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
         if (auction == null)
@@ -872,15 +892,16 @@ public class AuctionService {
             return;
 
         User activeBidder = RealtimeDatabase.getActiveUser(currentBidderUsername);
-        if (activeBidder == null)
+        User bidder = activeBidder != null ? activeBidder : ServiceUtil.getOrLoadUser(currentBidderUsername);
+        if (bidder == null)
             return;
 
-        Wallet wallet = activeBidder.getWallet();
+        Wallet wallet = bidder.getWallet();
         if (wallet == null || wallet.getLockedBalance() < currentBid)
             return;
 
         wallet.unlockBalance(currentBid);
-        userDao.save(activeBidder, false);
+        userDao.save(bidder, false);
 
         ClientHandler clientHandler = RealtimeDatabase.getUserClient(currentBidderUsername);
         if (clientHandler != null) {
@@ -981,6 +1002,21 @@ public class AuctionService {
                 result.add(toAuctionDto(auction, false));
             }
             return new Response(RequestStatus.SUCCESS, "Get user settlements successfully", result);
+        });
+    }
+
+    public Response getMyAuctions(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User user = ServiceUtil.requireSessionUser(client);
+            String username = user.getUsername();
+            List<Auction> dbAuctions = auctionDao.findBySellerUsername(username);
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : dbAuctions) {
+                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
+                Auction effective = runtime != null ? runtime : auction;
+                result.add(toAuctionDto(effective, false));
+            }
+            return new Response(RequestStatus.SUCCESS, "Get my auctions successfully", result);
         });
     }
 
