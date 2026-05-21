@@ -11,6 +11,9 @@ import javafx.event.EventHandler;
 import javafx.scene.control.Button;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.bidify.common.dto.UserDto;
+import com.bidify.utility.ImageCache;
+import javafx.scene.image.Image;
 
 import java.io.IOException;
 
@@ -70,8 +73,13 @@ public class MissionBarUtil {
             SceneManager.switchScene("user-profile.fxml", false, true);
         });
 
-        // set avatar text lÃ  chá»¯ Ä‘áº§u cá»§a username
-        missionBarController.setAvatarText(resolveAvatarLetter());
+        // set avatar text và avatar image
+        UserDto currentUser = clientSession.getCurrentUser();
+        String base64 = currentUser == null ? null : currentUser.getProfileImageBase64();
+        String cacheKey = "mission_avatar_" + clientSession.getCurrentUsername() + "_" + (base64 == null ? 0 : base64.hashCode());
+        Image avatarImage = ImageCache.getInstance().get(cacheKey, base64);
+        missionBarController.setAvatarImage(avatarImage);
+        missionBarController.setAvatarText(resolveAvatarLetter(currentUser));
 
         // Ä‘Ã¡nh dáº¥u page hiá»‡n táº¡i Ä‘ang active trÃªn mission bar
         // dùng để thiết lập active trang
@@ -158,9 +166,19 @@ public class MissionBarUtil {
     }
 
     // dùng để lấy chữ cái đầu tiên của tên đăng nhập làm avatar
-    private static String resolveAvatarLetter() {
-        String username = SocketClient.getClient().getCurrentUsername();
-        if (username == null || username.isBlank()) return "U";
-        return username.substring(0, 1).toUpperCase();
+    private static String resolveAvatarLetter(UserDto user) {
+        if (user == null) {
+            String username = SocketClient.getClient().getCurrentUsername();
+            if (username == null || username.isBlank()) return "U";
+            return username.substring(0, 1).toUpperCase();
+        }
+        String source = user.getNickname();
+        if (source == null || source.isBlank()) {
+            source = user.getUsername();
+        }
+        if (source == null || source.isBlank()) {
+            return "U";
+        }
+        return source.substring(0, 1).toUpperCase();
     }
 }

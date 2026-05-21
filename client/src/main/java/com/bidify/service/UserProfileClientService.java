@@ -62,9 +62,14 @@ public class UserProfileClientService {
 
     // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname) throws IOException {
+        return updateProfile(nickname, null);
+    }
+
+    // dùng để cập nhật thông tin tài khoản
+    public UserDto updateProfile(String nickname, String profileImageBase64) throws IOException {
         ValidationUtil.validateNickname(nickname);
 
-        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(nickname.trim(), null)));
+        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(nickname.trim(), null, profileImageBase64)));
         // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
         return consumeProfileResponse(response, "Cannot update profile.");
     }

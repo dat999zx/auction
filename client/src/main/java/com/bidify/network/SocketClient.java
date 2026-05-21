@@ -60,7 +60,7 @@ public class SocketClient {
     private static final char[] TRUSTSTORE_PASSWORD = "blablablabidifyclient".toCharArray();
 
     // dùng để tạo một đối tượng SocketClient
-    private SocketClient() {} // tránh tạo object từ ngoài -> singleton
+    protected SocketClient() {} // tránh tạo object từ ngoài -> singleton
 
     // dùng để lấy client
     public static SocketClient getClient() { // lấy client
