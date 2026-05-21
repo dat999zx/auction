@@ -1,5 +1,8 @@
 package com.bidify.controller;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.shape.Circle;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
@@ -59,6 +62,9 @@ public class MissionBarController {
 
     @FXML
     private Label avatarText;
+    
+    @FXML
+    private ImageView avatarImageView;
 
     @FXML
     private StackPane avatarContainer;
@@ -97,6 +103,10 @@ public class MissionBarController {
         sidebarLayer.setMouseTransparent(true);
         sidebarOverlay.setOpacity(0.0);
         sidebarContent.setTranslateX(-hiddenOffset);
+
+        // dùng để cắt ảnh đại diện thành hình tròn
+        Circle clip = new Circle(20, 20, 20);
+        avatarImageView.setClip(clip);
     }
 
     // dùng để xử lý ảnh đại diện click
@@ -297,6 +307,14 @@ public class MissionBarController {
     // dùng để thiết lập ảnh đại diện text
     public void setAvatarText(String value) {
         avatarText.setText(value == null || value.isBlank() ? "U" : value);
+    }
+
+    // dùng để thiết lập ảnh đại diện image
+    public void setAvatarImage(Image image) {
+        boolean hasImage = image != null;
+        avatarImageView.setImage(image);
+        avatarImageView.setVisible(hasImage);
+        avatarText.setVisible(!hasImage);
     }
 
     // dùng để thiết lập active navigation
