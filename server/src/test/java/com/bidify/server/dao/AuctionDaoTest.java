@@ -1,6 +1,7 @@
 package com.bidify.server.dao;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +41,8 @@ class AuctionDaoTest {
             "Test Description",
             "seller",
             1000.0,
-            LocalDateTime.now().plusMinutes(1),
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().plusMinutes(1),
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         Item item = createItem("seller", "Test Auction Item");
         auction.setItemId(item.getId());
@@ -142,8 +143,8 @@ class AuctionDaoTest {
             "Active Description",
             "seller2",
             500.0,
-            LocalDateTime.now().minusMinutes(1), // Đã bắt đầu
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().minusMinutes(1), // Đã bắt đầu
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         Item item = createItem("seller2", "Active Auction Item");
         activeAuction.setItemId(item.getId());

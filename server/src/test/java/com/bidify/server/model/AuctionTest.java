@@ -9,6 +9,7 @@ import com.bidify.common.exception.BidException;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +18,7 @@ public class AuctionTest {
     // dùng để cập nhật đấu giá after place lượt đặt giá successfully
     @Test
     void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
-        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
         auction.setMinIncrement(100);
 
         Bid bid = new Bid(auction.getId(), "user1", 1100);
@@ -31,7 +32,7 @@ public class AuctionTest {
     // dùng để place lượt đặt giá lower than min increment
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
-        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
         auction.setStatus(AuctionStatus.ACTIVE);
         auction.setMinIncrement(100);
 
@@ -46,7 +47,7 @@ public class AuctionTest {
     // dùng để place lượt đặt giá when đấu giá kiểm tra xem not active
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
-        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now().plusDays(1), LocalDateTime.now());
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam().plusDays(1), TimeUtil.nowInVietnam());
 
         Bid bid = new Bid(auction.getId(), "user1", 1200);
 
@@ -59,7 +60,7 @@ public class AuctionTest {
     // dùng để xử lý concurrent lượt đặt giá safely
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
-        Auction auction = new Auction("test auction", "testing", "seller", 1000, LocalDateTime.now(), LocalDateTime.now().plusDays(1));
+        Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
 
         int n_threads = 3; // số lượng thread muốn test
         

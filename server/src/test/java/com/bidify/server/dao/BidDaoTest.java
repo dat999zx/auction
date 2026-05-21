@@ -3,6 +3,7 @@ package com.bidify.server.dao;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,8 +41,8 @@ class BidDaoTest {
             "Test Description",
             "seller",
             1000.0,
-            LocalDateTime.now().plusMinutes(1),
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().plusMinutes(1),
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         Item item = createItem("seller", "Test Auction Item");
         auction.setItemId(item.getId());
@@ -98,8 +99,8 @@ class BidDaoTest {
             "No bids",
             "seller2",
             500.0,
-            LocalDateTime.now().plusMinutes(1),
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().plusMinutes(1),
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         Item item = createItem("seller2", "Empty Auction Item");
         newAuction.setItemId(item.getId());
