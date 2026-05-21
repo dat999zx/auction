@@ -187,6 +187,8 @@
                                         <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
                                     </VBox>
 
+                                    <Button fx:id="sellerCancelButton" onAction="#handleSellerCancel" styleClass="autobid-disable-button" text="Cancel Auction" visible="false" managed="false" />
+
                                     <VBox fx:id="settlementActionSection" spacing="12.0" visible="false" managed="false">
                                         <Label styleClass="section-label" text="POST-AUCTION SETTLEMENT" />
                                         
