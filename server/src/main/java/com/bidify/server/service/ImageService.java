@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.ImageUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.model.Image;
 
 public class ImageService {
@@ -65,7 +66,7 @@ public class ImageService {
                 String imageId = IdGenerator.genImageId();
                 Path filePath = uploadDir.resolve(imageId + ".png");
                 Files.write(filePath, imageBytes);
-                savedImages.add(new Image(imageId, LocalDateTime.now(), filePath.toString()));
+                savedImages.add(new Image(imageId, TimeUtil.nowInVietnam(), filePath.toString()));
             }
         }
         catch (IOException e) {

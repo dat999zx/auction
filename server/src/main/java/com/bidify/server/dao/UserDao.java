@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
@@ -141,7 +142,7 @@ public class UserDao  {
         if (saveLastLogin){
             SQLiteHelper.update(
                 "UPDATE Users SET lastLogin = ? WHERE username = ?",
-                LocalDateTime.now().toString(),
+                TimeUtil.nowInVietnam().toString(),
                 user.getUsername()
             );
         }

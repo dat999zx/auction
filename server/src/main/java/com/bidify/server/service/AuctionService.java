@@ -38,6 +38,7 @@ import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.SetAutoBidRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
@@ -917,13 +918,13 @@ public class AuctionService {
             throw new ValidationException("End date cannot be empty");
         if (startTime.isAfter(endTime))
             throw new ValidationException("End time must be after start time");
-        if (LocalDateTime.now().minusMinutes(1).isAfter(startTime))
+        if (TimeUtil.nowInVietnam().minusMinutes(1).isAfter(startTime))
             throw new ValidationException("Start time must be in the future");
     }
 
     // dùng để phân tích cú pháp ngày thời gian
     private LocalDateTime parseDateTime(String value) {
-        return LocalDateTime.parse(value);
+        return TimeUtil.parseDateTime(value);
     }
 
     // dùng để kiểm tra xem runtime đấu giá

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.enums.AuctionStatus;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
@@ -132,7 +133,7 @@ public class AuctionDao {
 
     // dùng để tạo
     public void create(Auction auction) throws DatabaseException {
-        LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
+        LocalDateTime createdAt = auction.getCreatedAt() == null ? TimeUtil.nowInVietnam() : auction.getCreatedAt();
         String sql = """
             INSERT INTO Auctions(
             id,
@@ -176,7 +177,7 @@ public class AuctionDao {
 
     // dùng để lưu
     public void save(Auction auction) throws DatabaseException {
-        LocalDateTime createdAt = auction.getCreatedAt() == null ? LocalDateTime.now() : auction.getCreatedAt();
+        LocalDateTime createdAt = auction.getCreatedAt() == null ? TimeUtil.nowInVietnam() : auction.getCreatedAt();
         SQLiteHelper.update(
             """
             UPDATE Auctions SET 

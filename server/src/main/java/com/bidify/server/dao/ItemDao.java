@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.bidify.common.enums.ItemStatus;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Image;
@@ -25,7 +26,7 @@ public class ItemDao {
 
     // dùng để tạo
     public void create(Item item) throws DatabaseException {
-        LocalDateTime createdAt = item.getCreatedAt() == null ? LocalDateTime.now() : item.getCreatedAt();
+        LocalDateTime createdAt = item.getCreatedAt() == null ? TimeUtil.nowInVietnam() : item.getCreatedAt();
         String sql = """
             INSERT INTO Items(
                 id,
@@ -83,7 +84,7 @@ public class ItemDao {
 
     // dùng để lưu
     public void save(Item item) throws DatabaseException {
-        LocalDateTime createdAt = item.getCreatedAt() == null ? LocalDateTime.now() : item.getCreatedAt();
+        LocalDateTime createdAt = item.getCreatedAt() == null ? TimeUtil.nowInVietnam() : item.getCreatedAt();
         String sql = """
             UPDATE Items SET
                 createdAt = ?,
@@ -128,7 +129,7 @@ public class ItemDao {
             SQLiteHelper.update(
                 sql,
                 UUID.randomUUID().toString().substring(0, 12),
-                LocalDateTime.now().toString(),
+                TimeUtil.nowInVietnam().toString(),
                 itemId,
                 image.getId(),
                 i,
