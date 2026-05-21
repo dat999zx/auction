@@ -250,9 +250,13 @@ public class ModifyAuctionController {
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
-            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            if (img.isError()) {
+                return null;
+            }
+            return img;
         }
-        catch (IllegalArgumentException e) {
+        catch (Exception e) {
             return null;
         }
     }
