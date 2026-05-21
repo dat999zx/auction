@@ -20,21 +20,15 @@ public class CreateItemRequest {
         this.imagesBase64 = imagesBase64;
     }
 
-    // dùng để lấy chủ sở hữu username
     public String getOwnerUsername() { return ownerUsername; }
 
-    // dùng để lấy tên
     public String getName() { return name; }
 
-    // dùng để lấy description
     public String getDescription() { return description; }
 
-    // dùng để lấy category
     public String getCategory() { return category; }
 
-    // dùng để lấy product type
     public String getProductType() { return productType; }
 
-    // dùng để lấy images base64
     public List<String> getImagesBase64() { return imagesBase64; }
 }

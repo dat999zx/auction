@@ -187,7 +187,7 @@
 
 .hero-avatar {
     -fx-background-color: linear-gradient(to bottom right, #001e40, #0f4db3);
-    -fx-background-radius: 24;
+    -fx-background-radius: 999;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.12), 18, 0.18, 0, 8);
 }
 

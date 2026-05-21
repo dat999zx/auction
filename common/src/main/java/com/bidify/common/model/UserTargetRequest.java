@@ -8,6 +8,5 @@ public class UserTargetRequest {
         this.username = username;
     }
 
-    // dùng để lấy username
     public String getUsername() { return username; }
 }

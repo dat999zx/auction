@@ -53,12 +53,9 @@ public class Wallet {
         balance -= amount;
     }
     
-    // dùng để lấy số dư
     public double getBalance() { return balance; }
-    // dùng để lấy available số dư
     public double getAvailableBalance() { return balance - lockedBalance; }
     // dùng để setlocked số dư
     public void setlockedBalance(double amount) { this.lockedBalance = amount; }
-    // dùng để lấy locked số dư
     public double getLockedBalance() { return lockedBalance; }
 }

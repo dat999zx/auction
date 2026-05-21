@@ -264,7 +264,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để lấy chi tiết
     public Response getDetail(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
@@ -289,7 +288,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để lấy all live danh sách đấu giá
     public Response getAllLiveAuctions(){
         return ServiceUtil.handleRequest(() -> {
             List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
@@ -305,7 +303,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để lấy all upcoming danh sách đấu giá
     public Response getAllUpcomingAuctions(){
         return ServiceUtil.handleRequest(() -> {
             List<Auction> auctions = RealtimeDatabase.getAllUpcomingAuctions();
@@ -496,7 +493,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để thiết lập auto lượt đặt giá
     public Response setAutoBid(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             SetAutoBidRequest data = JsonUtil.fromMap(request.getData(), SetAutoBidRequest.class);

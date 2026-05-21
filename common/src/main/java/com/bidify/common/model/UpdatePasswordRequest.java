@@ -13,8 +13,6 @@ public class UpdatePasswordRequest {
         this.newPassword = newPassword;
     }
 
-    // dùng để lấy current mật khẩu
     public String getCurrentPassword() { return currentPassword; }
-    // dùng để lấy new mật khẩu
     public String getNewPassword() { return newPassword; }
 }

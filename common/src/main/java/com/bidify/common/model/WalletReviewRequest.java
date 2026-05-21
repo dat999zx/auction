@@ -13,7 +13,6 @@ public class WalletReviewRequest {
         this.approved = approved;
     }
 
-    // dùng để lấy ID của yêu cầu nạp/rút tiền cần review
     public String getWalletRequestId() { return walletRequestId; }
     // dùng để kiểm tra xem yêu cầu được chấp thuận (approve) hay từ chối (deny)
     public boolean isApproved() { return approved; }

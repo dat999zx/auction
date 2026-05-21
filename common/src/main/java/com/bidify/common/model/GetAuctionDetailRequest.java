@@ -8,6 +8,5 @@ public class GetAuctionDetailRequest {
     // dùng để tạo một đối tượng GetAuctionDetailRequest
     public GetAuctionDetailRequest(String auctionId) { this.auctionId = auctionId; }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() { return auctionId; }
 }

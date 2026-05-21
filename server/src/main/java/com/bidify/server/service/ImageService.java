@@ -78,7 +78,6 @@ public class ImageService {
         return savedImages;
     }
 
-    // dùng để lấy base64image
     public String getBase64Image(String filePath) {
         if (filePath == null) return null;
         try {

@@ -18,27 +18,22 @@ public class AutoBid {
         this.enabled = true;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() {
         return auctionId;
     }
 
-    // dùng để lấy username
     public String getUsername() {
         return username;
     }
 
-    // dùng để lấy max lượt đặt giá
     public double getMaxBid() {
         return maxBid;
     }
 
-    // dùng để thiết lập max lượt đặt giá
     public void setMaxBid(double maxBid) {
         this.maxBid = maxBid;
     }
 
-    // dùng để lấy created tại
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }

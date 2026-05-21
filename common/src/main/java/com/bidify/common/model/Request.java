@@ -16,10 +16,7 @@ public class Request {
         this.data = data;
     }
 
-    // dùng để lấy ID
     public String getId(){ return id; }
-    // dùng để lấy type
     public RequestType getType(){ return type; }
-    // dùng để lấy data
     public Object getData(){ return data; }
 }

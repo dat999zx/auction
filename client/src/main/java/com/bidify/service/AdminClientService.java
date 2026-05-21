@@ -20,7 +20,6 @@ import com.bidify.network.SocketClient;
 public class AdminClientService {
     private final SocketClient client = SocketClient.getClient();
 
-    // dùng để lấy danh sách toàn bộ người dùng trong hệ thống (chỉ dành cho admin)
     public List<AdminUserDto> getUsers() throws IOException {
         Response response = client.send(new Request(RequestType.GET_ADMIN_USERS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
@@ -79,7 +78,6 @@ public class AdminClientService {
             throw new ValidationException(response.getMessage() == null ? fallbackMessage : response.getMessage());
     }
 
-    // dùng để lấy danh sách các yêu cầu nạp/rút tiền đang chờ duyệt (chỉ dành cho admin)
     public List<WalletRequestDto> getPendingWalletRequests() throws IOException {
         Response response = client.send(new Request(RequestType.GET_PENDING_WALLET_REQUESTS, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)

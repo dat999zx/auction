@@ -2,6 +2,7 @@
 
 <?import java.lang.String?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
@@ -39,6 +40,7 @@
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
                             <StackPane prefHeight="92.0" prefWidth="92.0" styleClass="hero-avatar">
+                                <ImageView fx:id="heroAvatarImageView" fitHeight="92.0" fitWidth="92.0" pickOnBounds="true" preserveRatio="false" visible="false" />
                                 <Label fx:id="profileAvatarLabel" styleClass="hero-avatar-text" text="U" />
                             </StackPane>
                         </HBox>
@@ -51,9 +53,10 @@
 
                                 <VBox alignment="CENTER" spacing="12.0">
                                     <StackPane minHeight="120.0" minWidth="120.0" prefHeight="120.0" prefWidth="120.0" styleClass="profile-avatar-ring">
+                                        <ImageView fx:id="profileAvatarImageView" fitHeight="114.0" fitWidth="114.0" pickOnBounds="true" preserveRatio="false" visible="false" />
                                         <Label fx:id="profileImageHintLabel" styleClass="profile-avatar-icon" text="Add photo" />
                                     </StackPane>
-                                    <Button onAction="#handleProfileImagePlaceholder" styleClass="secondary-action-button" text="Change Profile Image" />
+                                    <Button onAction="#handleProfileImageUpload" styleClass="secondary-action-button" text="Change Profile Image" />
                                 </VBox>
 
                                 <Separator />

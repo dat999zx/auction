@@ -8,6 +8,5 @@ public class DeleteItemRequest {
         this.itemId = itemId;
     }
 
-    // dùng để lấy sản phẩm ID
     public String getItemId() { return itemId; }
 }

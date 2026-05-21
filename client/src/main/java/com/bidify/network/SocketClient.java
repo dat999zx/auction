@@ -60,24 +60,21 @@ public class SocketClient {
     private static final char[] TRUSTSTORE_PASSWORD = "blablablabidifyclient".toCharArray();
 
     // dùng để tạo một đối tượng SocketClient
-    private SocketClient() {} // tránh tạo object từ ngoài -> singleton
+    protected SocketClient() {} // tránh tạo object từ ngoài -> singleton
 
     // dùng để lấy client
     public static SocketClient getClient() { // lấy client
         return client;
     }
 
-    // dùng để lấy current username
     public String getCurrentUsername() { // lấy username hiện tại
         return clientSession.getCurrentUsername();
     }
 
-    // dùng để lấy client phiên làm việc
     public ClientSession getClientSession() { // lấy session hiện tại
         return clientSession;
     }
 
-    // dùng để thiết lập current username
     public void setCurrentUsername(String currentUsername) { // set username hiện tại
         clientSession.setCurrentUsername(currentUsername);
     }

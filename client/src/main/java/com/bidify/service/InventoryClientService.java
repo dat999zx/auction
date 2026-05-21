@@ -23,14 +23,12 @@ import com.bidify.network.SocketClient;
 public class InventoryClientService {
     private final SocketClient client = SocketClient.getClient();
 
-    // dùng để lấy my kho đồ
     public List<ItemDto> getMyInventory() throws IOException {
         Response response = client.send(new Request(RequestType.GET_MY_INVENTORY, new GetInventoryRequest()));
         // dùng để xử lý kết quả kho đồ kết quả trả về (Response)
         return consumeInventoryResponse(response, "Cannot load inventory.");
     }
 
-    // dùng để lấy kho đồ cho chủ sở hữu
     public List<ItemDto> getInventoryForOwner(String ownerUsername) throws IOException {
         ValidationUtil.validateUsername(ownerUsername);
         Response response = client.send(new Request(RequestType.GET_USER_INVENTORY, new GetUserInventoryRequest(ownerUsername)));
@@ -93,7 +91,6 @@ public class InventoryClientService {
         return item;
     }
 
-    // dùng để lấy sản phẩm chi tiết
     public ItemDto getItemDetail(String itemId) throws IOException {
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
 
