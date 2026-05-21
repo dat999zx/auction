@@ -248,19 +248,26 @@ public class AuctionService {
             String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
 
-            Auction auction = RealtimeDatabase.getUpcomingAuction(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction == null) auction = auctionDao.findById(auctionId);
             if (auction == null)
                 throw new AuctionException("Auction not found");
 
-            if (auction.getStatus() != AuctionStatus.UPCOMING)
-                throw new AuctionException("Cannot delete auction after it has started");
-
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
-            // dùng để xóa đấu giá cascade
-            deleteAuctionCascade(auction, true);
 
-            return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            if (auction.getStatus() == AuctionStatus.UPCOMING) {
+                deleteAuctionCascade(auction, true);
+                return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            }
+
+            if (auction.getStatus() == AuctionStatus.ACTIVE) {
+                synchronized (auction) {
+                    cancelActiveAuction(auction);
+                }
+                return new Response(RequestStatus.SUCCESS, "Auction canceled successfully", toAuctionDto(auction, false));
+            }
+
+            throw new AuctionException("Can only delete upcoming auctions or cancel active auctions");
         });
     }
 
@@ -819,6 +826,22 @@ public class AuctionService {
         publishAuctionUpdate(auction, "Auction watcher count updated");
     }
 
+    private void cancelActiveAuction(Auction auction) throws DatabaseException {
+        if (auction == null)
+            throw new AuctionException("Auction not found");
+        if (auction.getStatus() != AuctionStatus.ACTIVE)
+            throw new AuctionException("Can only cancel active auctions");
+
+        releaseCurrentLeaderLock(auction);
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishAuctionUpdate(auction, "Auction canceled by seller");
+        RealtimeDatabase.removeRuntimeAuction(auction.getId());
+    }
+
     // dùng để xóa đấu giá cascade
     public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
         if (auction == null)
@@ -848,15 +871,16 @@ public class AuctionService {
             return;
 
         User activeBidder = RealtimeDatabase.getActiveUser(currentBidderUsername);
-        if (activeBidder == null)
+        User bidder = activeBidder != null ? activeBidder : ServiceUtil.getOrLoadUser(currentBidderUsername);
+        if (bidder == null)
             return;
 
-        Wallet wallet = activeBidder.getWallet();
+        Wallet wallet = bidder.getWallet();
         if (wallet == null || wallet.getLockedBalance() < currentBid)
             return;
 
         wallet.unlockBalance(currentBid);
-        userDao.save(activeBidder, false);
+        userDao.save(bidder, false);
 
         ClientHandler clientHandler = RealtimeDatabase.getUserClient(currentBidderUsername);
         if (clientHandler != null) {
