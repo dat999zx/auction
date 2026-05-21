@@ -8,6 +8,7 @@ import com.bidify.common.enums.EventType;
 
 public class EventTest {
     
+    // dùng để default constructor
     @Test
     void defaultConstructor() {
         // Tạo Event mà không truyền tham số nào
@@ -22,6 +23,7 @@ public class EventTest {
         assertNull(event.getData());
     }
     
+    // dùng để constructor với type and tin nhắn
     @Test
     void constructorWithTypeAndMessage() {
         // Tạo Event với type và message (dùng cho server push notifications)
@@ -36,6 +38,7 @@ public class EventTest {
         assertNull(event.getData());
     }
     
+    // dùng để constructor với type tin nhắn and data
     @Test
     void constructorWithTypeMessageAndData() {
         // Chuẩn bị data event (giả sử là bid info)
@@ -53,6 +56,7 @@ public class EventTest {
         assertSame(bidData, event.getData());
     }
     
+    // dùng để auction created sự kiện
     @Test
     void auctionCreatedEvent() {
         // Tạo event khi auction được tạo
@@ -63,6 +67,7 @@ public class EventTest {
         assertEquals("New auction created", event.getMessage());
     }
     
+    // dùng để auction ended sự kiện
     @Test
     void auctionEndedEvent() {
         // Tạo event khi auction kết thúc (có winner)
@@ -73,6 +78,7 @@ public class EventTest {
         assertEquals("winner_user", event.getData());
     }
     
+    // dùng để server notice sự kiện
     @Test
     void serverNoticeEvent() {
         // Tạo event thông báo từ server (bảo trì, etc)
@@ -83,6 +89,7 @@ public class EventTest {
         assertEquals("Maintenance in 5 minutes", event.getMessage());
     }
     
+    // dùng để event với complex data
     @Test
     void eventWithComplexData() {
         // Tạo một HashMap phức tạp (bid history, auction details, etc)

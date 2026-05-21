@@ -3,9 +3,9 @@
     -fx-background-color: #f7f9fc;
     -fx-text-fill: #191c1e;
 
-    -primary: #000666;
+    -primary: #000000;
     -primary-container: #1a237e;
-    -secondary: #0048d8;
+    -secondary: #104ddd;
     -surface: #f7f9fc;
     -surface-container-lowest: #ffffff;
     -surface-container-low: #f2f4f7;
@@ -24,13 +24,13 @@
 .text-field, .text-area { -fx-background-radius: 8; -fx-border-radius: 8; -fx-border-width: 0; }
 .text-field:focused, .text-area:focused { -fx-effect: dropshadow(gaussian, rgba(0,72,216,0.35), 0, 0, 0, 0); }
 
-.detail-shell { -fx-background-color: -surface-container-lowest; -fx-background-radius: 12; }
+.detail-shell { -fx-background-color: -surface-container-lowest; -fx-background-radius: 14; -fx-border-color: -outline-variant; -fx-border-radius: 14; }
 .detail-header { -fx-pref-height: 80; -fx-background-color: -surface-container-low; }
 .icon-button { -fx-min-width: 40; -fx-min-height: 40; -fx-background-color: transparent; -fx-text-fill: -on-surface-variant; -fx-font-size: 26px; }
 .icon-button:hover { -fx-background-color: -surface-container-high; }
 .detail-title { -fx-font-family: "Manrope", "Segoe UI", sans-serif; -fx-font-size: 24px; -fx-font-weight: 900; -fx-text-fill: -primary; }
 .cancel-button { -fx-background-color: -surface-container-highest; -fx-text-fill: -on-surface-variant; -fx-font-size: 13px; -fx-font-weight: 700; -fx-padding: 10 24 10 24; }
-.save-button { -fx-background-color: linear-gradient(to bottom right, #000666, #1a237e); -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 10 32 10 32; }
+.save-button { -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb); -fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: 900; -fx-padding: 10 32 10 32; }
 .detail-main { -fx-background-color: -surface-container-lowest; }
 .field-label { -fx-font-size: 11px; -fx-font-weight: 900; -fx-text-fill: -on-surface-variant; }
 .large-input { -fx-min-height: 56; -fx-background-color: -surface-container-low; -fx-font-size: 18px; -fx-font-weight: 600; -fx-text-fill: -on-surface; -fx-padding: 0 16 0 16; }

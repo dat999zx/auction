@@ -1,12 +1,13 @@
 .root-bg {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
     -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 .top-bar {
-    -fx-background-color: #f9f9ff;
-    -fx-border-color: transparent transparent #e7eeff transparent;
+    -fx-background-color: rgba(255,255,255,0.86);
+    -fx-border-color: transparent transparent #c6c5d4 transparent;
     -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 1);
 }
 
 .brand-title {
@@ -16,23 +17,27 @@
 }
 
 .ghost-nav-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #516173;
+    -fx-background-color: #eceef1;
+    -fx-border-color: #c6c5d4;
+    -fx-border-radius: 10;
+    -fx-text-fill: #454652;
     -fx-font-size: 14px;
-    -fx-font-weight: 600;
+    -fx-font-weight: 700;
     -fx-background-radius: 10;
-    -fx-padding: 10 14;
+    -fx-padding: 8 16;
     -fx-cursor: hand;
 }
 
 .ghost-nav-button:hover {
-    -fx-background-color: #dee8ff;
-    -fx-text-fill: #001e40;
+    -fx-background-color: #f2f4f7;
+    -fx-text-fill: #000000;
 }
 
 .search-bar {
-    -fx-background-color: #f0f3ff;
-    -fx-background-radius: 999;
+    -fx-background-color: #eceef1;
+    -fx-border-color: #c6c5d4;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
     -fx-padding: 8 14;
 }
 
@@ -44,8 +49,8 @@
 .search-field {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-text-fill: #111c2d;
-    -fx-prompt-text-fill: #737780;
+    -fx-text-fill: #191c1e;
+    -fx-prompt-text-fill: #767683;
     -fx-font-size: 13px;
     -fx-background-insets: 0;
     -fx-padding: 4 6;
@@ -77,8 +82,8 @@
 }
 
 .icon-button {
-    -fx-background-color: transparent;
-    -fx-text-fill: #737780;
+    -fx-background-color: #eceef1;
+    -fx-text-fill: #454652;
     -fx-font-size: 16px;
     -fx-cursor: hand;
     -fx-background-radius: 999;
@@ -87,14 +92,14 @@
 }
 
 .icon-button:hover {
-    -fx-text-fill: #001e40;
-    -fx-background-color: #e7eeff;
+    -fx-text-fill: #000000;
+    -fx-background-color: #f2f4f7;
 }
 
 .avatar-circle {
-    -fx-background-color: #d8e3fb;
+    -fx-background-color: #e6e8eb;
     -fx-background-radius: 999;
-    -fx-border-color: #d8e3fb;
+    -fx-border-color: #c6c5d4;
     -fx-border-radius: 999;
     -fx-min-width: 40;
     -fx-min-height: 40;
@@ -103,7 +108,7 @@
 }
 
 .avatar-text {
-    -fx-text-fill: #001e40;
+    -fx-text-fill: #191c1e;
     -fx-font-weight: 800;
 }
 
@@ -112,7 +117,9 @@
 }
 
 .side-bar {
-    -fx-background-color: #f0f3ff;
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent #c6c5d4 transparent transparent;
+    -fx-border-width: 0 1 0 0;
 }
 
 .sidebar-brand-box {
@@ -120,9 +127,10 @@
 }
 
 .sidebar-brand {
-    -fx-font-size: 20px;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 28px;
     -fx-font-weight: 800;
-    -fx-text-fill: #001e40;
+    -fx-text-fill: #000000;
 }
 
 .sidebar-subtitle {
@@ -135,23 +143,23 @@
 .side-nav-button,
 .side-nav-button-active {
     -fx-background-color: transparent;
-    -fx-text-fill: #5f6c7b;
+    -fx-text-fill: #454652;
     -fx-font-size: 14px;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 14 22;
-    -fx-background-radius: 14;
+    -fx-background-radius: 10;
     -fx-cursor: hand;
     -fx-max-width: 100000;
 }
 
 .side-nav-button:hover {
-    -fx-background-color: rgba(222, 232, 255, 0.7);
-    -fx-text-fill: #001e40;
+    -fx-background-color: #f2f4f7;
+    -fx-text-fill: #000000;
 }
 
 .side-nav-button-active {
-    -fx-background-color: white;
-    -fx-text-fill: #001e40;
+    -fx-background-color: linear-gradient(to right, rgba(16,77,221,0.12), rgba(16,77,221,0.02));
+    -fx-text-fill: #104ddd;
     -fx-font-weight: 700;
 }
 
@@ -171,7 +179,7 @@
 }
 
 .primary-gradient-button {
-    -fx-background-color: linear-gradient(to right, #001e40, #003366);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
@@ -181,16 +189,16 @@
 }
 
 .primary-gradient-button:hover {
-    -fx-opacity: 0.95;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .main-scroll,
 .main-scroll > .viewport {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
 }
 
 .content-area {
-    -fx-background-color: #f9f9ff;
+    -fx-background-color: #f7f9fc;
 }
 
 .hub-section {
@@ -209,15 +217,17 @@
 }
 
 .page-title {
-    -fx-text-fill: #111c2d;
-    -fx-font-size: 36px;
-    -fx-font-weight: 900;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 32px;
+    -fx-font-weight: 800;
 }
 
 .section-title {
-    -fx-text-fill: #111c2d;
-    -fx-font-size: 26px;
-    -fx-font-weight: 900;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
 }
 
 .section-subtitle {
@@ -331,9 +341,10 @@
 .auction-card,
 .featured-card {
     -fx-background-color: #ffffff;
-    -fx-background-radius: 16;
-    -fx-border-radius: 16;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 10, 0.15, 0, 2);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
 }
 
 .card-image-wrap,
@@ -455,8 +466,8 @@
 }
 
 .secondary-action-button {
-    -fx-background-color: #ffddb8;
-    -fx-text-fill: #2a1700;
+    -fx-background-color: linear-gradient(to right, #fff1d6, #ffd199);
+    -fx-text-fill: #4c2a00;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
     -fx-padding: 13 18;
@@ -465,11 +476,11 @@
 }
 
 .secondary-action-button:hover {
-    -fx-brightness: 0.96;
+    -fx-background-color: linear-gradient(to right, #ffe6bd, #ffc277);
 }
 
 .primary-action-button {
-    -fx-background-color: #001e40;
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 14px;
     -fx-font-weight: 800;
@@ -479,7 +490,7 @@
 }
 
 .primary-action-button:hover {
-    -fx-background-color: #003366;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .tag-pill {
@@ -521,3 +532,4 @@
     /* dropshadow( <type>, <color>, <radius>, <spread>, <offset-x>, <offset-y> ) */
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);
 }
+

@@ -13,6 +13,7 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.model.Event;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.Auction;
@@ -27,22 +28,27 @@ public class AuctionSchedulerService {
     private final AuctionService auctionService = AuctionService.getInstance();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
+    // dùng để tạo một đối tượng AuctionSchedulerService
     private AuctionSchedulerService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static AuctionSchedulerService getInstance() { return instance; }
 
+    // dùng để bắt đầu
     public void start() {
         scheduler.scheduleAtFixedRate(this::syncRuntimeAuctions, 0, SYNC_INTERVAL_SECONDS, TimeUnit.SECONDS); // chạy method này mỗi SYNC_INTERVAL_SECONDS giây
     }
 
+    // dùng để dừng
     public void stop() {
         scheduler.shutdownNow();
     }
 
     // đồng bộ tất cả các auction đang chạy trong runtime với database, cập nhật status của chúng nếu cần thiết, và phát Event nếu có thay đổi status
+    // dùng để sync runtime danh sách đấu giá
     private void syncRuntimeAuctions() {
         List<Auction> runtimeAuctions = RealtimeDatabase.getAllRuntimeAuctions();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = TimeUtil.nowInVietnam();
 
         for (Auction auction : runtimeAuctions) {
             if (auction == null) continue;
@@ -56,6 +62,7 @@ public class AuctionSchedulerService {
                 auctionService.settleAuction(auction);
 
                 RealtimeDatabase.removeRuntimeAuction(auction.getId());
+                // dùng để phát sự kiện trạng thái sự kiện
                 publishStatusEvent(EventType.AUCTION_ENDED, "Auction ended", auction);
                 continue;
             }
@@ -67,12 +74,14 @@ public class AuctionSchedulerService {
                 auctionDao.save(auction);
                 
                 logger.info("Auction started: {} - {}", auction.getAuctionName(), auction.getId());
+                // dùng để phát sự kiện trạng thái sự kiện
                 publishStatusEvent(EventType.AUCTION_UPDATED, "Auction is now active", auction);
             }
         }
     }
 
     // phát Event về trạng thái mới của auction
+    // dùng để phát sự kiện trạng thái sự kiện
     private void publishStatusEvent(EventType eventType, String message, Auction auction) {
         AuctionDto auctionDto = auctionService.toAuctionDto(auction, false);
         RealtimeDatabase.getGlobalChannel().publish(new Event(eventType, message, auctionDto));

@@ -19,6 +19,7 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.UserDao;
+import com.bidify.server.dao.WalletRequestDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
@@ -37,10 +38,13 @@ public class AuthService {
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final AuctionService auctionService = AuctionService.getInstance();
 
+    // dùng để tạo một đối tượng AuthService
     private AuthService() {}
 
+    // dùng để lấy đối tượng Singleton AuthService
     public static AuthService getInstance() { return instance; }
 
+    // dùng để đăng ký các API routes xác thực với router hệ thống
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.REGISTER, (client, req) -> register(req));
@@ -48,10 +52,12 @@ public class AuthService {
         router.register(RequestType.LOGOUT, (client, req) -> logout(client));
     }
 
+    // dùng để kiểm tra xem tên đăng nhập có phải là admin khởi tạo hay không
     public static boolean isBootstrapAdminUsername(String username) {
         return BOOTSTRAP_ADMIN_USERNAME.equals(username);
     }
 
+    // dùng để tạo một đối tượng người dùng cho tài khoản admin khởi tạo
     public static User createBootstrapAdminUser() {
         User admin = new User(
             BOOTSTRAP_ADMIN_USERNAME,
@@ -63,6 +69,7 @@ public class AuthService {
     }
 
     // đăng kí
+    // dùng để xử lý yêu cầu đăng ký tài khoản mới của người dùng
     public Response register(Request request) {
         return ServiceUtil.handleRequest(() -> {
             RegisterRequest data = JsonUtil.fromMap(request.getData(), RegisterRequest.class);
@@ -91,6 +98,7 @@ public class AuthService {
     }
 
     // đăng nhập
+    // dùng để xử lý yêu cầu đăng nhập tài khoản từ client
     public Response login(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             LoginRequest data = JsonUtil.fromMap(request.getData(), LoginRequest.class);
@@ -120,7 +128,7 @@ public class AuthService {
             if (RealtimeDatabase.isUserOnline(username))
                 throw new AuthException("Another session is already active");
 
-            double lockedBalance = auctionDao.sumWinningBidsForUser(username);
+            double lockedBalance = auctionDao.sumWinningBidsForUser(username) + WalletRequestDao.getInstance().sumPendingWithdrawsForUser(username);
             user.getWallet().setlockedBalance(lockedBalance);
 
             client.setCurrentUsername(username);
@@ -132,6 +140,7 @@ public class AuthService {
     }
 
     // đăng kí
+    // dùng để xử lý yêu cầu đăng xuất và dọn dẹp session người dùng
     public Response logout(ClientHandler client){
         return ServiceUtil.handleRequest(() -> {
             String username = client.getCurrentUsername();
@@ -153,10 +162,13 @@ public class AuthService {
         });
     }
 
+    // dùng để lưu all danh sách người dùng
     public void saveAllUsers(){ // lưu tất cả user data mặc định cập nhật last login
+        // dùng để lưu all danh sách người dùng
         saveAllUsers(true);
     }
 
+    // dùng để lưu all danh sách người dùng
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
         for (User user : RealtimeDatabase.getAllActiveUsers()) {
             if (!isBootstrapAdminUsername(user.getUsername()))

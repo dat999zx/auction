@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.bidify.controller.SettlementsController"
+            fitToWidth="true" fitToHeight="true" pannable="true"
+            prefWidth="1080" prefHeight="720" styleClass="page-scroll">
+    <content>
+        <VBox styleClass="inventory-page" spacing="32" prefWidth="1080" prefHeight="720">
+            <padding>
+                <Insets top="32" right="32" bottom="32" left="32"/>
+            </padding>
+
+            <HBox alignment="BOTTOM_LEFT" spacing="20">
+                <VBox spacing="8" HBox.hgrow="ALWAYS">
+                    <Label text="Bidify" styleClass="brand-logo"/>
+                    <Label text="Settlements" styleClass="page-title"/>
+                    <Label text="Manage and execute pending actions on ended auctions." styleClass="muted-text"/>
+                </VBox>
+            </HBox>
+
+            <VBox styleClass="card" spacing="0">
+                <HBox alignment="CENTER_LEFT" styleClass="card-header" spacing="16">
+                    <Label text="Ended Auctions Action Items" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="search-box" spacing="10">
+                        <Label text="Search" styleClass="search-icon"/>
+                        <TextField fx:id="searchField" promptText="Search..." styleClass="plain-field" prefWidth="190"/>
+                    </HBox>
+                </HBox>
+
+                <GridPane styleClass="table-header">
+                    <columnConstraints>
+                        <ColumnConstraints percentWidth="45"/>
+                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="15"/>
+                        <ColumnConstraints percentWidth="20"/>
+                    </columnConstraints>
+                    <Label text="Auction Name" styleClass="table-heading" GridPane.columnIndex="0"/>
+                    <Label text="Final Bid" styleClass="table-heading" GridPane.columnIndex="1"/>
+                    <Label text="Your Role" styleClass="table-heading" GridPane.columnIndex="2"/>
+                    <Label text="Status" styleClass="table-heading-center" GridPane.columnIndex="3"/>
+                    <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
+                </GridPane>
+
+                <VBox fx:id="settlementsContainer" styleClass="table-body" spacing="0"/>
+
+                <HBox alignment="CENTER_LEFT" styleClass="pagination" spacing="8">
+                    <Label fx:id="summaryLabel" text="Loading settlements..." styleClass="muted-text" HBox.hgrow="ALWAYS"/>
+                    <Button onAction="#handleRefresh" text="Refresh" styleClass="pager-button"/>
+                </HBox>
+            </VBox>
+
+            <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
+                <Label text="Double-click an auction row to view full details and execute settlement actions." HBox.hgrow="ALWAYS"/>
+                <Hyperlink text="Privacy"/>
+                <Hyperlink text="Terms"/>
+                <Hyperlink text="Support"/>
+            </HBox>
+        </VBox>
+    </content>
+</ScrollPane>

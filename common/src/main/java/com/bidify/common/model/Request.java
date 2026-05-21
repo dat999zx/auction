@@ -7,7 +7,9 @@ public class Request {
     private RequestType type;
     private Object data;
 
+    // dùng để tạo một đối tượng Request
     public Request(){ id = IdGenerator.genRequestId(); }
+    // dùng để tạo một đối tượng Request
     public Request(RequestType type, Object data){
         this.id = IdGenerator.genRequestId();
         this.type = type;

@@ -28,35 +28,45 @@ public class NotificationUtil {
     private static VBox notificationContainer = null;
     private static final LinkedList<String> activeMessages = new LinkedList<>();
 
+    // dùng để tạo một đối tượng NotificationUtil
     private NotificationUtil() {}
 
     public enum NotificationType {
         SUCCESS("#1f7a1f", "#e6f4ea"),
         ERROR("#ba1a1a", "#fce8e6"),
+        // dùng để info
         INFO("#0048d8", "#e7eeff");
 
         final String textColor;
         final String bgColor;
 
+        // dùng để notification type
         NotificationType(String textColor, String bgColor) {
             this.textColor = textColor;
             this.bgColor = bgColor;
         }
     }
 
+    // dùng để success
     public static void success(String message) {
+        // dùng để hiển thị
         show(message, NotificationType.SUCCESS);
     }
 
+    // dùng để error
     public static void error(String message) {
+        // dùng để hiển thị
         show(message, NotificationType.ERROR);
     }
 
+    // dùng để info
     public static void info(String message) {
+        // dùng để hiển thị
         show(message, NotificationType.INFO);
     }
 
     // hiện notification
+    // dùng để hiển thị
     private static void show(String message, NotificationType type) {
         Platform.runLater(() -> {
             StackPane overlay = SceneManager.getOverlayLayer();
@@ -75,10 +85,12 @@ public class NotificationUtil {
                 hideNotification((HBox) oldest, container, null);
             }
 
+            // dùng để do hiển thị
             doShow(message, type, container);
         });
     }
 
+    // dùng để lấy notification container
     private static VBox getNotificationContainer(StackPane overlay) {
         if (notificationContainer == null) {
             notificationContainer = new VBox(10); // khoảng cách giữa các thông báo
@@ -95,6 +107,7 @@ public class NotificationUtil {
         return notificationContainer;
     }
 
+    // dùng để do hiển thị
     private static void doShow(String message, NotificationType type, VBox container) {
         activeMessages.addFirst(message);
         
@@ -135,6 +148,7 @@ public class NotificationUtil {
     }
 
     // tạo notification
+    // dùng để tạo notification
     private static HBox createNotification(String message, NotificationType type) {
         Label label = new Label(message);
         label.setWrapText(true);
@@ -164,6 +178,7 @@ public class NotificationUtil {
     }
 
     // ẩn notification
+    // dùng để ẩn notification
     private static void hideNotification(HBox notification, VBox container, Runnable onFinished) {
         if (!container.getChildren().contains(notification)) return;
 

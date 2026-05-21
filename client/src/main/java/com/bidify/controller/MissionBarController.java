@@ -1,5 +1,8 @@
 package com.bidify.controller;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.shape.Circle;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.event.ActionEvent;
@@ -16,9 +19,10 @@ import javafx.scene.layout.VBox;
 import javafx.scene.input.MouseEvent;
 import javafx.util.Duration;
 
+
 public class MissionBarController {
     private static final Duration ANIMATION_DURATION = Duration.millis(180);
-    private Button leftSideActiveButton; 
+    private Button leftSideActiveButton;
 
     @FXML
     private HBox searchContainer;
@@ -48,10 +52,19 @@ public class MissionBarController {
     private Button inventoryButton;
 
     @FXML
+    private Button settlementsButton;
+
+    @FXML
     private Button adminUsersButton;
 
     @FXML
+    private Button adminWalletRequestsButton;
+
+    @FXML
     private Label avatarText;
+    
+    @FXML
+    private ImageView avatarImageView;
 
     @FXML
     private StackPane avatarContainer;
@@ -77,66 +90,89 @@ public class MissionBarController {
     @FXML
     private VBox myActivitiesSubMenu;
 
+    @FXML 
+    private Button myAuctionsButton;
+
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
-        leftSideActiveButton = auctionsButton; // Máº·c Ä‘á»‹nh active home
+        leftSideActiveButton = auctionsButton; // Mặc định active home
         double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
         sidebarLayer.setMouseTransparent(true);
         sidebarOverlay.setOpacity(0.0);
         sidebarContent.setTranslateX(-hiddenOffset);
+
+        // dùng để cắt ảnh đại diện thành hình tròn
+        Circle clip = new Circle(20, 20, 20);
+        avatarImageView.setClip(clip);
     }
-    
+
+    // dùng để xử lý ảnh đại diện click
     @FXML
     private void handleAvatarClick(MouseEvent event) {
     }
 
+    // dùng để bật tắt thanh bên điều hướng
     public void toggleSidebar() {
         if (sidebarAnimating) { return; }
         if (sidebarVisible) {
+            // dùng để ẩn thanh bên điều hướng
             hideSidebar();
             return;
         }
+        // dùng để hiển thị thanh bên điều hướng
         showSidebar();
     }
 
+    // dùng để đóng thanh bên điều hướng
     public void closeSidebar() {
         if (!sidebarVisible || sidebarAnimating) { return; }
+        // dùng để ẩn thanh bên điều hướng
         hideSidebar();
     }
 
+    // dùng để xử lý lớp phủ click
     @FXML
     private void handleOverlayClick() {
+        // dùng để đóng thanh bên điều hướng
         closeSidebar();
     }
 
+    // dùng để xử lý thanh bên điều hướng click
     @FXML
     private void handleSidebarClick(ActionEvent event) {
         if (!(event.getSource() instanceof Button clickedButton)) return;
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(clickedButton);
     }
 
+    // dùng để xử lý account bật tắt
     @FXML
     private void handleAccountToggle(ActionEvent event) {
         boolean isVisible = accountSubMenu.isVisible();
         accountSubMenu.setVisible(!isVisible);
         accountSubMenu.setManaged(!isVisible);
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(myAccountButton);
     }
 
+    // dùng để xử lý activities bật tắt
     @FXML
     private void handleActivitiesToggle(ActionEvent event) {
         boolean isVisible = myActivitiesSubMenu.isVisible();
         myActivitiesSubMenu.setVisible(!isVisible);
         myActivitiesSubMenu.setManaged(!isVisible);
+        // dùng để cập nhật thanh bên điều hướng nút nhấn style
         updateSidebarButtonStyle(myActivitiesButton);
     }
 
-    // check xem náº¿u nhÆ° button nÃ o Ä‘Æ°á»£c click thÃ¬ sáº½ Ä‘á»•i style cá»§a button Ä‘Ã³ thÃ nh active, cÃ²n láº¡i sáº½ lÃ  normal
+    // check xem nếu như button nào được click thì sẽ đổi style của button đó thành active, còn lại sẽ là normal
+    // dùng để cập nhật thanh bên điều hướng nút nhấn style
     private void updateSidebarButtonStyle(Button activeButton) {
         if (leftSideActiveButton == activeButton) return;
         leftSideActiveButton.getStyleClass().removeAll("side-nav-button", "side-nav-button-active");
@@ -146,6 +182,7 @@ public class MissionBarController {
     }
     
 
+    // dùng để hiển thị thanh bên điều hướng
     private void showSidebar() {
         sidebarAnimating = true;
         double hiddenOffset = getSidebarWidth();
@@ -170,7 +207,6 @@ public class MissionBarController {
         sidebarSlide.play();
     }
 
-    // thÃªm cÃ¡c getter Ä‘á»ƒ sá»­ dá»¥ng cho cÃ¡c file fxml cÃ³ missionbar controller
     public Button getExploreButton() { return exploreButton; }
     public TextField getSearchBar() { return searchBar; }
     public Button getAuctionsButton() { return auctionsButton; }
@@ -179,8 +215,12 @@ public class MissionBarController {
     public Button getLogoutLinkButton() { return logoutLinkButton; }
     public Button getHistoryButton() { return historyButton; }
     public Button getInventoryButton() { return inventoryButton; }
+    public Button getSettlementsButton() { return settlementsButton; }
     public Button getAdminUsersButton() { return adminUsersButton; }
-
+    public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
+    public Button getMyAuctionsButton() { return myAuctionsButton; }
+    
+    // dùng để thiết lập hiển thị khám phá
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
         exploreButton.setVisible(visible);
@@ -199,9 +239,14 @@ public class MissionBarController {
     }
 
     public void setShowAdminControls(boolean visible) {
-        if (adminUsersButton == null) return;
-        adminUsersButton.setManaged(visible);
-        adminUsersButton.setVisible(visible);
+        if (adminUsersButton != null) {
+            adminUsersButton.setManaged(visible);
+            adminUsersButton.setVisible(visible);
+        }
+        if (adminWalletRequestsButton != null) {
+            adminWalletRequestsButton.setManaged(visible);
+            adminWalletRequestsButton.setVisible(visible);
+        }
     }
 
     public void setShowCreateAuction(boolean visible) {
@@ -220,8 +265,17 @@ public class MissionBarController {
         if (inventoryButton != null) {
             inventoryButton.setOnAction(handler);
         }
+        if (settlementsButton != null) {
+            settlementsButton.setOnAction(handler);
+        }
         if (adminUsersButton != null) {
             adminUsersButton.setOnAction(handler);
+        }
+        if (adminWalletRequestsButton != null) {
+            adminWalletRequestsButton.setOnAction(handler);
+        }
+        if (myAuctionsButton != null) {
+            myAuctionsButton.setOnAction(handler);
         }
     }
 
@@ -241,14 +295,24 @@ public class MissionBarController {
         avatarText.setText(value == null || value.isBlank() ? "U" : value);
     }
 
+    public void setAvatarImage(Image image) {
+        boolean hasImage = image != null;
+        avatarImageView.setImage(image);
+        avatarImageView.setVisible(hasImage);
+        avatarText.setVisible(!hasImage);
+    }
+
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == adminUsersButton) {
+        if (activeButton != null) {
+            // dùng để cập nhật thanh bên điều hướng nút nhấn style
             updateSidebarButtonStyle(activeButton);
         }
         
+        // dùng để cập nhật nav nút nhấn style
         updateNavButtonStyle(logoutLinkButton, activeButton == logoutLinkButton);
     }
 
+    // dùng để ẩn thanh bên điều hướng
     private void hideSidebar() {
         sidebarAnimating = true;
         double hiddenOffset = getSidebarWidth();
@@ -273,6 +337,7 @@ public class MissionBarController {
         sidebarSlide.play();
     }
 
+    // dùng để cập nhật nav nút nhấn style
     private void updateNavButtonStyle(Button button, boolean active) {
         if (button == null) return;
 
@@ -280,6 +345,7 @@ public class MissionBarController {
         button.getStyleClass().add(active ? "top-link-active" : "top-link");
     }
 
+    // dùng để lấy thanh bên điều hướng width
     private double getSidebarWidth() {
         if (sidebarContent == null) {
             return 340.0;

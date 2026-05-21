@@ -12,17 +12,21 @@ import com.bidify.server.contract.Observer;
 public class GlobalChannel implements Channel {
     private final Set<Observer> observers = ConcurrentHashMap.newKeySet();
 
+    // dùng để đăng ký lắng nghe sự kiện
     @Override
     public void subscribe(Observer observer) { observers.add(observer); }
 
+    // dùng để hủy đăng ký lắng nghe sự kiện
     @Override
     public void unsubscribe(Observer observer) { observers.remove(observer); }
 
+    // dùng để phát sự kiện
     @Override
     public void publish(Event event) {
         for (Observer observer : observers)
             observer.onEvent(event);
     }
 
+    // dùng để xóa sạch
     public void clear() { observers.clear(); }
 }

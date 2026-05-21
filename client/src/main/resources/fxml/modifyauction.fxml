@@ -14,7 +14,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="720" prefWidth="1280" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ModifyAuctionController">
+<BorderPane prefHeight="720" prefWidth="1280" stylesheets="@../css/modifyauction.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.ModifyAuctionController">
     <center>
         <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
             <VBox spacing="30" style="-fx-padding: 40;">
@@ -24,7 +24,7 @@
                         <Label styleClass="header-title" text="Modify Auction" />
                     </VBox>
                     <HBox spacing="15">
-                        <Button fx:id="deleteAuctionButton" onAction="#handleDeleteAuction" styleClass="btn-secondary" text="Delete Auction" />
+                        <Button fx:id="deleteAuctionButton" onAction="#handleDeleteAuction" styleClass="btn-secondary, btn-danger" text="Delete Auction" />
                         <Button fx:id="cancelButton" onAction="#handleCancel" styleClass="btn-secondary" text="Cancel" />
                         <Button fx:id="saveChangesButton" onAction="#handleSaveChanges" styleClass="btn-primary" text="Save Changes" />
                     </HBox>

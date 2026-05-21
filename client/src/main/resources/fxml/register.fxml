@@ -15,7 +15,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane maxHeight="Infinity" maxWidth="Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="register-root" stylesheets="@../css/register.css" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.RegisterController">
+<StackPane maxHeight="Infinity" maxWidth="Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" styleClass="register-root" stylesheets="@../css/register.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.RegisterController">
     <children>
         <HBox maxHeight="700.0" maxWidth="1100.0" prefHeight="700.0" prefWidth="1100.0" styleClass="register-card">
             <children>
@@ -32,7 +32,7 @@
                             </padding>
                             <children>
                                 <Label styleClass="left-title" text="Join the Elite&#10;Circle of Bidders." />
-                                <Label maxWidth="320.0" styleClass="left-subtitle" text="Experience the world's most sophisticated auction platform where precision meets luxury." wrapText="true" />
+                                <Label maxWidth="320.0" styleClass="left-subtitle" wrapText="true" />
                             </children>
                         </VBox>
 
@@ -42,18 +42,11 @@
                                     <children>
                                         <HBox spacing="-8.0">
                                             <children>
-                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-one">
-                                                    <children><Label styleClass="avatar-text" text="A" /></children>
-                                                </StackPane>
-                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-two">
-                                                    <children><Label styleClass="avatar-text" text="B" /></children>
-                                                </StackPane>
-                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-three">
-                                                    <children><Label styleClass="avatar-text" text="C" /></children>
-                                                </StackPane>
+                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-one" />
+                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-two" />
+                                                <StackPane prefHeight="40.0" prefWidth="40.0" styleClass="avatar avatar-three" />
                                             </children>
                                         </HBox>
-                                        <Label styleClass="curator-text" text="+2.4k Active Curators" />
                                     </children>
                                 </HBox>
                                 <Label styleClass="bottom-caption" text="Professional Auctioneering Services" />

@@ -32,7 +32,7 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 
 public class ItemDetailController {
-    private static final int MAX_IMAGES = 10;
+    private static final int MAX_IMAGES = 3;
     private static String currentItemId;
 
     private final InventoryClientService inventoryClientService = new InventoryClientService();
@@ -59,50 +59,64 @@ public class ItemDetailController {
     @FXML
     private Label statusFooterLabel;
 
+    // dùng để thiết lập sản phẩm ID
     public static void setItemId(String itemId) {
         currentItemId = itemId;
     }
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
             categoryComboBox.getItems().setAll("Electronics", "Fashion", "Art", "Collectibles", "Vehicles", "Other");
             productTypeComboBox.getItems().setAll("New", "Used", "Rare", "Vintage", "Limited");
+            // dùng để hiển thị gallery
             renderGallery();
 
             if (currentItemId == null || currentItemId.isBlank()) {
                 statusFooterLabel.setText("New item draft");
             } else {
+                // dùng để tải sản phẩm cho edit
                 loadItemForEdit(currentItemId);
             }
         });
     }
 
+    // dùng để xử lý back
     @FXML
     private void handleBack() {
+        // dùng để xóa sạch editing state
         clearEditingState();
         SceneManager.switchScene("inventory.fxml", false, true);
     }
 
+    // dùng để xử lý hủy bỏ
     @FXML
     private void handleCancel() {
+        // dùng để xóa sạch editing state
         clearEditingState();
         SceneManager.switchScene("inventory.fxml", false, true);
     }
 
+    // dùng để xử lý pick images
     @FXML
     private void handlePickImages(MouseEvent event) {
+        // dùng để mở chooser
         openChooser();
     }
 
+    // dùng để xử lý pick images
     @FXML
     private void handlePickImages() {
+        // dùng để mở chooser
         openChooser();
     }
 
+    // dùng để xử lý lưu
     @FXML
     private void handleSave() {
         try {
+            // dùng để kiểm tra tính hợp lệ fields
             validateFields();
             List<String> encodedImages = encodeGalleryImages();
 
@@ -131,6 +145,7 @@ public class ItemDetailController {
                 statusFooterLabel.setText("Updated item: " + savedItem.getId());
             }
 
+            // dùng để xóa sạch editing state
             clearEditingState();
             SceneManager.clearCache("inventory.fxml");
             SceneManager.switchScene("inventory.fxml", false, true);
@@ -143,6 +158,7 @@ public class ItemDetailController {
         }
     }
 
+    // dùng để tải sản phẩm cho edit
     private void loadItemForEdit(String itemId) {
         Thread loader = new Thread(() -> {
             try {
@@ -160,6 +176,7 @@ public class ItemDetailController {
         loader.start();
     }
 
+    // dùng để liên kết dữ liệu sản phẩm
     private void bindItem(ItemDto item) {
         productNameField.setText(safe(item.getName()));
         descriptionArea.setText(safe(item.getDescription()));
@@ -175,9 +192,11 @@ public class ItemDetailController {
         }
 
         statusFooterLabel.setText("Editing item: " + item.getId());
+        // dùng để hiển thị gallery
         renderGallery();
     }
 
+    // dùng để mở chooser
     private void openChooser() {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Item Images");
@@ -199,9 +218,11 @@ public class ItemDetailController {
                 galleryEntries.add(fromFile(file));
         }
 
+        // dùng để hiển thị gallery
         renderGallery();
     }
 
+    // dùng để contains file
     private boolean containsFile(File candidate) {
         String target = candidate.getAbsolutePath();
         for (GalleryImageEntry entry : galleryEntries) {
@@ -211,6 +232,7 @@ public class ItemDetailController {
         return false;
     }
 
+    // dùng để hiển thị gallery
     private void renderGallery() {
         galleryPreviewPane.getChildren().clear();
 
@@ -232,6 +254,7 @@ public class ItemDetailController {
             galleryPreviewPane.getChildren().add(createPreviewTile(entry));
     }
 
+    // dùng để tạo preview tile
     private StackPane createPreviewTile(GalleryImageEntry entry) {
         StackPane tile = new StackPane();
         tile.getStyleClass().add("media-preview-tile");
@@ -240,7 +263,8 @@ public class ItemDetailController {
         ImageView imageView = new ImageView(entry.toImage());
         imageView.setFitWidth(112);
         imageView.setFitHeight(112);
-        imageView.setPreserveRatio(false);
+        imageView.setPreserveRatio(true);
+        imageView.setSmooth(true);
         imageView.getStyleClass().add("secondary-thumb");
 
         Button removeButton = new Button("x");
@@ -248,6 +272,7 @@ public class ItemDetailController {
         StackPane.setAlignment(removeButton, Pos.TOP_RIGHT);
         removeButton.setOnAction(event -> {
             galleryEntries.remove(entry);
+            // dùng để hiển thị gallery
             renderGallery();
         });
 
@@ -255,6 +280,7 @@ public class ItemDetailController {
             if (!galleryEntries.isEmpty() && galleryEntries.get(0) != entry) {
                 galleryEntries.remove(entry);
                 galleryEntries.add(0, entry);
+                // dùng để hiển thị gallery
                 renderGallery();
             }
         });
@@ -263,6 +289,7 @@ public class ItemDetailController {
         return tile;
     }
 
+    // dùng để encode gallery images
     private List<String> encodeGalleryImages() throws IOException {
         List<String> imagesBase64 = new ArrayList<>();
         for (GalleryImageEntry entry : galleryEntries)
@@ -270,6 +297,7 @@ public class ItemDetailController {
         return imagesBase64;
     }
 
+    // dùng để kiểm tra tính hợp lệ fields
     private void validateFields() {
         ValidationUtil.requiresNonBlank(productNameField.getText(), "Item name");
         ValidationUtil.requiresNonBlank(descriptionArea.getText(), "Description");
@@ -280,29 +308,38 @@ public class ItemDetailController {
             throw new ValidationException("Please select a product type");
     }
 
+    // dùng để decode base64image
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
-            return new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
+            if (img.isError()) {
+                return null;
+            }
+            return img;
         }
-        catch (IllegalArgumentException e) {
+        catch (Exception e) {
             return null;
         }
     }
 
+    // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
     }
 
+    // dùng để xóa sạch editing state
     private void clearEditingState() {
         currentItemId = null;
         galleryEntries.clear();
     }
 
+    // dùng để từ file
     private GalleryImageEntry fromFile(File file) {
         return new GalleryImageEntry(file, null);
     }
 
+    // dùng để từ base64
     private GalleryImageEntry fromBase64(String base64) {
         return new GalleryImageEntry(null, base64);
     }
@@ -311,17 +348,31 @@ public class ItemDetailController {
         private final File file;
         private final String base64;
 
+        // dùng để gallery hình ảnh entry
         private GalleryImageEntry(File file, String base64) {
             this.file = file;
             this.base64 = base64;
         }
 
+        // dùng để chuyển thành hình ảnh
         private Image toImage() {
-            if (file != null)
-                return new Image(file.toURI().toString());
-            return decodeBase64Image(base64);
+            try {
+                Image img = null;
+                if (file != null) {
+                    img = new Image(file.toURI().toString());
+                } else {
+                    img = decodeBase64Image(base64);
+                }
+                if (img != null && img.isError()) {
+                    return null;
+                }
+                return img;
+            } catch (Exception e) {
+                return null;
+            }
         }
 
+        // dùng để chuyển thành base64
         private String toBase64() throws IOException {
             if (base64 != null)
                 return base64;

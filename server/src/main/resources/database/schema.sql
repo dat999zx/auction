@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS Users (
     password TEXT NOT NULL,
     email TEXT,
     phoneNumber TEXT,
+    profileImageId TEXT,
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     role TEXT NOT NULL DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     createdAt TEXT NOT NULL,
     lastLogin TEXT,
-    balance REAL DEFAULT 0 CHECK(balance >= 0)
+    balance REAL DEFAULT 0 CHECK(balance >= 0),
+    FOREIGN KEY (profileImageId) REFERENCES Images(id)
 );
 
 -- TABLE Auctions
@@ -32,7 +34,7 @@ CREATE TABLE IF NOT EXISTS Auctions (
     seller TEXT NOT NULL,
     currentBid REAL DEFAULT 0,
     currentBidder TEXT,
-    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'ENDED', 'PAID', 'BANNED', 'UPCOMING', "CANCELED")),
+    status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'ENDED', 'PAID', 'BANNED', 'UPCOMING', 'CANCELED', 'AWAITING_PAYMENT', 'AWAITING_DELIVERY', 'COMPLETED')),
     startAt TEXT NOT NULL,
     endTime TEXT NOT NULL,
     CONSTRAINT time_check CHECK(endTime > startAt),
@@ -91,7 +93,7 @@ CREATE TABLE IF NOT EXISTS Transactions (
     id TEXT UNIQUE NOT NULL PRIMARY KEY,
     createdAt TEXT NOT NULL,
     username TEXT NOT NULL,
-    type TEXT NOT NULL CHECK(type IN ('DEPOSIT', 'WITHDRAW', 'AUCTION_PAY', 'AUCTION_PROFIT')),
+    type TEXT NOT NULL CHECK(type IN ('DEPOSIT', 'WITHDRAW', 'AUCTION_PAY', 'AUCTION_PROFIT', 'AUCTION_REFUND')),
     amount REAL NOT NULL,
     auctionId TEXT,
     FOREIGN KEY (username) REFERENCES Users(username),
@@ -130,3 +132,20 @@ CREATE INDEX IF NOT EXISTS item_image_link_item_id_idx ON ItemImageLinks(itemId)
 
 -- lấy item link theo image
 CREATE INDEX IF NOT EXISTS item_image_link_image_id_idx ON ItemImageLinks(imageId);
+
+-- TABLE WalletRequests
+CREATE TABLE IF NOT EXISTS WalletRequests (
+    id TEXT UNIQUE NOT NULL PRIMARY KEY,
+    createdAt TEXT NOT NULL,
+    reviewedAt TEXT,
+    username TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('DEPOSIT', 'WITHDRAW')),
+    amount REAL NOT NULL CHECK(amount > 0),
+    status TEXT NOT NULL DEFAULT 'PENDING' CHECK(status IN ('PENDING', 'APPROVED', 'DENIED')),
+    reviewedBy TEXT,
+    FOREIGN KEY (username) REFERENCES Users(username),
+    FOREIGN KEY (reviewedBy) REFERENCES Users(username)
+);
+
+CREATE INDEX IF NOT EXISTS wallet_request_username_created_idx ON WalletRequests(username, createdAt);
+CREATE INDEX IF NOT EXISTS wallet_request_status_created_idx ON WalletRequests(status, createdAt);

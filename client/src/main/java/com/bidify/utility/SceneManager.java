@@ -60,23 +60,32 @@ public final class SceneManager {
     private static final AtomicBoolean isSwitchingScene = new AtomicBoolean(false);
     private static RotateTransition spinAnimation;
 
+    // dùng để tạo một đối tượng SceneManager
     private SceneManager() {}
 
+    // dùng để thiết lập stage
     public static void setStage(Stage s) {
         if (stage != null) return;
         stage = s;
+        // dùng để khởi tạo lớp phủ
         initOverlay();
+        // dùng để khởi tạo shell
         initShell();
     }
 
+    // dùng để chuyển đổi giao diện màn hình
     public static void switchScene(String fxml) {
+        // dùng để chuyển đổi giao diện màn hình
         switchScene(fxml, true, false);
     }
 
+    // dùng để chuyển đổi giao diện màn hình
     public static void switchScene(String fxml, boolean remember) {
+        // dùng để chuyển đổi giao diện màn hình
         switchScene(fxml, remember, false);
     }
 
+    // dùng để chuyển đổi giao diện màn hình
     public static void switchScene(String fxml, boolean remember, boolean showBar) {
 
         if (!isSwitchingScene.compareAndSet(false, true)) return;
@@ -115,6 +124,7 @@ public final class SceneManager {
                     Scene scene = stage.getScene();
                     if (scene == null) {
                         contentLayer.getChildren().setAll(root);
+                        // dùng để cập nhật shell layout
                         updateShellLayout();
                         stage.setScene(new Scene(shell));
                         scene = stage.getScene();
@@ -126,10 +136,13 @@ public final class SceneManager {
                             scene.setRoot(shell);
                         }
                         contentLayer.getChildren().setAll(root);
+                        // dùng để cập nhật shell layout
                         updateShellLayout();
                     }
 
+                    // dùng để tải css
                     loadCss(scene, fxml);
+                    // dùng để hiển thị loading
                     showLoading(false);
                 });
             }
@@ -137,6 +150,7 @@ public final class SceneManager {
                 Platform.runLater(() -> {
                     if (token != navigationToken.get()) return;
                     completed.set(true);
+                    // dùng để hiển thị loading
                     showLoading(false);
                     logger.warn("Exception occurred", e);
                 });
@@ -146,16 +160,19 @@ public final class SceneManager {
         loaderThread.start();
     }
 
+    // dùng để thiết lập input blocked
     private static void setInputBlocked(boolean blocked) {
         if (stage == null || stage.getScene() == null) return;
         stage.getScene().getRoot().setMouseTransparent(blocked);
     }
 
+    // dùng để finish chuyển đổi giao diện màn hình
     private static void finishSwitchScene() {
         Platform.runLater(() -> setInputBlocked(false));
         isSwitchingScene.set(false);
     }
 
+    // dùng để preload scenes
     public static void preloadScenes(String... fxmls) {
         if (fxmls == null) return;
 
@@ -164,6 +181,7 @@ public final class SceneManager {
 
             Thread preloadThread = new Thread(() -> {
                 try {
+                    // dùng để tải fxml
                     loadFxml(fxml, true);
                 }
                 catch (Exception e) {
@@ -175,23 +193,28 @@ public final class SceneManager {
         }
     }
 
+    // dùng để xóa sạch cache
     public static void clearCache(String fxml) {
         if (fxml == null) return;
         cache.remove(fxml);
     }
 
+    // dùng để xóa sạch all cache
     public static void clearAllCache() {
         cache.clear();
     }
 
+    // dùng để lấy mission bar bộ điều khiển UI
     public static MissionBarController getMissionBarController() {
         return missionBarController;
     }
 
+    // dùng để lấy lớp phủ layer
     public static StackPane getOverlayLayer() {
         return overlayLayer;
     }
 
+    // dùng để tải fxml
     private static Parent loadFxml(String fxml, boolean remember) throws Exception {
         Parent cached = cache.get(fxml);
         if (remember && cached != null) return cached;
@@ -201,6 +224,7 @@ public final class SceneManager {
         return root;
     }
 
+    // dùng để do tải fxml
     private static Parent doLoadFxml(String fxml) throws Exception {
         var location = SceneManager.class.getResource("/fxml/" + fxml);
         if (location == null) throw new IllegalArgumentException("FXML not found: /fxml/" + fxml);
@@ -209,6 +233,7 @@ public final class SceneManager {
         return loader.load();
     }
 
+    // dùng để tải css
     private static void loadCss(Scene scene, String fxml) {
         String cssName = fxml.replace(".fxml", ".css");
         var cssUrl = SceneManager.class.getResource("/css/" + cssName);
@@ -217,6 +242,7 @@ public final class SceneManager {
         if (cssUrl != null) scene.getStylesheets().add(cssUrl.toExternalForm());
     }
 
+    // dùng để khởi tạo lớp phủ
     private static void initOverlay() {
         Circle baseRing = new Circle(12);
         baseRing.setFill(Color.TRANSPARENT);
@@ -259,6 +285,7 @@ public final class SceneManager {
         spinAnimation.setInterpolator(Interpolator.LINEAR);
     }
 
+    // dùng để khởi tạo shell
     private static void initShell() {
         if (missionBarRoot == null) {
             try {
@@ -271,9 +298,11 @@ public final class SceneManager {
             }
         }
 
+        // dùng để cập nhật shell layout
         updateShellLayout();
     }
 
+    // dùng để cập nhật shell layout
     private static void updateShellLayout() {
         shell.getChildren().clear();
         shell.getChildren().add(contentLayer);
@@ -288,15 +317,19 @@ public final class SceneManager {
         shell.getChildren().add(overlayLayer);
     }
 
+    // dùng để hiển thị loading
     private static void showLoading(boolean visible) {
         if (stage == null) return;
         if (visible) {
+            // dùng để tạo hiệu ứng chuyển động hiển thị loading
             animateShowLoading();
         } else {
+            // dùng để tạo hiệu ứng chuyển động ẩn loading
             animateHideLoading();
         }
     }
 
+    // dùng để tạo hiệu ứng chuyển động hiển thị loading
     private static void animateShowLoading() {
         loadingNode.setVisible(true);
         loadingNode.setManaged(true);
@@ -315,6 +348,7 @@ public final class SceneManager {
         new ParallelTransition(fade, drop).play();
     }
 
+    // dùng để tạo hiệu ứng chuyển động ẩn loading
     private static void animateHideLoading() {
         FadeTransition fade = new FadeTransition(Duration.millis(50), loadingNode);
         fade.setFromValue(loadingNode.getOpacity());
@@ -332,6 +366,7 @@ public final class SceneManager {
             loadingNode.setManaged(false);
             loadingNode.setOpacity(0);
             loadingNode.setTranslateY(-450);
+            // dùng để finish chuyển đổi giao diện màn hình
             finishSwitchScene();
         });
         hide.play();

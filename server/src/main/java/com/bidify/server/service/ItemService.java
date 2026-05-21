@@ -35,10 +35,13 @@ public class ItemService {
     private final ImageDao imageDao = ImageDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
 
+    // dùng để tạo một đối tượng ItemService
     private ItemService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static ItemService getInstance() { return instance; }
 
+    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.CREATE_ITEM, this::create);
@@ -49,6 +52,7 @@ public class ItemService {
         router.register(RequestType.DELETE_ITEM, this::delete);
     }
 
+    // dùng để tạo
     public Response create(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             CreateItemRequest data = JsonUtil.fromMap(request.getData(), CreateItemRequest.class);
@@ -59,7 +63,9 @@ public class ItemService {
 
             String ownerUsername = data.getOwnerUsername();
             String currentUsername = client.getCurrentUsername();
+            // dùng để bắt buộc phải có chủ sở hữu
             requireOwner(currentUsername, ownerUsername);
+            // dùng để kiểm tra tính hợp lệ sản phẩm fields
             validateItemFields(data);
 
             Item item = new Item(
@@ -115,6 +121,7 @@ public class ItemService {
         });
     }
 
+    // dùng để cập nhật
     public Response update(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdateItemRequest data = JsonUtil.fromMap(request.getData(), UpdateItemRequest.class);
@@ -139,6 +146,7 @@ public class ItemService {
         });
     }
 
+    // dùng để xóa
     public Response delete(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             DeleteItemRequest data = JsonUtil.fromMap(request.getData(), DeleteItemRequest.class);
@@ -149,12 +157,14 @@ public class ItemService {
             if (item.getAvailabilityStatus() != ItemStatus.AVAILABLE)
                 throw new ValidationException("Only available items can be deleted");
 
+            // dùng để xóa sản phẩm assets
             deleteItemAssets(item);
             itemDao.deleteById(item.getId());
             return new Response(RequestStatus.SUCCESS, "Item deleted successfully");
         });
     }
 
+    // dùng để tải kho đồ
     private Response loadInventory(String ownerUsername) {
         List<Item> items = itemDao.findByOwnerUsername(ownerUsername);
         List<ItemDto> inventory = new ArrayList<>();
@@ -164,6 +174,7 @@ public class ItemService {
         return new Response(RequestStatus.SUCCESS, "Inventory loaded successfully", inventory);
     }
 
+    // dùng để bắt buộc phải có chủ sở hữu
     private void requireOwner(String currentUsername, String ownerUsername) {
         ValidationUtil.validateUsername(currentUsername);
         ValidationUtil.validateUsername(ownerUsername);
@@ -172,10 +183,12 @@ public class ItemService {
             throw new ValidationException("You do not have permission to create this item");
     }
 
+    // dùng để kiểm tra tính hợp lệ sản phẩm fields
     private void validateItemFields(CreateItemRequest data) {
         validateItemFields(data.getName(), data.getDescription(), data.getCategory(), data.getProductType());
     }
 
+    // dùng để kiểm tra tính hợp lệ sản phẩm fields
     private void validateItemFields(String name, String description, String category, String productType) {
         ValidationUtil.requiresNonBlank(name, "Item name");
         ValidationUtil.requiresNonBlank(description, "Description");
@@ -184,6 +197,7 @@ public class ItemService {
         ValidationUtil.validateMaxLength("Description", description, 2000);
     }
 
+    // dùng để bắt buộc phải có accessible sản phẩm
     private Item requireAccessibleItem(User user, String itemId, String permissionMessage) throws DatabaseException {
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
 
@@ -195,6 +209,7 @@ public class ItemService {
         return item;
     }
 
+    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO) với images
     private ItemDto toDtoWithImages(Item item, boolean includeGallery) {
         ItemDto itemDto = ItemMapper.toDto(item);
         List<String> gallery = getGallery(item.getId());
@@ -204,6 +219,7 @@ public class ItemService {
         return itemDto;
     }
 
+    // dùng để lấy gallery
     private List<String> getGallery(String itemId) {
         List<String> gallery = new ArrayList<>();
         try {
@@ -222,7 +238,9 @@ public class ItemService {
         return gallery;
     }
 
+    // dùng để replace sản phẩm images
     private void replaceItemImages(String itemId, List<String> imagesBase64) throws DatabaseException {
+        // dùng để xóa sạch sản phẩm images
         clearItemImages(itemId);
 
         if (imagesBase64 == null || imagesBase64.isEmpty())
@@ -234,10 +252,12 @@ public class ItemService {
         itemDao.saveItemImageLinks(itemId, savedImages);
     }
 
+    // dùng để xóa sản phẩm assets
     private void deleteItemAssets(Item item) throws DatabaseException {
         clearItemImages(item.getId());
     }
 
+    // dùng để xóa sạch sản phẩm images
     private void clearItemImages(String itemId) throws DatabaseException {
         for (String imageId : itemDao.findImageIdsByItemId(itemId)) {
             Image image = imageDao.findById(imageId);
@@ -248,6 +268,7 @@ public class ItemService {
         itemDao.deleteItemImageLinks(itemId);
     }
 
+    // dùng để trim chuyển thành null
     private String trimToNull(String value) {
         return value == null ? null : value.trim();
     }

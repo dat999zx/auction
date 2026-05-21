@@ -59,8 +59,10 @@ public class SocketClient {
     private static final String TRUSTSTORE_PATH = "/truststore/client-truststore.jks";
     private static final char[] TRUSTSTORE_PASSWORD = "blablablabidifyclient".toCharArray();
 
-    private SocketClient() {} // tránh tạo object từ ngoài -> singleton
+    // dùng để tạo một đối tượng SocketClient
+    protected SocketClient() {} // tránh tạo object từ ngoài -> singleton
 
+    // dùng để lấy client
     public static SocketClient getClient() { // lấy client
         return client;
     }
@@ -78,6 +80,7 @@ public class SocketClient {
     }
 
     // kết nối đến server
+    // dùng để kết nối
     public void connect(String host, int port) throws IOException {
         synchronized (connectionLock) {
             if (socket != null) {
@@ -92,6 +95,7 @@ public class SocketClient {
 
                 in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 out = new PrintWriter(socket.getOutputStream(), true);
+                // dùng để bắt đầu listening
                 startListening();
             }
             catch (ConnectException e) {
@@ -99,16 +103,19 @@ public class SocketClient {
             }
             catch (IOException e) {
                 logger.error("Exception occurred", e);
+                // dùng để đóng
                 close();
             }
             catch (Exception e) {
                 logger.error("Failed to initialize TLS", e);
+                // dùng để đóng
                 close();
             }
         }
     }
 
     // gửi request đến server và nhận về response
+    // dùng để gửi
     public Response send(Request request) throws IOException {
         BlockingQueue<Response> queue = new ArrayBlockingQueue<>(1);
 
@@ -134,6 +141,7 @@ public class SocketClient {
     }
 
     // bắt đầu lắng nghe server
+    // dùng để bắt đầu listening
     public void startListening() {
         if ((listenerThread != null && listenerThread.isAlive()) || socket == null || in == null) return;
 
@@ -168,6 +176,7 @@ public class SocketClient {
     }
 
     // đóng kết nối
+    // dùng để đóng
     public void close() throws IOException {
         synchronized (connectionLock) {
             closing = true;
@@ -186,6 +195,7 @@ public class SocketClient {
         }
     }
 
+    // dùng để tạo kết nối socket factory
     private SSLSocketFactory createSocketFactory() throws Exception {
         KeyStore trustStore = KeyStore.getInstance("JKS");
 

@@ -2,8 +2,12 @@ package com.bidify.service;
 
 import java.io.IOException;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.dto.WalletDto;
+import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserRole;
@@ -54,25 +58,56 @@ public class UserProfileClientService {
         return new UserDto(username, username, new WalletDto(0, 0), UserRole.USER);
     }
 
+    // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname) throws IOException {
+        return updateProfile(nickname, null);
+    }
+
+    // dùng để cập nhật thông tin tài khoản
+    public UserDto updateProfile(String nickname, String profileImageBase64) throws IOException {
         ValidationUtil.validateNickname(nickname);
 
-        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(nickname.trim(), null)));
+        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(nickname.trim(), null, profileImageBase64)));
+        // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
         return consumeProfileResponse(response, "Cannot update profile.");
     }
 
-    public UserDto addWalletBalance(double amount) throws IOException {
+    // dùng để gửi yêu cầu nạp tiền lên server thông qua socket connection
+    public void addWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
         Response response = client.send(new Request(RequestType.DEPOSIT, new WalletRequest(amount)));
-        return consumeProfileResponse(response, "Cannot update wallet.");
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot submit deposit request." : response.getMessage());
     }
 
-    public UserDto withdrawWalletBalance(double amount) throws IOException {
+    // dùng để gửi yêu cầu rút tiền lên server thông qua socket connection
+    public void withdrawWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
         Response response = client.send(new Request(RequestType.WITHDRAW, new WalletRequest(amount)));
-        return consumeProfileResponse(response, "Cannot update wallet.");
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot submit withdraw request." : response.getMessage());
     }
 
+    public List<WalletRequestDto> getUserWalletRequests() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_WALLET_REQUEST_HISTORY, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot load wallet requests." : response.getMessage());
+
+        List<?> rawRequests = JsonUtil.fromMap(response.getData(), List.class);
+        List<WalletRequestDto> requests = new ArrayList<>();
+        if (rawRequests == null)
+            return requests;
+
+        for (Object rawReq : rawRequests) {
+            WalletRequestDto req = JsonUtil.fromMap(rawReq, WalletRequestDto.class);
+            if (req != null)
+                requests.add(req);
+        }
+
+        return requests;
+    }
+
+    // dùng để change mật khẩu
     public void changePassword(String currentPassword, String newPassword, String confirmPassword) throws IOException {
         ValidationUtil.validatePassword(currentPassword);
         ValidationUtil.validatePassword(newPassword);
@@ -89,6 +124,7 @@ public class UserProfileClientService {
             throw new ValidationException(response.getMessage() == null ? "Cannot update password." : response.getMessage());
     }
 
+    // dùng để change mật khẩu preview
     public void changePasswordPreview(String currentPassword, String newPassword, String confirmPassword) {
         ValidationUtil.validatePassword(currentPassword);
         ValidationUtil.validatePassword(newPassword);
@@ -103,6 +139,7 @@ public class UserProfileClientService {
         }
     }
 
+    // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
     private UserDto consumeProfileResponse(Response response, String fallbackMessage) {
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
             throw new ValidationException(response.getMessage() == null ? fallbackMessage : response.getMessage());

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,12 +20,20 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
+import com.bidify.common.enums.ItemStatus;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.model.DisableAutoBidRequest;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.SetAutoBidRequest;
+import com.bidify.common.model.PayAuctionRequest;
+import com.bidify.common.model.ConfirmDeliveryRequest;
+import com.bidify.common.model.DeleteAuctionRequest;
+import com.bidify.common.model.ResolveAuctionRequest;
+import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
 import com.bidify.server.dao.ItemDao;
@@ -37,6 +46,7 @@ import com.bidify.server.model.Item;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
+import com.bidify.server.utility.ServiceUtil;
 
 class AuctionServiceTest {
     // Giả định AuctionService áp dụng Singleton pattern tương tự AuthService
@@ -52,11 +62,13 @@ class AuctionServiceTest {
     private final List<String> createdItemIds = new ArrayList<>();
     private final List<String> createdUsernames = new ArrayList<>();
 
+    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         SQLiteHelper.init();
     }
 
+    // dùng để thiết lập up
     @BeforeEach
     void setUp() {
         RealtimeDatabase.clearAll();
@@ -65,6 +77,7 @@ class AuctionServiceTest {
         createdUsernames.clear();
     }
 
+    // dùng để tear down
     @AfterEach
     void tearDown() {
         RealtimeDatabase.clearAll();
@@ -87,9 +100,11 @@ class AuctionServiceTest {
         }
     }
 
+    // dùng để lấy live danh sách đấu giá successfully returns list
     @Test
     void getLiveAuctionsSuccessfullyReturnsList() {
         // Seed dữ liệu
+        // dùng để tạo test đấu giá
         createTestAuction("Test Active", AuctionStatus.ACTIVE);
         
         // Gọi service xử lý
@@ -102,6 +117,7 @@ class AuctionServiceTest {
         assertFalse(data.isEmpty());
     }
 
+    // dùng để place lượt đặt giá successfully updates đấu giá and creates lượt đặt giá
     @Test
     void placeBidSuccessfullyUpdatesAuctionAndCreatesBid() {
         String bidderUsername = uniqueUsername("bidder");
@@ -131,6 +147,7 @@ class AuctionServiceTest {
         assertEquals(bidderUsername, bids.get(bids.size() - 1).getBidderUsername());
     }
 
+    // dùng để place lượt đặt giá fails when client not logged trong
     @Test
     void placeBidFailsWhenClientNotLoggedIn() {
         Auction auction = createTestAuction("Bid Auction", AuctionStatus.ACTIVE);
@@ -145,6 +162,7 @@ class AuctionServiceTest {
         assertEquals(RequestStatus.FAILED, response.getStatus());
     }
 
+    // dùng để place lượt đặt giá fails when đấu giá kiểm tra xem not active
     @Test
     void placeBidFailsWhenAuctionIsNotActive() {
         String bidderUsername = uniqueUsername("bidder");
@@ -164,6 +182,7 @@ class AuctionServiceTest {
         assertEquals(RequestStatus.FAILED, response.getStatus());
     }
 
+    // dùng để thiết lập auto lượt đặt giá can immediately overtake tại minimum needed số tiền
     @Test
     void setAutoBidCanImmediatelyOvertakeAtMinimumNeededAmount() {
         String bidder1 = uniqueUsername("autoA");
@@ -192,6 +211,7 @@ class AuctionServiceTest {
         assertEquals(1300.0, updated.getCurrentBid());
     }
 
+    // dùng để raising leader auto lượt đặt giá max does not tạo extra lịch sử entry when visible lượt đặt giá stays same
     @Test
     void raisingLeaderAutoBidMaxDoesNotCreateExtraHistoryEntryWhenVisibleBidStaysSame() {
         String bidder = uniqueUsername("leader");
@@ -215,6 +235,7 @@ class AuctionServiceTest {
         assertEquals(before, bidDao.findByAuctionId(auction.getId()).size());
     }
 
+    // dùng để disable auto lượt đặt giá succeeds cho leading bidder
     @Test
     void disableAutoBidSucceedsForLeadingBidder() {
         String bidder = uniqueUsername("autoDisable");
@@ -245,6 +266,7 @@ class AuctionServiceTest {
         assertEquals(1200.0, updated.getCurrentBid());
     }
 
+    // dùng để lấy đấu giá chi tiết marks current danh sách người dùng active auto lượt đặt giá
     @Test
     void getAuctionDetailMarksCurrentUsersActiveAutoBid() {
         String bidder = uniqueUsername("autoDetail");
@@ -265,6 +287,7 @@ class AuctionServiceTest {
 
         assertEquals(RequestStatus.SUCCESS, detail.getStatus());
         AuctionDto dto = (AuctionDto) detail.getData();
+        // dùng để assert not null
         assertNotNull(dto);
         assertTrue(dto.isCurrentUserAutoBidActive());
         assertEquals(2000.0, dto.getCurrentUserAutoBidMax());
@@ -272,6 +295,7 @@ class AuctionServiceTest {
 
     // --- Helper Methods ---
 
+    // dùng để tạo test người dùng
     private User createTestUser(String username, String rawPassword) {
         User user = new User(username, username, PasswordUtil.hash(rawPassword));
         userDao.create(user);
@@ -279,6 +303,7 @@ class AuctionServiceTest {
         return user;
     }
 
+    // dùng để tạo funded active người dùng
     private User createFundedActiveUser(String username, double balance) {
         User user = createTestUser(username, "secret123");
         user.getWallet().deposit(balance);
@@ -286,9 +311,11 @@ class AuctionServiceTest {
         return user;
     }
 
+    // dùng để tạo test đấu giá
     private Auction createTestAuction(String name, AuctionStatus status) {
         // Bắt buộc tạo một mock Seller trước khi tạo Auction để giữ toàn vẹn khóa ngoại (FK)
         String sellerUsername = uniqueUsername("seller");
+        // dùng để tạo test người dùng
         createTestUser(sellerUsername, "sellerPass");
 
         Item item = new Item(sellerUsername, name, "Test description", "Cat", "Type");
@@ -299,8 +326,8 @@ class AuctionServiceTest {
             sellerUsername, 
             item.getId(), 
             1000.0, 
-            LocalDateTime.now().minusHours(1), 
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().minusHours(1), 
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         auction.setAuctionName(name);
         auction.setDescription("Test description");
@@ -317,10 +344,12 @@ class AuctionServiceTest {
         return auction;
     }
 
+    // dùng để unique username
     private String uniqueUsername(String prefix) {
         return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
 
+    // dùng để session client
     private TestClientHandler sessionClient(User user) {
         TestClientHandler client = new TestClientHandler();
         client.setCurrentUsername(user.getUsername());
@@ -328,13 +357,226 @@ class AuctionServiceTest {
         return client;
     }
 
+    @Test
+    void settleAuctionWithWinnerMovesToAwaitingPaymentAndDoesNotChargeWinner() {
+        Auction auction = createTestAuction("Settle Auction Winner Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auctionDao.save(auction);
+
+        auctionService.settleAuction(auction);
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertEquals(AuctionStatus.AWAITING_PAYMENT, updated.getStatus());
+
+        User updatedBidder = ServiceUtil.getOrLoadUser(bidderUsername);
+        assertEquals(5000.0, updatedBidder.getWallet().getBalance());
+        assertEquals(1200.0, updatedBidder.getWallet().getLockedBalance());
+    }
+
+    @Test
+    void payAuctionRequiresWinningBidder() {
+        Auction auction = createTestAuction("Pay Auction Auth Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
+        auctionDao.save(auction);
+
+        String otherUsername = uniqueUsername("other");
+        User other = createFundedActiveUser(otherUsername, 5000.0);
+
+        TestClientHandler otherClient = sessionClient(other);
+
+        Response response = auctionService.payAuction(otherClient, new Request(RequestType.PAY_AUCTION, new PayAuctionRequest(auction.getId())));
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+    }
+
+    @Test
+    void payAuctionMovesToAwaitingDeliveryAndConsumesLockedBalance() {
+        Auction auction = createTestAuction("Pay Auction Main Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
+        auctionDao.save(auction);
+
+        TestClientHandler bidderClient = sessionClient(bidder);
+
+        Response response = auctionService.payAuction(bidderClient, new Request(RequestType.PAY_AUCTION, new PayAuctionRequest(auction.getId())));
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertEquals(AuctionStatus.AWAITING_DELIVERY, updated.getStatus());
+
+        User updatedWinner = userDao.findByUsername(bidderUsername);
+        assertEquals(3800.0, updatedWinner.getWallet().getBalance());
+        assertEquals(0.0, updatedWinner.getWallet().getLockedBalance());
+    }
+
+    @Test
+    void confirmDeliveryRequiresSellerOrAdmin() {
+        Auction auction = createTestAuction("Confirm Delivery Auth Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auction.setStatus(AuctionStatus.AWAITING_DELIVERY);
+        auctionDao.save(auction);
+
+        String otherUsername = uniqueUsername("other");
+        User other = createFundedActiveUser(otherUsername, 5000.0);
+        TestClientHandler otherClient = sessionClient(other);
+
+        Response response = auctionService.confirmAuctionDelivery(otherClient, new Request(RequestType.CONFIRM_AUCTION_DELIVERY, new ConfirmDeliveryRequest(auction.getId())));
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+    }
+
+    @Test
+    void confirmDeliveryMovesItemToWinnerAndPaysSeller() {
+        Auction auction = createTestAuction("Confirm Delivery Main Test", AuctionStatus.ACTIVE);
+        String sellerUsername = auction.getSellerUsername();
+        User seller = userDao.findByUsername(sellerUsername);
+        double initialSellerBalance = seller.getWallet().getBalance();
+
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auction.setStatus(AuctionStatus.AWAITING_DELIVERY);
+        auctionDao.save(auction);
+
+        TestClientHandler sellerClient = sessionClient(seller);
+
+        Response response = auctionService.confirmAuctionDelivery(sellerClient, new Request(RequestType.CONFIRM_AUCTION_DELIVERY, new ConfirmDeliveryRequest(auction.getId())));
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertEquals(AuctionStatus.COMPLETED, updated.getStatus());
+
+        User updatedSeller = userDao.findByUsername(sellerUsername);
+        assertEquals(initialSellerBalance + 1200.0, updatedSeller.getWallet().getBalance());
+
+        Item item = itemDao.findById(auction.getItemId());
+        assertEquals(bidderUsername, item.getOwnerUsername());
+    }
+
+    @Test
+    void adminCancelAwaitingPaymentUnlocksWinnerAndCancelsAuction() {
+        Auction auction = createTestAuction("Admin Cancel Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
+        auctionDao.save(auction);
+
+        String adminUsername = uniqueUsername("admin");
+        User admin = createTestUser(adminUsername, "adminPass");
+        admin.setRole(UserRole.ADMIN);
+        userDao.save(admin, false);
+
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.resolveAuction(adminClient, new Request(RequestType.RESOLVE_AUCTION, new ResolveAuctionRequest(auction.getId(), AuctionResolutionAction.CANCEL)));
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertEquals(AuctionStatus.CANCELED, updated.getStatus());
+
+        User updatedWinner = ServiceUtil.getOrLoadUser(bidderUsername);
+        assertEquals(5000.0, updatedWinner.getWallet().getBalance());
+        assertEquals(0.0, updatedWinner.getWallet().getLockedBalance());
+    }
+
+    @Test
+    void sellerCanCancelActiveAuctionAndUnlockCurrentBidder() {
+        Auction auction = createTestAuction("Seller Active Cancel Test", AuctionStatus.ACTIVE);
+        String sellerUsername = auction.getSellerUsername();
+        User seller = userDao.findByUsername(sellerUsername);
+
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auctionDao.save(auction);
+
+        TestClientHandler sellerClient = sessionClient(seller);
+
+        Response response = auctionService.delete(sellerClient, new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auction.getId())));
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertNotNull(updated);
+        assertEquals(AuctionStatus.CANCELED, updated.getStatus());
+        assertEquals(null, RealtimeDatabase.getRuntimeAuction(auction.getId()));
+
+        User updatedBidder = userDao.findByUsername(bidderUsername);
+        assertEquals(5000.0, updatedBidder.getWallet().getBalance());
+        assertEquals(0.0, updatedBidder.getWallet().getLockedBalance());
+
+        Item item = itemDao.findById(auction.getItemId());
+        assertEquals(sellerUsername, item.getOwnerUsername());
+        assertEquals(ItemStatus.AVAILABLE, item.getAvailabilityStatus());
+    }
+
+    @Test
+    void canceledActiveAuctionCannotBeUpdatedToStartAgain() {
+        Auction auction = createTestAuction("Canceled Cannot Restart Test", AuctionStatus.CANCELED);
+        User seller = userDao.findByUsername(auction.getSellerUsername());
+        TestClientHandler sellerClient = sessionClient(seller);
+
+        UpdateAuctionRequest request = new UpdateAuctionRequest(
+            auction.getId(),
+            "",
+            "",
+            1500.0,
+            100.0,
+            TimeUtil.nowInVietnam().plusHours(1).toString(),
+            TimeUtil.nowInVietnam().plusHours(2).toString(),
+            "Try to restart canceled auction"
+        );
+
+        Response response = auctionService.update(sellerClient, new Request(RequestType.UPDATE_AUCTION, request));
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().contains("Can only update auction before it starts"));
+    }
+
     // --- Mock Classes ---
     
     private static class TestClientHandler extends ClientHandler {
+        // dùng để test client trình xử lý
         TestClientHandler() {
+            // dùng để super
             super(null);
         }
 
+        // dùng để kiểm tra xem trong phiên làm việc
         @Override
         public boolean isInSession() {
             return getCurrentUsername() != null;

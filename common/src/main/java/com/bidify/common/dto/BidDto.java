@@ -8,12 +8,16 @@ public class BidDto {
     private String auctionId;
     private boolean autoBidGenerated;
 
+    // dùng để tạo một đối tượng BidDto
     public BidDto() {}
 
+    // dùng để tạo một đối tượng BidDto
     public BidDto(String id, String createdAt, String auctionId, String bidderUsername, double amount) {
+        // dùng để this
         this(id, createdAt, auctionId, bidderUsername, amount, false);
     }
 
+    // dùng để tạo một đối tượng BidDto
     public BidDto(String id, String createdAt, String auctionId, String bidderUsername, double amount, boolean autoBidGenerated) {
         this.id = id;
         this.createdAt = createdAt;
@@ -43,6 +47,7 @@ public class BidDto {
         return auctionId;
     }
 
+    // dùng để kiểm tra xem auto lượt đặt giá generated
     public boolean isAutoBidGenerated() {
         return autoBidGenerated;
     }

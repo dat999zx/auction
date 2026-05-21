@@ -71,6 +71,7 @@ public class AuctionDto {
     public List<BidDto> getBidHistory() { return bidHistory; }
     public void setBidHistory(List<BidDto> bidHistory) { this.bidHistory = bidHistory; }
 
+    // dùng để kiểm tra xem current người dùng auto lượt đặt giá active
     public boolean isCurrentUserAutoBidActive() { return currentUserAutoBidActive; }
     public void setCurrentUserAutoBidActive(boolean currentUserAutoBidActive) { this.currentUserAutoBidActive = currentUserAutoBidActive; }
     public Double getCurrentUserAutoBidMax() { return currentUserAutoBidMax; }

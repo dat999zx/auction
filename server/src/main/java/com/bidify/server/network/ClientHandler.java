@@ -17,7 +17,7 @@ import java.net.SocketException;
 
 import javax.net.ssl.SSLSocket;
 
-// láº¯ng nghe client
+// lắng nghe client
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,10 +29,12 @@ public class ClientHandler implements Runnable, Observer {
     private BufferedReader in;
     private PrintWriter out;
 
+    // dùng để tạo một đối tượng ClientHandler
     public ClientHandler(SSLSocket socket) {
         this.socket = socket;
     }
 
+    // dùng để chạy
     @Override
     public void run() {
         try {
@@ -44,6 +46,7 @@ public class ClientHandler implements Runnable, Observer {
                 Request request = JsonUtil.fromJson(line, Request.class);
                 Response response = dispatcher.dispatch(this, request);
                 response.setId(request.getId());
+                // dùng để gửi kết quả trả về (Response)
                 sendResponse(response);
             }
         } catch (SocketException e2) {
@@ -51,37 +54,44 @@ public class ClientHandler implements Runnable, Observer {
         } catch (IOException e2) {
             logger.warn("Exception occurred", e2);
         } finally {
+            // dùng để xử lý ngắt kết nối
             handleDisconnect();
         }
     }
 
-    public void sendResponse(Response response) { // gá»­i response Ä‘áº¿n client
+    // dùng để gửi kết quả trả về (Response)
+    public void sendResponse(Response response) { // gửi response đến client
         if (out != null)
             out.println(JsonUtil.toJson(response));
     }
 
-    public void sendEvent(Event event) { // gá»­i event Ä‘áº¿n client
+    // dùng để gửi sự kiện
+    public void sendEvent(Event event) { // gửi event đến client
         if (out != null)
             out.println(JsonUtil.toJson(event));
     }
 
+    // dùng để xử lý sự kiện sự kiện
     @Override
     public void onEvent(Event event) {
+        // dùng để gửi sự kiện
         sendEvent(event);
     }
 
-    public void setCurrentUsername(String username) { // thiáº¿t láº­p username cá»§a client
+    public void setCurrentUsername(String username) { // thiết lập username của client
         this.currentUsername = username;
     }
 
-    public String getCurrentUsername() { // láº¥y username cá»§a client
+    public String getCurrentUsername() { // lấy username của client
         return currentUsername;
     }
 
-    public boolean isInSession(){ // xÃ¡c thá»±c client Ä‘Ã£ Ä‘Äƒng nháº­p chÆ°a
+    // dùng để kiểm tra xem trong phiên làm việc
+    public boolean isInSession(){ // xác thực client đã đăng nhập chưa
         return socket != null && currentUsername != null;
     }
 
+    // dùng để đóng kết nối
     public void closeConnection() {
         try {
             if (socket != null && !socket.isClosed())
@@ -92,7 +102,8 @@ public class ClientHandler implements Runnable, Observer {
         }
     }
 
-    private void handleDisconnect() { // xá»­ lÃ½ khi client ngáº¯t káº¿t ná»‘i
+    // dùng để xử lý ngắt kết nối
+    private void handleDisconnect() { // xử lý khi client ngắt kết nối
         logger.info("Client disconnected: {}", socket.getInetAddress());
         if (currentUsername == null) return;
         Request request = new Request(RequestType.LOGOUT, new LogoutRequest());

@@ -9,6 +9,7 @@ import com.bidify.server.service.BidService;
 import com.bidify.server.service.ItemService;
 import com.bidify.server.service.TransactionService;
 import com.bidify.server.service.UserProfileService;
+import com.bidify.server.service.AdminWalletRequestService;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.database.RealtimeDatabase;
@@ -29,6 +30,7 @@ public class ServerApp {
     private static final String KEYSTORE_PATH = "/keystore/server.jks";
     private static final char[] KEYSTORE_PASSWORD = "blablablabidifyserver".toCharArray();
 
+    // dùng để main
     public static void main(String[] args) {
         logger.info("Server is starting...");
         
@@ -49,6 +51,7 @@ public class ServerApp {
         BidService.getInstance().initialize();
         ItemService.getInstance().initialize();
         TransactionService.getInstance().initialize();
+        AdminWalletRequestService.getInstance().initialize();
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
@@ -83,6 +86,7 @@ public class ServerApp {
         }
     }
 
+    // dùng để tạo server ssl context
     private static SSLContext createServerSslContext() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");
         try (InputStream in = ServerApp.class.getResourceAsStream(KEYSTORE_PATH)) {
@@ -98,6 +102,7 @@ public class ServerApp {
         return context;
     }
 
+    // dùng để giải quyết cổng kết nối
     private static int resolvePort() {
         String rawPort = System.getProperty("server.port");
         if (rawPort == null || rawPort.isBlank())

@@ -24,6 +24,10 @@ public class BiddingRowController {
     private Label statusLabel;
 
     public void setData(String title, String subtitle, String amount, String dateTime, String status) {
+        setData(title, subtitle, amount, dateTime, status, null);
+    }
+
+    public void setData(String title, String subtitle, String amount, String dateTime, String status, String auctionId) {
         titleLabel.setText(title);
         subtitleLabel.setText(subtitle);
         amountLabel.setText(amount);
@@ -32,8 +36,21 @@ public class BiddingRowController {
         
         statusLabel.getStyleClass().clear();
         statusLabel.getStyleClass().add(resolveBadgeStyle(status));
+
+        if (auctionId != null && !auctionId.isBlank()) {
+            row.setStyle("-fx-cursor: hand;");
+            row.setOnMouseClicked(event -> {
+                com.bidify.controller.AuctionDetailsController.setAuctionId(auctionId);
+                com.bidify.utility.SceneManager.clearCache("auctiondetail.fxml");
+                com.bidify.utility.SceneManager.switchScene("auctiondetail.fxml", false, false);
+            });
+        } else {
+            row.setStyle("");
+            row.setOnMouseClicked(null);
+        }
     }
 
+    // dùng để giải quyết badge style
     private String resolveBadgeStyle(String status) {
         if ("WON".equals(status) || "PROFIT".equals(status) || "PLACED".equals(status) || "AUTO".equals(status) || "PENDING".equals(status))
             return "badge-won";

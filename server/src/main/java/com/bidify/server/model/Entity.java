@@ -6,8 +6,11 @@ public abstract class Entity {
     private String id;
     private LocalDateTime createdAt;
     
+    // dùng để tạo một đối tượng Entity
     protected Entity() {}
+    // dùng để tạo một đối tượng Entity
     protected Entity(String id) { this.id = id; }
+    // dùng để tạo một đối tượng Entity
     protected Entity(String id, LocalDateTime createdAt) {
         this.id = id;
         this.createdAt = createdAt;

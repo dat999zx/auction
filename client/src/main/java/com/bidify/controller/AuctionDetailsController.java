@@ -1,9 +1,7 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -16,11 +14,13 @@ import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
@@ -95,7 +95,14 @@ public class AuctionDetailsController {
     @FXML
     private ImageView previewimage;
     @FXML
-    private GridPane thumbnailGrid;
+    private Button prevImageButton;
+    @FXML
+    private Button nextImageButton;
+    @FXML
+    private HBox thumbnailContainer;
+
+    private final java.util.List<Image> carouselImages = new java.util.ArrayList<>();
+    private int currentCarouselIndex = 0;
     @FXML
     private Label openingBidderLabel;
     @FXML
@@ -127,11 +134,29 @@ public class AuctionDetailsController {
     @FXML
     private VBox bidActionSection;
     @FXML
+    private VBox settlementActionSection;
+    @FXML
+    private Label settlementStatusLabel;
+    @FXML
+    private Button payNowButton;
+    @FXML
+    private Button confirmDeliveryButton;
+    @FXML
+    private Button adminCompleteButton;
+    @FXML
+    private Button adminCancelButton;
+    @FXML
     private VBox analyticsSection;
     @FXML
     private StackPane biddingChartHost;
     @FXML
     private Label biddingChartStateLabel;
+    @FXML
+    private Label biddingTrendMetricLabel;
+    @FXML
+    private Label biddingTrendChangeLabel;
+    @FXML
+    private Button sellerCancelButton;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -146,26 +171,31 @@ public class AuctionDetailsController {
     private NumberAxis biddingTimeAxis;
     private NumberAxis biddingAmountAxis;
     // The gatekeeper calls this first
+    // dùng để thiết lập đấu giá ID
     public static void setAuctionId(String auctionId) {
         selectedAuctionId = auctionId;
     }
 
+    // dùng để khởi tạo
     @FXML
     private void initialize() {
         EventManager.getInstance().subscribe(EventType.BID_PLACED, this::handleLiveUpdate);
         EventManager.getInstance().subscribe(EventType.AUCTION_UPDATED, this::handleLiveUpdate);
         EventManager.getInstance().subscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
         EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
+        // dùng để khởi tạo bidding chart
         initializeBiddingChart();
 
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
+            // dùng để tải đấu giá thông tin chi tiết
             loadAuctionDetails(selectedAuctionId);
         } else {
             NotificationUtil.error("No auction selected.");
         }
     }
 
+    // dùng để xử lý live cập nhật
     private void handleLiveUpdate(Event event) {
         if (selectedAuctionId == null || event.getData() == null) return;
 
@@ -174,6 +204,7 @@ public class AuctionDetailsController {
             Platform.runLater(() -> {
                 updatedAuction.setCurrentUserAutoBidActive(currentUserAutoBidActive);
                 updatedAuction.setCurrentUserAutoBidMax(currentUserAutoBidMax);
+                // dùng để liên kết dữ liệu đấu giá data
                 bindAuctionData(updatedAuction);
                 if (event.getType() == EventType.BID_PLACED)
                     NotificationUtil.info(event.getMessage());
@@ -181,12 +212,14 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để xử lý đấu giá ended
     private void handleAuctionEnded(Event event) {
         if (selectedAuctionId == null || event.getData() == null) return;
 
         AuctionDto endedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
         if (endedAuction != null && selectedAuctionId.equals(endedAuction.getId())) {
             Platform.runLater(() -> {
+                // dùng để liên kết dữ liệu đấu giá data
                 bindAuctionData(endedAuction);
                 placebid.setDisable(true);
                 NotificationUtil.info("Auction has ended.");
@@ -194,6 +227,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để xử lý đấu giá deleted
     private void handleAuctionDeleted(Event event) {
         if (selectedAuctionId == null || event == null || event.getData() == null) return;
 
@@ -218,7 +252,9 @@ public class AuctionDetailsController {
         });
     }
 
+    // dùng để dọn dẹp tài nguyên
     public void cleanup() {
+        // dùng để dừng timer
         stopTimer();
         if (selectedAuctionId != null) {
             try {
@@ -235,6 +271,7 @@ public class AuctionDetailsController {
 
     //bid placing
 
+    // dùng để xử lý place lượt đặt giá
     @FXML
     private void handlePlaceBid() {
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
@@ -271,6 +308,7 @@ public class AuctionDetailsController {
 
             inputprice.clear();
             NotificationUtil.success(response.getMessage() == null ? "Bid placed successfully." : response.getMessage());
+            // dùng để tải đấu giá thông tin chi tiết
             loadAuctionDetails(selectedAuctionId);
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -280,6 +318,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để xử lý lưu auto lượt đặt giá
     @FXML
     private void handleSaveAutoBid() {
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
@@ -306,6 +345,7 @@ public class AuctionDetailsController {
             autoBidMaxInput.clear();
             autoBidStatusLabel.setText("AutoBid active");
             NotificationUtil.success(response.getMessage() == null ? "AutoBid saved successfully." : response.getMessage());
+            // dùng để tải đấu giá thông tin chi tiết
             loadAuctionDetails(selectedAuctionId);
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -315,6 +355,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để xử lý disable auto lượt đặt giá
     @FXML
     private void handleDisableAutoBid() {
         if (selectedAuctionId == null || selectedAuctionId.isBlank()) {
@@ -326,6 +367,7 @@ public class AuctionDetailsController {
             Response response = auctionClientService.disableAutoBid(selectedAuctionId);
             autoBidStatusLabel.setText("AutoBid disabled");
             NotificationUtil.success(response.getMessage() == null ? "AutoBid disabled successfully." : response.getMessage());
+            // dùng để tải đấu giá thông tin chi tiết
             loadAuctionDetails(selectedAuctionId);
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -335,6 +377,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để xử lý selection
     @FXML
     private void handleSelection(ActionEvent event) {
         if (!(event.getSource() instanceof Button selectedButton)) {
@@ -343,31 +386,37 @@ public class AuctionDetailsController {
 
         if (selectedButton == auctionsButton) {
             missionBarController.setActiveNavigation(auctionsButton);
+            // dùng để tomenu
             tomenu();
             return;
         }
 
         if (selectedButton == createAuctionButton) {
             missionBarController.setActiveNavigation(createAuctionButton);
+            // dùng để dọn dẹp tài nguyên
             cleanup();
             SceneManager.switchScene("create-auction.fxml", false, true);
             return;
         }
 
         if (selectedButton == logoutButton) {
+            // dùng để xử lý đăng xuất
             handleLogout();
         }
     }
 
     //loader
 
+    // dùng để tải đấu giá thông tin chi tiết
     private void loadAuctionDetails(String auctionId) {
         Thread loader = new Thread(() -> {
             try {
                 AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
+                // dùng để tham gia đấu giá kênh truyền tải
                 joinAuctionChannel(auctionId);
                 Platform.runLater(() -> {
                     currentUserAutoBidActive = auction.isCurrentUserAutoBidActive();
+                    // dùng để liên kết dữ liệu đấu giá data
                     bindAuctionData(auction);
                 });
             } catch (IOException e) {
@@ -387,6 +436,7 @@ public class AuctionDetailsController {
         loader.start();
     }
 
+    // dùng để tham gia đấu giá kênh truyền tải
     private void joinAuctionChannel(String auctionId) {
         try {
             auctionClientService.join(auctionId);
@@ -399,6 +449,7 @@ public class AuctionDetailsController {
 
     //binding
 
+    // dùng để liên kết dữ liệu đấu giá data
     private void bindAuctionData(AuctionDto data) {
         currentAuction = data;
         currentUserAutoBidActive = data.isCurrentUserAutoBidActive();
@@ -421,50 +472,133 @@ public class AuctionDetailsController {
         currentprice.setText(DisplayUtil.formatCashSuffix(currentDisplayedPrice));
         fullCurrentPriceLabel.setText(DisplayUtil.formatCurrency(currentDisplayedPrice));
         opendate.setText(DisplayUtil.formatDateTime(data.getStartTime(), "Unknown"));
-        configureAuctionState(isUpcoming, startingValue, currentValue);
+        // dùng để configure đấu giá state
+        configureAuctionState(data.getStatus(), startingValue, currentValue);
+        // dùng để bắt đầu timer
         startTimer();
 
+        // dùng để hiển thị recent activity
         renderRecentActivity(data, isUpcoming);
+        // dùng để hiển thị bidding trend
         renderBiddingTrend(data, isUpcoming);
+        // dùng để refresh auto lượt đặt giá trạng thái nhãn hiển thị
         refreshAutoBidStatusLabel();
+        // dùng để hiển thị audience stats
         renderAudienceStats(data, isUpcoming);
 
-        // set primary image
-        if (data.getThumbnailBase64() != null)
-            setPreviewImageFromBase64(data.getThumbnailBase64());
-        else
-            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+        // Populate carousel images
+        carouselImages.clear();
+        currentCarouselIndex = 0;
 
-        // setup gallery
-        setupThumbnailGallery(data);
+        if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
+            String cacheKey = "auction_" + data.getId() + "_thumb";
+            Image img = ImageCache.getInstance().get(cacheKey, data.getThumbnailBase64());
+            if (img != null && !img.isError()) {
+                carouselImages.add(img);
+            }
+        }
+
+        if (data.getGalleryBase64() != null) {
+            int index = 0;
+            for (String base64 : data.getGalleryBase64()) {
+                if (base64 != null && !base64.isBlank()) {
+                    String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
+                    Image img = ImageCache.getInstance().get(cacheKey, base64);
+                    if (img != null && !img.isError() && !carouselImages.contains(img)) {
+                        carouselImages.add(img);
+                    }
+                }
+            }
+        }
+
+        // Display current image and update navigation controls
+        updateCarouselDisplay();
+
+
     }
 
-    private void configureAuctionState(boolean isUpcoming, double startingValue, double currentValue) {
-        if (isUpcoming || ClientSession.getInstance().isAdmin()) {
-            leftMetricLabel.setText("STARTING PRICE");
-            rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
-            currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
-            openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
-            endDateLabel.setText("Ends at:");
-            recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
+    // dùng để configure đấu giá state
+    private void configureAuctionState(String status, double startingValue, double currentValue) {
+        boolean isUpcoming = "UPCOMING".equalsIgnoreCase(status);
+        boolean isActive = "ACTIVE".equalsIgnoreCase(status);
+        boolean isAdmin = ClientSession.getInstance().isAdmin();
+        String currentUsername = ClientSession.getInstance().getCurrentUsername();
+
+        leftMetricLabel.setText("STARTING PRICE");
+        rightMetricLabel.setText(isUpcoming ? "OPENING BID" : "CURRENT BID");
+        currentprice.setText(DisplayUtil.formatCashSuffix(isUpcoming ? startingValue : (currentValue > 0 ? currentValue : startingValue)));
+        openDateLabel.setText(isUpcoming ? "Starts at:" : "Open at:");
+        endDateLabel.setText("Ends at:");
+        recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
+
+        boolean isSeller = currentUsername != null && currentAuction != null && currentUsername.equals(currentAuction.getSellerUsername());
+
+        if (isActive && !isAdmin && !isSeller) {
+            bidActionSection.setManaged(true);
+            bidActionSection.setVisible(true);
+            placebid.setDisable(false);
+        } else {
             bidActionSection.setManaged(false);
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
             inputprice.clear();
-            return;
         }
 
-        leftMetricLabel.setText("STARTING PRICE");
-        rightMetricLabel.setText("CURRENT BID");
-        currentprice.setText(DisplayUtil.formatCashSuffix(currentValue > 0 ? currentValue : startingValue));
-        openDateLabel.setText("Open at:");
-        endDateLabel.setText("End at:");
-        recentActivityLabel.setText("RECENT ACTIVITY");
-        bidActionSection.setManaged(true);
-        bidActionSection.setVisible(true);
-        placebid.setDisable(false);
+        boolean showSellerCancel = isActive && (isSeller || isAdmin);
+        if (sellerCancelButton != null) {
+            sellerCancelButton.setManaged(showSellerCancel);
+            sellerCancelButton.setVisible(showSellerCancel);
+        }
+
+        if (settlementActionSection != null) {
+            boolean showSettlementSection = false;
+            boolean showPay = false;
+            boolean showConfirm = false;
+            boolean showAdminComplete = false;
+            boolean showAdminCancel = false;
+            String statusText = "";
+
+            if ("AWAITING_PAYMENT".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: AWAITING PAYMENT (Winner: " + currentAuction.getCurrentBidderUsername() + ")";
+                if (currentUsername != null && currentUsername.equals(currentAuction.getCurrentBidderUsername())) {
+                    showPay = true;
+                }
+                if (isAdmin) {
+                    showAdminCancel = true;
+                }
+            } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: AWAITING DELIVERY";
+                if (isSeller || isAdmin) {
+                    showConfirm = true;
+                }
+                if (isAdmin) {
+                    showAdminComplete = true;
+                    showAdminCancel = true;
+                }
+            } else if ("COMPLETED".equalsIgnoreCase(status)) {
+                showSettlementSection = true;
+                statusText = "Status: COMPLETED (Winner: " + currentAuction.getCurrentBidderUsername() + " paid and received)";
+            }
+
+            settlementActionSection.setManaged(showSettlementSection);
+            settlementActionSection.setVisible(showSettlementSection);
+            if (showSettlementSection) {
+                settlementStatusLabel.setText(statusText);
+                payNowButton.setManaged(showPay);
+                payNowButton.setVisible(showPay);
+                confirmDeliveryButton.setManaged(showConfirm);
+                confirmDeliveryButton.setVisible(showConfirm);
+                adminCompleteButton.setManaged(showAdminComplete);
+                adminCompleteButton.setVisible(showAdminComplete);
+                adminCancelButton.setManaged(showAdminCancel);
+                adminCancelButton.setVisible(showAdminCancel);
+            }
+        }
     }
 
+    // dùng để hiển thị audience stats
     private void renderAudienceStats(AuctionDto data, boolean isUpcoming) {
         if (audienceStatsRow == null)
             return;
@@ -478,41 +612,10 @@ public class AuctionDetailsController {
         activeBidderCountLabel.setText(formatCount(data.getActiveBidderCount(), "active bidder", "active bidders"));
     }
 
-    private void setupThumbnailGallery(AuctionDto data) {
-        if (thumbnailGrid == null) return;
-        thumbnailGrid.getChildren().clear();
 
-        if (data.getGalleryBase64() == null || data.getGalleryBase64().isEmpty()) return;
-
-        int col = 0;
-        int index = 0;
-        for (String base64 : data.getGalleryBase64()) {
-            if (col >= 4) break; // limit 4
-
-            StackPane thumbPane = new StackPane();
-            thumbPane.getStyleClass().add("thumb-card");
-            thumbPane.setPrefHeight(80.0);
-
-            String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
-            Image img = ImageCache.getInstance().get(cacheKey, base64);
-            
-            if (img != null) {
-                ImageView thumbView = new ImageView(img);
-                thumbView.setFitHeight(70.0);
-                thumbView.setFitWidth(150.0);
-                thumbView.setPreserveRatio(true);
-                thumbView.setSmooth(true);
-
-                thumbPane.getChildren().add(thumbView);
-                thumbPane.setOnMouseClicked(e -> previewimage.setImage(img));
-                thumbPane.setStyle("-fx-cursor: hand;");
-
-                thumbnailGrid.add(thumbPane, col++, 0);
-            }
-        }
-    }
-
+    // dùng để đặt lại giao diện
     private void resetView() {
+        // dùng để dừng timer
         stopTimer();
         currentAuction = null;
         name.setText("Loading auction...");
@@ -530,19 +633,37 @@ public class AuctionDetailsController {
 
         enddate.setText("Loading...");
         activityList.getChildren().clear();
+        // dùng để hiển thị bidding chart state
         showBiddingChartState("Loading bid history...");
+        updateBiddingTrendDetail("$0.00", "Loading bid trend...", "neutral");
 
         openingBidderLabel.setText("Starting price");
         opendate.setText("Opening bid");
 
-        if (thumbnailGrid != null) thumbnailGrid.getChildren().clear();
+        carouselImages.clear();
+        currentCarouselIndex = 0;
+        if (prevImageButton != null) {
+            prevImageButton.setVisible(false);
+            prevImageButton.setManaged(false);
+        }
+        if (nextImageButton != null) {
+            nextImageButton.setVisible(false);
+            nextImageButton.setManaged(false);
+        }
+        if (thumbnailContainer != null) {
+            thumbnailContainer.getChildren().clear();
+            thumbnailContainer.setVisible(false);
+            thumbnailContainer.setManaged(false);
+        }
 
         currentDisplayedPrice = 0;
         placebid.setDisable(true);
         currentUserAutoBidActive = false;
+        // dùng để refresh auto lượt đặt giá trạng thái nhãn hiển thị
         refreshAutoBidStatusLabel();
     }
 
+    // dùng để refresh auto lượt đặt giá trạng thái nhãn hiển thị
     private void refreshAutoBidStatusLabel() {
         if (autoBidStatusLabel == null) {
             return;
@@ -564,6 +685,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để định dạng auto lượt đặt giá value
     private String formatAutoBidValue(double value) {
         if (Math.rint(value) == value) {
             return String.valueOf((long) value);
@@ -571,17 +693,21 @@ public class AuctionDetailsController {
         return String.format("%.2f", value);
     }
 
+    // dùng để định dạng count
     private String formatCount(int count, String singular, String plural) {
         return count + " " + (count == 1 ? singular : plural);
     }
 
+    // dùng để bắt đầu timer
     private void startTimer() {
+        // dùng để dừng timer
         stopTimer();
         if (currentAuction == null) return;
 
         timerSubscriptionId = UiUpdateScheduler.getInstance().subscribe(this::refreshTimerText);
     }
 
+    // dùng để dừng timer
     private void stopTimer() {
         if (timerSubscriptionId == null || timerSubscriptionId.isBlank())
             return;
@@ -590,6 +716,7 @@ public class AuctionDetailsController {
         timerSubscriptionId = null;
     }
 
+    // dùng để refresh timer text
     private void refreshTimerText() {
         if (currentAuction == null) {
             enddate.setText("Unknown");
@@ -601,6 +728,7 @@ public class AuctionDetailsController {
         enddate.setText(DisplayUtil.formatRemainingTime(targetTime));
     }
 
+    // dùng để khởi tạo bidding chart
     private void initializeBiddingChart() {
         if (biddingChartHost == null) {
             return;
@@ -617,11 +745,13 @@ public class AuctionDetailsController {
         biddingAmountAxis.setForceZeroInRange(false);
         biddingAmountAxis.setMinorTickVisible(false);
         biddingAmountAxis.setTickLabelFormatter(new StringConverter<>() {
+            // dùng để chuyển thành string
             @Override
             public String toString(Number value) {
                 return DisplayUtil.formatCurrency(value.doubleValue());
             }
 
+            // dùng để từ string
             @Override
             public Number fromString(String string) {
                 return 0;
@@ -641,9 +771,11 @@ public class AuctionDetailsController {
         biddingChart.getStyleClass().add("bidding-line-chart");
 
         biddingChartHost.getChildren().setAll(biddingChart);
+        // dùng để hiển thị bidding chart state
         showBiddingChartState("Loading bid history...");
     }
 
+    // dùng để hiển thị bidding trend
     private void renderBiddingTrend(AuctionDto data, boolean isUpcoming) {
         if (analyticsSection == null || biddingChart == null) {
             return;
@@ -654,14 +786,18 @@ public class AuctionDetailsController {
 
         if (isUpcoming) {
             biddingChart.getData().clear();
+            // dùng để hiển thị bidding chart state
             showBiddingChartState("Chart appears after first live bid.");
+            updateBiddingTrendDetail("$0.00", "Waiting for opening bid.", "neutral");
             return;
         }
 
         List<BidDto> bidHistory = data.getBidHistory();
         if (bidHistory == null || bidHistory.isEmpty()) {
             biddingChart.getData().clear();
+            // dùng để hiển thị bidding chart state
             showBiddingChartState("No bids yet. First live bid will appear here.");
+            updateBiddingTrendDetail(DisplayUtil.formatCurrency(data.getCurrentBid()), "No bid movement yet.", "neutral");
             return;
         }
 
@@ -679,10 +815,56 @@ public class AuctionDetailsController {
         }
 
         biddingChart.getData().setAll(series);
+        updateBiddingTrendDetail(data, sortedBids);
         if (series.getNode() != null) {
             series.getNode().getStyleClass().add("bidding-line-series");
         }
+        // dùng để ẩn bidding chart state
         hideBiddingChartState();
+    }
+
+    private void updateBiddingTrendDetail(AuctionDto data, List<BidDto> sortedBids) {
+        BidDto latestBid = sortedBids.getLast();
+        if (sortedBids.size() < 2) {
+            updateBiddingTrendDetail(
+                DisplayUtil.formatCurrency(latestBid.getAmount()),
+                "New bid activity | 1 bid | " + (latestBid.isAutoBidGenerated() ? "AutoBid" : "Manual") + " latest",
+                "success"
+            );
+            return;
+        }
+
+        double baseline = data.getStartingPrice() > 0 ? data.getStartingPrice() : sortedBids.getFirst().getAmount();
+        double latestAmount = latestBid.getAmount();
+        double percentChange = baseline == 0.0 ? 0.0 : ((latestAmount - baseline) / baseline) * 100.0;
+        String trendStyle = percentChange >= 0.0 ? "success" : "danger";
+        String trendWord = percentChange >= 0.0 ? "↑ Increased" : "↓ Decreased";
+        String bidType = latestBid.isAutoBidGenerated() ? "AutoBid" : "Manual";
+        String trendText = String.format(
+            "%s %+.1f%% from start | %d %s | %s latest",
+            trendWord,
+            percentChange,
+            sortedBids.size(),
+            sortedBids.size() == 1 ? "bid" : "bids",
+            bidType
+        );
+
+        updateBiddingTrendDetail(DisplayUtil.formatCurrency(latestAmount), trendText, trendStyle);
+    }
+
+    private void updateBiddingTrendDetail(String metric, String trend, String trendStyle) {
+        if (biddingTrendMetricLabel != null) {
+            biddingTrendMetricLabel.setText(metric);
+        }
+        if (biddingTrendChangeLabel != null) {
+            biddingTrendChangeLabel.setText(trend);
+            biddingTrendChangeLabel.getStyleClass().removeAll(
+                "analytics-trend-success",
+                "analytics-trend-danger",
+                "analytics-trend-neutral"
+            );
+            biddingTrendChangeLabel.getStyleClass().add("analytics-trend-" + trendStyle);
+        }
     }
 
     private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {
@@ -691,6 +873,7 @@ public class AuctionDetailsController {
         return point;
     }
 
+    // dùng để tạo lượt đặt giá point node
     private Node createBidPointNode(BidDto bid) {
         StackPane node = new StackPane();
         node.getStyleClass().addAll("chart-line-symbol", bid.isAutoBidGenerated() ? "bid-point-auto" : "bid-point-manual");
@@ -702,6 +885,7 @@ public class AuctionDetailsController {
         return node;
     }
 
+    // dùng để build lượt đặt giá tooltip text
     private String buildBidTooltipText(BidDto bid) {
         String bidType = bid.isAutoBidGenerated() ? "AutoBid" : "Manual bid";
         return "Bid Detail"
@@ -712,6 +896,7 @@ public class AuctionDetailsController {
                 + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
     }
 
+    // dùng để tạo detailed tooltip
     private Tooltip createDetailedTooltip(String text) {
         Tooltip tooltip = new Tooltip(text);
         tooltip.getStyleClass().add("chart-tooltip");
@@ -720,6 +905,7 @@ public class AuctionDetailsController {
         return tooltip;
     }
 
+    // dùng để attach tooltip
     private void attachTooltip(Node node, Tooltip tooltip) {
         node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
         node.setOnMouseMoved(event -> {
@@ -731,6 +917,7 @@ public class AuctionDetailsController {
         node.setOnMouseExited(event -> tooltip.hide());
     }
 
+    // dùng để hiển thị bidding chart state
     private void showBiddingChartState(String message) {
         if (biddingChartHost != null) {
             biddingChartHost.setManaged(false);
@@ -743,6 +930,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để ẩn bidding chart state
     private void hideBiddingChartState() {
         if (biddingChartHost != null) {
             biddingChartHost.setManaged(true);
@@ -754,10 +942,12 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để tạo thời gian axis formatter
     private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
         DateTimeFormatter formatter = resolveTimeAxisFormatter(firstBidTime, lastBidTime);
 
         return new StringConverter<>() {
+            // dùng để chuyển thành string
             @Override
             public String toString(Number value) {
                 LocalDateTime dateTime = fromEpochSeconds(value.longValue());
@@ -766,6 +956,7 @@ public class AuctionDetailsController {
                         : dateTime.format(formatter);
             }
 
+            // dùng để từ string
             @Override
             public Number fromString(String string) {
                 return 0;
@@ -773,6 +964,7 @@ public class AuctionDetailsController {
         };
     }
 
+    // dùng để giải quyết thời gian axis formatter
     private DateTimeFormatter resolveTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
         if (firstBidTime == null || lastBidTime == null) {
             return CHART_SHORT_TIME_FORMATTER;
@@ -793,33 +985,37 @@ public class AuctionDetailsController {
         return CHART_YEAR_FORMATTER;
     }
 
+    // dùng để phân tích cú pháp lượt đặt giá created tại
     private LocalDateTime parseBidCreatedAt(BidDto bid) {
         if (bid == null || bid.getCreatedAt() == null || bid.getCreatedAt().isBlank()) {
             return null;
         }
 
         try {
-            return LocalDateTime.parse(bid.getCreatedAt());
+            return TimeUtil.parseDateTime(bid.getCreatedAt());
         } catch (DateTimeParseException e) {
             return null;
         }
     }
 
+    // dùng để chuyển thành epoch seconds
     private long toEpochSeconds(LocalDateTime dateTime) {
         if (dateTime == null) {
             return 0L;
         }
-        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+        return TimeUtil.toVietnamEpochSeconds(dateTime);
     }
 
+    // dùng để từ epoch seconds
     private LocalDateTime fromEpochSeconds(long epochSeconds) {
         try {
-            return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
+            return TimeUtil.fromVietnamEpochSeconds(epochSeconds);
         } catch (Exception e) {
             return null;
         }
     }
 
+    // dùng để hiển thị recent activity
     private void renderRecentActivity(AuctionDto data, boolean isUpcoming) {
         if (activityList == null) return;
 
@@ -847,6 +1043,7 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để tạo activity dòng hiển thị
     private GridPane createActivityRow(String bidderText, String amountText, String timeText) {
         GridPane row = new GridPane();
         row.getStyleClass().add("activity-row");
@@ -874,6 +1071,7 @@ public class AuctionDetailsController {
         return row;
     }
 
+    // dùng để tạo activity column
     private ColumnConstraints createActivityColumn(double percentWidth) {
         ColumnConstraints column = new ColumnConstraints();
         column.setPercentWidth(percentWidth);
@@ -882,6 +1080,7 @@ public class AuctionDetailsController {
 
     // top bar handlers and miscellaneous
 
+    // dùng để thiết lập preview hình ảnh từ base64
     private void setPreviewImageFromBase64(String base64) {
         if (selectedAuctionId != null && base64 != null) {
             String cacheKey = "auction_" + selectedAuctionId + "_thumb";
@@ -891,9 +1090,11 @@ public class AuctionDetailsController {
                 return;
             }
         }
+        // dùng để thiết lập preview hình ảnh
         setPreviewImage(DEFAULT_PREVIEW_IMAGE);
     }
 
+    // dùng để thiết lập preview hình ảnh
     private void setPreviewImage(String imagePath) {
         if (previewimage == null) {
             return;
@@ -916,11 +1117,110 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để update carousel display
+    private void updateCarouselDisplay() {
+        if (carouselImages.isEmpty()) {
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
+            if (prevImageButton != null) {
+                prevImageButton.setVisible(false);
+                prevImageButton.setManaged(false);
+            }
+            if (nextImageButton != null) {
+                nextImageButton.setVisible(false);
+                nextImageButton.setManaged(false);
+            }
+            renderThumbnails();
+            return;
+        }
+
+        if (currentCarouselIndex < 0) {
+            currentCarouselIndex = carouselImages.size() - 1;
+        } else if (currentCarouselIndex >= carouselImages.size()) {
+            currentCarouselIndex = 0;
+        }
+
+        previewimage.setImage(carouselImages.get(currentCarouselIndex));
+
+        boolean showNavigation = carouselImages.size() > 1;
+        if (prevImageButton != null) {
+            prevImageButton.setVisible(showNavigation);
+            prevImageButton.setManaged(showNavigation);
+        }
+        if (nextImageButton != null) {
+            nextImageButton.setVisible(showNavigation);
+            nextImageButton.setManaged(showNavigation);
+        }
+
+        renderThumbnails();
+    }
+
+    // dùng để handle prev image
+    @FXML
+    private void handlePrevImage() {
+        currentCarouselIndex--;
+        updateCarouselDisplay();
+    }
+
+    // dùng để handle next image
+    @FXML
+    private void handleNextImage() {
+        currentCarouselIndex++;
+        updateCarouselDisplay();
+    }
+
+    // dùng để hiển thị hình ảnh thumbnails
+    private void renderThumbnails() {
+        if (thumbnailContainer == null) return;
+        thumbnailContainer.getChildren().clear();
+
+        if (carouselImages.size() <= 1) {
+            thumbnailContainer.setVisible(false);
+            thumbnailContainer.setManaged(false);
+            return;
+        }
+
+        thumbnailContainer.setVisible(true);
+        thumbnailContainer.setManaged(true);
+
+        for (int i = 0; i < carouselImages.size(); i++) {
+            final int index = i;
+            Image img = carouselImages.get(i);
+
+            StackPane thumbPane = new StackPane();
+            thumbPane.getStyleClass().add("thumb-card");
+            thumbPane.setPrefSize(80, 80);
+
+            // Highlight selected thumbnail
+            if (i == currentCarouselIndex) {
+                thumbPane.setStyle("-fx-border-color: #00458f; -fx-border-width: 2px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            } else {
+                thumbPane.setStyle("-fx-border-color: #d8e3fb; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
+            }
+
+            ImageView thumbView = new ImageView(img);
+            thumbView.setFitHeight(72);
+            thumbView.setFitWidth(72);
+            thumbView.setPreserveRatio(true);
+            thumbView.setSmooth(true);
+
+            thumbPane.getChildren().add(thumbView);
+            thumbPane.setOnMouseClicked(e -> {
+                currentCarouselIndex = index;
+                updateCarouselDisplay();
+            });
+            thumbPane.setStyle(thumbPane.getStyle() + " -fx-cursor: hand;");
+
+            thumbnailContainer.getChildren().add(thumbPane);
+        }
+    }
+
+    // dùng để xử lý đăng xuất
     @FXML
     private void handleLogout() {
         String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
+            // dùng để dọn dẹp tài nguyên
             cleanup();
             SceneManager.clearAllCache();
             SceneManager.switchScene("login.fxml", true, false);
@@ -931,6 +1231,7 @@ public class AuctionDetailsController {
             Response response = authClientService.logout();
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Logged out successfully.");
+                // dùng để dọn dẹp tài nguyên
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.switchScene("login.fxml", true, false);
@@ -945,10 +1246,105 @@ public class AuctionDetailsController {
         }
     }
 
+    // dùng để tomenu
     @FXML
     private void tomenu() {
+        // dùng để dọn dẹp tài nguyên
         cleanup();
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
+    @FXML
+    private void handlePayNow() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.payAuction(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Paid for auction successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Payment failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleConfirmDelivery() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.confirmAuctionDelivery(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Delivery confirmed successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Delivery confirmation failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAdminComplete() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.COMPLETE);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction resolved as completed successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    @FXML
+    private void handleAdminCancel() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.CANCEL);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction resolved as canceled successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+    @FXML
+    private void handleSellerCancel() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.deleteAuction(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction canceled successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Auction cancellation failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
 }

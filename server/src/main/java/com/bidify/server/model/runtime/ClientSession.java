@@ -7,6 +7,7 @@ public class ClientSession {
     private final ClientHandler clientHandler;
     private final User user;
 
+    // dùng để tạo một đối tượng ClientSession
     public ClientSession(ClientHandler clientHandler, User user) {
         this.clientHandler = clientHandler;
         this.user = user;

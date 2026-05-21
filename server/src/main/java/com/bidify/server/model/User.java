@@ -1,6 +1,8 @@
 package com.bidify.server.model;
 
 import java.time.LocalDateTime;
+
+import com.bidify.common.utility.TimeUtil;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -9,7 +11,7 @@ import com.bidify.common.enums.UserStatus;
 import com.bidify.server.exception.ServerTimeOutException;
 
 public class User extends Entity {
-    // khÃ³a Object User Ä‘á»ƒ trÃ¡nh race condition
+    // khóa Object User để tránh race condition
     private final ReentrantLock lock = new ReentrantLock();
 
     private String nickname;
@@ -17,15 +19,16 @@ public class User extends Entity {
     private String password;
     private String email;
     private String phoneNumber;
+    private String profileImageId;
 
     private LocalDateTime lastLogin;
     private UserStatus status;
     private UserRole role;
     private Wallet wallet;
 
-    // ÄÄƒng kÃ­ tÃ i khoáº£n
+    // dùng để tạo một đối tượng User
     public User(String username, String nickname, String password) {
-        super(username, LocalDateTime.now());
+        super(username, TimeUtil.nowInVietnam());
 
         this.username = username;
         this.nickname = nickname;
@@ -35,10 +38,12 @@ public class User extends Entity {
         this.role = UserRole.USER;
         this.lastLogin = null;
         this.wallet = new Wallet(0);
+        this.profileImageId = null;
     }
 
-    // load láº¡i dá»¯ liá»‡u ngÆ°á»i dÃ¹ng
+     // dùng để tạo một đối tượng User
      public User(String username, String nickname, String password, String email, String phone, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
+        // dùng để super
         super(username, createdAt);
 
         this.username = username;
@@ -51,7 +56,29 @@ public class User extends Entity {
         this.role = role == null ? UserRole.USER : role;
         this.lastLogin = lastLogin;
         this.wallet = new Wallet(balance);
+        this.profileImageId = null;
     }
+
+    // dùng để tạo một đối tượng User
+    public User(String username, String nickname, String password, String email, String phone, String profileImageId, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
+        // dùng để super
+        super(username, createdAt);
+
+        this.username = username;
+        this.nickname = nickname;
+        this.password = password;
+        this.email = email;
+        this.phoneNumber = phone;
+        this.profileImageId = profileImageId;
+
+        this.status = status;
+        this.role = role == null ? UserRole.USER : role;
+        this.lastLogin = lastLogin;
+        this.wallet = new Wallet(balance);
+    }
+
+    public String getProfileImageId() { return profileImageId; }
+    public void setProfileImageId(String profileImageId) { this.profileImageId = profileImageId; }
 
     public LocalDateTime getLastLogin() { return lastLogin; }
     public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
@@ -70,8 +97,11 @@ public class User extends Entity {
     public void setRole(UserRole role) { this.role = role == null ? UserRole.USER : role; }
     public Wallet getWallet() { return wallet; }
 
+    // dùng để khóa
     public void lock() { lock.lock(); }
+    // dùng để mở khóa
     public void unlock() { lock.unlock(); }
+    // dùng để try khóa đồng bộ
     public void tryLock(int timeout) throws ServerTimeOutException {
         try {
             lock.tryLock(timeout, TimeUnit.SECONDS);

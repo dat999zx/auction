@@ -1,6 +1,6 @@
 /* Custom Colors & Global Settings */
 .root {
-    -fx-font-family: "Inter";
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
     -fx-background-color: #f7f9fc;
 }
 
@@ -12,9 +12,11 @@
 
 .card {
     -fx-background-color: white;
-    -fx-background-radius: 12;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
     -fx-padding: 24;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
 }
 
 /* Typography */
@@ -28,7 +30,7 @@
 .section-label {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
-    -fx-text-fill: #0048d8;
+    -fx-text-fill: #104ddd;
     -fx-letter-spacing: 2px;
 }
 
@@ -54,7 +56,7 @@
 }
 
 .status-note {
-    -fx-text-fill: #0048d8;
+    -fx-text-fill: #104ddd;
     -fx-font-size: 12px;
     -fx-font-weight: bold;
 }
@@ -63,20 +65,16 @@
 
 /* --- Primary Button --- */
 .btn-primary {
-    -fx-background-color: linear-gradient(to bottom right, #000666, #1a237e);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 10;
     -fx-padding: 12 24;
     -fx-cursor: hand;
-    /* Smooth transition feel */
-    -fx-transition: all 0.2s ease-in-out; 
 }
 
 .btn-primary:hover {
-    /* Slight lighten effect and lift */
-    -fx-background-color: linear-gradient(to bottom right, #1a237e, #343d96);
-    -fx-effect: dropshadow(three-pass-box, rgba(0, 6, 102, 0.3), 10, 0, 0, 4);
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .btn-primary:pressed {
@@ -87,8 +85,10 @@
 
 /* --- Secondary Button --- */
 .btn-secondary {
-    -fx-background-color: transparent;
-    -fx-text-fill: #0048d8;
+    -fx-background-color: linear-gradient(to right, #ffffff, #eef3ff);
+    -fx-border-color: rgba(16,77,221,0.22);
+    -fx-border-radius: 10;
+    -fx-text-fill: #104ddd;
     -fx-font-weight: bold;
     -fx-padding: 12 24;
     -fx-background-radius: 10;
@@ -96,9 +96,19 @@
 }
 
 .btn-secondary:hover {
-    /* Matches the HTML's "hover:bg-surface-container-high" */
-    -fx-background-color: #e6e8eb; 
-    -fx-text-fill: #003ab3;
+    -fx-background-color: linear-gradient(to right, #eef3ff, #dfe8ff);
+    -fx-text-fill: #104ddd;
+}
+
+.btn-danger {
+    -fx-background-color: linear-gradient(to right, #fff7f5, #ffdad6);
+    -fx-border-color: rgba(186,26,26,0.25);
+    -fx-text-fill: #ba1a1a;
+}
+
+.btn-danger:hover {
+    -fx-background-color: linear-gradient(to right, #ffe6e0, #ffc7bf);
+    -fx-text-fill: #9d2424;
 }
 
 .btn-secondary:pressed {
@@ -131,10 +141,10 @@
 }
 
 .text-field:focused {
-    -fx-border-color: #0048d8;
+    -fx-border-color: #104ddd;
     -fx-border-width: 2;
 }
 .text-area:focused {
-    -fx-border-color: #0048d8;
+    -fx-border-color: #104ddd;
     -fx-border-width: 2;
 }

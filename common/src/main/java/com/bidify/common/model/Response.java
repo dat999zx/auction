@@ -7,10 +7,12 @@ public class Response {
     private String message;
     private Object data;
 
+    // dùng để tạo một đối tượng Response
     public Response(RequestStatus status, String message) {
         this.status = status;
         this.message = message;
     }
+    // dùng để tạo một đối tượng Response
     public Response(RequestStatus status, String message, Object data) {
         this.status = status;
         this.message = message;

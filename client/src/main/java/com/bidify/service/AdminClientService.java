@@ -5,12 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.dto.AdminUserDto;
+import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UserTargetRequest;
+import com.bidify.common.model.WalletReviewRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
@@ -37,23 +39,71 @@ public class AdminClientService {
         return users;
     }
 
+    // dùng để cấm (ban) một người dùng theo tên đăng nhập
     public void banUser(String username) throws IOException {
+        // dùng để thực thi người dùng action
         executeUserAction(RequestType.BAN_USER, username, "Cannot ban user.");
     }
 
+    // dùng để thăng chức một người dùng lên quyền admin
+    public void promoteAdmin(String username) throws IOException {
+        // dùng để thực thi người dùng action
+        executeUserAction(RequestType.PROMOTE_ADMIN, username, "Cannot promote user.");
+    }
+
+    // dùng để bãi nhiệm quyền admin của một người dùng về thường dân
+    public void demoteAdmin(String username) throws IOException {
+        // dùng để thực thi người dùng action
+        executeUserAction(RequestType.DEMOTE_ADMIN, username, "Cannot remove admin.");
+    }
+
+    // dùng để gỡ cấm (unban) cho một người dùng
     public void unbanUser(String username) throws IOException {
+        // dùng để thực thi người dùng action
         executeUserAction(RequestType.UNBAN_USER, username, "Cannot unban user.");
     }
 
+    // dùng để xóa tài khoản một người dùng khỏi hệ thống
     public void deleteUser(String username) throws IOException {
+        // dùng để thực thi người dùng action
         executeUserAction(RequestType.DELETE_USER, username, "Cannot delete user.");
     }
 
+    // dùng để thực hiện các thao tác quản trị (ban/unban/promote/demote/delete) gửi lên server
     private void executeUserAction(RequestType requestType, String username, String fallbackMessage) throws IOException {
         ValidationUtil.validateUsername(username);
 
         Response response = client.send(new Request(requestType, new UserTargetRequest(username)));
         if (response.getStatus() != RequestStatus.SUCCESS)
             throw new ValidationException(response.getMessage() == null ? fallbackMessage : response.getMessage());
+    }
+
+    public List<WalletRequestDto> getPendingWalletRequests() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_PENDING_WALLET_REQUESTS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot load pending wallet requests." : response.getMessage());
+
+        List<?> rawRequests = JsonUtil.fromMap(response.getData(), List.class);
+        List<WalletRequestDto> requests = new ArrayList<>();
+        if (rawRequests == null)
+            return requests;
+
+        for (Object rawReq : rawRequests) {
+            WalletRequestDto req = JsonUtil.fromMap(rawReq, WalletRequestDto.class);
+            if (req != null)
+                requests.add(req);
+        }
+
+        return requests;
+    }
+
+    // dùng để gửi quyết định duyệt (approve) hoặc từ chối (deny) yêu cầu ví lên server
+    public void reviewWalletRequest(String requestId, boolean approved) throws IOException {
+        if (requestId == null || requestId.isBlank())
+            throw new ValidationException("Invalid request ID");
+
+        Response response = client.send(new Request(RequestType.REVIEW_WALLET_REQUEST, new WalletReviewRequest(requestId, approved)));
+        if (response.getStatus() != RequestStatus.SUCCESS)
+            throw new ValidationException(response.getMessage() == null ? "Cannot review request." : response.getMessage());
     }
 }

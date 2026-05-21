@@ -1,7 +1,6 @@
 package com.bidify.server.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -19,7 +18,9 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.model.WalletRequest;
+import com.bidify.common.model.WalletReviewRequest;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
@@ -42,30 +43,37 @@ class TransactionServiceTest {
     // Danh sách lưu trữ các username được tạo ra trong quá trình chạy test để dọn dẹp sau khi test xong
     private final List<String> createdUsernames = new ArrayList<>();
 
+    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         // Đảm bảo cấu trúc bảng (schema) của SQLite đã được khởi tạo trước khi bất kỳ test nào chạy
         SQLiteHelper.init();
     }
 
+    // dùng để thiết lập up
     @BeforeEach
     void setUp() {
         // Làm sạch bộ nhớ tạm (RAM) và danh sách dọn dẹp trước mỗi test để đảm bảo các test độc lập, không ảnh hưởng lẫn nhau
         RealtimeDatabase.clearAll();
         createdUsernames.clear();
+        SQLiteHelper.update("DELETE FROM WalletRequests");
+        SQLiteHelper.update("DELETE FROM Transactions");
     }
 
+    // dùng để tear down
     @AfterEach
     void tearDown() {
         RealtimeDatabase.clearAll();
         
         // Dọn dẹp dữ liệu giao dịch và users để không làm rác DB thật
         for (String username : createdUsernames) {
+            SQLiteHelper.update("DELETE FROM WalletRequests WHERE username = ?", username);
             SQLiteHelper.update("DELETE FROM Transactions WHERE username = ?", username);
             SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
         }
     }
 
+    // dùng để nạp tiền successfully increases số dư and creates giao dịch
     @Test
     void depositSuccessfullyIncreasesBalanceAndCreatesTransaction() {
         // 1. Chuẩn bị dữ liệu (Arrange)
@@ -87,6 +95,23 @@ class TransactionServiceTest {
         // Đảm bảo request được xử lý thành công
         assertEquals(RequestStatus.SUCCESS, response.getStatus());
 
+        // Phê duyệt yêu cầu nạp tiền
+        List<com.bidify.server.model.WalletRequest> pending = com.bidify.server.dao.WalletRequestDao.getInstance().findPending();
+        assertEquals(1, pending.size());
+        com.bidify.server.model.WalletRequest wr = pending.get(0);
+
+        TestClientHandler adminClient = new TestClientHandler();
+        adminClient.setCurrentUsername("admin");
+        User adminUser = createTestUser("admin", "admin123");
+        adminUser.setRole(UserRole.ADMIN);
+        RealtimeDatabase.addActiveUser(adminClient, adminUser);
+
+        Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
+            adminClient,
+            new Request(RequestType.REVIEW_WALLET_REQUEST, new WalletReviewRequest(wr.getId(), true))
+        );
+        assertEquals(RequestStatus.SUCCESS, reviewResp.getStatus());
+
         // Đọc lại thông tin user từ DB để xác nhận số dư đã tăng đúng 500
         User updatedUser = userDao.findByUsername(username);
         assertEquals(500.0, updatedUser.getWallet().getBalance());
@@ -98,6 +123,7 @@ class TransactionServiceTest {
         assertEquals(500.0, transactions.get(0).getAmount());
     }
 
+    // dùng để nạp tiền fails when số tiền kiểm tra xem negative
     @Test
     void depositFailsWhenAmountIsNegative() {
         // 1. Chuẩn bị dữ liệu (Arrange)
@@ -123,6 +149,7 @@ class TransactionServiceTest {
         assertTrue(transactions.isEmpty());
     }
 
+    // dùng để rút tiền successfully decreases số dư and creates giao dịch
     @Test
     void withdrawSuccessfullyDecreasesBalanceAndCreatesTransaction() {
         // 1. Chuẩn bị (Arrange)
@@ -144,6 +171,23 @@ class TransactionServiceTest {
         // 3. Kiểm tra (Assert)
         assertEquals(RequestStatus.SUCCESS, response.getStatus());
 
+        // Phê duyệt yêu cầu rút tiền
+        List<com.bidify.server.model.WalletRequest> pending = com.bidify.server.dao.WalletRequestDao.getInstance().findPending();
+        assertEquals(1, pending.size());
+        com.bidify.server.model.WalletRequest wr = pending.get(0);
+
+        TestClientHandler adminClient = new TestClientHandler();
+        adminClient.setCurrentUsername("admin");
+        User adminUser = createTestUser("admin", "admin123");
+        adminUser.setRole(UserRole.ADMIN);
+        RealtimeDatabase.addActiveUser(adminClient, adminUser);
+
+        Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
+            adminClient,
+            new Request(RequestType.REVIEW_WALLET_REQUEST, new WalletReviewRequest(wr.getId(), true))
+        );
+        assertEquals(RequestStatus.SUCCESS, reviewResp.getStatus());
+
         // Kiểm tra xem số dư có bị trừ chính xác không (1000 - 400 = 600)
         User updatedUser = userDao.findByUsername(username);
         assertEquals(600.0, updatedUser.getWallet().getBalance());
@@ -155,6 +199,7 @@ class TransactionServiceTest {
         assertEquals(400.0, transactions.get(0).getAmount());
     }
 
+    // dùng để rút tiền fails when insufficient số dư
     @Test
     void withdrawFailsWhenInsufficientBalance() {
         // 1. Chuẩn bị dữ liệu
@@ -182,6 +227,7 @@ class TransactionServiceTest {
         assertEquals(100.0, updatedUser.getWallet().getBalance()); 
     }
 
+    // dùng để lấy người dùng danh sách giao dịch returns lịch sử
     @Test
     void getUserTransactionsReturnsHistory() {
         // 1. Chuẩn bị dữ liệu
@@ -210,6 +256,7 @@ class TransactionServiceTest {
     /**
      * Phương thức tiện ích để tạo User trực tiếp xuống Database.
      */
+    // dùng để tạo test người dùng
     private User createTestUser(String username, String rawPassword) {
         User user = new User(username, username, PasswordUtil.hash(rawPassword));
         userDao.create(user);
@@ -220,6 +267,7 @@ class TransactionServiceTest {
     /**
      * Trả về chuỗi username ngẫu nhiên để tránh xung đột (Conflict) giữa các Test.
      */
+    // dùng để unique username
     private String uniqueUsername(String prefix) {
         return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
@@ -231,15 +279,19 @@ class TransactionServiceTest {
      * Cho phép test logic Server mà không cần mở Port mạng thật.
      */
     private static class TestClientHandler extends ClientHandler {
+        // dùng để test client trình xử lý
         TestClientHandler() {
+            // dùng để super
             super(null);
         }
 
+        // dùng để kiểm tra xem trong phiên làm việc
         @Override
         public boolean isInSession() {
             return getCurrentUsername() != null;
         }
 
+        // dùng để gửi sự kiện
         @Override
         public void sendEvent(Event event) {
             // Ghi đè lại hàm này để vô hiệu hoá việc bắn Event qua Socket thật, tránh lỗi NullPointerException

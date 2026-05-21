@@ -1,12 +1,16 @@
 package com.bidify.controller;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.function.Consumer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.EventType;
+import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
@@ -19,11 +23,24 @@ import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.Base64;
+import javafx.stage.FileChooser;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import com.bidify.utility.ImageCache;
+import javafx.scene.shape.Circle;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 public class UserProfileController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
@@ -54,6 +71,12 @@ public class UserProfileController {
     private Label profileAvatarLabel;
 
     @FXML
+    private ImageView profileAvatarImageView;
+
+    @FXML
+    private ImageView heroAvatarImageView;
+
+    @FXML
     private TextField nicknameField;
 
     @FXML
@@ -71,42 +94,54 @@ public class UserProfileController {
     @FXML
     private PasswordField confirmPasswordField;
 
+    @FXML
+    private VBox requestsContainer;
+
     private final UserProfileClientService userProfileClientService = new UserProfileClientService();
 
+    // Store listener references so unsubscribe can remove the exact same object.
+    private final Consumer<Event> onWalletChanged = e -> Platform.runLater(() -> refreshProfileFromEvent(e));
+    private final Consumer<Event> onLockedBalanceChanged = e -> Platform.runLater(() -> refreshProfileFromEvent(e));
+    private final Consumer<Event> onServerNotice = e -> Platform.runLater(() -> NotificationUtil.info(e.getMessage()));
+    private final Consumer<Event> onWalletRequestsChanged = e -> Platform.runLater(this::loadRequests);
+
+    // dùng để hiển thị profile hiện tại và đăng ký lắng nghe sự kiện từ server
     @FXML
     private void initialize() {
+        // dùng để cắt ảnh đại diện thành hình tròn
+        Circle profileClip = new Circle(57, 57, 57);
+        profileAvatarImageView.setClip(profileClip);
+
+        Circle heroClip = new Circle(46, 46, 46);
+        heroAvatarImageView.setClip(heroClip);
+
         Platform.runLater(() -> {
+            // dùng để liên kết dữ liệu top bar
             bindTopBar();
+            // dùng để đổ dữ liệu vào thông tin tài khoản
             populateProfile();
         });
 
-        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
-        EventManager.getInstance().subscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
-        EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
+        EventManager.getInstance().subscribe(EventType.WALLET_CHANGED, onWalletChanged);
+        EventManager.getInstance().subscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
+        EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, onServerNotice);
+        EventManager.getInstance().subscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
-    private void handleWalletChanged(Event event) {
-        Platform.runLater(() -> refreshProfileFromEvent(event));
-    }
-
-    private void handleLockedBalanceChanged(Event event) {
-        Platform.runLater(() -> refreshProfileFromEvent(event));
-    }
-
-    private void handleServerNotice(Event event) {
-        Platform.runLater(() -> NotificationUtil.info(event.getMessage()));
-    }
-
+    // dùng để hủy lắng nghe sự kiện tránh bị rò rỉ bộ nhớ (memory leak)
     public void cleanup() {
-        EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, this::handleWalletChanged);
-        EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, this::handleLockedBalanceChanged);
-        EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, this::handleServerNotice);
+        EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, onWalletChanged);
+        EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
+        EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, onServerNotice);
+        EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
+    // dùng để gửi yêu cầu lưu thay đổi nickname của user lên server
     @FXML
     private void handleSaveProfile() {
         try {
             UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
+            // dùng để refresh thông tin tài khoản
             refreshProfile(updatedUser);
             NotificationUtil.success("Profile updated successfully.");
         }
@@ -118,13 +153,15 @@ public class UserProfileController {
         }
     }
 
+    // dùng để nạp tiền (gửi request chờ admin duyệt)
     @FXML
     private void handleTopUp() {
         try {
-            UserDto updatedUser = userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
+            userProfileClientService.addWalletBalance(parseAmount(topUpAmountField.getText(), "Deposit amount"));
             topUpAmountField.clear();
-            refreshProfile(updatedUser);
-            NotificationUtil.success("Wallet updated successfully.");
+            NotificationUtil.success("Deposit request submitted — pending admin approval.");
+            // dùng để tải danh sách yêu cầu
+            loadRequests();
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -134,13 +171,16 @@ public class UserProfileController {
         }
     }
 
+    // dùng để rút tiền (gửi request khóa số dư chờ admin duyệt)
     @FXML
     private void handleWithdraw() {
         try {
-            UserDto updatedUser = userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
+            userProfileClientService.withdrawWalletBalance(parseAmount(withdrawAmountField.getText(), "Withdraw amount"));
             withdrawAmountField.clear();
-            refreshProfile(updatedUser);
-            NotificationUtil.success("Wallet updated successfully.");
+            NotificationUtil.success("Withdraw request submitted — pending admin approval.");
+            // Reload profile since locked balance changed
+            // dùng để đổ dữ liệu vào thông tin tài khoản
+            populateProfile();
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
@@ -150,6 +190,7 @@ public class UserProfileController {
         }
     }
 
+    // dùng để thay đổi mật khẩu tài khoản
     @FXML
     private void handleChangePassword() {
         try {
@@ -171,11 +212,41 @@ public class UserProfileController {
         }
     }
 
+    // dùng để xử lý thông tin tài khoản hình ảnh placeholder
     @FXML
     private void handleProfileImagePlaceholder() {
         NotificationUtil.info("Profile image upload is a UI placeholder right now.");
     }
 
+    // dùng để xử lý tải ảnh đại diện lên
+    @FXML
+    private void handleProfileImageUpload() {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
+        );
+
+        File file = chooser.showOpenDialog(
+            nicknameField != null && nicknameField.getScene() != null ? nicknameField.getScene().getWindow() : null
+        );
+        if (file == null)
+            return;
+
+        try {
+            String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
+            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText(), base64);
+            // dùng để refresh thông tin tài khoản
+            refreshProfile(updatedUser);
+            profileImageHintLabel.setText("Profile image updated");
+            NotificationUtil.success("Profile image updated successfully.");
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+        } catch (ValidationException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+
+    // dùng để load thông tin người dùng từ server hoặc cache
     private void populateProfile() {
         try {
             refreshProfile(userProfileClientService.getCurrentProfile());
@@ -187,20 +258,82 @@ public class UserProfileController {
             NotificationUtil.error(e.getMessage());
         }
 
-        profileImageHintLabel.setText("Profile image upload placeholder");
+        profileImageHintLabel.setText("Add photo");
+        // dùng để tải danh sách yêu cầu
+        loadRequests();
     }
 
+    // dùng để lấy danh sách lịch sử nạp/rút từ server
+    private void loadRequests() {
+        if (requestsContainer == null) return;
+        try {
+            List<WalletRequestDto> requests = userProfileClientService.getUserWalletRequests();
+            // dùng để hiển thị danh sách yêu cầu
+            renderRequests(requests);
+        } catch (Exception e) {
+            requestsContainer.getChildren().clear();
+            requestsContainer.getChildren().add(new Label("Failed to load requests."));
+        }
+    }
+
+    // dùng để vẽ danh sách các yêu cầu nạp/rút tiền lên UI
+    private void renderRequests(List<WalletRequestDto> requests) {
+        requestsContainer.getChildren().clear();
+        if (requests == null || requests.isEmpty()) {
+            Label empty = new Label("No request history.");
+            empty.getStyleClass().add("section-copy");
+            requestsContainer.getChildren().add(empty);
+            return;
+        }
+
+        for (WalletRequestDto req : requests) {
+            HBox row = new HBox(12);
+            row.getStyleClass().add("wallet-req-row");
+            row.setAlignment(Pos.CENTER_LEFT);
+
+            VBox details = new VBox(3);
+            HBox.setHgrow(details, Priority.ALWAYS);
+
+            String reqTypeStr = req.getType() == TransactionType.DEPOSIT ? "Deposit" : "Withdraw";
+            Label title = new Label(reqTypeStr + "  •  $" + String.format("%.2f", req.getAmount()));
+            title.getStyleClass().add("wallet-req-title");
+
+            String created = req.getCreatedAt().length() >= 16
+                ? req.getCreatedAt().substring(0, 16).replace('T', ' ')
+                : req.getCreatedAt();
+            Label sub = new Label("Submitted " + created);
+            sub.getStyleClass().add("wallet-req-sub");
+
+            details.getChildren().addAll(title, sub);
+
+            String statusStyle = switch (req.getStatus()) {
+                case PENDING -> "wallet-req-status-pending";
+                case APPROVED -> "wallet-req-status-approved";
+                case DENIED -> "wallet-req-status-denied";
+            };
+            Label status = new Label(req.getStatus().name());
+            status.getStyleClass().addAll("wallet-req-status", statusStyle);
+
+            row.getChildren().addAll(details, status);
+            requestsContainer.getChildren().add(row);
+        }
+    }
+
+    // dùng để tự động reload lại số dư khi nhận được event đổi ví từ server
     private void refreshProfileFromEvent(Event event) {
         if (event != null && event.getData() != null) {
             UserDto updatedUser = JsonUtil.fromMap(event.getData(), UserDto.class);
             if (updatedUser != null) {
+                // dùng để refresh thông tin tài khoản
                 refreshProfile(updatedUser);
                 return;
             }
         }
+        // dùng để đổ dữ liệu vào thông tin tài khoản
         populateProfile();
     }
 
+    // dùng để refresh thông tin tài khoản
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
@@ -213,14 +346,38 @@ public class UserProfileController {
         memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);
+        
+        // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu
+        renderProfileAvatar(user);
+        
         toggleWalletControls(!clientSession.isAdmin());
         
         var controller = SceneManager.getMissionBarController();
         if (controller != null) {
+            String base64 = user.getProfileImageBase64();
+            String cacheKey = "mission_avatar_" + user.getUsername() + "_" + (base64 == null ? 0 : base64.hashCode());
+            Image avatarImage = ImageCache.getInstance().get(cacheKey, base64);
+            controller.setAvatarImage(avatarImage);
             controller.setAvatarText(avatarLetter);
         }
     }
 
+    // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu tùy theo trạng thái ảnh
+    private void renderProfileAvatar(UserDto user) {
+        String base64 = user == null ? null : user.getProfileImageBase64();
+        String cacheKey = "profile_" + (user == null ? "guest" : user.getUsername()) + "_" + (base64 == null ? 0 : base64.hashCode());
+        Image image = ImageCache.getInstance().get(cacheKey, base64);
+        boolean hasImage = image != null;
+
+        profileAvatarImageView.setImage(hasImage ? image : null);
+        heroAvatarImageView.setImage(hasImage ? image : null);
+        profileAvatarImageView.setVisible(hasImage);
+        heroAvatarImageView.setVisible(hasImage);
+        profileAvatarLabel.setVisible(!hasImage);
+        profileImageHintLabel.setVisible(!hasImage);
+    }
+
+    // dùng để phân tích cú pháp số tiền
     private double parseAmount(String rawValue, String fieldName) {
         String value = rawValue == null ? "" : rawValue.trim();
         if (value.isBlank()) {
@@ -235,10 +392,12 @@ public class UserProfileController {
         }
     }
 
+    // dùng để liên kết dữ liệu top bar
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.PROFILE, false, null, this::cleanup);
     }
 
+    // dùng để giải quyết ảnh đại diện letter
     private String resolveAvatarLetter(String nickname, String username) {
         String source = nickname;
         if (source == null || source.isBlank()) {
@@ -250,6 +409,7 @@ public class UserProfileController {
         return source.substring(0, 1).toUpperCase();
     }
 
+    // dùng để bật tắt ví controls
     private void toggleWalletControls(boolean visible) {
         if (topUpAmountField != null && topUpAmountField.getParent() != null && topUpAmountField.getParent().getParent() != null) {
             topUpAmountField.getParent().getParent().setManaged(visible);

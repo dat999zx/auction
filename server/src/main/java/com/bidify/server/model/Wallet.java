@@ -8,11 +8,13 @@ public class Wallet {
     private volatile double balance; // tổng tiền đang có
     private volatile double lockedBalance; // số tiền bị đóng băng khi đã dùng để bid
 
+    // dùng để tạo một đối tượng Wallet
     public Wallet(double balance) {
         this.balance = balance;
         this.lockedBalance = 0;
     }
     
+    // dùng để khóa số dư
     public synchronized void lockBalance(double amount) {
         ValidationUtil.validatePositiveAmount(amount, "Lock balance amount");
         if (amount > getAvailableBalance())
@@ -20,6 +22,7 @@ public class Wallet {
         lockedBalance += amount;
     }
     
+    // dùng để mở khóa số dư
     public synchronized void unlockBalance(double amount) {
         ValidationUtil.validatePositiveAmount(amount, "Unlock balance amount");
         if (amount > lockedBalance)
@@ -27,6 +30,7 @@ public class Wallet {
         lockedBalance -= amount;
     }
     
+    // dùng để pay chiến thắng đấu giá
     public synchronized void payWinAuction(double amount) {
         ValidationUtil.validatePositiveAmount(amount, "Pay amount");
         if (lockedBalance < amount)
@@ -35,12 +39,14 @@ public class Wallet {
         lockedBalance -= amount;
     }
     
+    // dùng để nạp tiền
     public synchronized void deposit(double amount) {
         if (amount <= 0)
             throw new ValidationException("Deposit amount must be positive");
         balance += amount;
     }
     
+    // dùng để rút tiền
     public synchronized void withdraw(double amount) {
         if (amount <= 0)
             throw new ValidationException("Withdraw amount must be positive");
@@ -49,6 +55,7 @@ public class Wallet {
     
     public double getBalance() { return balance; }
     public double getAvailableBalance() { return balance - lockedBalance; }
+    // dùng để setlocked số dư
     public void setlockedBalance(double amount) { this.lockedBalance = amount; }
     public double getLockedBalance() { return lockedBalance; }
 }

@@ -1,0 +1,152 @@
+.admin-users-page {
+    -fx-background-color: #f7f9fc;
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+.brand-logo {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #000000;
+}
+
+.page-title {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 40px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #000000;
+}
+
+.muted-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #64748b;
+}
+
+.primary-button {
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(16,77,221,0.26), 10, 0, 0, 2);
+}
+
+.primary-button:hover {
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
+}
+
+.admin-card {
+    -fx-background-color: white;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
+    -fx-padding: 0 0 24 0;
+}
+
+.admin-card-header {
+    -fx-padding: 24 32;
+    -fx-border-color: transparent transparent #f1f5f9 transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.section-title {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #000000;
+}
+
+.admin-user-list {
+    -fx-padding: 24 32 8 32;
+}
+
+.admin-user-row {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(198,197,212,0.45);
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.02), 8, 0, 0, 2);
+    -fx-padding: 20;
+}
+
+.admin-user-row:hover {
+    -fx-border-color: #c6c5d4;
+    -fx-background-color: #f7f9fc;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 2);
+}
+
+.admin-user-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #000000;
+}
+
+.admin-user-copy {
+    -fx-font-size: 13px;
+    -fx-text-fill: #64748b;
+}
+
+.admin-action-button {
+    -fx-background-color: linear-gradient(to right, #ffffff, #eef3ff);
+    -fx-text-fill: #104ddd;
+    -fx-border-color: rgba(16,77,221,0.22);
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-padding: 10 18;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.admin-action-button:hover {
+    -fx-background-color: linear-gradient(to right, #eef3ff, #dfe8ff);
+    -fx-text-fill: #0039af;
+    -fx-border-color: rgba(16,77,221,0.36);
+}
+
+.admin-danger-button {
+    -fx-text-fill: #ef4444;
+    -fx-border-color: #fca5a5;
+    -fx-background-color: linear-gradient(to right, #fff7f5, #ffdad6);
+}
+
+.admin-danger-button:hover {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-border-color: #ef4444;
+}
+
+.admin-empty-state {
+    -fx-background-color: #f2f4f7;
+    -fx-background-radius: 16;
+    -fx-padding: 48 32;
+    -fx-alignment: center;
+}
+
+.admin-empty-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #000000;
+}
+
+.admin-empty-copy {
+    -fx-font-size: 14px;
+    -fx-text-fill: #64748b;
+}
+
+.footer {
+    -fx-padding: 24 8 0 8;
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 12px;
+}
+
+.footer Hyperlink {
+    -fx-text-fill: #64748b;
+    -fx-underline: false;
+}
+
+.footer Hyperlink:hover {
+    -fx-text-fill: #3b82f6;
+}

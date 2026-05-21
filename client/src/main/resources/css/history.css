@@ -1,6 +1,6 @@
 .root {
     -fx-background-color: #f7f9fc;
-    -fx-font-family: "Inter";
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 .header {
@@ -118,14 +118,16 @@
 }
 
 .page-title {
-    -fx-text-fill: #000666;
-    -fx-font-size: 48px;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 40px;
     -fx-font-weight: 900;
 }
 
 .section-title {
-    -fx-text-fill: #000666;
-    -fx-font-size: 28px;
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 24px;
     -fx-font-weight: 800;
 }
 
@@ -137,7 +139,7 @@
 }
 
 .btn-primary {
-    -fx-background-color: #000666;
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-text-fill: white;
     -fx-font-size: 12px;
     -fx-font-weight: 800;
@@ -147,12 +149,14 @@
 }
 
 .btn-primary:hover {
-    -fx-opacity: 0.9;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .btn-secondary {
-    -fx-background-color: #e0e3e6;
-    -fx-text-fill: #454652;
+    -fx-background-color: linear-gradient(to right, #ffffff, #eef3ff);
+    -fx-text-fill: #104ddd;
+    -fx-border-color: rgba(16,77,221,0.22);
+    -fx-border-radius: 8;
     -fx-font-size: 12px;
     -fx-font-weight: 800;
     -fx-padding: 10 18;
@@ -161,20 +165,26 @@
 }
 
 .btn-secondary:hover {
-    -fx-background-color: #d5d8dc;
+    -fx-background-color: linear-gradient(to right, #eef3ff, #dfe8ff);
 }
 
 
 .table-container {
     -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
     -fx-padding: 0;
 }
 
 .analytics-card {
     -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
     -fx-padding: 18 20;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
 }
 
 .analytics-chart-host {
@@ -189,6 +199,52 @@
     -fx-text-fill: #667085;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
+}
+
+.analytics-value {
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 26px;
+    -fx-font-weight: 900;
+}
+
+.analytics-trend-success,
+.analytics-trend-danger,
+.analytics-trend-neutral {
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.analytics-trend-success {
+    -fx-text-fill: #13a75a;
+}
+
+.analytics-trend-danger {
+    -fx-text-fill: #ba1a1a;
+}
+
+.analytics-trend-neutral {
+    -fx-text-fill: #64748b;
+}
+
+.analytics-symbol {
+    -fx-min-width: 46;
+    -fx-min-height: 46;
+    -fx-alignment: center;
+    -fx-background-radius: 999;
+    -fx-font-size: 22px;
+    -fx-font-weight: 900;
+    -fx-effect: dropshadow(gaussian, rgba(37,99,235,0.24), 12, 0, 0, 3);
+}
+
+.analytics-symbol-blue {
+    -fx-background-color: linear-gradient(to bottom right, #dbeafe, #bfdbfe);
+    -fx-text-fill: #1d4ed8;
+}
+
+.analytics-symbol-green {
+    -fx-background-color: linear-gradient(to bottom right, #dcfce7, #bbf7d0);
+    -fx-text-fill: #13a75a;
 }
 
 .analytics-line-chart {
@@ -343,9 +399,19 @@
 
 .transaction-card {
     -fx-background-color: white;
-    -fx-background-radius: 18;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
     -fx-padding: 24;
     -fx-border-width: 0 0 0 4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
+}
+
+.transaction-card-clickable {
+    -fx-cursor: hand;
+}
+
+.transaction-card-clickable:hover {
+    -fx-background-color: rgba(236,238,241,0.5);
 }
 
 .transaction-card-title {
@@ -391,11 +457,11 @@
 
 
 .text-primary {
-    -fx-text-fill: #000666;
+    -fx-text-fill: #000000;
 }
 
 .text-secondary {
-    -fx-text-fill: #0048d8;
+    -fx-text-fill: #104ddd;
 }
 
 .text-outline {

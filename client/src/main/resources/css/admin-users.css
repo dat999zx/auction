@@ -1,13 +1,44 @@
 .admin-users-page {
-    -fx-background-color: linear-gradient(to bottom, #f7f8fb, #eef2f7);
+    -fx-background-color: #f7f9fc;
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
 }
 
 .admin-card {
     -fx-background-color: white;
-    -fx-background-radius: 18;
-    -fx-border-radius: 18;
-    -fx-border-color: rgba(26, 43, 78, 0.08);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
     -fx-padding: 0 0 20 0;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
+}
+
+.brand-logo {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #000000;
+}
+
+.page-title {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 40px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #000000;
+}
+
+.muted-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: #454652;
+}
+
+.primary-button {
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(16,77,221,0.26), 10, 0, 0, 2);
 }
 
 .admin-card-header {
@@ -20,16 +51,23 @@
 }
 
 .admin-user-row {
-    -fx-background-color: #f8fafd;
-    -fx-background-radius: 14;
-    -fx-border-radius: 14;
-    -fx-border-color: rgba(26, 43, 78, 0.08);
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: rgba(198,197,212,0.45);
+}
+
+.section-title {
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #000000;
 }
 
 .admin-user-title {
     -fx-font-size: 16px;
     -fx-font-weight: 700;
-    -fx-text-fill: #14213d;
+    -fx-text-fill: #000000;
 }
 
 .admin-user-copy {
@@ -55,8 +93,8 @@
 }
 
 .admin-action-button {
-    -fx-background-color: white;
-    -fx-border-color: rgba(20, 33, 61, 0.14);
+    -fx-background-color: linear-gradient(to right, #ffffff, #eef3ff);
+    -fx-border-color: rgba(16,77,221,0.22);
     -fx-border-radius: 10;
     -fx-background-radius: 10;
     -fx-padding: 8 14 8 14;
@@ -64,12 +102,13 @@
 }
 
 .admin-danger-button {
+    -fx-background-color: linear-gradient(to right, #fff7f5, #ffdad6);
     -fx-text-fill: #9d2424;
-    -fx-border-color: rgba(157, 36, 36, 0.22);
+    -fx-border-color: rgba(157, 36, 36, 0.24);
 }
 
 .admin-empty-state {
-    -fx-background-color: #f8fafd;
+    -fx-background-color: #f2f4f7;
     -fx-background-radius: 14;
     -fx-padding: 24;
 }
@@ -77,7 +116,7 @@
 .admin-empty-title {
     -fx-font-size: 16px;
     -fx-font-weight: 700;
-    -fx-text-fill: #14213d;
+    -fx-text-fill: #000000;
 }
 
 .admin-empty-copy {

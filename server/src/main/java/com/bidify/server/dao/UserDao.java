@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.User;
@@ -17,11 +18,14 @@ public class UserDao  {
     private static UserDao instance = new UserDao();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
+    // dùng để tạo một đối tượng UserDao
     private UserDao() {}
 
+    // dùng để lấy đối tượng Singleton
     public static UserDao getInstance() { return instance; }
 
-    public boolean existsByUsername(String username) throws DatabaseException { // xÃ©t tá»“n táº¡i username trong database
+    // dùng để exists bởi username
+    public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
             rs -> rs != null && rs.next(),
@@ -30,7 +34,8 @@ public class UserDao  {
         return exists != null && exists;
     }
 
-    public User findByUsername(String username) throws DatabaseException { // láº¥y User tá»« database báº±ng username
+    // dùng để tìm kiếm bởi username
+    public User findByUsername(String username) throws DatabaseException { // lấy User từ database bằng username
         return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
@@ -43,6 +48,7 @@ public class UserDao  {
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
+                        rs.getString("profileImageId"),
                         UserStatus.valueOf(rs.getString("status")),
                         rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
                         createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
@@ -56,6 +62,7 @@ public class UserDao  {
         );
     }
 
+    // dùng để tìm kiếm all
     public List<User> findAll() throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT * FROM Users ORDER BY createdAt DESC",
@@ -70,6 +77,7 @@ public class UserDao  {
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
+                        rs.getString("profileImageId"),
                         UserStatus.valueOf(rs.getString("status")),
                         rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
                         createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
@@ -82,24 +90,29 @@ public class UserDao  {
         );
     }
 
-    public void create(User user) throws DatabaseException { // Ä‘Äƒng kÃ­
+    // dùng để tạo
+    public void create(User user) throws DatabaseException { // đăng kí
         SQLiteHelper.update(
-            "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance, profileImageId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             user.getUsername(),
             user.getNickname(),
             user.getPassword(),
             user.getRole().toString(),
             user.getCreatedAt() == null ? null : user.getCreatedAt().toString(),
             user.getLastLogin() == null ? null : user.getLastLogin().toString(),
-            user.getWallet().getBalance()
+            user.getWallet().getBalance(),
+            user.getProfileImageId()
         );
     }
 
-    public void save(User user) throws DatabaseException { // lÆ°u user data máº·c Ä‘á»‹nh cáº­p nháº­t last login
+    // dùng để lưu
+    public void save(User user) throws DatabaseException { // lưu user data mặc định cập nhật last login
+        // dùng để lưu
         save(user, true);
     }
 
-    public void save(User user, boolean saveLastLogin) throws DatabaseException { // lÆ°u user data
+    // dùng để lưu
+    public void save(User user, boolean saveLastLogin) throws DatabaseException { // lưu user data
         SQLiteHelper.update(
             """
             UPDATE Users SET 
@@ -107,6 +120,7 @@ public class UserDao  {
                 password = ?, 
                 email = ?, 
                 phoneNumber = ?, 
+                profileImageId = ?,
                 status = ?, 
                 role = ?,
                 createdAt = ?, 
@@ -117,6 +131,7 @@ public class UserDao  {
             user.getPassword(),
             user.getEmail(),
             user.getPhoneNumber(),
+            user.getProfileImageId(),
             user.getStatus().toString(),
             user.getRole().toString(),
             user.getCreatedAt().toString(),
@@ -127,13 +142,14 @@ public class UserDao  {
         if (saveLastLogin){
             SQLiteHelper.update(
                 "UPDATE Users SET lastLogin = ? WHERE username = ?",
-                LocalDateTime.now().toString(),
+                TimeUtil.nowInVietnam().toString(),
                 user.getUsername()
             );
         }
         logger.debug("saved user: {}", user.getUsername());
     }
 
+    // dùng để xóa bởi username
     public void deleteByUsername(String username) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
     }

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.ItemStatus;
@@ -20,6 +21,7 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
+import com.bidify.common.model.ConfirmDeliveryRequest;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.DisableAutoBidRequest;
@@ -27,13 +29,16 @@ import com.bidify.common.model.Event;
 import com.bidify.common.model.GetAuctionDetailRequest;
 import com.bidify.common.model.JoinAuctionRequest;
 import com.bidify.common.model.LeaveAuctionRequest;
+import com.bidify.common.model.PayAuctionRequest;
 import com.bidify.common.model.PlaceBidRequest;
 import com.bidify.common.model.Request;
+import com.bidify.common.model.ResolveAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.SetAutoBidRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
@@ -71,10 +76,13 @@ public class AuctionService {
     private final TransactionDao transactionDao = TransactionDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
 
+    // dùng để tạo một đối tượng AuctionService
     private AuctionService() {}
 
+    // dùng để lấy đối tượng Singleton
     public static AuctionService getInstance() { return instance; }
 
+    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.JOIN_AUCTION, this::join);
@@ -89,9 +97,15 @@ public class AuctionService {
         router.register(RequestType.SET_AUTO_BID, this::setAutoBid);
         router.register(RequestType.DISABLE_AUTO_BID, this::disableAutoBid);
         router.register(RequestType.SEARCH_AUCTIONS, (client, req) -> search(req));
+        router.register(RequestType.PAY_AUCTION, this::payAuction);
+        router.register(RequestType.CONFIRM_AUCTION_DELIVERY, this::confirmAuctionDelivery);
+        router.register(RequestType.RESOLVE_AUCTION, this::resolveAuction);
+        router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
+        router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
     }
 
     // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
+    // dùng để tải chuyển thành runtime
     public void loadToRuntime(){
         List<Auction> runtimeAuctions = new ArrayList<>();
         runtimeAuctions.addAll(auctionDao.findByStatus(AuctionStatus.UPCOMING));
@@ -101,6 +115,7 @@ public class AuctionService {
             RealtimeDatabase.addRuntimeAuction(auction);
     }
 
+    // dùng để tìm kiếm
     public Response search(Request request) {
         return ServiceUtil.handleRequest(() -> {
             SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
@@ -134,6 +149,7 @@ public class AuctionService {
         });
     }
 
+    // dùng để tạo
     public Response create(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
@@ -152,6 +168,7 @@ public class AuctionService {
             ValidationUtil.requiresNonBlank(itemId, "Item ID");
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
             ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
+            // dùng để kiểm tra tính hợp lệ đấu giá thời gian
             validateAuctionTime(startTime, endTime);
 
             Item item = requireAvailableOwnedItem(itemId, sellerUsername);
@@ -173,6 +190,7 @@ public class AuctionService {
         });
     }
 
+    // dùng để cập nhật
     public Response update(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
@@ -198,6 +216,7 @@ public class AuctionService {
             LocalDateTime endTime = parseDateTime(data.getEndTime());
 
             validateAuctionUpdateFields(auction.getSellerUsername(), startingPrice, minIncrement);
+            // dùng để kiểm tra tính hợp lệ đấu giá thời gian
             validateAuctionTime(startTime, endTime);
 
             auction.setStartingPrice(startingPrice);
@@ -214,11 +233,13 @@ public class AuctionService {
         });
     }
 
+    // dùng để lưu all runtime danh sách đấu giá
     public void saveAllRuntimeAuctions(){
         for (Auction auction : RealtimeDatabase.getAllRuntimeAuctions())
             auctionDao.save(auction);
     }
 
+    // dùng để xóa
     public Response delete(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
@@ -229,18 +250,26 @@ public class AuctionService {
             String auctionId = data.getId();
             ValidationUtil.requiresNonBlank(auctionId, "Auction id");
 
-            Auction auction = RealtimeDatabase.getUpcomingAuction(auctionId);
+            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction == null) auction = auctionDao.findById(auctionId);
             if (auction == null)
                 throw new AuctionException("Auction not found");
 
-            if (auction.getStatus() != AuctionStatus.UPCOMING)
-                throw new AuctionException("Cannot delete auction after it has started");
-
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
-            deleteAuctionCascade(auction, true);
 
-            return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            if (auction.getStatus() == AuctionStatus.UPCOMING) {
+                deleteAuctionCascade(auction, true);
+                return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
+            }
+
+            if (auction.getStatus() == AuctionStatus.ACTIVE) {
+                synchronized (auction) {
+                    cancelActiveAuction(auction);
+                }
+                return new Response(RequestStatus.SUCCESS, "Auction canceled successfully", toAuctionDto(auction, false));
+            }
+
+            throw new AuctionException("Can only delete upcoming auctions or cancel active auctions");
         });
     }
 
@@ -299,6 +328,7 @@ public class AuctionService {
     }
 
     // lấy ảnh chính
+    // dùng để lấy thumbnail
     private String getThumbnail(Item item) {
         if (item == null) return null;
         try {
@@ -322,6 +352,7 @@ public class AuctionService {
     }
 
     // lấy tất cả ảnh của auction
+    // dùng để lấy gallery
     private List<String> getGallery(Item item) {
         List<String> gallery = new ArrayList<>();
         if (item == null) return gallery;
@@ -340,6 +371,7 @@ public class AuctionService {
         return gallery;
     }
 
+    // dùng để tham gia
     public Response join(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
@@ -363,11 +395,13 @@ public class AuctionService {
             RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
             AuctionDto auctionDto = toAuctionDto(auction, false);
+            // dùng để phát sự kiện đấu giá cập nhật
             publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         });
     }
 
+    // dùng để rời khỏi
     public Response leave(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
@@ -385,11 +419,13 @@ public class AuctionService {
             RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
             Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction != null)
+                // dùng để phát sự kiện đấu giá cập nhật
                 publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
         });
     }
 
+    // dùng để place lượt đặt giá
     public Response placeBid(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
@@ -432,11 +468,13 @@ public class AuctionService {
                     auction.placeBid(bid);
 
                     wallet.lockBalance(bidAmount);
+                    // dùng để phát sự kiện locked số dư change
                     publishLockedBalanceChange(username, bidAmount);
 
                     User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
                     if (prevBidder != null) {
                         prevBidder.getWallet().unlockBalance(prevBid);
+                        // dùng để phát sự kiện locked số dư change
                         publishLockedBalanceChange(prevBidderUsername, -prevBid);
                     }
 
@@ -446,9 +484,11 @@ public class AuctionService {
                     if (existingAutoBid != null && bidAmount > existingAutoBid.getMaxBid())
                         existingAutoBid.setMaxBid(bidAmount);
 
+                    // dùng để áp dụng auto lượt đặt giá resolution
                     applyAutoBidResolution(auction);
 
                     auctionDao.save(auction);
+                    // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
                     publishAuctionBidEvent(auction, "New bid placed");
 
                     logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
@@ -491,6 +531,7 @@ public class AuctionService {
                     boolean visibleStateChanged = applyAutoBidResolution(auction);
                     auctionDao.save(auction);
                     if (visibleStateChanged)
+                        // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
                         publishAuctionBidEvent(auction, "New bid placed");
                 }
                 return new Response(RequestStatus.SUCCESS, "AutoBid saved successfully");
@@ -501,6 +542,7 @@ public class AuctionService {
         });
     }
 
+    // dùng để disable auto lượt đặt giá
     public Response disableAutoBid(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             DisableAutoBidRequest data = JsonUtil.fromMap(request.getData(), DisableAutoBidRequest.class);
@@ -516,10 +558,13 @@ public class AuctionService {
         });
     }
 
+    // dùng để auto lượt đặt giá candidate
     private record AutoBidCandidate(String username, double maxBid, LocalDateTime priorityTime) {}
 
+    // dùng để auto lượt đặt giá resolution
     private record AutoBidResolution(String winnerUsername, double resolvedBid, boolean stateChanged) {}
 
+    // dùng để áp dụng auto lượt đặt giá resolution
     private boolean applyAutoBidResolution(Auction auction) {
         AutoBidResolution resolution = resolveAutoBid(auction);
         if (!resolution.stateChanged())
@@ -537,15 +582,18 @@ public class AuctionService {
             double extraNeeded = resolvedBid - previousBid;
             if (extraNeeded > 0) {
                 winnerWallet.lockBalance(extraNeeded);
+                // dùng để phát sự kiện locked số dư change
                 publishLockedBalanceChange(winnerUsername, extraNeeded);
             }
         } else {
             winnerWallet.lockBalance(resolvedBid);
+            // dùng để phát sự kiện locked số dư change
             publishLockedBalanceChange(winnerUsername, resolvedBid);
 
             if (previousLeader != null) {
                 User previousWinner = ServiceUtil.getOrLoadUser(previousLeader);
                 previousWinner.getWallet().unlockBalance(previousBid);
+                // dùng để phát sự kiện locked số dư change
                 publishLockedBalanceChange(previousLeader, -previousBid);
             }
         }
@@ -558,6 +606,7 @@ public class AuctionService {
         return true;
     }
 
+    // dùng để giải quyết auto lượt đặt giá
     private AutoBidResolution resolveAutoBid(Auction auction) {
         List<AutoBidCandidate> candidates = collectAutoBidCandidates(auction);
         if (candidates.isEmpty())
@@ -584,6 +633,7 @@ public class AuctionService {
         return new AutoBidResolution(winner.username(), resolvedBid, !(sameWinner && sameAmount));
     }
 
+    // dùng để collect auto lượt đặt giá candidates
     private List<AutoBidCandidate> collectAutoBidCandidates(Auction auction) {
         List<AutoBidCandidate> candidates = new ArrayList<>();
         double minAllowed = nextMinimumBid(auction);
@@ -622,6 +672,7 @@ public class AuctionService {
         return candidates;
     }
 
+    // dùng để lấy effective budget cho đấu giá
     private double getEffectiveBudgetForAuction(String username, Auction auction) {
         User user = ServiceUtil.getOrLoadUser(username);
         double effectiveBudget = user.getWallet().getAvailableBalance();
@@ -630,11 +681,13 @@ public class AuctionService {
         return effectiveBudget;
     }
 
+    // dùng để next minimum lượt đặt giá
     private double nextMinimumBid(Auction auction) {
         double currentReference = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
         return currentReference + auction.getMinIncrement();
     }
 
+    // dùng để kiểm tra tính hợp lệ auto lượt đặt giá yêu cầu
     private void validateAutoBidRequest(Auction auction, User user, double maxBid) {
         ValidationUtil.validatePositiveAmount(maxBid, "AutoBid max");
         double minimumRequired = nextMinimumBid(auction);
@@ -649,6 +702,7 @@ public class AuctionService {
             throw new InsufficientBalanceException("AutoBid max exceeds available balance");
     }
 
+    // dùng để bắt buộc phải có active đấu giá
     private Auction requireActiveAuction(String auctionId) {
         ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
         Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
@@ -657,6 +711,7 @@ public class AuctionService {
         return auction;
     }
 
+    // dùng để bắt buộc phải có active người dùng
     private User requireActiveUser(String username) {
         User user = RealtimeDatabase.getActiveUser(username);
         if (user == null)
@@ -664,6 +719,7 @@ public class AuctionService {
         return user;
     }
 
+    // dùng để thông báo auto lượt đặt giá insufficient số dư
     private void notifyAutoBidInsufficientBalance(String username, String auctionId) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
@@ -673,6 +729,7 @@ public class AuctionService {
         ));
     }
 
+    // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
     private void publishAuctionBidEvent(Auction auction, String message) {
         AuctionDto auctionDto = toAuctionDto(auction, false);
         AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auction.getId());
@@ -681,11 +738,13 @@ public class AuctionService {
         RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.BID_PLACED, message, auctionDto));
     }
 
+    // dùng để bắt buộc phải có seller
     private void requireSeller(Auction auction, String username, String message) {
         if (auction == null || username == null || !ServiceUtil.isOwnerOrAdmin(auction.getSellerUsername(), username))
             throw new ValidationException(message);
     }
 
+    // dùng để bắt buộc phải có available owned sản phẩm
     private Item requireAvailableOwnedItem(String itemId, String username) {
         Item item = itemDao.findById(itemId);
         if (item == null)
@@ -697,6 +756,7 @@ public class AuctionService {
         return item;
     }
 
+    // dùng để lấy linked đấu giá sản phẩm
     private Item getLinkedAuctionItem(Auction auction) {
         if (auction == null) return null;
 
@@ -706,10 +766,12 @@ public class AuctionService {
         return itemDao.findById(itemId);
     }
 
+    // dùng để chuyển thành đấu giá đối tượng truyền tải dữ liệu (DTO)
     public AuctionDto toAuctionDto(Auction auction, boolean includeGallery) {
         return toAuctionDto(auction, getLinkedAuctionItem(auction), includeGallery);
     }
 
+    // dùng để chuyển thành đấu giá đối tượng truyền tải dữ liệu (DTO)
     public AuctionDto toAuctionDto(Auction auction, Item item, boolean includeGallery) {
         List<String> gallery = includeGallery ? getGallery(item) : null;
         AuctionDto dto = AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
@@ -718,6 +780,7 @@ public class AuctionService {
         return dto;
     }
 
+    // dùng để giải quyết watcher count
     private int resolveWatcherCount(Auction auction) {
         if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE)
             return 0;
@@ -726,6 +789,7 @@ public class AuctionService {
         return channel == null ? 0 : channel.getObserverCount();
     }
 
+    // dùng để giải quyết active bidder count
     private int resolveActiveBidderCount(Auction auction) {
         if (auction == null || auction.getBids() == null || auction.getBids().isEmpty())
             return 0;
@@ -739,6 +803,7 @@ public class AuctionService {
         return bidders.size();
     }
 
+    // dùng để phát sự kiện đấu giá cập nhật
     private void publishAuctionUpdate(Auction auction, String message) {
         if (auction == null) return;
 
@@ -750,6 +815,7 @@ public class AuctionService {
         RealtimeDatabase.getGlobalChannel().publish(event);
     }
 
+    // dùng để phát sự kiện live audience cập nhật
     public void publishLiveAudienceUpdate(String auctionId) {
         if (auctionId == null || auctionId.isBlank())
             return;
@@ -758,13 +824,32 @@ public class AuctionService {
         if (auction == null)
             return;
 
+        // dùng để phát sự kiện đấu giá cập nhật
         publishAuctionUpdate(auction, "Auction watcher count updated");
     }
 
+    private void cancelActiveAuction(Auction auction) throws DatabaseException {
+        if (auction == null)
+            throw new AuctionException("Auction not found");
+        if (auction.getStatus() != AuctionStatus.ACTIVE)
+            throw new AuctionException("Can only cancel active auctions");
+
+        releaseCurrentLeaderLock(auction);
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishAuctionUpdate(auction, "Auction canceled by seller");
+        RealtimeDatabase.removeRuntimeAuction(auction.getId());
+    }
+
+    // dùng để xóa đấu giá cascade
     public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
         if (auction == null)
             return;
 
+        // dùng để release current leader khóa đồng bộ
         releaseCurrentLeaderLock(auction);
 
         if (restoreLinkedItemToSeller && auction.getItemId() != null && !auction.getItemId().isBlank())
@@ -779,6 +864,7 @@ public class AuctionService {
         );
     }
 
+    // dùng để release current leader khóa đồng bộ
     private void releaseCurrentLeaderLock(Auction auction) {
         String currentBidderUsername = auction.getCurrentBidderUsername();
         double currentBid = auction.getCurrentBid();
@@ -787,15 +873,16 @@ public class AuctionService {
             return;
 
         User activeBidder = RealtimeDatabase.getActiveUser(currentBidderUsername);
-        if (activeBidder == null)
+        User bidder = activeBidder != null ? activeBidder : ServiceUtil.getOrLoadUser(currentBidderUsername);
+        if (bidder == null)
             return;
 
-        Wallet wallet = activeBidder.getWallet();
+        Wallet wallet = bidder.getWallet();
         if (wallet == null || wallet.getLockedBalance() < currentBid)
             return;
 
         wallet.unlockBalance(currentBid);
-        userDao.save(activeBidder, false);
+        userDao.save(bidder, false);
 
         ClientHandler clientHandler = RealtimeDatabase.getUserClient(currentBidderUsername);
         if (clientHandler != null) {
@@ -806,6 +893,7 @@ public class AuctionService {
         }
     }
 
+    // dùng để cập nhật đấu giá sản phẩm state
     private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {
         Item item = getLinkedAuctionItem(auction);
         if (item == null) return;
@@ -815,12 +903,14 @@ public class AuctionService {
         itemDao.save(item);
     }
 
+    // dùng để kiểm tra tính hợp lệ đấu giá cập nhật fields
     private void validateAuctionUpdateFields(String sellerUsername, double startingPrice, double minIncrement) {
         ValidationUtil.requiresNonBlank(sellerUsername, "Seller");
         ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
     }
 
+    // dùng để kiểm tra tính hợp lệ đấu giá thời gian
     private void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null) 
             throw new ValidationException("Start date cannot be empty");
@@ -828,14 +918,16 @@ public class AuctionService {
             throw new ValidationException("End date cannot be empty");
         if (startTime.isAfter(endTime))
             throw new ValidationException("End time must be after start time");
-        if (LocalDateTime.now().minusMinutes(1).isAfter(startTime))
+        if (TimeUtil.nowInVietnam().minusMinutes(1).isAfter(startTime))
             throw new ValidationException("Start time must be in the future");
     }
 
+    // dùng để phân tích cú pháp ngày thời gian
     private LocalDateTime parseDateTime(String value) {
-        return LocalDateTime.parse(value);
+        return TimeUtil.parseDateTime(value);
     }
 
+    // dùng để kiểm tra xem runtime đấu giá
     private boolean isRuntimeAuction(Auction auction) {
         if (auction == null) return false;
         AuctionStatus status = auction.getStatus();
@@ -843,44 +935,29 @@ public class AuctionService {
     }
 
     // chuyển auction từ ACTIVE -> ENDED, chuyển tiền các thứ...
+    // dùng để settle đấu giá
     public void settleAuction(Auction auction) {
         String sellerUsername = auction.getSellerUsername();
         String winnerUsername = auction.getCurrentBidderUsername();
-        double finalBid = auction.getCurrentBid();
 
         if (winnerUsername != null) {
-            User winner = ServiceUtil.getOrLoadUser(winnerUsername);
-            User seller = ServiceUtil.getOrLoadUser(sellerUsername);
-            
-            winner.getWallet().payWinAuction(finalBid);
-            transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_PAY, finalBid, auction.getId()));
-
-            seller.getWallet().deposit(finalBid);
-            transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
-
-            updateAuctionItemState(auction, winnerUsername, ItemStatus.AVAILABLE);
-
-            auction.setStatus(AuctionStatus.ENDED);
-
-            userDao.save(winner, false);
-            userDao.save(seller, false);
-
-            publishBalanceChange(winnerUsername, finalBid);
-            publishLockedBalanceChange(winnerUsername, -finalBid);
-            publishBalanceChange(sellerUsername, finalBid);
+            auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
+            auctionDao.save(auction);
+            // dùng để phát sự kiện đấu giá cập nhật
+            publishAuctionUpdate(auction, "Auction ended, awaiting payment from winner");
         }
         else {
+            // dùng để cập nhật đấu giá sản phẩm state
             updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
-            auction.setEndTime(LocalDateTime.now());
             auction.setStatus(AuctionStatus.CANCELED);
+            auctionDao.save(auction);
         }
-        
-        auctionDao.save(auction);
 
-        logger.info("auction settled: {} - {}", auction.getAuctionName(), auction.getId());
+        logger.info("auction settled: {} - {} (status: {})", auction.getAuctionName(), auction.getId(), auction.getStatus());
     }
 
     // Event cập nhật wallet của User
+    // dùng để phát sự kiện số dư change
     private void publishBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
@@ -889,10 +966,199 @@ public class AuctionService {
     }
 
     // Event cập nhật lockedBalance của User
+    // dùng để phát sự kiện locked số dư change
     private void publishLockedBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
         Event event = new Event(EventType.LOCKED_BALANCE_CHANGED, "Locked balance changed: " + diff);
         userClient.sendEvent(event);
+    }
+
+    public Response getUserSettlements(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User user = ServiceUtil.requireSessionUser(client);
+            List<Auction> auctions = auctionDao.findUserSettlements(user.getUsername());
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : auctions) {
+                result.add(toAuctionDto(auction, false));
+            }
+            return new Response(RequestStatus.SUCCESS, "Get user settlements successfully", result);
+        });
+    }
+
+    public Response getMyAuctions(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User user = ServiceUtil.requireSessionUser(client);
+            String username = user.getUsername();
+            List<Auction> dbAuctions = auctionDao.findBySellerUsername(username);
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : dbAuctions) {
+                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
+                Auction effective = runtime != null ? runtime : auction;
+                result.add(toAuctionDto(effective, false));
+            }
+            return new Response(RequestStatus.SUCCESS, "Get my auctions successfully", result);
+        });
+    }
+
+    public Response payAuction(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User winner = ServiceUtil.requireSessionUser(client);
+            PayAuctionRequest data = JsonUtil.fromMap(request.getData(), PayAuctionRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (auction.getStatus() != AuctionStatus.AWAITING_PAYMENT) {
+                    throw new AuctionException("Auction is not awaiting payment");
+                }
+                if (!winner.getUsername().equals(auction.getCurrentBidderUsername())) {
+                    throw new AuctionException("Only the winning bidder can pay for this auction");
+                }
+                double finalBid = auction.getCurrentBid();
+                if (finalBid <= 0) {
+                    throw new AuctionException("Invalid final bid amount");
+                }
+
+                winner.tryLock(5);
+                try {
+                    winner.getWallet().payWinAuction(finalBid);
+                    userDao.save(winner, false);
+                } finally {
+                    winner.unlock();
+                }
+
+                transactionDao.create(new Transaction(winner.getUsername(), TransactionType.AUCTION_PAY, finalBid, auction.getId()));
+
+                auction.setStatus(AuctionStatus.AWAITING_DELIVERY);
+                auctionDao.save(auction);
+
+                publishBalanceChange(winner.getUsername(), -finalBid);
+                publishLockedBalanceChange(winner.getUsername(), -finalBid);
+                publishAuctionUpdate(auction, "Winner has paid for the auction");
+
+                return new Response(RequestStatus.SUCCESS, "Paid for auction successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    public Response confirmAuctionDelivery(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            User sessionUser = ServiceUtil.requireSessionUser(client);
+            ConfirmDeliveryRequest data = JsonUtil.fromMap(request.getData(), ConfirmDeliveryRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (auction.getStatus() != AuctionStatus.AWAITING_DELIVERY) {
+                    throw new AuctionException("Auction is not awaiting delivery");
+                }
+                if (!sessionUser.getUsername().equals(auction.getSellerUsername()) && !ServiceUtil.isAdmin(sessionUser)) {
+                    throw new AuctionException("Only the seller or an admin can confirm delivery");
+                }
+
+                completePaidAuction(auction);
+
+                return new Response(RequestStatus.SUCCESS, "Delivery confirmed successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    public Response resolveAuction(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireAdmin(client);
+            ResolveAuctionRequest data = JsonUtil.fromMap(request.getData(), ResolveAuctionRequest.class);
+            ServiceUtil.validateRequestData(data);
+            if (data.getAction() == null) {
+                throw new ValidationException("Action cannot be null");
+            }
+
+            Auction auction = loadAuctionForSettlement(data.getAuctionId());
+            synchronized (auction) {
+                if (data.getAction() == AuctionResolutionAction.COMPLETE) {
+                    if (auction.getStatus() != AuctionStatus.AWAITING_DELIVERY) {
+                        throw new AuctionException("Only auctions awaiting delivery can be resolved as complete");
+                    }
+                    completePaidAuction(auction);
+                } else if (data.getAction() == AuctionResolutionAction.CANCEL) {
+                    if (auction.getStatus() == AuctionStatus.AWAITING_PAYMENT) {
+                        cancelAwaitingPaymentAuction(auction);
+                    } else if (auction.getStatus() == AuctionStatus.AWAITING_DELIVERY) {
+                        cancelAwaitingDeliveryAuction(auction);
+                    } else {
+                        throw new AuctionException("Cannot cancel auction in status: " + auction.getStatus());
+                    }
+                } else {
+                    throw new AuctionException("Unknown resolution action");
+                }
+
+                return new Response(RequestStatus.SUCCESS, "Auction resolved successfully", toAuctionDto(auction, false));
+            }
+        });
+    }
+
+    private Auction loadAuctionForSettlement(String auctionId) throws DatabaseException {
+        ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
+        Auction auction = auctionDao.findById(auctionId);
+        if (auction == null) {
+            throw new AuctionException("Auction not found");
+        }
+        return auction;
+    }
+
+    private void completePaidAuction(Auction auction) throws DatabaseException {
+        String sellerUsername = auction.getSellerUsername();
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User seller = ServiceUtil.getOrLoadUser(sellerUsername);
+        seller.getWallet().deposit(finalBid);
+        userDao.save(seller, false);
+
+        transactionDao.create(new Transaction(sellerUsername, TransactionType.AUCTION_PROFIT, finalBid, auction.getId()));
+
+        updateAuctionItemState(auction, winnerUsername, ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.COMPLETED);
+        auctionDao.save(auction);
+
+        publishBalanceChange(sellerUsername, finalBid);
+        publishAuctionUpdate(auction, "Auction completed successfully");
+    }
+
+    private void cancelAwaitingPaymentAuction(Auction auction) throws DatabaseException {
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User winner = ServiceUtil.getOrLoadUser(winnerUsername);
+        winner.getWallet().unlockBalance(finalBid);
+        userDao.save(winner, false);
+
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishLockedBalanceChange(winnerUsername, -finalBid);
+        publishAuctionUpdate(auction, "Auction canceled by admin");
+    }
+
+    private void cancelAwaitingDeliveryAuction(Auction auction) throws DatabaseException {
+        String winnerUsername = auction.getCurrentBidderUsername();
+        double finalBid = auction.getCurrentBid();
+
+        User winner = ServiceUtil.getOrLoadUser(winnerUsername);
+        winner.getWallet().deposit(finalBid);
+        userDao.save(winner, false);
+
+        transactionDao.create(new Transaction(winnerUsername, TransactionType.AUCTION_REFUND, finalBid, auction.getId()));
+
+        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+
+        auction.setStatus(AuctionStatus.CANCELED);
+        auctionDao.save(auction);
+
+        publishBalanceChange(winnerUsername, finalBid);
+        publishAuctionUpdate(auction, "Auction canceled and refunded by admin");
     }
 }

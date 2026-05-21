@@ -165,7 +165,7 @@
 }
 
 .primary-button {
-    -fx-background-color: linear-gradient(to right, #000666, #1a237e);
+    -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb);
     -fx-background-radius: 12px;
     -fx-text-fill: #ffffff;
     -fx-font-family: "Manrope", "Arial";
@@ -175,7 +175,7 @@
 }
 
 .primary-button:hover {
-    -fx-opacity: 0.95;
+    -fx-background-color: linear-gradient(to right, #2563eb, #38bdf8);
 }
 
 .footer-text {

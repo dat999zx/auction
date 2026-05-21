@@ -4,6 +4,7 @@ import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
+import com.bidify.common.utility.TimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -22,27 +23,32 @@ public class Auction extends Entity {
     private List<Bid> bids = new ArrayList<>();
     private List<AutoBid> autoBids = new ArrayList<>();
 
+    // dùng để tạo một đối tượng Auction
     public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
-        super(IdGenerator.genAuctionId(), LocalDateTime.now());
+        super(IdGenerator.genAuctionId(), TimeUtil.nowInVietnam());
         this.sellerUsername = sellerUsername;
         this.itemId = itemId;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
 
-        if (LocalDateTime.now().isBefore(startTime))
+        if (TimeUtil.nowInVietnam().isBefore(startTime))
             this.status = AuctionStatus.UPCOMING;
         else
             this.status = AuctionStatus.ACTIVE;
     }
 
+    // dùng để tạo một đối tượng Auction
     public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
+        // dùng để this
         this(sellerUsername, null, startingPrice, startTime, endTime);
         this.auctionName = auctionName;
         this.description = description;
     }
     
+    // dùng để tạo một đối tượng Auction
     public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String itemId, String currentBidderUsername, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
+        // dùng để super
         super(id, createdAt);
         this.auctionName = auctionName;
         this.description = description;
@@ -56,6 +62,7 @@ public class Auction extends Entity {
         this.status = status == null ? AuctionStatus.UPCOMING : status;
     }
     
+    // dùng để place lượt đặt giá
     public synchronized void placeBid(Bid bid) {
         if (bid == null)
             throw new BidException("Invalid bid");
@@ -66,7 +73,7 @@ public class Auction extends Entity {
         if (bid.getAmount() < minAllowed)
             throw new BidException("Bid must be at least " + minAllowed);
 
-        Duration remaining = Duration.between(LocalDateTime.now(), endTime);
+        Duration remaining = Duration.between(TimeUtil.nowInVietnam(), endTime);
         if (remaining.toSeconds() < 30)
             this.endTime = this.endTime.plusSeconds(60);
 
@@ -100,12 +107,15 @@ public class Auction extends Entity {
     public AuctionStatus getStatus() { return status; }
     public void setStatus(AuctionStatus status) { this.status = status; }
 
+    // dùng để kiểm tra xem active
     public boolean isActive(){ 
-        return status == AuctionStatus.ACTIVE && !LocalDateTime.now().isAfter(endTime); 
+        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime); 
     }
+    // dùng để kiểm tra xem ended
     public boolean isEnded() { 
         return status == AuctionStatus.ENDED || status == AuctionStatus.CANCELED; 
     }
+    // dùng để kiểm tra xem upcoming
     public boolean isUpcoming() { return status == AuctionStatus.UPCOMING; }
 
     public String getSellerUsername() { return sellerUsername; }
@@ -127,10 +137,12 @@ public class Auction extends Entity {
 
     public List<Bid> getBids() { return bids; }
 
+    // dùng để lấy auto danh sách đặt giá
     public synchronized List<AutoBid> getAutoBids() {
         return new ArrayList<>(autoBids);
     }
 
+    // dùng để lấy auto lượt đặt giá
     public synchronized AutoBid getAutoBid(String username) {
         if (username == null) return null;
         return autoBids.stream()
@@ -139,11 +151,13 @@ public class Auction extends Entity {
                 .orElse(null);
     }
 
+    // dùng để upsert auto lượt đặt giá
     public synchronized void upsertAutoBid(AutoBid autoBid) {
         autoBids.removeIf(existing -> existing.getUsername().equals(autoBid.getUsername()));
         autoBids.add(autoBid);
     }
 
+    // dùng để disable auto lượt đặt giá
     public synchronized void disableAutoBid(String username) {
         AutoBid autoBid = getAutoBid(username);
         if (autoBid != null) autoBid.disable();

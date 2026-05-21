@@ -2,6 +2,8 @@ package com.bidify.server.model;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.utility.TimeUtil;
+
 public class AutoBid {
     private final String auctionId;
     private final String username;
@@ -9,11 +11,12 @@ public class AutoBid {
     private double maxBid;
     private boolean enabled;
 
+    // dùng để tạo một đối tượng AutoBid
     public AutoBid(String auctionId, String username, double maxBid) {
         this.auctionId = auctionId;
         this.username = username;
         this.maxBid = maxBid;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = TimeUtil.nowInVietnam();
         this.enabled = true;
     }
 
@@ -37,10 +40,12 @@ public class AutoBid {
         return createdAt;
     }
 
+    // dùng để kiểm tra xem enabled
     public boolean isEnabled() {
         return enabled;
     }
 
+    // dùng để disable
     public void disable() {
         this.enabled = false;
     }
