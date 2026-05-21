@@ -91,12 +91,14 @@ public class CreateAuctionController {
     @FXML
     private TextField extensionTimeField;
 
-    // Rewired UI components matching the previous FXML design
     @FXML
     private DatePicker maxEndDatePicker;
 
     @FXML
     private TextField maxEndTimeField;
+
+    @FXML
+    private Label AntiSnipingStatusField;
 
     @FXML
     private void initialize() {
@@ -140,28 +142,49 @@ public class CreateAuctionController {
                 }
             });
 
+            maxEndDatePicker.valueProperty().addListener((obs, oldVal, newVal)  -> {
+                // False means it just lost focus (user finished typing/clicking away)
+                if (newVal != null) {
+                    validateEndTimeWithMaxEndTime();
+                }
+            });
             maxEndTimeField.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
                 // False means it just lost focus (user finished typing/clicking away)
                 if (!isNowFocused) {
-                    LocalDate endDate = endDatePicker.getValue();
-                    LocalTime endTime = parseTime(endTimeField.getText(), "End time");
-
-                    LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
-
-                    LocalDate maxEndDate = maxEndDatePicker.getValue();
-                    LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum end time");
-
-                    LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
-
-                    if (maxEndDateTime.isBefore(endDateTime)) {
-                        NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time. Reverting to auto-synced value.");
-                        syncMaxEndTimeWithStandardEnd();
-                    }
+                    validateEndTimeWithMaxEndTime();
                 }
             });
         });
     }
+    private void validateEndTimeWithMaxEndTime() {
+        LocalDate endDate = endDatePicker.getValue();
+        LocalTime endTime = parseTime(endTimeField.getText(), "End time");
 
+        LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+
+        LocalDate maxEndDate = maxEndDatePicker.getValue();
+        LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum end time");
+
+        LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
+
+        if (maxEndDateTime.isBefore(endDateTime)) {
+            NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
+            syncMaxEndTimeWithStandardEnd();
+
+            AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+            AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+
+        } else if (maxEndDateTime.isAfter(endDateTime)) {
+            // Strictly greater than -> Turn Green
+            AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
+            AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
+
+        } else {
+            // Exactly Equal -> Explicitly force it to Red/Disabled to override old green states
+            AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+            AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        }
+    }
     // dùng để tạo đấu giá
     @FXML
     private void createAuction() {
@@ -325,6 +348,8 @@ public class CreateAuctionController {
 
     // Tự động đồng bộ hóa thời gian kết thúc tối đa sau khi cập nhật thời gian kết thúc chuẩn
     private void syncMaxEndTimeWithStandardEnd() {
+        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
         try {
             LocalDate endDate = endDatePicker.getValue();
             if (endDate == null) return;

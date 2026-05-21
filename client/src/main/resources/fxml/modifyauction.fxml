@@ -115,11 +115,22 @@
                                     <Label styleClass="input-label" text="EXTENSION (HH:MM)" />
                                     <TextField fx:id="extensionTimeField" styleClass="text-field-modern" promptText="00:05" />
                                 </VBox>
+                            </HBox>
+
+                            <HBox spacing="15">
+                                <VBox minWidth="240.0" spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="MAXIMUM END DATE" />
+                                    <DatePicker fx:id="maxEndDatePicker" editable="false" maxHeight="40.0" maxWidth="Infinity" minHeight="40.0" prefHeight="40.0" styleClass="date-picker-modern" />
+                                </VBox>
                                 <VBox spacing="5" HBox.hgrow="ALWAYS">
-                                    <Label styleClass="input-label" text="MAX DELAY (HH:MM)" />
-                                    <TextField fx:id="maxDelayField" styleClass="text-field-modern" promptText="01:00" />
+                                    <Label styleClass="input-label" text="MAXIMUM END TIME" />
+                                    <TextField fx:id="maxEndTimeField" prefHeight="40.0" promptText="HH:mm" styleClass="text-field-modern" />
                                 </VBox>
                             </HBox>
+
+                            <VBox spacing="5" style="-fx-padding: 5 0 0 0;">
+                                <Label fx:id="AntiSnipingStatusField" style="-fx-font-size: 14; -fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="Anti-Sniping Status: Disabled" />
+                            </VBox>
                         </VBox>
                     </VBox>
 

@@ -507,9 +507,12 @@ public class AuctionDetailsController {
                     AntiSnipingVisualLabel.setText("Anti-sniping: trigger:" + data.getAntiSnipingTriggerTime() + " - extension: " + data.getAntiSnipingExtensionTime() + " - Max end Time: " + DisplayUtil.formatDateTime(data.getMaxEndTime(), "Unknown"));
                 } else {
                     AntiSnipingVisualLabel.setText("Anti-sniping not configured for this auction.");
+                }
+            }
         // Populate carousel images
         carouselImages.clear();
         currentCarouselIndex = 0;
+        }
 
         if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
             String cacheKey = "auction_" + data.getId() + "_thumb";

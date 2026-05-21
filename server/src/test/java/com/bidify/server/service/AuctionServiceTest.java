@@ -333,6 +333,10 @@ class AuctionServiceTest {
         auction.setMinIncrement(100.0);
         auction.setStatus(status);
         
+        auction.setAntiSnipingTriggerTime(java.time.Duration.ofMinutes(5));
+        auction.setAntiSnipingExtensionTime(java.time.Duration.ofMinutes(5));
+        auction.setMaxEndTime(auction.getEndTime()); // Default to standard end time
+        
         auctionDao.create(auction);
         createdAuctionIds.add(auction.getId());
         
@@ -558,7 +562,10 @@ class AuctionServiceTest {
             100.0,
             LocalDateTime.now().plusHours(1).toString(),
             LocalDateTime.now().plusHours(2).toString(),
-            "Try to restart canceled auction"
+            "Try to restart canceled auction",
+            "00:05",                                      // antiSnipingTriggerTime
+            "00:05",                                      // antiSnipingExtensionTime
+            LocalDateTime.now().plusHours(2).toString()   // maxEndTime (matching the new end time)
         );
 
         Response response = auctionService.update(sellerClient, new Request(RequestType.UPDATE_AUCTION, request));

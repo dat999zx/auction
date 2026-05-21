@@ -211,6 +211,7 @@
                         <Label styleClass="section-title" text="Anti-Sniping Settings" />
                         <Label styleClass="section-description" text="This feature prevents &quot;sniping&quot; - where buyers bid at the absolute last second to win before others can react - by dynamically extending the clock to keep the bidding fair." wrapText="true" />
                               <Label layoutX="10.0" layoutY="43.0" styleClass="section-description" text="Leave these settings at their default values if you want to disable anti-sniping." wrapText="true" />
+                              <Label fx:id="AntiSnipingStatusField" styleClass="field-label" text="Anti-Sniping Status:" wrapText="true" />
                     </VBox>
                     <VBox maxWidth="Infinity" spacing="16.0" GridPane.columnIndex="1">
             <!-- Top Row: Trigger and Extension Windows -->

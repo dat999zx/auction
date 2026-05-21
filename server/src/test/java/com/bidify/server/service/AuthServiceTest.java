@@ -180,7 +180,7 @@ class AuthServiceTest {
 
         // Dù password đúng nhưng tài khoản bị khóa thì vẫn phải fail.
         assertEquals(RequestStatus.FAILED, response.getStatus());
-        assertEquals("You have been banned.", response.getMessage());
+        assertEquals("You have been banned", response.getMessage());
         assertFalse(RealtimeDatabase.isUserOnline(username));
     }
 
