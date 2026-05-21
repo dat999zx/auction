@@ -18,6 +18,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateAuctionRequest;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.utility.NotificationUtil;
@@ -115,8 +116,8 @@ public class ModifyAuctionController {
         startingPriceField.setText(String.valueOf(data.getStartingPrice()));
 
         try {
-            LocalDateTime start = LocalDateTime.parse(data.getStartTime());
-            LocalDateTime end = LocalDateTime.parse(data.getEndTime());
+            LocalDateTime start = TimeUtil.parseDateTime(data.getStartTime());
+            LocalDateTime end = TimeUtil.parseDateTime(data.getEndTime());
 
             startDatePicker.setValue(start.toLocalDate());
             startTimeField.setText(start.toLocalTime().format(TIME_FORMATTER));

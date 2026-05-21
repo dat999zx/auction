@@ -13,6 +13,7 @@ import java.util.List;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
@@ -335,7 +336,7 @@ public class MyAuctionsController {
     private boolean isEndingSoon(String endTime) {
         if (endTime == null || endTime.isBlank()) return false;
         try {
-            Duration d = Duration.between(LocalDateTime.now(), LocalDateTime.parse(endTime));
+            Duration d = Duration.between(TimeUtil.nowInVietnam(), TimeUtil.parseDateTime(endTime));
             return !d.isNegative() && d.toHours() < 24;
         } catch (DateTimeParseException e) {
             return false;
@@ -347,7 +348,7 @@ public class MyAuctionsController {
     private String formatEndDate(String endTime) {
         if (endTime == null || endTime.isBlank()) return "";
         try {
-            LocalDateTime dt = LocalDateTime.parse(endTime);
+            LocalDateTime dt = TimeUtil.parseDateTime(endTime);
             return dt.format(DateTimeFormatter.ofPattern("MMM dd"));
         } catch (DateTimeParseException e) {
             return endTime;

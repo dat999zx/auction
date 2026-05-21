@@ -20,6 +20,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.InventoryClientService;
@@ -96,9 +97,9 @@ public class CreateAuctionController {
             loadInventoryItems();
 
             startDatePicker.setEditable(false);
-            startDatePicker.setValue(LocalDate.now());
+            startDatePicker.setValue(TimeUtil.todayInVietnam());
             endDatePicker.setEditable(false);
-            endDatePicker.setValue(LocalDate.now().plusDays(7));
+            endDatePicker.setValue(TimeUtil.todayInVietnam().plusDays(7));
             startTimeField.setText("09:00");
             endTimeField.setText("18:00");
         });
@@ -123,8 +124,8 @@ public class CreateAuctionController {
             LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
 
-            if (startDateTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
-                startDateTime = LocalDateTime.now();
+            if (startDateTime.isBefore(TimeUtil.nowInVietnam().minusMinutes(1))) {
+                startDateTime = TimeUtil.nowInVietnam();
                 startDatePicker.setValue(startDateTime.toLocalDate());
                 startTimeField.setText(startDateTime.toLocalTime().format(TIME_FORMATTER));
             }

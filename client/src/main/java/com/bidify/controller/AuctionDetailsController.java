@@ -1,9 +1,7 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -22,6 +20,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
@@ -993,7 +992,7 @@ public class AuctionDetailsController {
         }
 
         try {
-            return LocalDateTime.parse(bid.getCreatedAt());
+            return TimeUtil.parseDateTime(bid.getCreatedAt());
         } catch (DateTimeParseException e) {
             return null;
         }
@@ -1004,13 +1003,13 @@ public class AuctionDetailsController {
         if (dateTime == null) {
             return 0L;
         }
-        return dateTime.atZone(ZoneId.systemDefault()).toEpochSecond();
+        return TimeUtil.toVietnamEpochSeconds(dateTime);
     }
 
     // dùng để từ epoch seconds
     private LocalDateTime fromEpochSeconds(long epochSeconds) {
         try {
-            return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneId.systemDefault());
+            return TimeUtil.fromVietnamEpochSeconds(epochSeconds);
         } catch (Exception e) {
             return null;
         }
