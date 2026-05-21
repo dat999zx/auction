@@ -38,6 +38,7 @@ import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.SetAutoBidRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
@@ -175,6 +176,16 @@ public class AuctionService {
             auction.setAuctionName(item.getName());
             auction.setDescription(item.getDescription());
             auction.setMinIncrement(minIncrement);
+            
+            // Set anti-sniping configuration
+            java.time.Duration triggerTime = TimeUtil.parseHHMM(data.getTriggerTime());
+            java.time.Duration extensionTime = TimeUtil.parseHHMM(data.getExtensionTime());
+            LocalDateTime maxDelay = LocalDateTime.parse(data.getMaxExtensionTime());
+
+            auction.setAntiSnipingTriggerTime(triggerTime);
+            auction.setAntiSnipingExtensionTime(extensionTime);
+            auction.setMaxEndTime(maxDelay);
+
             auctionDao.create(auction);
             itemDao.updateAvailabilityStatus(itemId, ItemStatus.LOCKED_IN_AUCTION);
             item.setAvailabilityStatus(ItemStatus.LOCKED_IN_AUCTION);
@@ -221,6 +232,15 @@ public class AuctionService {
             auction.setMinIncrement(minIncrement);
             auction.setStartTime(startTime);
             auction.setEndTime(endTime);
+            
+            // Update anti-sniping configuration
+            java.time.Duration triggerTime = TimeUtil.parseHHMM(data.getTriggerTime());
+            java.time.Duration extensionTime = TimeUtil.parseHHMM(data.getExtensionTime());
+            LocalDateTime maxDelay = LocalDateTime.parse(data.getMaxExtensionTime());
+
+            auction.setAntiSnipingTriggerTime(triggerTime);
+            auction.setAntiSnipingExtensionTime(extensionTime);
+            auction.setMaxEndTime(maxDelay);
 
             auctionDao.save(auction);
 

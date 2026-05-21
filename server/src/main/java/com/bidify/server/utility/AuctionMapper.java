@@ -1,13 +1,14 @@
 package com.bidify.server.utility;
 
+import java.util.Comparator;
+import java.util.List;
+
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.BidDto;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
-
-import java.util.Comparator;
-import java.util.List;
 
 public class AuctionMapper {
     // dùng để tạo một đối tượng AuctionMapper
@@ -51,6 +52,9 @@ public class AuctionMapper {
                 auction.getEndTime().toString(),
                 auction.getStatus().name()
         );
+        dto.setAntiSnipingTriggerTime(TimeUtil.formatHHMM(auction.getAntiSnipingTriggerTime()));
+        dto.setAntiSnipingExtensionTime(TimeUtil.formatHHMM(auction.getAntiSnipingExtensionTime()));
+        dto.setMaxEndTime(auction.getMaxEndTime() != null ? auction.getMaxEndTime().toString() : null);
         dto.setThumbnailBase64(thumbnailBase64);
         dto.setGalleryBase64(galleryBase64);
         dto.setBidHistory(mapBidHistory(auction));

@@ -1,17 +1,16 @@
 package com.bidify.server.service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,7 +180,7 @@ class AuthServiceTest {
 
         // Dù password đúng nhưng tài khoản bị khóa thì vẫn phải fail.
         assertEquals(RequestStatus.FAILED, response.getStatus());
-        assertEquals("You have been banned", response.getMessage());
+        assertEquals("You have been banned.", response.getMessage());
         assertFalse(RealtimeDatabase.isUserOnline(username));
     }
 

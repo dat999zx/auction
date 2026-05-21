@@ -18,6 +18,7 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateAuctionRequest;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.utility.NotificationUtil;
@@ -52,6 +53,9 @@ public class ModifyAuctionController {
     @FXML private TextField startTimeField;
     @FXML private DatePicker endDatePicker;
     @FXML private TextField endTimeField;
+    @FXML private TextField triggerTimeField;
+    @FXML private TextField extensionTimeField;
+    @FXML private TextField maxDelayField;
     
     // Action Buttons
     @FXML private Button cancelButton;
@@ -113,6 +117,27 @@ public class ModifyAuctionController {
         linkedItemImageView.setImage(decodeBase64Image(data.getThumbnailBase64()));
 
         startingPriceField.setText(String.valueOf(data.getStartingPrice()));
+        minIncrementField.setText(String.valueOf(data.getMinIncrement()));
+
+        triggerTimeField.setText(data.getAntiSnipingTriggerTime() != null ? data.getAntiSnipingTriggerTime() : "00:05");
+        extensionTimeField.setText(data.getAntiSnipingExtensionTime() != null ? data.getAntiSnipingExtensionTime() : "00:05");
+        
+        String maxDelayStr = "01:00"; // default
+        if (data.getMaxEndTime() != null && data.getEndTime() != null) {
+            try {
+                LocalDateTime end = LocalDateTime.parse(data.getEndTime());
+                LocalDateTime maxEnd = LocalDateTime.parse(data.getMaxEndTime());
+                java.time.Duration diff = java.time.Duration.between(end, maxEnd);
+                
+                long totalMinutes = diff.toMinutes();
+                long hours = totalMinutes / 60;
+                long minutes = totalMinutes % 60;
+                maxDelayStr = String.format("%02d:%02d", hours, minutes);
+            } catch (Exception e) {
+                logger.warn("Could not calculate max delay from strings: {}", e.getMessage());
+            }
+        }
+        maxDelayField.setText(maxDelayStr);
 
         try {
             LocalDateTime start = LocalDateTime.parse(data.getStartTime());
@@ -155,6 +180,15 @@ public class ModifyAuctionController {
             }
 
             double minIncrement = parseAmount(minIncrementField.getText(), "Minimum Increment");
+            
+            String triggerTime = triggerTimeField.getText();
+            String extensionTime = extensionTimeField.getText();
+            String maxDelay = maxDelayField.getText();
+
+            parseDuration(triggerTime, "Trigger Window");
+            parseDuration(extensionTime, "Extension");
+            parseDuration(maxDelay, "Max Delay");
+
             UpdateAuctionRequest request = new UpdateAuctionRequest(
                 currentAuctionId,
                 "",
@@ -162,7 +196,10 @@ public class ModifyAuctionController {
                 price,
                 minIncrement, startDateTime.toString(),
                 endDateTime.toString(),
-                "Auction details updated by seller." // Default message
+                "Auction details updated by seller.", // Default message
+                triggerTime,
+                extensionTime,
+                maxDelay
             );
 
             // 4. Send to Service
@@ -244,6 +281,18 @@ public class ModifyAuctionController {
         } catch (DateTimeParseException e) {
             throw new ValidationException(fieldName + " must use HH:mm format.");
         }
+    }
+
+    // dùng để phân tích cú pháp thời gian duration
+    private java.time.Duration parseDuration(String value, String fieldName) {
+        String parseValue = value == null ? "" : value.trim();
+        ValidationUtil.requiresNonBlank(parseValue, fieldName);
+
+        if (!parseValue.matches("^\\d+:[0-5]\\d$")) {
+            throw new ValidationException(fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
+        }
+
+        return TimeUtil.parseHHMM(parseValue);
     }
 
     // dùng để decode base64image

@@ -102,6 +102,25 @@
 
                             <Label style="-fx-font-size: 10; -fx-text-fill: #767683; -fx-font-style: italic;" text="Only auction pricing and schedule can be changed here. Edit inventory items from the inventory flow." />
                         </VBox>
+
+                        <VBox spacing="15" styleClass="card">
+                            <Label style="-fx-font-size: 18; -fx-font-weight: bold;" text="Anti-Sniping" />
+                            
+                            <HBox spacing="15">
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="TRIGGER WINDOW (HH:MM)" />
+                                    <TextField fx:id="triggerTimeField" styleClass="text-field-modern" promptText="00:05" />
+                                </VBox>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="EXTENSION (HH:MM)" />
+                                    <TextField fx:id="extensionTimeField" styleClass="text-field-modern" promptText="00:05" />
+                                </VBox>
+                                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                                    <Label styleClass="input-label" text="MAX DELAY (HH:MM)" />
+                                    <TextField fx:id="maxDelayField" styleClass="text-field-modern" promptText="01:00" />
+                                </VBox>
+                            </HBox>
+                        </VBox>
                     </VBox>
 
                     <VBox spacing="25" GridPane.columnIndex="1">

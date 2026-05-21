@@ -4,9 +4,9 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
 
@@ -15,8 +15,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.BidDto;
-import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.AuctionResolutionAction;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
@@ -51,7 +51,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class AuctionDetailsController {
@@ -113,6 +112,10 @@ public class AuctionDetailsController {
     private Label openDateLabel;
     @FXML
     private Label endDateLabel;
+    @FXML
+    private VBox AntiSnipingVisualBox;
+    @FXML
+    private Label AntiSnipingVisualLabel;
     @FXML
     private HBox audienceStatsRow;
     @FXML
@@ -477,6 +480,27 @@ public class AuctionDetailsController {
         refreshAutoBidStatusLabel();
         // dùng để hiển thị audience stats
         renderAudienceStats(data, isUpcoming);
+
+        // anti-sniping info
+        if (AntiSnipingVisualLabel != null) {
+            String currentUser = com.bidify.model.ClientSession.getInstance().getCurrentUsername();
+            boolean isAdmin = com.bidify.model.ClientSession.getInstance().isAdmin();
+            boolean isSeller = currentUser != null && currentUser.equals(data.getSellerUsername());
+            boolean hasConfig = data.getAntiSnipingTriggerTime() != null && data.getAntiSnipingExtensionTime() != null 
+            && data.getMaxEndTime().compareTo(data.getEndTime()) > 0;
+
+            boolean shouldShow = (isSeller || isAdmin);
+            
+            AntiSnipingVisualBox.setVisible(shouldShow);
+            AntiSnipingVisualBox.setManaged(shouldShow);
+            if (shouldShow) {
+                if (hasConfig){
+                    AntiSnipingVisualLabel.setText("Anti-sniping: trigger:" + data.getAntiSnipingTriggerTime() + " - extension: " + data.getAntiSnipingExtensionTime() + " - Max end Time: " + DisplayUtil.formatDateTime(data.getMaxEndTime(), "Unknown"));
+                } else {
+                    AntiSnipingVisualLabel.setText("Anti-sniping not configured for this auction.");
+                }
+            }
+        }
 
         // set primary image
         if (data.getThumbnailBase64() != null)
