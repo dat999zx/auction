@@ -114,6 +114,10 @@ public class MissionBarUtil {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("admin-wallet-requests.fxml", false, true);
         }
+        else if (selectedButton == controller.getMyAuctionsButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("myauctions.fxml", false, true);
+        }
         else if (selectedButton == controller.getLogoutLinkButton()) handleLogout();
     }
 

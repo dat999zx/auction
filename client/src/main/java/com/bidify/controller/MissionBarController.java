@@ -84,6 +84,9 @@ public class MissionBarController {
     @FXML
     private VBox myActivitiesSubMenu;
 
+    @FXML 
+    private Button myAuctionsButton;
+
     private boolean sidebarVisible = false;
     private boolean sidebarAnimating = false;
 
@@ -217,7 +220,9 @@ public class MissionBarController {
     public Button getAdminUsersButton() { return adminUsersButton; }
     // dùng để lấy nút xem các yêu cầu ví trong thanh quản trị
     public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
-
+    // dùng để lấy nút đấu giá của tôi
+    public Button getMyAuctionsButton() { return myAuctionsButton; }
+    
     // dùng để thiết lập hiển thị khám phá
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
@@ -301,7 +306,7 @@ public class MissionBarController {
 
     // dùng để thiết lập active navigation
     public void setActiveNavigation(Button activeButton) {
-        if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == settlementsButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
+        if (activeButton != null) {
             // dùng để cập nhật thanh bên điều hướng nút nhấn style
             updateSidebarButtonStyle(activeButton);
         }
