@@ -2,6 +2,8 @@ package com.bidify.server.model;
 
 import java.time.LocalDateTime;
 
+import com.bidify.common.utility.TimeUtil;
+
 public class AutoBid {
     private final String auctionId;
     private final String username;
@@ -14,7 +16,7 @@ public class AutoBid {
         this.auctionId = auctionId;
         this.username = username;
         this.maxBid = maxBid;
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = TimeUtil.nowInVietnam();
         this.enabled = true;
     }
 

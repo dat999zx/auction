@@ -4,6 +4,7 @@ import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
+import com.bidify.common.utility.TimeUtil;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -24,14 +25,14 @@ public class Auction extends Entity {
 
     // dùng để tạo một đối tượng Auction
     public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
-        super(IdGenerator.genAuctionId(), LocalDateTime.now());
+        super(IdGenerator.genAuctionId(), TimeUtil.nowInVietnam());
         this.sellerUsername = sellerUsername;
         this.itemId = itemId;
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
 
-        if (LocalDateTime.now().isBefore(startTime))
+        if (TimeUtil.nowInVietnam().isBefore(startTime))
             this.status = AuctionStatus.UPCOMING;
         else
             this.status = AuctionStatus.ACTIVE;
@@ -72,7 +73,7 @@ public class Auction extends Entity {
         if (bid.getAmount() < minAllowed)
             throw new BidException("Bid must be at least " + minAllowed);
 
-        Duration remaining = Duration.between(LocalDateTime.now(), endTime);
+        Duration remaining = Duration.between(TimeUtil.nowInVietnam(), endTime);
         if (remaining.toSeconds() < 30)
             this.endTime = this.endTime.plusSeconds(60);
 
@@ -108,7 +109,7 @@ public class Auction extends Entity {
 
     // dùng để kiểm tra xem active
     public boolean isActive(){ 
-        return status == AuctionStatus.ACTIVE && !LocalDateTime.now().isAfter(endTime); 
+        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime); 
     }
     // dùng để kiểm tra xem ended
     public boolean isEnded() { 
