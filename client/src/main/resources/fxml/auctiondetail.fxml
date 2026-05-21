@@ -43,19 +43,17 @@
                                 <VBox fillWidth="true" spacing="16.0" GridPane.columnIndex="0">
                                     <StackPane styleClass="hero-image-card" VBox.vgrow="ALWAYS">
                                         <ImageView fx:id="previewimage" fitHeight="456.0" fitWidth="676.0" pickOnBounds="true" preserveRatio="true" smooth="true" />
+                                        <HBox alignment="CENTER" pickOnBounds="false">
+                                            <padding>
+                                                <Insets left="16.0" right="16.0" />
+                                            </padding>
+                                            <Button fx:id="prevImageButton" onAction="#handlePrevImage" styleClass="carousel-button" visible="false" managed="false" text="‹" />
+                                            <Region HBox.hgrow="ALWAYS" pickOnBounds="false" />
+                                            <Button fx:id="nextImageButton" onAction="#handleNextImage" styleClass="carousel-button" visible="false" managed="false" text="›" />
+                                        </HBox>
                                     </StackPane>
-            
-                                    <GridPane fx:id="thumbnailGrid" hgap="12.0">
-                                        <columnConstraints>
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                            <ColumnConstraints percentWidth="25.0" />
-                                        </columnConstraints>
-                                        <rowConstraints>
-                                            <RowConstraints />
-                                        </rowConstraints>
-                                        </GridPane>
+                                    <HBox fx:id="thumbnailContainer" spacing="12.0" alignment="CENTER_LEFT" visible="false" managed="false" />
+
                                 </VBox>
             
                                 <VBox fillWidth="true" spacing="20.0" GridPane.columnIndex="1">
