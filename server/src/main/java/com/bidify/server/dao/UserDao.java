@@ -47,6 +47,7 @@ public class UserDao  {
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
+                        rs.getString("profileImageId"),
                         UserStatus.valueOf(rs.getString("status")),
                         rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
                         createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
@@ -75,6 +76,7 @@ public class UserDao  {
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getString("phoneNumber"),
+                        rs.getString("profileImageId"),
                         UserStatus.valueOf(rs.getString("status")),
                         rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
                         createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
@@ -90,14 +92,15 @@ public class UserDao  {
     // dùng để tạo
     public void create(User user) throws DatabaseException { // Ä‘Äƒng kÃ­
         SQLiteHelper.update(
-            "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance, profileImageId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             user.getUsername(),
             user.getNickname(),
             user.getPassword(),
             user.getRole().toString(),
             user.getCreatedAt() == null ? null : user.getCreatedAt().toString(),
             user.getLastLogin() == null ? null : user.getLastLogin().toString(),
-            user.getWallet().getBalance()
+            user.getWallet().getBalance(),
+            user.getProfileImageId()
         );
     }
 
@@ -116,6 +119,7 @@ public class UserDao  {
                 password = ?, 
                 email = ?, 
                 phoneNumber = ?, 
+                profileImageId = ?,
                 status = ?, 
                 role = ?,
                 createdAt = ?, 
@@ -126,6 +130,7 @@ public class UserDao  {
             user.getPassword(),
             user.getEmail(),
             user.getPhoneNumber(),
+            user.getProfileImageId(),
             user.getStatus().toString(),
             user.getRole().toString(),
             user.getCreatedAt().toString(),

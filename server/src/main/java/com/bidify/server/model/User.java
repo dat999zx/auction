@@ -17,13 +17,13 @@ public class User extends Entity {
     private String password;
     private String email;
     private String phoneNumber;
+    private String profileImageId;
 
     private LocalDateTime lastLogin;
     private UserStatus status;
     private UserRole role;
     private Wallet wallet;
 
-    // ÄÄƒng kÃ­ tÃ i khoáº£n
     // dùng để tạo một đối tượng User
     public User(String username, String nickname, String password) {
         super(username, LocalDateTime.now());
@@ -36,9 +36,9 @@ public class User extends Entity {
         this.role = UserRole.USER;
         this.lastLogin = null;
         this.wallet = new Wallet(0);
+        this.profileImageId = null;
     }
 
-    // load láº¡i dá»¯ liá»‡u ngÆ°á»i dÃ¹ng
      // dùng để tạo một đối tượng User
      public User(String username, String nickname, String password, String email, String phone, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
         // dùng để super
@@ -54,7 +54,31 @@ public class User extends Entity {
         this.role = role == null ? UserRole.USER : role;
         this.lastLogin = lastLogin;
         this.wallet = new Wallet(balance);
+        this.profileImageId = null;
     }
+
+    // dùng để tạo một đối tượng User
+    public User(String username, String nickname, String password, String email, String phone, String profileImageId, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
+        // dùng để super
+        super(username, createdAt);
+
+        this.username = username;
+        this.nickname = nickname;
+        this.password = password;
+        this.email = email;
+        this.phoneNumber = phone;
+        this.profileImageId = profileImageId;
+
+        this.status = status;
+        this.role = role == null ? UserRole.USER : role;
+        this.lastLogin = lastLogin;
+        this.wallet = new Wallet(balance);
+    }
+
+    // dùng để lấy ảnh đại diện ID
+    public String getProfileImageId() { return profileImageId; }
+    // dùng để thiết lập ảnh đại diện ID
+    public void setProfileImageId(String profileImageId) { this.profileImageId = profileImageId; }
 
     // dùng để lấy last đăng nhập
     public LocalDateTime getLastLogin() { return lastLogin; }

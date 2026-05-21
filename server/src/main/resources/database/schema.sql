@@ -13,11 +13,13 @@ CREATE TABLE IF NOT EXISTS Users (
     password TEXT NOT NULL,
     email TEXT,
     phoneNumber TEXT,
+    profileImageId TEXT,
     status TEXT DEFAULT 'ACTIVE' CHECK(status IN ('ACTIVE', 'BANNED')),
     role TEXT NOT NULL DEFAULT 'USER' CHECK(role IN ('USER', 'ADMIN')),
     createdAt TEXT NOT NULL,
     lastLogin TEXT,
-    balance REAL DEFAULT 0 CHECK(balance >= 0)
+    balance REAL DEFAULT 0 CHECK(balance >= 0),
+    FOREIGN KEY (profileImageId) REFERENCES Images(id)
 );
 
 -- TABLE Auctions
