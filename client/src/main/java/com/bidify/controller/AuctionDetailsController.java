@@ -149,6 +149,8 @@ public class AuctionDetailsController {
     private Label biddingTrendMetricLabel;
     @FXML
     private Label biddingTrendChangeLabel;
+    @FXML
+    private Button sellerCancelButton;
 
     private double currentDisplayedPrice;
     private AuctionDto currentAuction;
@@ -504,7 +506,9 @@ public class AuctionDetailsController {
         endDateLabel.setText("Ends at:");
         recentActivityLabel.setText(isUpcoming ? "AUCTION STATUS" : "RECENT ACTIVITY");
 
-        if (isActive && !isAdmin) {
+        boolean isSeller = currentUsername != null && currentAuction != null && currentUsername.equals(currentAuction.getSellerUsername());
+
+        if (isActive && !isAdmin && !isSeller) {
             bidActionSection.setManaged(true);
             bidActionSection.setVisible(true);
             placebid.setDisable(false);
@@ -513,6 +517,12 @@ public class AuctionDetailsController {
             bidActionSection.setVisible(false);
             placebid.setDisable(true);
             inputprice.clear();
+        }
+
+        boolean showSellerCancel = isActive && (isSeller || isAdmin);
+        if (sellerCancelButton != null) {
+            sellerCancelButton.setManaged(showSellerCancel);
+            sellerCancelButton.setVisible(showSellerCancel);
         }
 
         if (settlementActionSection != null) {
@@ -535,7 +545,6 @@ public class AuctionDetailsController {
             } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
                 showSettlementSection = true;
                 statusText = "Status: AWAITING DELIVERY";
-                boolean isSeller = currentUsername != null && currentUsername.equals(currentAuction.getSellerUsername());
                 if (isSeller || isAdmin) {
                     showConfirm = true;
                 }
@@ -1210,6 +1219,24 @@ public class AuctionDetailsController {
                 loadAuctionDetails(selectedAuctionId);
             } else {
                 NotificationUtil.error(response.getMessage() == null ? "Resolution failed." : response.getMessage());
+            }
+        } catch (IOException e) {
+            NotificationUtil.error("Cannot connect to server.");
+            logger.error("Exception occurred", e);
+        } catch (AuctionException e) {
+            NotificationUtil.error(e.getMessage());
+        }
+    }
+    @FXML
+    private void handleSellerCancel() {
+        if (selectedAuctionId == null || selectedAuctionId.isBlank()) return;
+        try {
+            Response response = auctionClientService.deleteAuction(selectedAuctionId);
+            if (response.getStatus() == RequestStatus.SUCCESS) {
+                NotificationUtil.success("Auction canceled successfully!");
+                loadAuctionDetails(selectedAuctionId);
+            } else {
+                NotificationUtil.error(response.getMessage() == null ? "Auction cancellation failed." : response.getMessage());
             }
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
