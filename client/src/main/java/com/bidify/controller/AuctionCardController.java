@@ -81,7 +81,6 @@ public class AuctionCardController {
         }
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() {
         return auction == null ? null : auction.getId();
     }

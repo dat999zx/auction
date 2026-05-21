@@ -137,7 +137,6 @@ public class ItemDao {
         }
     }
 
-    // dùng để lấy sản phẩm hình ảnh links
     public List<ItemImageLink> getItemImageLinks(String itemId) throws DatabaseException {
         String sql = "SELECT * FROM ItemImageLinks WHERE itemId = ? ORDER BY isPrimary DESC, displayOrder ASC, createdAt ASC";
         return SQLiteHelper.query(sql, rs -> {

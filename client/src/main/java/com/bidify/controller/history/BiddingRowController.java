@@ -23,12 +23,10 @@ public class BiddingRowController {
     @FXML
     private Label statusLabel;
 
-    // dùng để thiết lập data
     public void setData(String title, String subtitle, String amount, String dateTime, String status) {
         setData(title, subtitle, amount, dateTime, status, null);
     }
 
-    // dùng để thiết lập data với auctionId
     public void setData(String title, String subtitle, String amount, String dateTime, String status, String auctionId) {
         titleLabel.setText(title);
         subtitleLabel.setText(subtitle);

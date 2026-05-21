@@ -8,6 +8,5 @@ public class GetUserInventoryRequest {
         this.ownerUsername = ownerUsername;
     }
 
-    // dùng để lấy chủ sở hữu username
     public String getOwnerUsername() { return ownerUsername; }
 }

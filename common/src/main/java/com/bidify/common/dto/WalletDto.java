@@ -10,8 +10,6 @@ public class WalletDto {
         this.lockedBalance = lockedBalance;
     }
     
-    // dùng để lấy số dư
     public double getBalance() { return balance; }
-    // dùng để lấy locked số dư
     public double getLockedBalance() { return lockedBalance; }
 }

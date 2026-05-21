@@ -16,13 +16,9 @@ public abstract class Entity {
         this.createdAt = createdAt;
     }
 
-    // dùng để lấy ID
     public String getId() { return id; }
-    // dùng để thiết lập ID
     public void setId(String id) { this.id = id; }
-    // dùng để lấy created tại
     public LocalDateTime getCreatedAt() { return createdAt; }
-    // dùng để thiết lập created tại
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }
 

@@ -8,6 +8,5 @@ public class JoinAuctionRequest {
         this.auctionId = auctionId;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() { return auctionId; }
 }

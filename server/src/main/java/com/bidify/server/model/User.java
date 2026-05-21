@@ -9,7 +9,7 @@ import com.bidify.common.enums.UserStatus;
 import com.bidify.server.exception.ServerTimeOutException;
 
 public class User extends Entity {
-    // khÃ³a Object User Ä‘á»ƒ trÃ¡nh race condition
+    // khóa Object User để tránh race condition
     private final ReentrantLock lock = new ReentrantLock();
 
     private String nickname;
@@ -75,42 +75,24 @@ public class User extends Entity {
         this.wallet = new Wallet(balance);
     }
 
-    // dùng để lấy ảnh đại diện ID
     public String getProfileImageId() { return profileImageId; }
-    // dùng để thiết lập ảnh đại diện ID
     public void setProfileImageId(String profileImageId) { this.profileImageId = profileImageId; }
 
-    // dùng để lấy last đăng nhập
     public LocalDateTime getLastLogin() { return lastLogin; }
-    // dùng để thiết lập last đăng nhập
     public void setLastLogin(LocalDateTime lastLogin) { this.lastLogin = lastLogin; }
-    // dùng để lấy biệt danh
     public String getNickname() { return nickname; }
-    // dùng để thiết lập biệt danh
     public void setNickname(String nickname) { this.nickname = nickname; }
-    // dùng để lấy username
     public String getUsername() { return username; }
-    // dùng để lấy mật khẩu
     public String getPassword() { return password; }
-    // dùng để thiết lập mật khẩu
     public void setPassword(String password) { this.password = password; }
-    // dùng để lấy email
     public String getEmail() { return email; }
-    // dùng để thiết lập email
     public void setEmail(String email) { this.email = email; }
-    // dùng để lấy phone number
     public String getPhoneNumber() { return phoneNumber; }
-    // dùng để thiết lập phone number
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    // dùng để lấy trạng thái
     public UserStatus getStatus() { return status; }
-    // dùng để thiết lập trạng thái
     public void setStatus(UserStatus status) { this.status = status; }
-    // dùng để lấy vai trò
     public UserRole getRole() { return role; }
-    // dùng để thiết lập vai trò
     public void setRole(UserRole role) { this.role = role == null ? UserRole.USER : role; }
-    // dùng để lấy ví
     public Wallet getWallet() { return wallet; }
 
     // dùng để khóa

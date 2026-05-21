@@ -17,22 +17,18 @@ public final class ClientSession {
         return instance;
     }
 
-    // dùng để lấy current username
     public String getCurrentUsername() {
         return currentUsername;
     }
 
-    // dùng để thiết lập current username
     public void setCurrentUsername(String currentUsername) {
         this.currentUsername = currentUsername;
     }
 
-    // dùng để lấy current người dùng
     public UserDto getCurrentUser() {
         return currentUser;
     }
 
-    // dùng để thiết lập current người dùng
     public void setCurrentUser(UserDto currentUser) {
         this.currentUser = currentUser;
         this.currentUsername = currentUser == null ? null : currentUser.getUsername();

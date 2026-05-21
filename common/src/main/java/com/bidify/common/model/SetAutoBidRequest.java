@@ -10,12 +10,10 @@ public class SetAutoBidRequest {
         this.maxBid = maxBid;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() {
         return auctionId;
     }
 
-    // dùng để lấy max lượt đặt giá
     public double getMaxBid() {
         return maxBid;
     }

@@ -19,15 +19,10 @@ public class Response {
         this.data = data;
     }
 
-    // dùng để thiết lập ID
     public void setId(String id){ this.id = id; }
 
-    // dùng để lấy ID
     public String getId(){ return id; }
-    // dùng để lấy trạng thái
     public RequestStatus getStatus(){ return status; }
-    // dùng để lấy tin nhắn
     public String getMessage(){ return message; }
-    // dùng để lấy data
     public Object getData(){ return data; }
 }

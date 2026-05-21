@@ -10,8 +10,6 @@ public class PlaceBidRequest {
         this.bidAmount = bidAmount;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId(){ return auctionId; }
-    // dùng để lấy lượt đặt giá số tiền
     public double getBidAmount(){ return bidAmount; }
 }

@@ -26,7 +26,6 @@ public class TransactionCardController {
     @FXML
     private Label fullValue;
 
-    // dùng để thiết lập data
     public void setData(TransactionDto transaction) {
         titleLabel.setText(resolveTransactionTitle(transaction));
         idLabel.setText("Transaction ID: " + DisplayUtil.defaultText(transaction.getId(), "Unknown"));

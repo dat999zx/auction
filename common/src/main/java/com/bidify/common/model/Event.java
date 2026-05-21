@@ -23,10 +23,7 @@ public class Event {
         this.data = data;
     }
 
-    // dùng để lấy type
     public EventType getType(){ return type; }
-    // dùng để lấy tin nhắn
     public String getMessage(){ return message; }
-    // dùng để lấy data
     public Object getData(){ return data; }
 }

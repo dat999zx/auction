@@ -41,17 +41,14 @@ public class Bid extends Entity {
         this.autoBidGenerated = autoBidGenerated;
     }
 
-    // dùng để lấy đấu giá ID
     public String getAuctionId() {
         return auctionId;
     }
 
-    // dùng để lấy bidder username
     public String getBidderUsername() {
         return bidderUsername;
     }
 
-    // dùng để lấy số tiền
     public double getAmount() {
         return amount;
     }

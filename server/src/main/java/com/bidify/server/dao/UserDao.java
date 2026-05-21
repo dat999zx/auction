@@ -24,7 +24,7 @@ public class UserDao  {
     public static UserDao getInstance() { return instance; }
 
     // dùng để exists bởi username
-    public boolean existsByUsername(String username) throws DatabaseException { // xÃ©t tá»“n táº¡i username trong database
+    public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
             rs -> rs != null && rs.next(),
@@ -34,7 +34,7 @@ public class UserDao  {
     }
 
     // dùng để tìm kiếm bởi username
-    public User findByUsername(String username) throws DatabaseException { // láº¥y User tá»« database báº±ng username
+    public User findByUsername(String username) throws DatabaseException { // lấy User từ database bằng username
         return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
@@ -90,7 +90,7 @@ public class UserDao  {
     }
 
     // dùng để tạo
-    public void create(User user) throws DatabaseException { // Ä‘Äƒng kÃ­
+    public void create(User user) throws DatabaseException { // đăng kí
         SQLiteHelper.update(
             "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance, profileImageId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             user.getUsername(),
@@ -105,13 +105,13 @@ public class UserDao  {
     }
 
     // dùng để lưu
-    public void save(User user) throws DatabaseException { // lÆ°u user data máº·c Ä‘á»‹nh cáº­p nháº­t last login
+    public void save(User user) throws DatabaseException { // lưu user data mặc định cập nhật last login
         // dùng để lưu
         save(user, true);
     }
 
     // dùng để lưu
-    public void save(User user, boolean saveLastLogin) throws DatabaseException { // lÆ°u user data
+    public void save(User user, boolean saveLastLogin) throws DatabaseException { // lưu user data
         SQLiteHelper.update(
             """
             UPDATE Users SET 

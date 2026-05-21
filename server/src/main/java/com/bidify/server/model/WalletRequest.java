@@ -38,21 +38,13 @@ public class WalletRequest {
         this.reviewedBy = reviewedBy;
     }
 
-    // dùng để lấy ID của yêu cầu
     public String getId() { return id; }
-    // dùng để lấy ngày tạo yêu cầu
     public LocalDateTime getCreatedAt() { return createdAt; }
-    // dùng để lấy ngày duyệt yêu cầu
     public LocalDateTime getReviewedAt() { return reviewedAt; }
-    // dùng để lấy tên người dùng gửi yêu cầu
     public String getUsername() { return username; }
-    // dùng để lấy loại giao dịch (nạp/rút)
     public TransactionType getType() { return type; }
-    // dùng để lấy số tiền giao dịch
     public double getAmount() { return amount; }
-    // dùng để lấy trạng thái duyệt của yêu cầu
     public WalletRequestStatus getStatus() { return status; }
-    // dùng để lấy tên người duyệt yêu cầu
     public String getReviewedBy() { return reviewedBy; }
 
     // dùng để phê duyệt yêu cầu nạp/rút tiền này

@@ -44,38 +44,24 @@ public class Item extends Entity {
         this.availabilityStatus = availabilityStatus == null ? ItemStatus.AVAILABLE : availabilityStatus;
     }
 
-    // dùng để lấy chủ sở hữu username
     public String getOwnerUsername() { return ownerUsername; }
-    // dùng để thiết lập chủ sở hữu username
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
 
-    // dùng để lấy chủ sở hữu
     public String getOwner() { return ownerUsername; }
-    // dùng để thiết lập chủ sở hữu
     public void setOwner(String ownerUsername) { this.ownerUsername = ownerUsername; }
 
-    // dùng để lấy tên
     public String getName() { return name; }
-    // dùng để thiết lập tên
     public void setName(String name) { this.name = name; }
 
-    // dùng để lấy description
     public String getDescription() { return description; }
-    // dùng để thiết lập description
     public void setDescription(String description) { this.description = description; }
 
-    // dùng để lấy category
     public String getCategory() { return category; }
-    // dùng để thiết lập category
     public void setCategory(String category) { this.category = category; }
 
-    // dùng để lấy product type
     public String getProductType() { return productType; }
-    // dùng để thiết lập product type
     public void setProductType(String productType) { this.productType = productType; }
 
-    // dùng để lấy availability trạng thái
     public ItemStatus getAvailabilityStatus() { return availabilityStatus; }
-    // dùng để thiết lập availability trạng thái
     public void setAvailabilityStatus(ItemStatus availabilityStatus) { this.availabilityStatus = availabilityStatus; }
 }

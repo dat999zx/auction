@@ -26,7 +26,6 @@ public class UserProfileClientService {
     private final ClientSession clientSession = ClientSession.getInstance();
     private final SocketClient client = SocketClient.getClient();
 
-    // dùng để lấy current thông tin tài khoản
     public UserDto getCurrentProfile() throws IOException {
         if (clientSession.getCurrentUsername() == null || clientSession.getCurrentUsername().isBlank()) {
             return new UserDto("Guest", "Guest", new WalletDto(0, 0), UserRole.USER);
@@ -45,7 +44,6 @@ public class UserProfileClientService {
         return profile;
     }
 
-    // dùng để lấy cached thông tin tài khoản
     public UserDto getCachedProfile() {
         UserDto currentUser = clientSession.getCurrentUser();
         if (currentUser != null) {
@@ -90,7 +88,6 @@ public class UserProfileClientService {
             throw new ValidationException(response.getMessage() == null ? "Cannot submit withdraw request." : response.getMessage());
     }
 
-    // dùng để lấy toàn bộ danh sách lịch sử nạp/rút tiền của user này từ server
     public List<WalletRequestDto> getUserWalletRequests() throws IOException {
         Response response = client.send(new Request(RequestType.GET_WALLET_REQUEST_HISTORY, null));
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)

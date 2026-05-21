@@ -96,7 +96,7 @@ public class MissionBarController {
     // dùng để khởi tạo
     @FXML
     private void initialize() {
-        leftSideActiveButton = auctionsButton; // Máº·c Ä‘á»‹nh active home
+        leftSideActiveButton = auctionsButton; // Mặc định active home
         double hiddenOffset = getSidebarWidth();
         sidebarLayer.setVisible(false);
         sidebarLayer.setManaged(false);
@@ -168,7 +168,7 @@ public class MissionBarController {
         updateSidebarButtonStyle(myActivitiesButton);
     }
 
-    // check xem náº¿u nhÆ° button nÃ o Ä‘Æ°á»£c click thÃ¬ sáº½ Ä‘á»•i style cá»§a button Ä‘Ã³ thÃ nh active, cÃ²n láº¡i sáº½ lÃ  normal
+    // check xem nếu như button nào được click thì sẽ đổi style của button đó thành active, còn lại sẽ là normal
     // dùng để cập nhật thanh bên điều hướng nút nhấn style
     private void updateSidebarButtonStyle(Button activeButton) {
         if (leftSideActiveButton == activeButton) return;
@@ -204,43 +204,28 @@ public class MissionBarController {
         sidebarSlide.play();
     }
 
-    // thÃªm cÃ¡c getter Ä‘á»ƒ sá»­ dá»¥ng cho cÃ¡c file fxml cÃ³ missionbar controller
-    // dùng để lấy khám phá nút nhấn
     public Button getExploreButton() { return exploreButton; }
-    // dùng để lấy tìm kiếm bar
     public TextField getSearchBar() { return searchBar; }
-    // dùng để lấy danh sách đấu giá nút nhấn
     public Button getAuctionsButton() { return auctionsButton; }
-    // dùng để lấy tạo đấu giá nút nhấn
     public Button getCreateAuctionButton() { return createAuctionButton; }
-    // dùng để lấy đăng xuất nút nhấn
     public Button getLogoutButton() { return logoutButton; }
-    // dùng để lấy đăng xuất link nút nhấn
     public Button getLogoutLinkButton() { return logoutLinkButton; }
-    // dùng để lấy lịch sử nút nhấn
     public Button getHistoryButton() { return historyButton; }
-    // dùng để lấy kho đồ nút nhấn
     public Button getInventoryButton() { return inventoryButton; }
-    // dùng để lấy settlements nút nhấn
     public Button getSettlementsButton() { return settlementsButton; }
-    // dùng để lấy quản trị viên (admin) danh sách người dùng nút nhấn
     public Button getAdminUsersButton() { return adminUsersButton; }
-    // dùng để lấy nút xem các yêu cầu ví trong thanh quản trị
     public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
 
-    // dùng để thiết lập hiển thị khám phá
     public void setShowExplore(boolean visible) {
         exploreButton.setManaged(visible);
         exploreButton.setVisible(visible);
     }
 
-    // dùng để thiết lập hiển thị tìm kiếm
     public void setShowSearch(boolean visible) {
         searchContainer.setManaged(visible);
         searchContainer.setVisible(visible);
     }
 
-    // dùng để thiết lập use inline đăng xuất
     public void setUseInlineLogout(boolean useInlineLogout) {
         logoutButton.setManaged(useInlineLogout);
         logoutButton.setVisible(useInlineLogout);
@@ -248,7 +233,6 @@ public class MissionBarController {
         logoutLinkButton.setVisible(!useInlineLogout);
     }
 
-    // dùng để thiết lập hiển thị quản trị viên (admin) controls
     public void setShowAdminControls(boolean visible) {
         if (adminUsersButton != null) {
             adminUsersButton.setManaged(visible);
@@ -260,14 +244,12 @@ public class MissionBarController {
         }
     }
 
-    // dùng để thiết lập hiển thị tạo đấu giá
     public void setShowCreateAuction(boolean visible) {
         if (createAuctionButton == null) return;
         createAuctionButton.setManaged(visible);
         createAuctionButton.setVisible(visible);
     }
 
-    // dùng để thiết lập selection trình xử lý
     public void setSelectionHandler(EventHandler<ActionEvent> handler) {
         auctionsButton.setOnAction(handler);
         createAuctionButton.setOnAction(handler);
@@ -289,27 +271,22 @@ public class MissionBarController {
         }
     }
 
-    // dùng để thiết lập ảnh đại diện trình xử lý
     public void setAvatarHandler(EventHandler<MouseEvent> handler) {
         avatarContainer.setOnMouseClicked(handler);
     }
 
-    // dùng để thiết lập khám phá trình xử lý
     public void setExploreHandler(EventHandler<ActionEvent> handler) {
         exploreButton.setOnAction(handler);
     }
 
-    // dùng để thiết lập đăng xuất trình xử lý
     public void setLogoutHandler(EventHandler<ActionEvent> handler) {
         logoutButton.setOnAction(handler);
     }
 
-    // dùng để thiết lập ảnh đại diện text
     public void setAvatarText(String value) {
         avatarText.setText(value == null || value.isBlank() ? "U" : value);
     }
 
-    // dùng để thiết lập ảnh đại diện image
     public void setAvatarImage(Image image) {
         boolean hasImage = image != null;
         avatarImageView.setImage(image);
@@ -317,7 +294,6 @@ public class MissionBarController {
         avatarText.setVisible(!hasImage);
     }
 
-    // dùng để thiết lập active navigation
     public void setActiveNavigation(Button activeButton) {
         if (activeButton == auctionsButton || activeButton == createAuctionButton || activeButton == historyButton || activeButton == inventoryButton || activeButton == settlementsButton || activeButton == adminUsersButton || activeButton == adminWalletRequestsButton) {
             // dùng để cập nhật thanh bên điều hướng nút nhấn style

@@ -10,10 +10,7 @@ public class RegisterRequest {
         this.password = password;
     }
 
-    // dùng để lấy username
     public String getUsername(){ return username; }
-    // dùng để lấy biệt danh
     public String getNickname(){ return nickname; }
-    // dùng để lấy mật khẩu
     public String getPassword(){ return password; }
 }

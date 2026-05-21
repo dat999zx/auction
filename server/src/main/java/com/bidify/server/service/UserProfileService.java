@@ -42,7 +42,6 @@ public class UserProfileService {
         router.register(RequestType.UPDATE_PASSWORD, this::updatePassword);
     }
 
-    // dùng để lấy thông tin tài khoản
     public Response getProfile(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             User user = ServiceUtil.getOrLoadUser(client.getCurrentUsername());

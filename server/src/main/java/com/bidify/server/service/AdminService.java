@@ -61,7 +61,6 @@ public class AdminService {
         router.register(RequestType.DELETE_USER, this::deleteUser);
     }
 
-    // dùng để lấy danh sách người dùng
     public Response getUsers(ClientHandler client) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);

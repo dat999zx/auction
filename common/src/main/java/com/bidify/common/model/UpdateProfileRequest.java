@@ -22,11 +22,8 @@ public class UpdateProfileRequest {
         this.profileImageBase64 = profileImageBase64;
     }
 
-    // dùng để lấy biệt danh
     public String getNickname() { return nickname; }
-    // dùng để lấy ví
     public Double getWallet() { return wallet; }
-    // dùng để lấy ảnh đại diện
     public String getProfileImageBase64() { return profileImageBase64; }
 }
 

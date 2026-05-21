@@ -27,15 +27,10 @@ public class UserDto {
         this.profileImageBase64 = profileImageBase64;
     }
     
-    // dùng để lấy username
     public String getUsername() { return username; }
-    // dùng để lấy biệt danh
     public String getNickname() { return nickname; }
-    // dùng để lấy ví
     public WalletDto getWallet() { return wallet; }
-    // dùng để lấy vai trò
     public UserRole getRole() { return role; }
-    // dùng để lấy ảnh đại diện base64
     public String getProfileImageBase64() { return profileImageBase64; }
 }
 

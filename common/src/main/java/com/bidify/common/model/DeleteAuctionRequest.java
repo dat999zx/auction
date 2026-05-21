@@ -7,6 +7,5 @@ public class DeleteAuctionRequest {
         this.id = id;
     }
 
-    // dùng để lấy ID
     public String getId() { return id; }
 }

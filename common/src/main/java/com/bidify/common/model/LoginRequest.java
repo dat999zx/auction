@@ -9,8 +9,6 @@ public class LoginRequest {
         this.password = password;
     }
 
-    // dùng để lấy username
     public String getUsername(){ return username; }
-    // dùng để lấy mật khẩu
     public String getPassword(){ return password; }
 }

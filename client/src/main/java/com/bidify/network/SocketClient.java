@@ -67,17 +67,14 @@ public class SocketClient {
         return client;
     }
 
-    // dùng để lấy current username
     public String getCurrentUsername() { // lấy username hiện tại
         return clientSession.getCurrentUsername();
     }
 
-    // dùng để lấy client phiên làm việc
     public ClientSession getClientSession() { // lấy session hiện tại
         return clientSession;
     }
 
-    // dùng để thiết lập current username
     public void setCurrentUsername(String currentUsername) { // set username hiện tại
         clientSession.setCurrentUsername(currentUsername);
     }
