@@ -101,6 +101,7 @@ public class AuctionService {
         router.register(RequestType.CONFIRM_AUCTION_DELIVERY, this::confirmAuctionDelivery);
         router.register(RequestType.RESOLVE_AUCTION, this::resolveAuction);
         router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
+        router.register(RequestType.GET_ADMIN_AUCTIONS, this::getAdminAuctions);
         router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
     }
 
@@ -859,7 +860,7 @@ public class AuctionService {
         auction.setStatus(AuctionStatus.CANCELED);
         auctionDao.save(auction);
 
-        publishAuctionUpdate(auction, "Auction canceled by seller");
+        publishAuctionUpdate(auction, "Auction canceled");
         RealtimeDatabase.removeRuntimeAuction(auction.getId());
     }
 
@@ -1017,6 +1018,22 @@ public class AuctionService {
                 result.add(toAuctionDto(effective, false));
             }
             return new Response(RequestStatus.SUCCESS, "Get my auctions successfully", result);
+        });
+    }
+
+    public Response getAdminAuctions(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            ServiceUtil.requireAdmin(client);
+
+            List<Auction> dbAuctions = auctionDao.findAll();
+            List<AuctionDto> result = new ArrayList<>();
+            for (Auction auction : dbAuctions) {
+                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
+                Auction effective = runtime != null ? runtime : auction;
+                result.add(toAuctionDto(effective, false));
+            }
+
+            return new Response(RequestStatus.SUCCESS, "Get admin auctions successfully", result);
         });
     }
 
