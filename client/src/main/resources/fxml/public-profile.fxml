@@ -68,6 +68,16 @@
                                     <Label styleClass="meta-label" text="USERNAME" />
                                     <Label fx:id="usernameValueLabel" styleClass="profile-keyline" text="username" />
                                 </VBox>
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="EMAIL" />
+                                    <Label fx:id="emailValueLabel" styleClass="profile-keyline" text="Not provided" />
+                                </VBox>
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="PHONE NUMBER" />
+                                    <Label fx:id="phoneNumberValueLabel" styleClass="profile-keyline" text="Not provided" />
+                                </VBox>
                                 
                                 <VBox spacing="6.0">
                                     <Label styleClass="meta-label" text="ACCOUNT TYPE" />

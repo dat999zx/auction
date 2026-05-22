@@ -46,6 +46,8 @@ public class PublicProfileController {
     @FXML private Label profileAvatarIconLabel;
     @FXML private Label nicknameValueLabel;
     @FXML private Label usernameValueLabel;
+    @FXML private Label emailValueLabel;
+    @FXML private Label phoneNumberValueLabel;
     @FXML private Label roleValueLabel;
     @FXML private Label totalAuctionsLabel;
     @FXML private Label activeAuctionsLabel;
@@ -107,6 +109,8 @@ public class PublicProfileController {
 
         nicknameValueLabel.setText(displayName);
         usernameValueLabel.setText("@" + profile.getUsername());
+        emailValueLabel.setText(DisplayUtil.defaultText(profile.getEmail(), "Not provided"));
+        phoneNumberValueLabel.setText(DisplayUtil.defaultText(profile.getPhoneNumber(), "Not provided"));
 
         // Set avatar letter fallback
         String initial = resolveInitial(displayName);
