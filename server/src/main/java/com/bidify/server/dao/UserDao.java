@@ -1,5 +1,7 @@
 package com.bidify.server.dao;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +14,7 @@ import com.bidify.common.enums.UserStatus;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.User;
 
 public class UserDao  {
@@ -39,23 +42,8 @@ public class UserDao  {
         return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
-                if (rs != null && rs.next()){
-                    String createdAt = rs.getString("createdAt");
-                    String lastLogin = rs.getString("lastLogin");
-                    return new User(
-                        rs.getString("username"),
-                        rs.getString("nickname"),
-                        rs.getString("password"),
-                        rs.getString("email"),
-                        rs.getString("phoneNumber"),
-                        rs.getString("profileImageId"),
-                        UserStatus.valueOf(rs.getString("status")),
-                        rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
-                        createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
-                        lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin),
-                        rs.getDouble("balance")
-                    );
-                }
+                if (rs != null && rs.next())
+                    return mapUser(rs);
                 return null;
             },
             username
@@ -68,23 +56,8 @@ public class UserDao  {
             "SELECT * FROM Users ORDER BY createdAt DESC",
             rs -> {
                 List<User> users = new ArrayList<>();
-                while (rs != null && rs.next()){
-                    String createdAt = rs.getString("createdAt");
-                    String lastLogin = rs.getString("lastLogin");
-                    users.add(new User(
-                        rs.getString("username"),
-                        rs.getString("nickname"),
-                        rs.getString("password"),
-                        rs.getString("email"),
-                        rs.getString("phoneNumber"),
-                        rs.getString("profileImageId"),
-                        UserStatus.valueOf(rs.getString("status")),
-                        rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role")),
-                        createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt),
-                        lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin),
-                        rs.getDouble("balance")
-                    ));
-                }
+                while (rs != null && rs.next())
+                    users.add(mapUser(rs));
                 return users;
             }
         );
@@ -152,5 +125,43 @@ public class UserDao  {
     // dùng để xóa bởi username
     public void deleteByUsername(String username) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
+    }
+
+    private User mapUser(ResultSet rs) throws SQLException {
+        String createdAt = rs.getString("createdAt");
+        String lastLogin = rs.getString("lastLogin");
+        UserRole role = rs.getString("role") == null ? UserRole.USER : UserRole.valueOf(rs.getString("role"));
+        UserStatus status = UserStatus.valueOf(rs.getString("status"));
+        LocalDateTime parsedCreatedAt = createdAt == null || createdAt.isBlank() ? null : LocalDateTime.parse(createdAt);
+        LocalDateTime parsedLastLogin = lastLogin == null || lastLogin.isBlank() ? null : LocalDateTime.parse(lastLogin);
+
+        if (role == UserRole.ADMIN) {
+            return new Admin(
+                rs.getString("username"),
+                rs.getString("nickname"),
+                rs.getString("password"),
+                rs.getString("email"),
+                rs.getString("phoneNumber"),
+                rs.getString("profileImageId"),
+                status,
+                parsedCreatedAt,
+                parsedLastLogin,
+                rs.getDouble("balance")
+            );
+        }
+
+        return new User(
+            rs.getString("username"),
+            rs.getString("nickname"),
+            rs.getString("password"),
+            rs.getString("email"),
+            rs.getString("phoneNumber"),
+            rs.getString("profileImageId"),
+            status,
+            role,
+            parsedCreatedAt,
+            parsedLastLogin,
+            rs.getDouble("balance")
+        );
     }
 }

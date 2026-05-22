@@ -9,7 +9,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.exception.DatabaseException;
+import com.bidify.server.service.AuthService;
+import com.bidify.server.utility.PasswordUtil;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,12 +42,38 @@ public class SQLiteHelper {
                     statement.execute(trimmed);
                 }
             }
+            seedBootstrapAdmin(connection);
         }
         catch (SQLException e) {
             throw new DatabaseException("Failed to initialize database", e);
         }
         catch (IOException e) {
             throw new DatabaseException("Failed to read schema file", e);
+        }
+    }
+
+    private static void seedBootstrapAdmin(Connection connection) throws SQLException {
+        try (PreparedStatement existsStatement = connection.prepareStatement(
+            "SELECT username FROM Users WHERE username = ?"
+        )) {
+            existsStatement.setString(1, AuthService.BOOTSTRAP_ADMIN_USERNAME);
+            try (ResultSet rs = existsStatement.executeQuery()) {
+                if (rs.next())
+                    return;
+            }
+        }
+
+        try (PreparedStatement insertStatement = connection.prepareStatement(
+            """
+            INSERT INTO Users(username, nickname, password, status, role, createdAt, lastLogin, balance, profileImageId)
+            VALUES (?, ?, ?, 'ACTIVE', 'ADMIN', ?, NULL, 0, NULL)
+            """
+        )) {
+            insertStatement.setString(1, AuthService.BOOTSTRAP_ADMIN_USERNAME);
+            insertStatement.setString(2, AuthService.BOOTSTRAP_ADMIN_NICKNAME);
+            insertStatement.setString(3, PasswordUtil.hash(AuthService.BOOTSTRAP_ADMIN_PASSWORD));
+            insertStatement.setString(4, TimeUtil.nowInVietnam().toString());
+            insertStatement.executeUpdate();
         }
     }
 

@@ -8,7 +8,6 @@ import org.slf4j.LoggerFactory;
 import com.bidify.common.dto.UserDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.model.LoginRequest;
@@ -57,17 +56,6 @@ public class AuthService {
         return BOOTSTRAP_ADMIN_USERNAME.equals(username);
     }
 
-    // dùng để tạo một đối tượng người dùng cho tài khoản admin khởi tạo
-    public static User createBootstrapAdminUser() {
-        User admin = new User(
-            BOOTSTRAP_ADMIN_USERNAME,
-            BOOTSTRAP_ADMIN_NICKNAME,
-            PasswordUtil.hash(BOOTSTRAP_ADMIN_PASSWORD)
-        );
-        admin.setRole(UserRole.ADMIN);
-        return admin;
-    }
-
     // đăng kí
     // dùng để xử lý yêu cầu đăng ký tài khoản mới của người dùng
     public Response register(Request request) {
@@ -113,9 +101,7 @@ public class AuthService {
             if (client.isInSession())
                 throw new AuthException("You are already logged in");
 
-            User user = isBootstrapAdminUsername(username)
-                ? createBootstrapAdminUser()
-                : userDao.findByUsername(username);
+            User user = userDao.findByUsername(username);
             if (user == null)
                 throw new AuthException("Username or password is incorrect");
             
@@ -151,8 +137,7 @@ public class AuthService {
             if (user == null)
                 throw new AuthException("Session is inactive");
 
-            if (!isBootstrapAdminUsername(username))
-                userDao.save(user);
+            userDao.save(user);
             client.setCurrentUsername(null);
             List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
             for (String auctionId : affectedAuctionIds)
@@ -170,9 +155,7 @@ public class AuthService {
 
     // dùng để lưu all danh sách người dùng
     public void saveAllUsers(boolean saveLastLogin){ // lưu tất cả user data
-        for (User user : RealtimeDatabase.getAllActiveUsers()) {
-            if (!isBootstrapAdminUsername(user.getUsername()))
-                userDao.save(user, saveLastLogin);
-        }
+        for (User user : RealtimeDatabase.getAllActiveUsers())
+            userDao.save(user, saveLastLogin);
     }
 }
