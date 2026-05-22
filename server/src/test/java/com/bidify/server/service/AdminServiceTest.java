@@ -34,6 +34,7 @@ import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Image;
@@ -376,11 +377,7 @@ class AdminServiceTest {
      */
     @Test
     void promoteAdminSuccessfully() {
-        // Tạo Bootstrap Admin đúng tên tài khoản mặc định
-        User bootstrapAdmin = new User(AuthService.BOOTSTRAP_ADMIN_USERNAME, "System Admin", PasswordUtil.hash("bootPass"));
-        bootstrapAdmin.setRole(UserRole.ADMIN);
-        userDao.create(bootstrapAdmin);
-        createdUsernames.add(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        User bootstrapAdmin = bootstrapAdmin();
 
         String targetUsername = uniqueUsername("target");
         User targetUser = createUser(targetUsername, "TargetNick", "pass123");
@@ -431,10 +428,7 @@ class AdminServiceTest {
      */
     @Test
     void promoteAdminFailsIfAlreadyAdmin() {
-        User bootstrapAdmin = new User(AuthService.BOOTSTRAP_ADMIN_USERNAME, "System Admin", PasswordUtil.hash("bootPass"));
-        bootstrapAdmin.setRole(UserRole.ADMIN);
-        userDao.create(bootstrapAdmin);
-        createdUsernames.add(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        User bootstrapAdmin = bootstrapAdmin();
 
         String targetUsername = uniqueUsername("admin2");
         User targetAdmin = createAdminUser(targetUsername, "Admin2Nick", "pass123");
@@ -454,10 +448,7 @@ class AdminServiceTest {
      */
     @Test
     void demoteAdminSuccessfully() {
-        User bootstrapAdmin = new User(AuthService.BOOTSTRAP_ADMIN_USERNAME, "System Admin", PasswordUtil.hash("bootPass"));
-        bootstrapAdmin.setRole(UserRole.ADMIN);
-        userDao.create(bootstrapAdmin);
-        createdUsernames.add(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        User bootstrapAdmin = bootstrapAdmin();
 
         String targetUsername = uniqueUsername("admin2");
         User targetAdmin = createAdminUser(targetUsername, "Admin2Nick", "pass123");
@@ -507,10 +498,7 @@ class AdminServiceTest {
      */
     @Test
     void demoteAdminFailsIfAlreadyUser() {
-        User bootstrapAdmin = new User(AuthService.BOOTSTRAP_ADMIN_USERNAME, "System Admin", PasswordUtil.hash("bootPass"));
-        bootstrapAdmin.setRole(UserRole.ADMIN);
-        userDao.create(bootstrapAdmin);
-        createdUsernames.add(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        User bootstrapAdmin = bootstrapAdmin();
 
         String targetUsername = uniqueUsername("user");
         createUser(targetUsername, "UserNick", "pass123");
@@ -530,11 +518,7 @@ class AdminServiceTest {
      */
     @Test
     void manageBootstrapAdminFails() {
-        // Tạo tài khoản bootstrap admin
-        User bootstrapAdmin = new User(AuthService.BOOTSTRAP_ADMIN_USERNAME, "System Admin", PasswordUtil.hash("bootPass"));
-        bootstrapAdmin.setRole(UserRole.ADMIN);
-        userDao.create(bootstrapAdmin);
-        createdUsernames.add(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        User bootstrapAdmin = bootstrapAdmin();
 
         // Tạo một admin khác cố gắng cấm/xóa bootstrap admin
         String otherAdminUsername = uniqueUsername("admin");
@@ -565,11 +549,16 @@ class AdminServiceTest {
     }
 
     private User createAdminUser(String username, String nickname, String rawPassword) {
-        User user = new User(username, nickname, PasswordUtil.hash(rawPassword));
-        user.setRole(UserRole.ADMIN);
-        userDao.create(user);
+        Admin admin = new Admin(username, nickname, PasswordUtil.hash(rawPassword));
+        userDao.create(admin);
         createdUsernames.add(username);
-        return user;
+        return admin;
+    }
+
+    private User bootstrapAdmin() {
+        User admin = userDao.findByUsername(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        assertNotNull(admin);
+        return admin;
     }
 
     private Item createTestItem(String owner, String name) {
