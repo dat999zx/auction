@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane styleClass="profile-root" stylesheets="@../css/public-profile.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.PublicProfileController">
+    <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <center>
+            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="content-scroll" vbarPolicy="AS_NEEDED">
+                <content>
+                    <VBox spacing="24.0" styleClass="content-shell">
+                        <padding>
+                            <Insets bottom="32.0" left="36.0" right="36.0" top="28.0" />
+                        </padding>
+
+                        <HBox alignment="CENTER_LEFT" spacing="20.0">
+                            <VBox minWidth="850.0" spacing="6.0" HBox.hgrow="ALWAYS">
+                                <HBox alignment="CENTER_LEFT" spacing="8.0">
+                                    <Label styleClass="eyebrow-accent" text="PUBLIC PROFILE" />
+                                    <Label styleClass="eyebrow-muted" text="READ-ONLY VIEW" />
+                                </HBox>
+                                <Label fx:id="pageTitleLabel" styleClass="page-title" text="Member Profile" />
+                                <Label fx:id="pageSubtitleLabel" maxWidth="860.0" minWidth="860.0" prefHeight="18.0" prefWidth="860.0" styleClass="page-subtitle" text="View statistics, rating estimates, and active auction history." wrapText="true" />
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <StackPane prefHeight="92.0" prefWidth="92.0" styleClass="hero-avatar">
+                                <ImageView fx:id="heroAvatarImageView" fitHeight="92.0" fitWidth="92.0" pickOnBounds="true" preserveRatio="false" visible="false" />
+                                <Label fx:id="heroAvatarLabel" styleClass="hero-avatar-text" text="U" />
+                            </StackPane>
+                        </HBox>
+
+                        <HBox spacing="24.0" styleClass="profile-section-layout">
+                            <!-- Left Sidebar Profile Info Card -->
+                            <VBox minWidth="260.0" maxWidth="260.0" spacing="16.0" styleClass="profile-card">
+                                <padding>
+                                    <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
+                                </padding>
+
+                                <VBox alignment="CENTER" spacing="12.0">
+                                    <StackPane minHeight="120.0" minWidth="120.0" prefHeight="120.0" prefWidth="120.0" styleClass="profile-avatar-ring">
+                                        <ImageView fx:id="profileAvatarImageView" fitHeight="114.0" fitWidth="114.0" pickOnBounds="true" preserveRatio="false" visible="false" />
+                                        <Label fx:id="profileAvatarIconLabel" styleClass="profile-avatar-icon" text="U" />
+                                    </StackPane>
+                                </VBox>
+
+                                <Separator />
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="DISPLAY NAME" />
+                                    <Label fx:id="nicknameValueLabel" styleClass="profile-value-large" text="Nickname" />
+                                </VBox>
+
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="USERNAME" />
+                                    <Label fx:id="usernameValueLabel" styleClass="profile-keyline" text="username" />
+                                </VBox>
+                                
+                                <VBox spacing="6.0">
+                                    <Label styleClass="meta-label" text="ACCOUNT TYPE" />
+                                    <Label fx:id="roleValueLabel" styleClass="status-pill" text="Member" />
+                                </VBox>
+                            </VBox>
+
+                            <!-- Right Side Statistics & Auction List Card -->
+                            <VBox spacing="20.0" HBox.hgrow="ALWAYS">
+                                <!-- Stats Dashboard Grid -->
+                                <GridPane hgap="14.0" vgap="14.0" styleClass="stats-grid">
+                                    <columnConstraints>
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="25.0" />
+                                    </columnConstraints>
+                                    
+                                    <!-- Row 1 Stats -->
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Total Auctions" />
+                                        <Label fx:id="totalAuctionsLabel" styleClass="stat-value" text="0" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Active Auctions" />
+                                        <Label fx:id="activeAuctionsLabel" styleClass="stat-value" text="0" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Closed Auctions" />
+                                        <Label fx:id="closedAuctionsLabel" styleClass="stat-value" text="0" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Sold Auctions" />
+                                        <Label fx:id="soldAuctionsLabel" styleClass="stat-value" text="0" />
+                                    </VBox>
+
+                                    <!-- Row 2 Stats -->
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Total Bids Placed" />
+                                        <Label fx:id="totalBidsLabel" styleClass="stat-value" text="0" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Active Volume" />
+                                        <Label fx:id="activeVolumeLabel" styleClass="stat-value" text="\$0.00" />
+                                    </VBox>
+                                    <VBox spacing="6.0" styleClass="stat-card" GridPane.columnIndex="2" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                                        <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+                                        <Label styleClass="stat-label" text="Successful Sell Rate" />
+                                        <Label fx:id="sellRateLabel" styleClass="stat-value" text="0.0%" />
+                                    </VBox>
+                                 <rowConstraints>
+                                    <RowConstraints />
+                                    <RowConstraints />
+                                 </rowConstraints>
+                                </GridPane>
+
+                                <!-- Created Auctions Table -->
+                                <VBox styleClass="card" spacing="0">
+                                    <HBox alignment="CENTER_LEFT" styleClass="card-header" spacing="16">
+                                        <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
+                                        <Label text="Created Auctions History" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                                    </HBox>
+
+                                    <GridPane styleClass="table-header">
+                                        <columnConstraints>
+                                            <ColumnConstraints percentWidth="45"/>
+                                            <ColumnConstraints percentWidth="20"/>
+                                            <ColumnConstraints percentWidth="15"/>
+                                            <ColumnConstraints percentWidth="20"/>
+                                        </columnConstraints>
+                                        <Label text="Auction Name" styleClass="table-heading" GridPane.columnIndex="0"/>
+                                        <Label text="Current Price" styleClass="table-heading" GridPane.columnIndex="1"/>
+                                        <Label text="Status" styleClass="table-heading" GridPane.columnIndex="2"/>
+                                        <Label text="End Time" styleClass="table-heading-center" GridPane.columnIndex="3"/>
+                                        <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
+                                    </GridPane>
+
+                                    <VBox fx:id="auctionRowsContainer" styleClass="table-body" spacing="0"/>
+                                    
+                                    <HBox alignment="CENTER_LEFT" styleClass="pagination" spacing="8">
+                                        <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
+                                        <Label fx:id="summaryLabel" text="Loading auctions..." styleClass="muted-text" HBox.hgrow="ALWAYS"/>
+                                        <Region HBox.hgrow="ALWAYS" />
+                                        <Button fx:id="backButton" onAction="#handleBack" text="Back to Floor" styleClass="pager-button" />
+                                    </HBox>
+                                </VBox>
+                            </VBox>
+                        </HBox>
+                    </VBox>
+                </content>
+            </ScrollPane>
+        </center>
+    </BorderPane>
+</AnchorPane>
