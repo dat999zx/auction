@@ -13,6 +13,7 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.model.Event;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.Auction;
@@ -47,7 +48,7 @@ public class AuctionSchedulerService {
     // dùng để sync runtime danh sách đấu giá
     private void syncRuntimeAuctions() {
         List<Auction> runtimeAuctions = RealtimeDatabase.getAllRuntimeAuctions();
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = TimeUtil.nowInVietnam();
 
         for (Auction auction : runtimeAuctions) {
             if (auction == null) continue;

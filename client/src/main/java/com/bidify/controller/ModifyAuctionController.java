@@ -175,8 +175,8 @@ public class ModifyAuctionController {
         extensionTimeField.setText(data.getAntiSnipingExtensionTime() != null ? data.getAntiSnipingExtensionTime() : "00:05");
 
         try {
-            LocalDateTime start = LocalDateTime.parse(data.getStartTime());
-            LocalDateTime end = LocalDateTime.parse(data.getEndTime());
+            LocalDateTime start = TimeUtil.parseDateTime(data.getStartTime());
+            LocalDateTime end = TimeUtil.parseDateTime(data.getEndTime());
 
             startDatePicker.setValue(start.toLocalDate());
             startTimeField.setText(start.toLocalTime().format(TIME_FORMATTER));

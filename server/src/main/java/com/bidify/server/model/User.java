@@ -1,6 +1,8 @@
 package com.bidify.server.model;
 
 import java.time.LocalDateTime;
+
+import com.bidify.common.utility.TimeUtil;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -26,7 +28,7 @@ public class User extends Entity {
 
     // dùng để tạo một đối tượng User
     public User(String username, String nickname, String password) {
-        super(username, LocalDateTime.now());
+        super(username, TimeUtil.nowInVietnam());
 
         this.username = username;
         this.nickname = nickname;

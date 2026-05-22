@@ -112,10 +112,8 @@ public class CreateAuctionController {
 
             startDatePicker.setEditable(false);
             startDatePicker.setValue(LocalDate.now());
-            
             endDatePicker.setEditable(false);
             endDatePicker.setValue(LocalDate.now().plusDays(7));
-            
             startTimeField.setText("09:00");
             endTimeField.setText("18:00");
             
@@ -157,30 +155,37 @@ public class CreateAuctionController {
         });
     }
     private void validateEndTimeWithMaxEndTime() {
-        LocalDate endDate = endDatePicker.getValue();
-        LocalTime endTime = parseTime(endTimeField.getText(), "End time");
+        try {
+            LocalDate endDate = endDatePicker.getValue();
+            LocalTime endTime = parseTime(endTimeField.getText(), "End time");
 
-        LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+            LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
 
-        LocalDate maxEndDate = maxEndDatePicker.getValue();
-        LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum end time");
+            LocalDate maxEndDate = maxEndDatePicker.getValue();
+            LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum end time");
 
-        LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
+            LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
 
-        if (maxEndDateTime.isBefore(endDateTime)) {
-            NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
-            syncMaxEndTimeWithStandardEnd();
+            if (maxEndDateTime.isBefore(endDateTime)) {
+                NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
+                syncMaxEndTimeWithStandardEnd();
 
-            AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-            AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
 
-        } else if (maxEndDateTime.isAfter(endDateTime)) {
-            // Strictly greater than -> Turn Green
-            AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
-            AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
+            } else if (maxEndDateTime.isAfter(endDateTime)) {
+                // Strictly greater than -> Turn Green
+                AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
+                AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
 
-        } else {
-            // Exactly Equal -> Explicitly force it to Red/Disabled to override old green states
+            } else {
+                // Exactly Equal -> Explicitly force it to Red/Disabled to override old green states
+                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+            }
+        } catch (ValidationException | DateTimeParseException e) {
+            // Silently ignore or show error if it's a final action, 
+            // but for a listener, it's safer to just reset the status UI.
             AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
             AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
         }
@@ -204,8 +209,8 @@ public class CreateAuctionController {
             LocalTime endTime = parseTime(endTimeField.getText(), "End time");
             LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
 
-            if (startDateTime.isBefore(LocalDateTime.now().minusMinutes(1))) {
-                startDateTime = LocalDateTime.now();
+            if (startDateTime.isBefore(TimeUtil.nowInVietnam().minusMinutes(1))) {
+                startDateTime = TimeUtil.nowInVietnam();
                 startDatePicker.setValue(startDateTime.toLocalDate());
                 startTimeField.setText(startDateTime.toLocalTime().format(TIME_FORMATTER));
             }
@@ -256,12 +261,16 @@ public class CreateAuctionController {
                 NotificationUtil.error(response.getMessage());
             }
         }
-        catch (AuctionException | ValidationException | NumberFormatException e) {
+        catch (AuctionException | ValidationException | NumberFormatException | DateTimeParseException e) {
             NotificationUtil.error(e.getMessage());
         }
         catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
+        }
+        catch (Exception e) {
+            NotificationUtil.error("An unexpected error occurred: " + e.getMessage());
+            logger.error("Unexpected error in createAuction", e);
         }
     }
 
@@ -365,11 +374,9 @@ public class CreateAuctionController {
             maxEndDatePicker.setValue(recommendedMaxCeiling.toLocalDate());
             maxEndTimeField.setText(recommendedMaxCeiling.toLocalTime().format(TIME_FORMATTER));
             
-        } catch (ValidationException e) {
-            // If the user typed an invalid time format, gracefully catch it here 
-            NotificationUtil.error("Invalid End Time format.");
-            // and let the final createAuction validation handle the pop-up error.
-            logger.debug("Could not auto-sync maxEndTime due to incomplete or invalid standard endTime format.");
+        } catch (ValidationException | DateTimeParseException e) {
+            // Silently handle incomplete/invalid formats during typing or focus loss
+            logger.debug("Could not auto-sync maxEndTime due to incomplete or invalid standard endTime format: {}", e.getMessage());
         }
     }
 

@@ -2,6 +2,7 @@ package com.bidify.server.model;
 
 import com.bidify.common.enums.TransactionType;
 import com.bidify.common.utility.IdGenerator;
+import com.bidify.common.utility.TimeUtil;
 import java.time.LocalDateTime;
 
 public class Transaction extends Entity {
@@ -20,7 +21,7 @@ public class Transaction extends Entity {
     // thanh toán / nhận tiền trong auction
     // dùng để tạo một đối tượng Transaction
     public Transaction(String username, TransactionType type, double amount, String auctionId) {
-        super(IdGenerator.genTransactionId(), LocalDateTime.now());
+        super(IdGenerator.genTransactionId(), TimeUtil.nowInVietnam());
         this.username = username;
         this.type = type;
         this.amount = amount;

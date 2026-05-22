@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.utility.IdGenerator;
+import com.bidify.common.utility.TimeUtil;
 
 public class Item extends Entity {
     private String ownerUsername;
@@ -15,7 +16,7 @@ public class Item extends Entity {
 
     // dùng để tạo một đối tượng Item
     public Item(String ownerUsername, String name, String description, String category, String productType) {
-        super(IdGenerator.genItemId(), LocalDateTime.now());
+        super(IdGenerator.genItemId(), TimeUtil.nowInVietnam());
         this.ownerUsername = ownerUsername;
         this.name = name;
         this.description = description;

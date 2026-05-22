@@ -43,8 +43,8 @@ public final class DisplayUtil {
         }
 
         try {
-            LocalDateTime end = LocalDateTime.parse(endTime);
-            Duration duration = Duration.between(LocalDateTime.now(), end);
+            LocalDateTime end = TimeUtil.parseDateTime(endTime);
+            Duration duration = Duration.between(TimeUtil.nowInVietnam(), end);
 
             if (duration.isNegative() || duration.isZero()) {
                 return "Ended";
@@ -68,7 +68,7 @@ public final class DisplayUtil {
         }
 
         try {
-            LocalDateTime dateTime = LocalDateTime.parse(rawDate);
+            LocalDateTime dateTime = TimeUtil.parseDateTime(rawDate);
             return dateTime.format(DATE_TIME_FORMAT);
 
         } catch (DateTimeParseException e) {

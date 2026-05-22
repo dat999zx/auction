@@ -1,7 +1,6 @@
 package com.bidify.controller;
 
 import java.io.IOException;
-import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
@@ -17,6 +16,7 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.common.utility.TimeUtil;
 import com.bidify.controller.history.BiddingRowController;
 import com.bidify.controller.history.EmptyCardController;
 import com.bidify.controller.history.TransactionCardController;
@@ -49,7 +49,7 @@ public class HistoryController {
     private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM HH:mm");
     private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-    private static final ZoneId CHART_ZONE_ID = ZoneId.systemDefault();
+    private static final ZoneId CHART_ZONE_ID = TimeUtil.VIETNAM_ZONE;
 
     @FXML
     private VBox biddingActivityContainer;
@@ -728,7 +728,7 @@ public class HistoryController {
         }
 
         try {
-            return LocalDateTime.parse(bid.getCreatedAt());
+            return TimeUtil.parseDateTime(bid.getCreatedAt());
         } catch (DateTimeParseException e) {
             return null;
         }
@@ -741,7 +741,7 @@ public class HistoryController {
         }
 
         try {
-            return LocalDateTime.parse(transaction.getCreatedAt());
+            return TimeUtil.parseDateTime(transaction.getCreatedAt());
         } catch (DateTimeParseException e) {
             return null;
         }
@@ -784,11 +784,11 @@ public class HistoryController {
 
     // dùng để chuyển thành epoch seconds
     private long toEpochSeconds(LocalDateTime dateTime) {
-        return dateTime == null ? 0L : dateTime.atZone(CHART_ZONE_ID).toEpochSecond();
+        return dateTime == null ? 0L : TimeUtil.toVietnamEpochSeconds(dateTime);
     }
 
     // dùng để từ epoch seconds
     private LocalDateTime fromEpochSeconds(long epochSeconds) {
-        return LocalDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), CHART_ZONE_ID);
+        return TimeUtil.fromVietnamEpochSeconds(epochSeconds);
     }
 }

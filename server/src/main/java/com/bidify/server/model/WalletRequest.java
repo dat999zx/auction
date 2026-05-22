@@ -4,6 +4,8 @@ import com.bidify.common.enums.TransactionType;
 import com.bidify.common.enums.WalletRequestStatus;
 
 import java.time.LocalDateTime;
+
+import com.bidify.common.utility.TimeUtil;
 import java.util.UUID;
 
 public class WalletRequest {
@@ -19,7 +21,7 @@ public class WalletRequest {
     // dùng để tạo một yêu cầu ví mới với ID ngẫu nhiên và thời gian hiện tại
     public WalletRequest(String username, TransactionType type, double amount) {
         this.id = UUID.randomUUID().toString();
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = TimeUtil.nowInVietnam();
         this.username = username;
         this.type = type;
         this.amount = amount;
@@ -50,14 +52,14 @@ public class WalletRequest {
     // dùng để phê duyệt yêu cầu nạp/rút tiền này
     public void approve(String reviewer) {
         this.status = WalletRequestStatus.APPROVED;
-        this.reviewedAt = LocalDateTime.now();
+        this.reviewedAt = TimeUtil.nowInVietnam();
         this.reviewedBy = reviewer;
     }
 
     // dùng để từ chối yêu cầu nạp/rút tiền này
     public void deny(String reviewer) {
         this.status = WalletRequestStatus.DENIED;
-        this.reviewedAt = LocalDateTime.now();
+        this.reviewedAt = TimeUtil.nowInVietnam();
         this.reviewedBy = reviewer;
     }
 }

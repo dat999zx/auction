@@ -3,6 +3,7 @@ package com.bidify.server.model;
 import java.time.LocalDateTime;
 
 import com.bidify.common.utility.IdGenerator;
+import com.bidify.common.utility.TimeUtil;
 
 public class Bid extends Entity {
     private String auctionId;
@@ -18,7 +19,7 @@ public class Bid extends Entity {
 
     // dùng để tạo một đối tượng Bid
     public Bid(String auctionId, String bidderUsername, double amount, boolean autoBidGenerated) {
-        super(IdGenerator.genBidId(), LocalDateTime.now());
+        super(IdGenerator.genBidId(), TimeUtil.nowInVietnam());
         this.auctionId = auctionId;
         this.bidderUsername = bidderUsername;
         this.amount = amount;

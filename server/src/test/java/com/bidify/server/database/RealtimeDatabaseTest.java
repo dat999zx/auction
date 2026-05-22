@@ -3,6 +3,7 @@ package com.bidify.server.database;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,8 @@ public class RealtimeDatabaseTest {
             "testing auction",
             "seller",
             1000,
-            LocalDateTime.now().plusHours(1),
-            LocalDateTime.now().plusDays(1)
+            TimeUtil.nowInVietnam().plusHours(1),
+            TimeUtil.nowInVietnam().plusDays(1)
         );
 
         RealtimeDatabase.addRuntimeAuction(auction);
@@ -65,8 +66,8 @@ public class RealtimeDatabaseTest {
             "testing auction",
             "seller",
             1000,
-            LocalDateTime.now(),
-            LocalDateTime.now().plusDays(1)
+            TimeUtil.nowInVietnam(),
+            TimeUtil.nowInVietnam().plusDays(1)
         );
 
         RealtimeDatabase.addActiveUser(client, user);
@@ -87,8 +88,8 @@ public class RealtimeDatabaseTest {
             "testing auction",
             "seller",
             1000,
-            LocalDateTime.now(),
-            LocalDateTime.now().plusDays(1)
+            TimeUtil.nowInVietnam(),
+            TimeUtil.nowInVietnam().plusDays(1)
         );
 
         RealtimeDatabase.addActiveUser(client, user);

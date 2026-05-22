@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.LocalDateTime;
+import com.bidify.common.utility.TimeUtil;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -325,8 +326,8 @@ class AuctionServiceTest {
             sellerUsername, 
             item.getId(), 
             1000.0, 
-            LocalDateTime.now().minusHours(1), 
-            LocalDateTime.now().plusHours(1)
+            TimeUtil.nowInVietnam().minusHours(1), 
+            TimeUtil.nowInVietnam().plusHours(1)
         );
         auction.setAuctionName(name);
         auction.setDescription("Test description");
@@ -560,12 +561,12 @@ class AuctionServiceTest {
             "",
             1500.0,
             100.0,
-            LocalDateTime.now().plusHours(1).toString(),
-            LocalDateTime.now().plusHours(2).toString(),
+            TimeUtil.nowInVietnam().plusHours(1).toString(),
+            TimeUtil.nowInVietnam().plusHours(2).toString(),
             "Try to restart canceled auction",
             "00:05",                                      // antiSnipingTriggerTime
             "00:05",                                      // antiSnipingExtensionTime
-            LocalDateTime.now().plusHours(2).toString()   // maxEndTime (matching the new end time)
+            TimeUtil.nowInVietnam().plusHours(2).toString()   // maxEndTime (matching the new end time)
         );
 
         Response response = auctionService.update(sellerClient, new Request(RequestType.UPDATE_AUCTION, request));
