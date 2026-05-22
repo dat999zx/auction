@@ -3,6 +3,7 @@ package com.bidify.utility;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.model.Response;
 import com.bidify.controller.MissionBarController;
+import com.bidify.controller.PublicProfileController;
 import com.bidify.model.ClientSession;
 import com.bidify.network.SocketClient;
 import com.bidify.service.AuthClientService;
@@ -69,7 +70,9 @@ public class MissionBarUtil {
         missionBarController.setLogoutHandler(event -> handleLogout());
         missionBarController.setAvatarHandler(event -> {
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("user-profile.fxml", false, true);
+            PublicProfileController.setTargetUsername(null);
+            SceneManager.clearCache("public-profile.fxml");
+            SceneManager.switchScene("public-profile.fxml", false, true);
         });
 
         // set avatar text và avatar image
@@ -104,6 +107,10 @@ public class MissionBarUtil {
         else if (selectedButton == controller.getInventoryButton()) {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("inventory.fxml", false, true);
+        } 
+        else if (selectedButton == controller.getProfileButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("user-profile.fxml", false, true);
         } 
         else if (selectedButton == controller.getWalletButton()) {
             if (currentCleanupAction != null) currentCleanupAction.run();
@@ -175,6 +182,7 @@ public class MissionBarUtil {
             case ADMIN_WALLET_REQUESTS -> controller.setActiveNavigation(controller.getAdminWalletRequestsButton());
             case ADMIN_AUCTIONS -> controller.setActiveNavigation(controller.getAdminAuctionsButton());
             case MY_AUCTIONS -> controller.setActiveNavigation(controller.getMyAuctionsButton());
+            case PROFILE -> controller.setActiveNavigation(controller.getProfileButton());
             default -> controller.setActiveNavigation(null);
         }
     }

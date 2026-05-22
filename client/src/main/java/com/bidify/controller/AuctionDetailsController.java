@@ -190,6 +190,16 @@ public class AuctionDetailsController {
         // dùng để khởi tạo bidding chart
         initializeBiddingChart();
 
+        if (openingBidderLabel != null) {
+            openingBidderLabel.setOnMouseClicked(event -> {
+                if (currentAuction != null && currentAuction.getSellerUsername() != null && !currentAuction.getSellerUsername().isBlank()) {
+                    PublicProfileController.setTargetUsername(currentAuction.getSellerUsername());
+                    SceneManager.clearCache("public-profile.fxml");
+                    SceneManager.switchScene("public-profile.fxml", false, true);
+                }
+            });
+        }
+
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
             // dùng để tải đấu giá thông tin chi tiết

@@ -52,6 +52,9 @@ public class MissionBarController {
     private Button inventoryButton;
 
     @FXML
+    private Button profileButton;
+
+    @FXML
     private Button walletButton;
 
     @FXML
@@ -221,6 +224,7 @@ public class MissionBarController {
     public Button getLogoutLinkButton() { return logoutLinkButton; }
     public Button getHistoryButton() { return historyButton; }
     public Button getInventoryButton() { return inventoryButton; }
+    public Button getProfileButton() { return profileButton; }
     public Button getWalletButton() { return walletButton; }
     public Button getSettlementsButton() { return settlementsButton; }
     public Button getAdminUsersButton() { return adminUsersButton; }
@@ -276,6 +280,9 @@ public class MissionBarController {
         }
         if (inventoryButton != null) {
             inventoryButton.setOnAction(handler);
+        }
+        if (profileButton != null) {
+            profileButton.setOnAction(handler);
         }
         if (walletButton != null) {
             walletButton.setOnAction(handler);
