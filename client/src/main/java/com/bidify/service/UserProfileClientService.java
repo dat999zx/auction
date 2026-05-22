@@ -60,16 +60,41 @@ public class UserProfileClientService {
 
     // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname) throws IOException {
-        return updateProfile(nickname, null);
+        return updateProfile(nickname, null, null, null);
     }
 
     // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname, String profileImageBase64) throws IOException {
+        return updateProfile(nickname, null, null, profileImageBase64);
+    }
+
+    // dùng để cập nhật thông tin tài khoản với email và số điện thoại
+    public UserDto updateProfile(String nickname, String email, String phoneNumber, String profileImageBase64) throws IOException {
         ValidationUtil.validateNickname(nickname);
 
-        Response response = client.send(new Request(RequestType.UPDATE_PROFILE, new UpdateProfileRequest(nickname.trim(), null, profileImageBase64)));
+        String normalizedEmail = normalizeOptionalProfileField(email);
+        if (normalizedEmail != null) {
+            ValidationUtil.validateEmail(normalizedEmail);
+        }
+
+        String normalizedPhoneNumber = normalizeOptionalProfileField(phoneNumber);
+        if (normalizedPhoneNumber != null) {
+            ValidationUtil.validatePhone(normalizedPhoneNumber);
+        }
+
+        Response response = client.send(new Request(
+            RequestType.UPDATE_PROFILE,
+            new UpdateProfileRequest(nickname.trim(), null, profileImageBase64, normalizedEmail, normalizedPhoneNumber)
+        ));
         // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
         return consumeProfileResponse(response, "Cannot update profile.");
+    }
+
+    private String normalizeOptionalProfileField(String value) {
+        if (value == null) return null;
+
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 
     // dùng để gửi yêu cầu nạp tiền lên server thông qua socket connection

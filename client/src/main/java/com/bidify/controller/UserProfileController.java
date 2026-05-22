@@ -63,6 +63,12 @@ public class UserProfileController {
     private TextField nicknameField;
 
     @FXML
+    private TextField emailField;
+
+    @FXML
+    private TextField phoneNumberField;
+
+    @FXML
     private PasswordField currentPasswordField;
 
     @FXML
@@ -105,7 +111,12 @@ public class UserProfileController {
     @FXML
     private void handleSaveProfile() {
         try {
-            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
+            UserDto updatedUser = userProfileClientService.updateProfile(
+                nicknameField.getText(),
+                emailField.getText(),
+                phoneNumberField.getText(),
+                null
+            );
             // dùng để refresh thông tin tài khoản
             refreshProfile(updatedUser);
             NotificationUtil.success("Profile updated successfully.");
@@ -164,7 +175,12 @@ public class UserProfileController {
 
         try {
             String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
-            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText(), base64);
+            UserDto updatedUser = userProfileClientService.updateProfile(
+                nicknameField.getText(),
+                emailField.getText(),
+                phoneNumberField.getText(),
+                base64
+            );
             // dùng để refresh thông tin tài khoản
             refreshProfile(updatedUser);
             profileImageHintLabel.setText("Profile image updated");
@@ -197,6 +213,8 @@ public class UserProfileController {
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
+        emailField.setText(DisplayUtil.defaultText(user.getEmail(), ""));
+        phoneNumberField.setText(DisplayUtil.defaultText(user.getPhoneNumber(), ""));
         
         memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());

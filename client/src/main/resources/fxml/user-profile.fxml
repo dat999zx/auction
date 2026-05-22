@@ -88,6 +88,23 @@
                                         <Label styleClass="field-label" text="DISPLAY NICKNAME" />
                                         <TextField fx:id="nicknameField" promptText="Your display nickname" styleClass="text-input" />
                                     </VBox>
+                                    <GridPane hgap="14.0" vgap="14.0">
+                                        <columnConstraints>
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="50.0" />
+                                            <ColumnConstraints hgrow="ALWAYS" minWidth="180.0" percentWidth="50.0" />
+                                        </columnConstraints>
+                                        <VBox spacing="6.0" GridPane.columnIndex="0">
+                                            <Label styleClass="field-label" text="EMAIL" />
+                                            <TextField fx:id="emailField" promptText="you@example.com" styleClass="text-input" />
+                                        </VBox>
+                                        <VBox spacing="6.0" GridPane.columnIndex="1">
+                                            <Label styleClass="field-label" text="PHONE NUMBER" />
+                                            <TextField fx:id="phoneNumberField" promptText="10 or 11 digits" styleClass="text-input" />
+                                        </VBox>
+                                        <rowConstraints>
+                                            <RowConstraints />
+                                        </rowConstraints>
+                                    </GridPane>
                                     <Button onAction="#handleSaveProfile" styleClass="primary-action-button" text="Save Profile" />
                                 </VBox>
 
