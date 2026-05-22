@@ -574,6 +574,85 @@ class AuctionServiceTest {
         assertTrue(response.getMessage().contains("Can only update auction before it starts"));
     }
 
+    @Test
+    void getAdminAuctionsFailsForNonAdmin() {
+        String username = uniqueUsername("user");
+        User user = createTestUser(username, "pass123");
+        TestClientHandler client = sessionClient(user);
+
+        Response response = auctionService.getAdminAuctions(client, new Request(RequestType.GET_ADMIN_AUCTIONS, null));
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().toLowerCase().contains("admin"));
+    }
+
+    @Test
+    void getAdminAuctionsSucceedsForAdmin() {
+        String adminUsername = uniqueUsername("admin");
+        User admin = createTestUser(adminUsername, "adminPass");
+        admin.setRole(UserRole.ADMIN);
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.getAdminAuctions(adminClient, new Request(RequestType.GET_ADMIN_AUCTIONS, null));
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+        assertNotNull(response.getData());
+    }
+
+    @Test
+    void adminDeleteAuctionFailsForCompletedAuction() {
+        Auction completedAuction = createTestAuction("Completed Auction", AuctionStatus.COMPLETED);
+
+        String adminUsername = uniqueUsername("admin");
+        User admin = createTestUser(adminUsername, "adminPass");
+        admin.setRole(UserRole.ADMIN);
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.delete(
+            adminClient,
+            new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(completedAuction.getId()))
+        );
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().contains("Can only delete upcoming auctions or cancel active auctions"));
+    }
+
+    @Test
+    void adminCancelActiveAuctionSucceedsAndUnlocksBidder() {
+        Auction auction = createTestAuction("Admin Active Cancel Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auctionDao.save(auction);
+
+        String adminUsername = uniqueUsername("admin");
+        User admin = createTestUser(adminUsername, "adminPass");
+        admin.setRole(UserRole.ADMIN);
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.delete(
+            adminClient,
+            new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auction.getId()))
+        );
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertNotNull(updated);
+        assertEquals(AuctionStatus.CANCELED, updated.getStatus());
+
+        User updatedBidder = userDao.findByUsername(bidderUsername);
+        assertEquals(5000.0, updatedBidder.getWallet().getBalance());
+        assertEquals(0.0, updatedBidder.getWallet().getLockedBalance());
+    }
+
     // --- Mock Classes ---
     
     private static class TestClientHandler extends ClientHandler {
