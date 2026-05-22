@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
+import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.model.LoginRequest;
 import com.bidify.common.model.RegisterRequest;
@@ -25,6 +27,7 @@ import com.bidify.common.model.Response;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
@@ -43,6 +46,42 @@ class AuthServiceTest {
         // Đảm bảo schema SQLite đã tồn tại trước khi chạy test.
         // Nếu chưa có bảng Users thì các test register/login sẽ fail ngay từ đầu.
         SQLiteHelper.init();
+    }
+
+    @Test
+    void schemaInitCreatesBootstrapAdminInDatabase() {
+        SQLiteHelper.update("DELETE FROM Users WHERE username = ?", AuthService.BOOTSTRAP_ADMIN_USERNAME);
+
+        SQLiteHelper.init();
+
+        User admin = userDao.findByUsername(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        assertNotNull(admin);
+        assertEquals(AuthService.BOOTSTRAP_ADMIN_USERNAME, admin.getUsername());
+        assertEquals(AuthService.BOOTSTRAP_ADMIN_NICKNAME, admin.getNickname());
+        assertEquals(UserRole.ADMIN, admin.getRole());
+        assertEquals(UserStatus.ACTIVE, admin.getStatus());
+        assertTrue(PasswordUtil.matches(AuthService.BOOTSTRAP_ADMIN_PASSWORD, admin.getPassword()));
+    }
+
+    @Test
+    void schemaInitDoesNotOverwriteExistingBootstrapAdmin() {
+        SQLiteHelper.update("DELETE FROM Users WHERE username = ?", AuthService.BOOTSTRAP_ADMIN_USERNAME);
+
+        User admin = new User(
+            AuthService.BOOTSTRAP_ADMIN_USERNAME,
+            "Custom Admin",
+            PasswordUtil.hash("custom123")
+        );
+        admin.setRole(UserRole.ADMIN);
+        userDao.create(admin);
+
+        SQLiteHelper.init();
+
+        User savedAdmin = userDao.findByUsername(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        assertNotNull(savedAdmin);
+        assertEquals("Custom Admin", savedAdmin.getNickname());
+        assertTrue(PasswordUtil.matches("custom123", savedAdmin.getPassword()));
+        assertEquals(UserRole.ADMIN, savedAdmin.getRole());
     }
 
     // dùng để thiết lập up
@@ -94,6 +133,17 @@ class AuthServiceTest {
         assertNotEquals(password, savedUser.getPassword());
         // Hash lưu trong DB phải khớp với password gốc khi kiểm tra lại bằng PasswordUtil.
         assertTrue(PasswordUtil.matches(password, savedUser.getPassword()));
+    }
+
+    @Test
+    void registerFailsForBootstrapAdminUsername() {
+        Response response = authService.register(new Request(
+            RequestType.REGISTER,
+            new RegisterRequest(AuthService.BOOTSTRAP_ADMIN_USERNAME, "secret123")
+        ));
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertEquals("Username already exists", response.getMessage());
     }
 
     // dùng để đăng ký fails when username already exists
@@ -162,6 +212,49 @@ class AuthServiceTest {
         assertNull(client.getCurrentUsername());
         // RealtimeDatabase cũng không được đánh dấu user này đang online.
         assertFalse(RealtimeDatabase.isUserOnline(username));
+    }
+
+    @Test
+    void loginUsesPersistedBootstrapAdminFromDatabase() {
+        SQLiteHelper.update("DELETE FROM Users WHERE username = ?", AuthService.BOOTSTRAP_ADMIN_USERNAME);
+
+        User admin = new User(
+            AuthService.BOOTSTRAP_ADMIN_USERNAME,
+            "Persisted Admin",
+            PasswordUtil.hash("persisted123")
+        );
+        admin.setRole(UserRole.ADMIN);
+        userDao.create(admin);
+
+        TestClientHandler client = new TestClientHandler();
+        Response response = authService.login(
+            client,
+            new Request(RequestType.LOGIN, new LoginRequest(AuthService.BOOTSTRAP_ADMIN_USERNAME, "persisted123"))
+        );
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+        assertEquals(AuthService.BOOTSTRAP_ADMIN_USERNAME, client.getCurrentUsername());
+        assertTrue(RealtimeDatabase.isUserOnline(AuthService.BOOTSTRAP_ADMIN_USERNAME));
+    }
+
+    @Test
+    void loginStoresBootstrapAdminAsAdminRuntimeType() {
+        SQLiteHelper.update("DELETE FROM Users WHERE username = ?", AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        SQLiteHelper.init();
+
+        TestClientHandler client = new TestClientHandler();
+        Response response = authService.login(
+            client,
+            new Request(
+                RequestType.LOGIN,
+                new LoginRequest(AuthService.BOOTSTRAP_ADMIN_USERNAME, AuthService.BOOTSTRAP_ADMIN_PASSWORD)
+            )
+        );
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+        User activeUser = RealtimeDatabase.getActiveUser(AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        assertInstanceOf(Admin.class, activeUser);
+        assertEquals(UserRole.ADMIN, activeUser.getRole());
     }
 
     // dùng để đăng nhập fails when người dùng kiểm tra xem banned

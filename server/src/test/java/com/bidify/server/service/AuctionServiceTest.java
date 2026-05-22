@@ -40,6 +40,7 @@ import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
@@ -498,8 +499,7 @@ class AuctionServiceTest {
         auctionDao.save(auction);
 
         String adminUsername = uniqueUsername("admin");
-        User admin = createTestUser(adminUsername, "adminPass");
-        admin.setRole(UserRole.ADMIN);
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
         userDao.save(admin, false);
 
         TestClientHandler adminClient = sessionClient(admin);
@@ -589,8 +589,7 @@ class AuctionServiceTest {
     @Test
     void getAdminAuctionsSucceedsForAdmin() {
         String adminUsername = uniqueUsername("admin");
-        User admin = createTestUser(adminUsername, "adminPass");
-        admin.setRole(UserRole.ADMIN);
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
         userDao.save(admin, false);
         TestClientHandler adminClient = sessionClient(admin);
 
@@ -605,8 +604,7 @@ class AuctionServiceTest {
         Auction completedAuction = createTestAuction("Completed Auction", AuctionStatus.COMPLETED);
 
         String adminUsername = uniqueUsername("admin");
-        User admin = createTestUser(adminUsername, "adminPass");
-        admin.setRole(UserRole.ADMIN);
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
         userDao.save(admin, false);
         TestClientHandler adminClient = sessionClient(admin);
 
@@ -632,8 +630,7 @@ class AuctionServiceTest {
         auctionDao.save(auction);
 
         String adminUsername = uniqueUsername("admin");
-        User admin = createTestUser(adminUsername, "adminPass");
-        admin.setRole(UserRole.ADMIN);
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
         userDao.save(admin, false);
         TestClientHandler adminClient = sessionClient(admin);
 

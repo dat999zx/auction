@@ -27,6 +27,7 @@ import com.bidify.server.dao.UserDao;
 import com.bidify.server.dao.WalletRequestDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.Transaction;
 import com.bidify.server.model.User;
 import com.bidify.server.model.WalletRequest;
@@ -457,11 +458,10 @@ class AdminWalletRequestServiceTest {
      * Hàm phụ trợ (Helper): Tạo một user Admin và lưu vào database SQLite.
      */
     private User createAdminUser(String username, String nickname, String rawPassword) {
-        User user = new User(username, nickname, PasswordUtil.hash(rawPassword));
-        user.setRole(UserRole.ADMIN);
-        userDao.create(user);
+        Admin admin = new Admin(username, nickname, PasswordUtil.hash(rawPassword));
+        userDao.create(admin);
         createdUsernames.add(username);
-        return user;
+        return admin;
     }
 
     /**
