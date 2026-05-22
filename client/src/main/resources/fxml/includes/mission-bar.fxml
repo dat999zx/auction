@@ -95,6 +95,7 @@
 
                         <Button fx:id="adminUsersButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Admin Users" visible="false" />
                         <Button fx:id="adminWalletRequestsButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Wallet Requests" visible="false" />
+                        <Button fx:id="adminAuctionsButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Auction Management" visible="false" />
                     </VBox>
                 </VBox>
             </children>

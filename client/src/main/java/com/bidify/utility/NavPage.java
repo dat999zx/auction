@@ -9,6 +9,7 @@ public enum NavPage {
     SETTLEMENTS,
     ADMIN_USERS,
     ADMIN_WALLET_REQUESTS,
+    ADMIN_AUCTIONS,
     MY_AUCTIONS,
     PROFILE,
     NONE

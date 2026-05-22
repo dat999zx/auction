@@ -121,6 +121,10 @@ public class MissionBarUtil {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("admin-wallet-requests.fxml", false, true);
         }
+        else if (selectedButton == controller.getAdminAuctionsButton()) {
+            if (currentCleanupAction != null) currentCleanupAction.run();
+            SceneManager.switchScene("admin-auctions.fxml", false, true);
+        }
         else if (selectedButton == controller.getMyAuctionsButton()) {
             if (currentCleanupAction != null) currentCleanupAction.run();
             SceneManager.switchScene("myauctions.fxml", false, true);
@@ -164,6 +168,7 @@ public class MissionBarUtil {
             case SETTLEMENTS -> controller.setActiveNavigation(controller.getSettlementsButton());
             case ADMIN_USERS -> controller.setActiveNavigation(controller.getAdminUsersButton());
             case ADMIN_WALLET_REQUESTS -> controller.setActiveNavigation(controller.getAdminWalletRequestsButton());
+            case ADMIN_AUCTIONS -> controller.setActiveNavigation(controller.getAdminAuctionsButton());
             case MY_AUCTIONS -> controller.setActiveNavigation(controller.getMyAuctionsButton());
             default -> controller.setActiveNavigation(null);
         }
