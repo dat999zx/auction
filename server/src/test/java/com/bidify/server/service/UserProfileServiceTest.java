@@ -12,6 +12,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.bidify.common.dto.UserDto;
+import com.bidify.common.dto.PublicProfileDto;
+import com.bidify.common.dto.PublicProfileStatsDto;
+import com.bidify.common.model.PublicProfileRequest;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.model.Request;
@@ -353,6 +356,67 @@ class UserProfileServiceTest {
 
         assertEquals(RequestStatus.FAILED, response.getStatus());
         assertEquals("Password cannot contains spaces", response.getMessage());
+    }
+
+    /**
+     * Ca kiểm thử: Lấy thông tin public profile thành công.
+     */
+    @Test
+    void getPublicProfileSuccessfully() {
+        String username = uniqueUsername("pub-ok");
+        User user = createUser(username, "PublicNickname", "pass123");
+
+        TestClientHandler client = new TestClientHandler();
+        client.setCurrentUsername(username);
+        RealtimeDatabase.addActiveUser(client, user);
+
+        PublicProfileRequest requestData = new PublicProfileRequest(username);
+        Request request = new Request(RequestType.GET_PUBLIC_PROFILE, requestData);
+
+        Response response = userProfileService.getPublicProfile(client, request);
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+        assertEquals("Public profile loaded successfully", response.getMessage());
+        assertNotNull(response.getData());
+
+        PublicProfileDto dto = (PublicProfileDto) response.getData();
+        assertEquals(username, dto.getUsername());
+        assertEquals("PublicNickname", dto.getNickname());
+        assertNotNull(dto.getStats());
+        assertEquals(0, dto.getStats().getTotalAuctions());
+        assertEquals(0, dto.getStats().getTotalBids());
+    }
+
+    /**
+     * Ca kiểm thử: Lấy thông tin public profile thất bại khi username trống.
+     */
+    @Test
+    void getPublicProfileFailsWhenUsernameEmpty() {
+        TestClientHandler client = new TestClientHandler();
+
+        PublicProfileRequest requestData = new PublicProfileRequest("");
+        Request request = new Request(RequestType.GET_PUBLIC_PROFILE, requestData);
+
+        Response response = userProfileService.getPublicProfile(client, request);
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertEquals("Username cannot be empty", response.getMessage());
+    }
+
+    /**
+     * Ca kiểm thử: Lấy thông tin public profile thất bại khi user không tồn tại.
+     */
+    @Test
+    void getPublicProfileFailsWhenUserNotFound() {
+        TestClientHandler client = new TestClientHandler();
+
+        PublicProfileRequest requestData = new PublicProfileRequest("nonexistentuser");
+        Request request = new Request(RequestType.GET_PUBLIC_PROFILE, requestData);
+
+        Response response = userProfileService.getPublicProfile(client, request);
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertEquals("User not found", response.getMessage());
     }
 
     /**

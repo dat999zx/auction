@@ -27,23 +27,7 @@ public class AuctionDao {
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
             while (rs.next()) {
-                Auction auction = new Auction(
-                    rs.getString("id"),
-                    LocalDateTime.parse(rs.getString("createdAt")),
-                    rs.getString("auctionName"),
-                    rs.getString("description"),
-                    rs.getString("seller"),
-                    rs.getString("itemId"),
-                    rs.getString("currentBidder"),
-                    rs.getDouble("startingPrice"),
-                    rs.getDouble("minIncrement"),
-                    LocalDateTime.parse(rs.getString("startAt")),
-                    LocalDateTime.parse(rs.getString("endTime")),
-                    AuctionStatus.valueOf(rs.getString("status"))
-                );
-                auction.setCurrentBid(rs.getDouble("currentBid"));
-                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
-                auctions.add(auction);
+                auctions.add(mapRowToAuction(rs));
             }
             return auctions;
         }, status.toString());
@@ -55,23 +39,7 @@ public class AuctionDao {
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
             while (rs.next()) {
-                Auction auction = new Auction(
-                    rs.getString("id"),
-                    LocalDateTime.parse(rs.getString("createdAt")),
-                    rs.getString("auctionName"),
-                    rs.getString("description"),
-                    rs.getString("seller"),
-                    rs.getString("itemId"),
-                    rs.getString("currentBidder"),
-                    rs.getDouble("startingPrice"),
-                    rs.getDouble("minIncrement"),
-                    LocalDateTime.parse(rs.getString("startAt")),
-                    LocalDateTime.parse(rs.getString("endTime")),
-                    AuctionStatus.valueOf(rs.getString("status"))
-                );
-                auction.setCurrentBid(rs.getDouble("currentBid"));
-                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
-                auctions.add(auction);
+                auctions.add(mapRowToAuction(rs));
             }
             return auctions;
         }, sellerUsername);
@@ -83,23 +51,7 @@ public class AuctionDao {
         return SQLiteHelper.query(sql, rs -> {
             List<Auction> auctions = new ArrayList<>();
             while (rs.next()) {
-                Auction auction = new Auction(
-                    rs.getString("id"),
-                    LocalDateTime.parse(rs.getString("createdAt")),
-                    rs.getString("auctionName"),
-                    rs.getString("description"),
-                    rs.getString("seller"),
-                    rs.getString("itemId"),
-                    rs.getString("currentBidder"),
-                    rs.getDouble("startingPrice"),
-                    rs.getDouble("minIncrement"),
-                    LocalDateTime.parse(rs.getString("startAt")),
-                    LocalDateTime.parse(rs.getString("endTime")),
-                    AuctionStatus.valueOf(rs.getString("status"))
-                );
-                auction.setCurrentBid(rs.getDouble("currentBid"));
-                auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
-                auctions.add(auction);
+                auctions.add(mapRowToAuction(rs));
             }
             return auctions;
         }, username, username);
@@ -111,24 +63,40 @@ public class AuctionDao {
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
             if (!rs.next()) return null;
-            Auction auction = new Auction(
-                rs.getString("id"),
-                LocalDateTime.parse(rs.getString("createdAt")),
-                rs.getString("auctionName"),
-                rs.getString("description"),
-                rs.getString("seller"),
-                rs.getString("itemId"),
-                rs.getString("currentBidder"),
-                rs.getDouble("startingPrice"),
-                rs.getDouble("minIncrement"),
-                LocalDateTime.parse(rs.getString("startAt")),
-                LocalDateTime.parse(rs.getString("endTime")),
-                AuctionStatus.valueOf(rs.getString("status"))
-            );
-            auction.setCurrentBid(rs.getDouble("currentBid"));
-            auction.getBids().addAll(BidDao.getInstance().findByAuctionId(id));
-            return auction;
+            return mapRowToAuction(rs);
         }, id);
+    }
+
+    private Auction mapRowToAuction(java.sql.ResultSet rs) throws java.sql.SQLException {
+        Auction auction = new Auction(
+            rs.getString("id"),
+            LocalDateTime.parse(rs.getString("createdAt")),
+            rs.getString("auctionName"),
+            rs.getString("description"),
+            rs.getString("seller"),
+            rs.getString("itemId"),
+            rs.getString("currentBidder"),
+            rs.getDouble("startingPrice"),
+            rs.getDouble("minIncrement"),
+            LocalDateTime.parse(rs.getString("startAt")),
+            LocalDateTime.parse(rs.getString("endTime")),
+            AuctionStatus.valueOf(rs.getString("status"))
+        );
+        auction.setCurrentBid(rs.getDouble("currentBid"));
+        
+        int triggerMinutes = rs.getInt("antiSnipingTriggerTime");
+        auction.setAntiSnipingTriggerTime(java.time.Duration.ofMinutes(triggerMinutes));
+        
+        int extensionMinutes = rs.getInt("antiSnipingExtensionTime");
+        auction.setAntiSnipingExtensionTime(java.time.Duration.ofMinutes(extensionMinutes));
+        
+        String maxEndTime = rs.getString("maxEndTime");
+        if (maxEndTime != null && !maxEndTime.isBlank()) {
+            auction.setMaxEndTime(LocalDateTime.parse(maxEndTime));
+        }
+        
+        auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
+        return auction;
     }
 
     // dùng để tạo
@@ -148,8 +116,11 @@ public class AuctionDao {
             currentBidder,
             status,
             startAt,
-            endTime
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            endTime,
+            antiSnipingTriggerTime,
+            antiSnipingExtensionTime,
+            maxEndTime
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 """;
 
         SQLiteHelper.update(sql,
@@ -165,7 +136,10 @@ public class AuctionDao {
             auction.getCurrentBidderUsername(),
             auction.getStatus().toString(),
             auction.getStartTime().toString(),
-            auction.getEndTime().toString()
+            auction.getEndTime().toString(),
+            auction.getAntiSnipingTriggerTime() != null ? auction.getAntiSnipingTriggerTime().toMinutes() : 0,
+            auction.getAntiSnipingExtensionTime() != null ? auction.getAntiSnipingExtensionTime().toMinutes() : 0,
+            auction.getMaxEndTime() != null ? auction.getMaxEndTime().toString() : null
         );
     }
 
@@ -192,7 +166,10 @@ public class AuctionDao {
             currentBidder = ?,
             status = ?,
             startAt = ?,
-            endTime = ?
+            endTime = ?,
+            antiSnipingTriggerTime = ?,
+            antiSnipingExtensionTime = ?,
+            maxEndTime = ?
             WHERE id = ?
             """,
             createdAt.toString(),
@@ -207,8 +184,22 @@ public class AuctionDao {
             auction.getStatus().toString(),
             auction.getStartTime().toString(),
             auction.getEndTime().toString(),
+            auction.getAntiSnipingTriggerTime() != null ? auction.getAntiSnipingTriggerTime().toMinutes() : 0,
+            auction.getAntiSnipingExtensionTime() != null ? auction.getAntiSnipingExtensionTime().toMinutes() : 0,
+            auction.getMaxEndTime() != null ? auction.getMaxEndTime().toString() : null,
             auction.getId()
         );
+    }
+
+    public List<Auction> findAll() throws DatabaseException {
+        String sql = "SELECT * FROM Auctions ORDER BY createdAt DESC";
+        return SQLiteHelper.query(sql, rs -> {
+            List<Auction> auctions = new ArrayList<>();
+            while (rs.next()) {
+                auctions.add(mapRowToAuction(rs));
+            }
+            return auctions;
+        });
     }
 
     // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user

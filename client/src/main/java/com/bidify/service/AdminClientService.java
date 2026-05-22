@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.dto.AdminUserDto;
+import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.WalletRequestDto;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
@@ -37,6 +38,25 @@ public class AdminClientService {
         }
 
         return users;
+    }
+
+    public List<AuctionDto> getAdminAuctions() throws IOException {
+        Response response = client.send(new Request(RequestType.GET_ADMIN_AUCTIONS, null));
+        if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null)
+            throw new ValidationException(response.getMessage() == null ? "Cannot load auctions." : response.getMessage());
+
+        List<?> rawAuctions = JsonUtil.fromMap(response.getData(), List.class);
+        List<AuctionDto> auctions = new ArrayList<>();
+        if (rawAuctions == null)
+            return auctions;
+
+        for (Object rawAuction : rawAuctions) {
+            AuctionDto auction = JsonUtil.fromMap(rawAuction, AuctionDto.class);
+            if (auction != null)
+                auctions.add(auction);
+        }
+
+        return auctions;
     }
 
     // dùng để cấm (ban) một người dùng theo tên đăng nhập

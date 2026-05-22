@@ -528,9 +528,15 @@
 }
 
 .bidder-name {
-    -fx-text-fill: #111c2d;
+    -fx-text-fill: #2563eb;
     -fx-font-size: 12px;
     -fx-font-weight: 700;
+    -fx-cursor: hand;
+}
+
+.bidder-name:hover {
+    -fx-text-fill: #1d4ed8;
+    -fx-underline: true;
 }
 
 .bid-amount {

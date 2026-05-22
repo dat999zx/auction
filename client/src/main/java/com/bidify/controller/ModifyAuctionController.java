@@ -36,9 +36,10 @@ import javafx.scene.image.ImageView;
 public class ModifyAuctionController {
     private static final Logger logger = LoggerFactory.getLogger(ModifyAuctionController.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    
+    // Strict ISO format enforcing standard seconds placeholder format rule
+    private static final DateTimeFormatter ISO_SERVER_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-    // This would ideally be set by the previous scene (e.g., the Auction Dashboard)
-    // before switching to this view.
     private static String currentAuctionId;
 
     @FXML private Label itemNameLabel;
@@ -53,24 +54,23 @@ public class ModifyAuctionController {
     @FXML private TextField startTimeField;
     @FXML private DatePicker endDatePicker;
     @FXML private TextField endTimeField;
+    @FXML private TextField triggerTimeField;
+    @FXML private TextField extensionTimeField;
     
-    // Action Buttons
+    @FXML private DatePicker maxEndDatePicker;
+    @FXML private TextField maxEndTimeField;
+    @FXML private Label AntiSnipingStatusField;
+    
     @FXML private Button cancelButton;
     @FXML private Button saveChangesButton;
     @FXML private Button deleteAuctionButton;
 
     private final AuctionClientService auctionClientService = new AuctionClientService();
 
-    /**
-     * Static method to set the Auction ID to be modified.
-     * Call this before switching to modify-auction.fxml
-     */
-    // dùng để thiết lập đấu giá ID
     public static void setAuctionId(String auctionId) {
         currentAuctionId = auctionId;
     }
 
-    // dùng để khởi tạo
     @FXML
     private void initialize() {
         if (currentAuctionId == null || currentAuctionId.isBlank()) {
@@ -78,33 +78,88 @@ public class ModifyAuctionController {
             return;
         }
         
-        // dùng để tải đấu giá data
+        setupValidationListeners();
         loadAuctionData(currentAuctionId);
     }
 
-    // dùng để tải đấu giá data
+    private void setupValidationListeners() {
+        Runnable validateDateTimeRule = () -> {
+            try {
+                LocalDate endDate = endDatePicker.getValue();
+                LocalDate maxEndDate = maxEndDatePicker.getValue();
+                if (endDate == null || maxEndDate == null) return;
+
+                String endText = endTimeField.getText();
+                String maxEndText = maxEndTimeField.getText();
+                if (endText == null || endText.trim().isEmpty() || maxEndText == null || maxEndText.trim().isEmpty()) return;
+
+                LocalTime endTime = parseTime(endText.trim(), "End time");
+                LocalTime maxEndTime = parseTime(maxEndText.trim(), "Maximum end time");
+
+                LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
+                LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
+
+                if (maxEndDateTime.isBefore(endDateTime)) {
+                    Platform.runLater(() -> {
+                        NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
+                        syncMaxEndTimeWithStandardEnd();
+                        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    });
+                } else if (maxEndDateTime.isAfter(endDateTime)) {
+                    Platform.runLater(() -> {
+                        AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
+                        AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
+                    });
+                } else {
+                    Platform.runLater(() -> {
+                        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                    });
+                }
+            } catch (Exception ignored) {
+            }
+        };
+
+        maxEndTimeField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.trim().length() == 5) {
+                validateDateTimeRule.run();
+            }
+        });
+        
+        endTimeField.textProperty().addListener((obs, oldVal, newVal) -> {
+            if (newVal != null && newVal.trim().length() == 5) {
+                validateDateTimeRule.run();
+            }
+        });
+
+        maxEndDatePicker.valueProperty().addListener((obs, oldVal, newVal) -> { if (newVal != null) validateDateTimeRule.run(); });
+        endDatePicker.valueProperty().addListener((obs, oldVal, newVal) -> { if (newVal != null) validateDateTimeRule.run(); });
+    }
+
+    private void syncMaxEndTimeWithStandardEnd() {
+        if (endDatePicker.getValue() != null) {
+            maxEndDatePicker.setValue(endDatePicker.getValue());
+        }
+        if (endTimeField.getText() != null && !endTimeField.getText().isBlank()) {
+            maxEndTimeField.setText(endTimeField.getText().trim());
+        }
+    }
+
     private void loadAuctionData(String auctionId) {
-        // Start background thread to fetch data (similar to AuctionDetailsController)
         Thread loader = new Thread(() -> {
             try {
-                // Fetch from service
                 AuctionDto auction = auctionClientService.getAuctionDetail(auctionId);
-                
-                // Update UI on the JavaFX Thread
                 Platform.runLater(() -> bindAuctionToFields(auction));
-                
             } catch (IOException | AuctionException e) {
                 logger.error("Failed to load auction data", e);
-                Platform.runLater(() -> {
-                    NotificationUtil.error("Failed to load auction: " + e.getMessage());
-                });
+                Platform.runLater(() -> NotificationUtil.error("Failed to load auction: " + e.getMessage()));
             }
         });
         loader.setDaemon(true);
         loader.start();
     }
 
-    // dùng để liên kết dữ liệu đấu giá chuyển thành fields
     private void bindAuctionToFields(AuctionDto data) {
         itemNameLabel.setText(defaultText(data.getAuctionName(), "Unnamed item"));
         itemDescriptionLabel.setText(defaultText(data.getDescription(), "No description."));
@@ -114,6 +169,10 @@ public class ModifyAuctionController {
         linkedItemImageView.setImage(decodeBase64Image(data.getThumbnailBase64()));
 
         startingPriceField.setText(String.valueOf(data.getStartingPrice()));
+        minIncrementField.setText(String.valueOf(data.getMinIncrement()));
+
+        triggerTimeField.setText(data.getAntiSnipingTriggerTime() != null ? data.getAntiSnipingTriggerTime() : "00:05");
+        extensionTimeField.setText(data.getAntiSnipingExtensionTime() != null ? data.getAntiSnipingExtensionTime() : "00:05");
 
         try {
             LocalDateTime start = TimeUtil.parseDateTime(data.getStartTime());
@@ -124,15 +183,33 @@ public class ModifyAuctionController {
             
             endDatePicker.setValue(end.toLocalDate());
             endTimeField.setText(end.toLocalTime().format(TIME_FORMATTER));
+
+            if (data.getMaxEndTime() != null) {
+                LocalDateTime maxEnd = LocalDateTime.parse(data.getMaxEndTime());
+                maxEndDatePicker.setValue(maxEnd.toLocalDate());
+                maxEndTimeField.setText(maxEnd.toLocalTime().format(TIME_FORMATTER));
+                
+                if (maxEnd.isAfter(end)) {
+                    AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
+                    AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
+                } else {
+                    AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                    AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                }
+            } else {
+                maxEndDatePicker.setValue(end.toLocalDate());
+                maxEndTimeField.setText(end.toLocalTime().format(TIME_FORMATTER));
+                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
+                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+            }
         } catch (Exception e) {
             logger.warn("Could not parse auction dates: {}", e.getMessage());
         }
     }
 
-    // dùng để xử lý lưu changes
     @FXML
     private void handleSaveChanges() {
-        saveChangesButton.setText("Saving..."); // Prevent multiple clicks
+        saveChangesButton.setText("Saving...");
         saveChangesButton.setDisable(true);
         if (currentAuctionId == null) {
             NotificationUtil.error("No auction selected for modification.");
@@ -147,7 +224,6 @@ public class ModifyAuctionController {
             LocalDate endDate = endDatePicker.getValue();
             LocalTime endTime = parseTime(endTimeField.getText(), "End Time");
 
-            // 2. Validate Dates
             LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
             LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
 
@@ -155,23 +231,45 @@ public class ModifyAuctionController {
                 throw new ValidationException("End time cannot be before start time.");
             }
 
+            LocalDate maxEndDate = maxEndDatePicker.getValue();
+            LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum End Time");
+            LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
+
+            if (maxEndDateTime.isBefore(endDateTime)) {
+                throw new ValidationException("Maximum end date & time cannot be earlier than the standard end time.");
+            }
+
             double minIncrement = parseAmount(minIncrementField.getText(), "Minimum Increment");
+            
+            String triggerTime = triggerTimeField.getText();
+            String extensionTime = extensionTimeField.getText();
+
+            parseDuration(triggerTime, "Trigger Window");
+            parseDuration(extensionTime, "Extension");
+
+            // Mapping raw structural payload conversions directly to clear formats
+            String finalStartTimeStr = startDateTime.format(ISO_SERVER_FORMATTER);
+            String finalEndTimeStr = endDateTime.format(ISO_SERVER_FORMATTER);
+            String finalMaxEndTimeStr = maxEndDateTime.format(ISO_SERVER_FORMATTER);
+
             UpdateAuctionRequest request = new UpdateAuctionRequest(
                 currentAuctionId,
                 "",
                 "",
                 price,
-                minIncrement, startDateTime.toString(),
-                endDateTime.toString(),
-                "Auction details updated by seller." // Default message
+                minIncrement, 
+                finalStartTimeStr,     // Format: "yyyy-MM-ddTHH:mm:ss"
+                finalEndTimeStr,       // Format: "yyyy-MM-ddTHH:mm:ss"
+                "Auction details updated by seller.",
+                triggerTime,
+                extensionTime,
+                finalMaxEndTimeStr     // Passed as full absolute timestamp matching exact validation route
             );
 
-            // 4. Send to Service
             Response response = auctionClientService.updateAuction(request);
 
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction updated successfully.");
-                //redirect to auction details page
                 AuctionDetailsController.setAuctionId(currentAuctionId);
                 SceneManager.clearCache("auctiondetail.fxml");
                 SceneManager.switchScene("auctiondetail.fxml", false, false);
@@ -186,20 +284,17 @@ public class ModifyAuctionController {
             logger.error("IOException while updating auction", e);
         } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
-        }
-        finally {
+        } finally {
             saveChangesButton.setText("Save Changes");
             saveChangesButton.setDisable(false);
         }
     }
 
-    // dùng để xử lý hủy bỏ
     @FXML
     private void handleCancel() {
         SceneManager.switchScene("hub.fxml", false, true);
     }
 
-    // dùng để xử lý xóa đấu giá
     @FXML
     private void handleDeleteAuction() {
         if (currentAuctionId == null || currentAuctionId.isBlank()) {
@@ -215,17 +310,14 @@ public class ModifyAuctionController {
                 return;
             }
             NotificationUtil.error(response.getMessage());
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             NotificationUtil.error("Failed to connect to server.");
             logger.error("IOException while deleting auction", e);
-        }
-        catch (AuctionException e) {
+        } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
         }
     }
 
-    // dùng để phân tích cú pháp số tiền
     private double parseAmount(String value, String fieldName) {
         String parseValue = (value == null) ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
@@ -236,38 +328,42 @@ public class ModifyAuctionController {
         }
     }
 
-    // dùng để phân tích cú pháp thời gian
     private LocalTime parseTime(String value, String fieldName) {
         String parseValue = (value == null) ? "" : value.trim();
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
         try {
             return LocalTime.parse(parseValue, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ValidationException(fieldName + " must use HH:mm format.");
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
     }
 
-    // dùng để decode base64image
+    private java.time.Duration parseDuration(String value, String fieldName) {
+        String parseValue = value == null ? "" : value.trim();
+        ValidationUtil.requiresNonBlank(parseValue, fieldName);
+
+        if (!parseValue.matches("^\\d+:[0-5]\\d$")) {
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
+        }
+
+        return TimeUtil.parseHHMM(parseValue);
+    }
+
     private Image decodeBase64Image(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
             Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
-            if (img.isError()) {
-                return null;
-            }
+            if (img.isError()) return null;
             return img;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             return null;
         }
     }
 
-    // dùng để default text
     private String defaultText(String value, String fallback) {
         return safe(value).isBlank() ? fallback : value;
     }
 
-    // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
     }

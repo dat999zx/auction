@@ -6,9 +6,12 @@ public class UpdateAuctionRequest {
     private double startingPrice, minIncrement;
     private String startTime, endTime;
     private String message; // tin nhắn gửi cho người tham gia
+    private String triggerTime; // HH:MM
+    private String extensionTime;
+    private String maxExtensionTime;
 
     public UpdateAuctionRequest(String auctionId, String auctionName, String description, double startingPrice, double minIncrement,
-            String startTime, String endTime, String message) {
+            String startTime, String endTime, String message, String triggerTime, String extensionTime, String maxExtensionTime) {
         this.auctionId = auctionId;
         this.auctionName = auctionName;
         this.description = description;
@@ -17,6 +20,9 @@ public class UpdateAuctionRequest {
         this.startTime = startTime;
         this.endTime = endTime;
         this.message = message;
+        this.triggerTime = triggerTime;
+        this.extensionTime = extensionTime;
+        this.maxExtensionTime = maxExtensionTime;
     }
 
     public String getAuctionId() { return auctionId; }
@@ -34,4 +40,10 @@ public class UpdateAuctionRequest {
     public String getEndTime() { return endTime; }
 
     public String getMessage() { return message; }
+
+    public String getTriggerTime() { return triggerTime; }
+
+    public String getExtensionTime() { return extensionTime; }
+
+    public String getMaxExtensionTime() { return maxExtensionTime; }
 }

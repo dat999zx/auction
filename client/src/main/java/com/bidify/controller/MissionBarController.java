@@ -52,6 +52,12 @@ public class MissionBarController {
     private Button inventoryButton;
 
     @FXML
+    private Button profileButton;
+
+    @FXML
+    private Button walletButton;
+
+    @FXML
     private Button settlementsButton;
 
     @FXML
@@ -59,6 +65,9 @@ public class MissionBarController {
 
     @FXML
     private Button adminWalletRequestsButton;
+
+    @FXML
+    private Button adminAuctionsButton;
 
     @FXML
     private Label avatarText;
@@ -215,9 +224,12 @@ public class MissionBarController {
     public Button getLogoutLinkButton() { return logoutLinkButton; }
     public Button getHistoryButton() { return historyButton; }
     public Button getInventoryButton() { return inventoryButton; }
+    public Button getProfileButton() { return profileButton; }
+    public Button getWalletButton() { return walletButton; }
     public Button getSettlementsButton() { return settlementsButton; }
     public Button getAdminUsersButton() { return adminUsersButton; }
     public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
+    public Button getAdminAuctionsButton() { return adminAuctionsButton; }
     public Button getMyAuctionsButton() { return myAuctionsButton; }
     
     // dùng để thiết lập hiển thị khám phá
@@ -247,6 +259,10 @@ public class MissionBarController {
             adminWalletRequestsButton.setManaged(visible);
             adminWalletRequestsButton.setVisible(visible);
         }
+        if (adminAuctionsButton != null) {
+            adminAuctionsButton.setManaged(visible);
+            adminAuctionsButton.setVisible(visible);
+        }
     }
 
     public void setShowCreateAuction(boolean visible) {
@@ -265,6 +281,12 @@ public class MissionBarController {
         if (inventoryButton != null) {
             inventoryButton.setOnAction(handler);
         }
+        if (profileButton != null) {
+            profileButton.setOnAction(handler);
+        }
+        if (walletButton != null) {
+            walletButton.setOnAction(handler);
+        }
         if (settlementsButton != null) {
             settlementsButton.setOnAction(handler);
         }
@@ -273,6 +295,9 @@ public class MissionBarController {
         }
         if (adminWalletRequestsButton != null) {
             adminWalletRequestsButton.setOnAction(handler);
+        }
+        if (adminAuctionsButton != null) {
+            adminAuctionsButton.setOnAction(handler);
         }
         if (myAuctionsButton != null) {
             myAuctionsButton.setOnAction(handler);

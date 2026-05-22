@@ -2,6 +2,7 @@ package com.bidify.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -13,8 +14,8 @@ import org.slf4j.LoggerFactory;
 
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.dto.BidDto;
-import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.AuctionResolutionAction;
+import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.model.Event;
@@ -50,7 +51,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class AuctionDetailsController {
@@ -120,6 +120,10 @@ public class AuctionDetailsController {
     @FXML
     private Label endDateLabel;
     @FXML
+    private VBox AntiSnipingVisualBox;
+    @FXML
+    private Label AntiSnipingVisualLabel;
+    @FXML
     private HBox audienceStatsRow;
     @FXML
     private Label watcherCountLabel;
@@ -185,6 +189,16 @@ public class AuctionDetailsController {
         EventManager.getInstance().subscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
         // dùng để khởi tạo bidding chart
         initializeBiddingChart();
+
+        if (openingBidderLabel != null) {
+            openingBidderLabel.setOnMouseClicked(event -> {
+                if (currentAuction != null && currentAuction.getSellerUsername() != null && !currentAuction.getSellerUsername().isBlank()) {
+                    PublicProfileController.setTargetUsername(currentAuction.getSellerUsername());
+                    SceneManager.clearCache("public-profile.fxml");
+                    SceneManager.switchScene("public-profile.fxml", false, true);
+                }
+            });
+        }
 
         // Just focus on loading the data for this specific view
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
@@ -295,7 +309,7 @@ public class AuctionDetailsController {
         }
 
         if (bidAmount <= currentDisplayedPrice) {
-            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice) + minIncrement + ".");
+            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice + minIncrement));
             return;
         }
 
@@ -486,9 +500,29 @@ public class AuctionDetailsController {
         // dùng để hiển thị audience stats
         renderAudienceStats(data, isUpcoming);
 
+        // anti-sniping info
+        if (AntiSnipingVisualLabel != null) {
+            String currentUser = com.bidify.model.ClientSession.getInstance().getCurrentUsername();
+            boolean isAdmin = com.bidify.model.ClientSession.getInstance().isAdmin();
+            boolean isSeller = currentUser != null && currentUser.equals(data.getSellerUsername());
+            boolean hasConfig = data.getAntiSnipingTriggerTime() != null && data.getAntiSnipingExtensionTime() != null 
+            && data.getMaxEndTime().compareTo(data.getEndTime()) > 0;
+
+            boolean shouldShow = (isSeller || isAdmin);
+            
+            AntiSnipingVisualBox.setVisible(shouldShow);
+            AntiSnipingVisualBox.setManaged(shouldShow);
+            if (shouldShow) {
+                if (hasConfig){
+                    AntiSnipingVisualLabel.setText("Anti-sniping: trigger:" + data.getAntiSnipingTriggerTime() + " - extension: " + data.getAntiSnipingExtensionTime() + " - Max end Time: " + DisplayUtil.formatDateTime(data.getMaxEndTime(), "Unknown"));
+                } else {
+                    AntiSnipingVisualLabel.setText("Anti-sniping not configured for this auction.");
+                }
+            }
         // Populate carousel images
         carouselImages.clear();
         currentCarouselIndex = 0;
+        }
 
         if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
             String cacheKey = "auction_" + data.getId() + "_thumb";
@@ -511,6 +545,12 @@ public class AuctionDetailsController {
             }
         }
 
+        // set primary image
+        if (data.getThumbnailBase64() != null)
+            setPreviewImageFromBase64(data.getThumbnailBase64());
+        else
+            // dùng để thiết lập preview hình ảnh
+            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
         // Display current image and update navigation controls
         updateCarouselDisplay();
 

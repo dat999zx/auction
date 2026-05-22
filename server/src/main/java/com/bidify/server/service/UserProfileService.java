@@ -20,6 +20,17 @@ import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
+import com.bidify.common.dto.PublicProfileDto;
+import com.bidify.common.dto.PublicProfileStatsDto;
+import com.bidify.common.dto.AuctionDto;
+import com.bidify.common.model.PublicProfileRequest;
+import com.bidify.server.dao.AuctionDao;
+import com.bidify.server.dao.BidDao;
+import com.bidify.server.dao.ItemDao;
+import com.bidify.server.model.Auction;
+import com.bidify.server.model.Item;
+import com.bidify.server.utility.AuctionMapper;
+import java.util.ArrayList;
 import java.util.List;
 
 public class UserProfileService {
@@ -40,6 +51,7 @@ public class UserProfileService {
         router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
         router.register(RequestType.UPDATE_PROFILE, this::updateProfile);
         router.register(RequestType.UPDATE_PASSWORD, this::updatePassword);
+        router.register(RequestType.GET_PUBLIC_PROFILE, this::getPublicProfile);
     }
 
     public Response getProfile(ClientHandler client) {
@@ -126,6 +138,83 @@ public class UserProfileService {
             userDao.save(user, false);
 
             return new Response(RequestStatus.SUCCESS, "Password updated successfully");
+        });
+    }
+
+    // dùng để lấy thông tin hồ sơ công khai
+    public Response getPublicProfile(ClientHandler client, Request request) {
+        return ServiceUtil.handleRequest(() -> {
+            PublicProfileRequest data = JsonUtil.fromMap(request.getData(), PublicProfileRequest.class);
+            ServiceUtil.validateRequestData(data);
+
+            String username = data.getUsername();
+            if (username == null || username.isBlank()) {
+                throw new ValidationException("Username cannot be empty");
+            }
+
+            User user = userDao.findByUsername(username);
+            if (user == null) {
+                throw new ValidationException("User not found");
+            }
+
+            String profileImageBase64 = null;
+            if (user.getProfileImageId() != null && !user.getProfileImageId().isBlank()) {
+                try {
+                    Image image = imageDao.findById(user.getProfileImageId());
+                    if (image != null) {
+                        profileImageBase64 = imageService.getBase64Image(image.getFilePath());
+                    }
+                } catch (DatabaseException e) {
+                    // ignore
+                }
+            }
+
+            List<Auction> userAuctions = AuctionDao.getInstance().findBySellerUsername(username);
+            int totalAuctions = userAuctions.size();
+            int activeAuctions = 0;
+            int closedAuctions = 0;
+            int soldAuctions = 0;
+            double activeVolume = 0.0;
+
+            for (Auction a : userAuctions) {
+                if (a.getStatus() == com.bidify.common.enums.AuctionStatus.ACTIVE) {
+                    activeAuctions++;
+                    activeVolume += (a.getCurrentBid() > 0 ? a.getCurrentBid() : a.getStartingPrice());
+                } else if (a.getStatus() != com.bidify.common.enums.AuctionStatus.UPCOMING) {
+                    closedAuctions++;
+                    if (a.getCurrentBidderUsername() != null && !a.getCurrentBidderUsername().isBlank()) {
+                        soldAuctions++;
+                    }
+                }
+            }
+
+            int totalBids = BidDao.getInstance().findByUsername(username).size();
+            String sellRate = closedAuctions > 0 ? String.format("%.1f%%", (double) soldAuctions / closedAuctions * 100) : "0.0%";
+
+            PublicProfileStatsDto stats = new PublicProfileStatsDto(
+                totalAuctions,
+                activeAuctions,
+                closedAuctions,
+                soldAuctions,
+                totalBids,
+                activeVolume,
+                sellRate
+            );
+
+            AuctionDto[] auctionDtos = new AuctionDto[userAuctions.size()];
+            for (int i = 0; i < userAuctions.size(); i++) {
+                auctionDtos[i] = AuctionService.getInstance().toAuctionDto(userAuctions.get(i), false);
+            }
+
+            PublicProfileDto publicProfile = new PublicProfileDto(
+                user.getUsername(),
+                user.getNickname(),
+                profileImageBase64,
+                stats,
+                auctionDtos
+            );
+
+            return new Response(RequestStatus.SUCCESS, "Public profile loaded successfully", publicProfile);
         });
     }
 }

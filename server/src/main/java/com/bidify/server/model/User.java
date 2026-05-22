@@ -95,6 +95,7 @@ public class User extends Entity {
     public void setStatus(UserStatus status) { this.status = status; }
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role == null ? UserRole.USER : role; }
+    public boolean isAdmin() { return false; }
     public Wallet getWallet() { return wallet; }
 
     // dùng để khóa

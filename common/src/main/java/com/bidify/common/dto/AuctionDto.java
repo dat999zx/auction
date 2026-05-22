@@ -18,7 +18,11 @@ public class AuctionDto {
     private String startTime;
     private String endTime;
     private String status;
+    private String antiSnipingTriggerTime; // minTime
+    private String antiSnipingExtensionTime;
+    private String maxEndTime;
     private String thumbnailBase64;
+
     private List<String> galleryBase64;
     private List<BidDto> bidHistory;
     private boolean currentUserAutoBidActive;
@@ -61,6 +65,15 @@ public class AuctionDto {
     public String getStartTime() { return startTime; }
     public String getEndTime() { return endTime; }
     public String getStatus() { return status; }
+
+    public String getAntiSnipingTriggerTime() { return antiSnipingTriggerTime; }
+    public void setAntiSnipingTriggerTime(String triggerTime) { this.antiSnipingTriggerTime = triggerTime; }
+
+    public String getAntiSnipingExtensionTime() { return antiSnipingExtensionTime; }
+    public void setAntiSnipingExtensionTime(String extensionTime) { this.antiSnipingExtensionTime = extensionTime; }
+
+    public String getMaxEndTime() { return maxEndTime; }
+    public void setMaxEndTime(String maxEndTime) { this.maxEndTime = maxEndTime; }
 
     public String getThumbnailBase64() { return thumbnailBase64; }
     public void setThumbnailBase64(String thumbnailBase64) { this.thumbnailBase64 = thumbnailBase64; }

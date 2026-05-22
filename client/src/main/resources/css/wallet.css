@@ -1,0 +1,168 @@
+.wallet-root,
+.wallet-scroll,
+.wallet-scroll > .viewport {
+    -fx-background-color: #f7f9fc;
+    -fx-font-family: "Inter", "Segoe UI", sans-serif;
+}
+
+.eyebrow-accent {
+    -fx-background-color: #001e40;
+    -fx-text-fill: white;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+    -fx-padding: 6 10;
+    -fx-background-radius: 999;
+}
+
+.eyebrow-muted {
+    -fx-text-fill: #516173;
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+}
+
+.page-title {
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 34px;
+    -fx-font-weight: 900;
+}
+
+.page-subtitle,
+.section-copy {
+    -fx-text-fill: #516173;
+    -fx-font-size: 13px;
+}
+
+.balance-card,
+.section-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #c6c5d4;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 8, 0, 0, 1);
+}
+
+.accent-card {
+    -fx-background-color: #f2f4f7;
+}
+
+.meta-label {
+    -fx-text-fill: #737780;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.wallet-figure {
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 30px;
+    -fx-font-weight: 900;
+}
+
+.section-title {
+    -fx-text-fill: #000000;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 21px;
+    -fx-font-weight: 800;
+}
+
+.field-label {
+    -fx-text-fill: #516173;
+    -fx-font-size: 10px;
+    -fx-font-weight: 800;
+}
+
+.inline-input-shell {
+    -fx-background-color: #f7f9ff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #d8e3fb;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 8 8 8 12;
+}
+
+.inline-input-shell:focused-within {
+    -fx-border-color: #0f4db3;
+    -fx-border-width: 2;
+}
+
+.inline-input {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #111c2d;
+    -fx-font-size: 14px;
+    -fx-prompt-text-fill: #7d8793;
+}
+
+.inline-input:focused {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.currency-chip {
+    -fx-background-color: #e7eeff;
+    -fx-text-fill: #001e40;
+    -fx-font-size: 12px;
+    -fx-font-weight: 800;
+    -fx-padding: 8 10;
+    -fx-background-radius: 999;
+}
+
+.secondary-action-button {
+    -fx-background-color: linear-gradient(to right, #fff1d6, #ffd199);
+    -fx-text-fill: #4c2a00;
+    -fx-font-size: 14px;
+    -fx-font-weight: 800;
+    -fx-padding: 13 18;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+}
+
+.secondary-action-button:hover {
+    -fx-background-color: linear-gradient(to right, #ffe6bd, #ffc277);
+}
+
+.compact-button {
+    -fx-padding: 10 14;
+}
+
+.wallet-req-row {
+    -fx-background-color: rgba(255, 255, 255, 0.85);
+    -fx-background-radius: 12;
+    -fx-border-color: #e7eeff;
+    -fx-border-radius: 12;
+    -fx-padding: 12 16;
+}
+
+.wallet-req-title {
+    -fx-text-fill: #111c2d;
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+}
+
+.wallet-req-sub {
+    -fx-text-fill: #737780;
+    -fx-font-size: 11px;
+}
+
+.wallet-req-status {
+    -fx-font-size: 11px;
+    -fx-font-weight: 800;
+    -fx-padding: 5 10;
+    -fx-background-radius: 999;
+}
+
+.wallet-req-status-pending {
+    -fx-background-color: #fff7e0;
+    -fx-text-fill: #b45309;
+}
+
+.wallet-req-status-approved {
+    -fx-background-color: #e8f7ed;
+    -fx-text-fill: #18794e;
+}
+
+.wallet-req-status-denied {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #b91c1c;
+}

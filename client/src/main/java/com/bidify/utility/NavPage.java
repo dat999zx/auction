@@ -7,8 +7,10 @@ public enum NavPage {
     INVENTORY,
     HISTORY,
     SETTLEMENTS,
+    WALLET,
     ADMIN_USERS,
     ADMIN_WALLET_REQUESTS,
+    ADMIN_AUCTIONS,
     MY_AUCTIONS,
     PROFILE,
     NONE

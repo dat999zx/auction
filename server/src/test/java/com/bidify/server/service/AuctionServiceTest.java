@@ -40,6 +40,7 @@ import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.UserDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.database.SQLiteHelper;
+import com.bidify.server.model.Admin;
 import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
@@ -326,13 +327,17 @@ class AuctionServiceTest {
             sellerUsername, 
             item.getId(), 
             1000.0, 
-            TimeUtil.nowInVietnam().minusHours(1), 
+            TimeUtil.nowInVietnam().minusHours(1),
             TimeUtil.nowInVietnam().plusHours(1)
         );
         auction.setAuctionName(name);
         auction.setDescription("Test description");
         auction.setMinIncrement(100.0);
         auction.setStatus(status);
+        
+        auction.setAntiSnipingTriggerTime(java.time.Duration.ofMinutes(5));
+        auction.setAntiSnipingExtensionTime(java.time.Duration.ofMinutes(5));
+        auction.setMaxEndTime(auction.getEndTime()); // Default to standard end time
         
         auctionDao.create(auction);
         createdAuctionIds.add(auction.getId());
@@ -494,8 +499,7 @@ class AuctionServiceTest {
         auctionDao.save(auction);
 
         String adminUsername = uniqueUsername("admin");
-        User admin = createTestUser(adminUsername, "adminPass");
-        admin.setRole(UserRole.ADMIN);
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
         userDao.save(admin, false);
 
         TestClientHandler adminClient = sessionClient(admin);
@@ -559,12 +563,91 @@ class AuctionServiceTest {
             100.0,
             TimeUtil.nowInVietnam().plusHours(1).toString(),
             TimeUtil.nowInVietnam().plusHours(2).toString(),
-            "Try to restart canceled auction"
+            "Try to restart canceled auction",
+            "00:05",                                      // antiSnipingTriggerTime
+            "00:05",                                      // antiSnipingExtensionTime
+            TimeUtil.nowInVietnam().plusHours(2).toString()   // maxEndTime (matching the new end time)
         );
 
         Response response = auctionService.update(sellerClient, new Request(RequestType.UPDATE_AUCTION, request));
         assertEquals(RequestStatus.FAILED, response.getStatus());
         assertTrue(response.getMessage().contains("Can only update auction before it starts"));
+    }
+
+    @Test
+    void getAdminAuctionsFailsForNonAdmin() {
+        String username = uniqueUsername("user");
+        User user = createTestUser(username, "pass123");
+        TestClientHandler client = sessionClient(user);
+
+        Response response = auctionService.getAdminAuctions(client, new Request(RequestType.GET_ADMIN_AUCTIONS, null));
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().toLowerCase().contains("admin"));
+    }
+
+    @Test
+    void getAdminAuctionsSucceedsForAdmin() {
+        String adminUsername = uniqueUsername("admin");
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.getAdminAuctions(adminClient, new Request(RequestType.GET_ADMIN_AUCTIONS, null));
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+        assertNotNull(response.getData());
+    }
+
+    @Test
+    void adminDeleteAuctionFailsForCompletedAuction() {
+        Auction completedAuction = createTestAuction("Completed Auction", AuctionStatus.COMPLETED);
+
+        String adminUsername = uniqueUsername("admin");
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.delete(
+            adminClient,
+            new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(completedAuction.getId()))
+        );
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertTrue(response.getMessage().contains("Can only delete upcoming auctions or cancel active auctions"));
+    }
+
+    @Test
+    void adminCancelActiveAuctionSucceedsAndUnlocksBidder() {
+        Auction auction = createTestAuction("Admin Active Cancel Test", AuctionStatus.ACTIVE);
+        String bidderUsername = uniqueUsername("bidder");
+        User bidder = createFundedActiveUser(bidderUsername, 5000.0);
+        bidder.getWallet().lockBalance(1200.0);
+        userDao.save(bidder, false);
+
+        auction.setCurrentBid(1200.0);
+        auction.setCurrentBidderUsername(bidderUsername);
+        auctionDao.save(auction);
+
+        String adminUsername = uniqueUsername("admin");
+        Admin admin = new Admin(adminUsername, "Admin", PasswordUtil.hash("adminPass"));
+        userDao.save(admin, false);
+        TestClientHandler adminClient = sessionClient(admin);
+
+        Response response = auctionService.delete(
+            adminClient,
+            new Request(RequestType.DELETE_AUCTION, new DeleteAuctionRequest(auction.getId()))
+        );
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        Auction updated = auctionDao.findById(auction.getId());
+        assertNotNull(updated);
+        assertEquals(AuctionStatus.CANCELED, updated.getStatus());
+
+        User updatedBidder = userDao.findByUsername(bidderUsername);
+        assertEquals(5000.0, updatedBidder.getWallet().getBalance());
+        assertEquals(0.0, updatedBidder.getWallet().getLockedBalance());
     }
 
     // --- Mock Classes ---

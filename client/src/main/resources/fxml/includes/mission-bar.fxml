@@ -73,10 +73,10 @@
                                 <padding>
                                     <Insets left="20.0" />
                                 </padding>
-                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" />
+                                <Button fx:id="profileButton" maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" />
                                 <Button fx:id="inventoryButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Inventory" />
                                 <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" />
-                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" />
+                                <Button fx:id="walletButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Wallet" />
                             </VBox>
                         </VBox>
 
@@ -95,6 +95,7 @@
 
                         <Button fx:id="adminUsersButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Admin Users" visible="false" />
                         <Button fx:id="adminWalletRequestsButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Wallet Requests" visible="false" />
+                        <Button fx:id="adminAuctionsButton" managed="false" maxWidth="Infinity" styleClass="side-nav-button" text="Auction Management" visible="false" />
                     </VBox>
                 </VBox>
             </children>

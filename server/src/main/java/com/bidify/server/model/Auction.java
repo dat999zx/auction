@@ -1,15 +1,15 @@
 package com.bidify.server.model;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.exception.AuctionException;
 import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.TimeUtil;
-
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Auction extends Entity {
     private String auctionName;
@@ -19,7 +19,9 @@ public class Auction extends Entity {
     private String currentBidderUsername;
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
     private AuctionStatus status = AuctionStatus.ACTIVE;
-    private LocalDateTime endTime, startTime;
+    private LocalDateTime endTime, startTime, maxEndTime;
+    private Duration antiSnipingTriggerTime = Duration.ZERO; // minTime
+    private Duration antiSnipingExtensionTime = Duration.ZERO;
     private List<Bid> bids = new ArrayList<>();
     private List<AutoBid> autoBids = new ArrayList<>();
 
@@ -31,6 +33,7 @@ public class Auction extends Entity {
         this.startingPrice = startingPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.maxEndTime = endTime; // default
 
         if (TimeUtil.nowInVietnam().isBefore(startTime))
             this.status = AuctionStatus.UPCOMING;
@@ -40,7 +43,6 @@ public class Auction extends Entity {
 
     // dùng để tạo một đối tượng Auction
     public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
-        // dùng để this
         this(sellerUsername, null, startingPrice, startTime, endTime);
         this.auctionName = auctionName;
         this.description = description;
@@ -48,7 +50,6 @@ public class Auction extends Entity {
     
     // dùng để tạo một đối tượng Auction
     public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String itemId, String currentBidderUsername, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
-        // dùng để super
         super(id, createdAt);
         this.auctionName = auctionName;
         this.description = description;
@@ -59,6 +60,7 @@ public class Auction extends Entity {
         this.minIncrement = minIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.maxEndTime = endTime; // default
         this.status = status == null ? AuctionStatus.UPCOMING : status;
     }
     
@@ -73,16 +75,38 @@ public class Auction extends Entity {
         if (bid.getAmount() < minAllowed)
             throw new BidException("Bid must be at least " + minAllowed);
 
-        Duration remaining = Duration.between(TimeUtil.nowInVietnam(), endTime);
-        if (remaining.toSeconds() < 30)
-            this.endTime = this.endTime.plusSeconds(60);
+        if (isAntiSnipingConfigured()) {
+            // Fix: Use the official bid creation time to calculate true remaining time
+            LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
+            Duration remaining = Duration.between(bidTime, endTime);
 
+            // Fix: Use <= 0 to safely capture when remaining time matches the trigger window exactly down to the nanosecond
+            if (remaining.compareTo(antiSnipingTriggerTime) <= 0 && !remaining.isNegative()) {
+                
+                LocalDateTime newEndTime = endTime.plus(antiSnipingExtensionTime);
+                
+                if (newEndTime.isAfter(maxEndTime)) {
+                    newEndTime = maxEndTime;
+                }
+                    
+                if (newEndTime.isAfter(endTime)) {
+                    this.endTime = newEndTime;
+                }
+            }
+        }
 
         this.currentBid = bid.getAmount();
         this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
     }
-    
+    // dùng để kiểm tra xem có cấu hình anti-sniping không
+    public boolean isAntiSnipingConfigured() {
+    return antiSnipingTriggerTime != null && !antiSnipingTriggerTime.isZero() 
+        && antiSnipingExtensionTime != null && !antiSnipingExtensionTime.isZero()
+        && maxEndTime != null && !maxEndTime.isBefore(endTime); // 2048: Allowed to be equal
+    }
+
+    // dùng để lấy đấu giá tên
     public String getAuctionName() { return auctionName; }
     public void setAuctionName(String name) {this.auctionName = name; }
 
@@ -104,12 +128,21 @@ public class Auction extends Entity {
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime time) { this.endTime = time; }
 
+    public LocalDateTime getMaxEndTime() { return maxEndTime; }
+    public void setMaxEndTime(LocalDateTime maxEndTime) { this.maxEndTime = maxEndTime; }
+
+    public Duration getAntiSnipingTriggerTime() { return antiSnipingTriggerTime; }
+    public void setAntiSnipingTriggerTime(Duration triggerTime) { this.antiSnipingTriggerTime = triggerTime; }
+
+    public Duration getAntiSnipingExtensionTime() { return antiSnipingExtensionTime; }
+    public void setAntiSnipingExtensionTime(Duration extensionTime) { this.antiSnipingExtensionTime = extensionTime; }
+
     public AuctionStatus getStatus() { return status; }
     public void setStatus(AuctionStatus status) { this.status = status; }
 
     // dùng để kiểm tra xem active
     public boolean isActive(){ 
-        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime); 
+        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime);
     }
     // dùng để kiểm tra xem ended
     public boolean isEnded() { 

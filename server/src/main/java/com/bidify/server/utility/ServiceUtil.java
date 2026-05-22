@@ -1,7 +1,6 @@
 package com.bidify.server.utility;
 
 import com.bidify.common.enums.RequestStatus;
-import com.bidify.common.enums.UserRole;
 import com.bidify.common.exception.*;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.ValidationUtil;
@@ -49,9 +48,6 @@ public class ServiceUtil {
     public static User getOrLoadUser(String username) {
         ValidationUtil.validateUsername(username);
 
-        if (AuthService.isBootstrapAdminUsername(username))
-            return AuthService.createBootstrapAdminUser();
-        
         User user = RealtimeDatabase.getActiveUser(username);
         if (user != null) return user;
 
@@ -80,7 +76,7 @@ public class ServiceUtil {
 
     // dùng để kiểm tra xem một đối tượng người dùng có quyền admin hay không
     public static boolean isAdmin(User user) {
-        return user != null && user.getRole() == UserRole.ADMIN;
+        return user != null && user.isAdmin();
     }
 
     // dùng để kiểm tra xem tên đăng nhập chỉ định có phải là tài khoản admin hay không

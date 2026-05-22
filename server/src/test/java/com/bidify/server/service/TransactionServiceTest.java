@@ -102,8 +102,7 @@ class TransactionServiceTest {
 
         TestClientHandler adminClient = new TestClientHandler();
         adminClient.setCurrentUsername("admin");
-        User adminUser = createTestUser("admin", "admin123");
-        adminUser.setRole(UserRole.ADMIN);
+        User adminUser = userDao.findByUsername("admin");
         RealtimeDatabase.addActiveUser(adminClient, adminUser);
 
         Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
@@ -178,8 +177,7 @@ class TransactionServiceTest {
 
         TestClientHandler adminClient = new TestClientHandler();
         adminClient.setCurrentUsername("admin");
-        User adminUser = createTestUser("admin", "admin123");
-        adminUser.setRole(UserRole.ADMIN);
+        User adminUser = userDao.findByUsername("admin");
         RealtimeDatabase.addActiveUser(adminClient, adminUser);
 
         Response reviewResp = com.bidify.server.service.AdminWalletRequestService.getInstance().reviewRequest(
