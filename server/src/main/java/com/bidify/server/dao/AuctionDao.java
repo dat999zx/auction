@@ -191,6 +191,17 @@ public class AuctionDao {
         );
     }
 
+    public List<Auction> findAll() throws DatabaseException {
+        String sql = "SELECT * FROM Auctions ORDER BY createdAt DESC";
+        return SQLiteHelper.query(sql, rs -> {
+            List<Auction> auctions = new ArrayList<>();
+            while (rs.next()) {
+                auctions.add(mapRowToAuction(rs));
+            }
+            return auctions;
+        });
+    }
+
     // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user
     // là lockedBalance
     // dùng để tính tổng winning danh sách đặt giá cho người dùng

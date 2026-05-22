@@ -61,6 +61,9 @@ public class MissionBarController {
     private Button adminWalletRequestsButton;
 
     @FXML
+    private Button adminAuctionsButton;
+
+    @FXML
     private Label avatarText;
     
     @FXML
@@ -218,6 +221,7 @@ public class MissionBarController {
     public Button getSettlementsButton() { return settlementsButton; }
     public Button getAdminUsersButton() { return adminUsersButton; }
     public Button getAdminWalletRequestsButton() { return adminWalletRequestsButton; }
+    public Button getAdminAuctionsButton() { return adminAuctionsButton; }
     public Button getMyAuctionsButton() { return myAuctionsButton; }
     
     // dùng để thiết lập hiển thị khám phá
@@ -247,6 +251,10 @@ public class MissionBarController {
             adminWalletRequestsButton.setManaged(visible);
             adminWalletRequestsButton.setVisible(visible);
         }
+        if (adminAuctionsButton != null) {
+            adminAuctionsButton.setManaged(visible);
+            adminAuctionsButton.setVisible(visible);
+        }
     }
 
     public void setShowCreateAuction(boolean visible) {
@@ -273,6 +281,9 @@ public class MissionBarController {
         }
         if (adminWalletRequestsButton != null) {
             adminWalletRequestsButton.setOnAction(handler);
+        }
+        if (adminAuctionsButton != null) {
+            adminAuctionsButton.setOnAction(handler);
         }
         if (myAuctionsButton != null) {
             myAuctionsButton.setOnAction(handler);

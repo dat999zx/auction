@@ -299,7 +299,7 @@ public class AuctionDetailsController {
         }
 
         if (bidAmount <= currentDisplayedPrice) {
-            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice) + minIncrement + ".");
+            NotificationUtil.error("Your bid must be higher than " + DisplayUtil.formatCurrency(currentDisplayedPrice + minIncrement));
             return;
         }
 
