@@ -84,12 +84,37 @@ public class UserProfileService {
                 hasChange = true;
             }
 
+            String email = normalizeOptionalProfileField(data.getEmail());
+            if (data.getEmail() != null) {
+                if (email != null) {
+                    ValidationUtil.validateEmail(email);
+                }
+                user.setEmail(email);
+                hasChange = true;
+            }
+
+            String phoneNumber = normalizeOptionalProfileField(data.getPhoneNumber());
+            if (data.getPhoneNumber() != null) {
+                if (phoneNumber != null) {
+                    ValidationUtil.validatePhone(phoneNumber);
+                }
+                user.setPhoneNumber(phoneNumber);
+                hasChange = true;
+            }
+
             if (!hasChange)
                 throw new ValidationException("No profile changes were provided");
 
             userDao.save(user, false);
             return new Response(RequestStatus.SUCCESS, "Profile updated successfully", UserMapper.toDto(user));
         });
+    }
+
+    private String normalizeOptionalProfileField(String value) {
+        if (value == null) return null;
+
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 
     // dùng để thay thế ảnh đại diện
@@ -210,6 +235,8 @@ public class UserProfileService {
                 user.getUsername(),
                 user.getNickname(),
                 profileImageBase64,
+                user.getEmail(),
+                user.getPhoneNumber(),
                 stats,
                 auctionDtos
             );

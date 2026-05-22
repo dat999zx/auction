@@ -85,6 +85,9 @@ class UserProfileServiceTest {
     void getProfileSuccessfully() {
         String username = uniqueUsername("profile-ok");
         User user = createUser(username, "MyNickname", "pass123");
+        user.setEmail("profile@example.com");
+        user.setPhoneNumber("0912345678");
+        userDao.save(user, false);
 
         // Giả lập client đang đăng nhập tài khoản này
         TestClientHandler client = new TestClientHandler();
@@ -103,6 +106,8 @@ class UserProfileServiceTest {
         UserDto dto = (UserDto) response.getData();
         assertEquals(username, dto.getUsername());
         assertEquals("MyNickname", dto.getNickname());
+        assertEquals("profile@example.com", dto.getEmail());
+        assertEquals("0912345678", dto.getPhoneNumber());
     }
 
     /**
@@ -365,6 +370,9 @@ class UserProfileServiceTest {
     void getPublicProfileSuccessfully() {
         String username = uniqueUsername("pub-ok");
         User user = createUser(username, "PublicNickname", "pass123");
+        user.setEmail("public@example.com");
+        user.setPhoneNumber("0987654321");
+        userDao.save(user, false);
 
         TestClientHandler client = new TestClientHandler();
         client.setCurrentUsername(username);
@@ -382,6 +390,8 @@ class UserProfileServiceTest {
         PublicProfileDto dto = (PublicProfileDto) response.getData();
         assertEquals(username, dto.getUsername());
         assertEquals("PublicNickname", dto.getNickname());
+        assertEquals("public@example.com", dto.getEmail());
+        assertEquals("0987654321", dto.getPhoneNumber());
         assertNotNull(dto.getStats());
         assertEquals(0, dto.getStats().getTotalAuctions());
         assertEquals(0, dto.getStats().getTotalBids());
@@ -417,6 +427,74 @@ class UserProfileServiceTest {
 
         assertEquals(RequestStatus.FAILED, response.getStatus());
         assertEquals("User not found", response.getMessage());
+    }
+
+    @Test
+    void updateProfileSuccessfullyUpdatesContactFields() {
+        String username = uniqueUsername("contactok");
+        User user = createUser(username, "OldNickname", "pass123");
+
+        TestClientHandler client = new TestClientHandler();
+        client.setCurrentUsername(username);
+        RealtimeDatabase.addActiveUser(client, user);
+
+        UpdateProfileRequest updateData = new UpdateProfileRequest(
+            "NewNickname",
+            null,
+            null,
+            "new@example.com",
+            "0912345678"
+        );
+        Request request = new Request(RequestType.UPDATE_PROFILE, updateData);
+
+        Response response = userProfileService.updateProfile(client, request);
+
+        assertEquals(RequestStatus.SUCCESS, response.getStatus());
+
+        UserDto dto = (UserDto) response.getData();
+        assertEquals("new@example.com", dto.getEmail());
+        assertEquals("0912345678", dto.getPhoneNumber());
+
+        User updatedUser = userDao.findByUsername(username);
+        assertNotNull(updatedUser);
+        assertEquals("new@example.com", updatedUser.getEmail());
+        assertEquals("0912345678", updatedUser.getPhoneNumber());
+    }
+
+    @Test
+    void updateProfileFailsWhenEmailInvalid() {
+        String username = uniqueUsername("bademail");
+        User user = createUser(username, "MyNickname", "pass123");
+
+        TestClientHandler client = new TestClientHandler();
+        client.setCurrentUsername(username);
+        RealtimeDatabase.addActiveUser(client, user);
+
+        UpdateProfileRequest updateData = new UpdateProfileRequest("MyNickname", null, null, "not-email", null);
+        Request request = new Request(RequestType.UPDATE_PROFILE, updateData);
+
+        Response response = userProfileService.updateProfile(client, request);
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertEquals("Invalid email format", response.getMessage());
+    }
+
+    @Test
+    void updateProfileFailsWhenPhoneInvalid() {
+        String username = uniqueUsername("badphone");
+        User user = createUser(username, "MyNickname", "pass123");
+
+        TestClientHandler client = new TestClientHandler();
+        client.setCurrentUsername(username);
+        RealtimeDatabase.addActiveUser(client, user);
+
+        UpdateProfileRequest updateData = new UpdateProfileRequest("MyNickname", null, null, null, "abc");
+        Request request = new Request(RequestType.UPDATE_PROFILE, updateData);
+
+        Response response = userProfileService.updateProfile(client, request);
+
+        assertEquals(RequestStatus.FAILED, response.getStatus());
+        assertEquals("Phone number must contain 10 or 11 digits", response.getMessage());
     }
 
     /**

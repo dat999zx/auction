@@ -46,6 +46,7 @@ class AuthServiceTest {
         // Đảm bảo schema SQLite đã tồn tại trước khi chạy test.
         // Nếu chưa có bảng Users thì các test register/login sẽ fail ngay từ đầu.
         SQLiteHelper.init();
+        resetBootstrapAdmin();
     }
 
     @Test
@@ -102,6 +103,12 @@ class AuthServiceTest {
         // Xóa user test khỏi SQLite để repo không bị tích lũy dữ liệu giả sau nhiều lần chạy test.
         for (String username : createdUsernames)
             SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
+        resetBootstrapAdmin();
+    }
+
+    private static void resetBootstrapAdmin() {
+        SQLiteHelper.update("DELETE FROM Users WHERE username = ?", AuthService.BOOTSTRAP_ADMIN_USERNAME);
+        SQLiteHelper.init();
     }
 
     // dùng để đăng ký successfully creates người dùng với hashed mật khẩu

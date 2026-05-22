@@ -36,7 +36,9 @@ public class UserMapper {
             user.getNickname(),
             WalletMapper.toDto(user.getWallet()),
             user.getRole(),
-            profileImageBase64
+            profileImageBase64,
+            user.getEmail(),
+            user.getPhoneNumber()
         );
     }
 }
