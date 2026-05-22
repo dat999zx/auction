@@ -76,7 +76,7 @@
                                 <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Profile" />
                                 <Button fx:id="inventoryButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Inventory" />
                                 <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Settings" />
-                                <Button maxWidth="Infinity" onAction="#handleSidebarClick" styleClass="side-nav-sub-button" text="• Wallet" />
+                                <Button fx:id="walletButton" maxWidth="Infinity" styleClass="side-nav-sub-button" text="• Wallet" />
                             </VBox>
                         </VBox>
 
