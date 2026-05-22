@@ -326,7 +326,7 @@ class AuctionServiceTest {
             sellerUsername, 
             item.getId(), 
             1000.0, 
-            TimeUtil.nowInVietnam().minusHours(1), 
+            TimeUtil.nowInVietnam().minusHours(1),
             TimeUtil.nowInVietnam().plusHours(1)
         );
         auction.setAuctionName(name);

@@ -142,7 +142,7 @@ public class Auction extends Entity {
 
     // dùng để kiểm tra xem active
     public boolean isActive(){ 
-        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime); 
+        return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime);
     }
     // dùng để kiểm tra xem ended
     public boolean isEnded() { 

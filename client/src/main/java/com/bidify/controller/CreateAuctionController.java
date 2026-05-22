@@ -119,7 +119,7 @@ public class CreateAuctionController {
             
             extensionTimeField.setText("00:05");
             triggerTimeField.setText("00:05");
-            
+            minIncrementField.setText("1");
             maxEndDatePicker.setEditable(false);
             
             // Set initial defaults for maximum closing ceiling
@@ -404,7 +404,7 @@ public class CreateAuctionController {
             return LocalTime.parse(parseValue, TIME_FORMATTER);
         }
         catch (DateTimeParseException e) {
-            throw new ValidationException(fieldName + " must use HH:mm format (e.g., 09:30)");
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
     }
 
@@ -414,7 +414,7 @@ public class CreateAuctionController {
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
 
         if (!parseValue.matches("^\\d+:[0-5]\\d$")) {
-            throw new ValidationException(fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
 
         return TimeUtil.parseHHMM(parseValue);

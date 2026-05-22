@@ -334,7 +334,7 @@ public class ModifyAuctionController {
         try {
             return LocalTime.parse(parseValue, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ValidationException(fieldName + " must use HH:mm format.");
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
     }
 
@@ -343,7 +343,7 @@ public class ModifyAuctionController {
         ValidationUtil.requiresNonBlank(parseValue, fieldName);
 
         if (!parseValue.matches("^\\d+:[0-5]\\d$")) {
-            throw new ValidationException(fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
+            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
 
         return TimeUtil.parseHHMM(parseValue);
