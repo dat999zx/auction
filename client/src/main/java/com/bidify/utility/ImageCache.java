@@ -15,14 +15,11 @@ public final class ImageCache {
     
     private final ConcurrentHashMap<String, Image> cache = new ConcurrentHashMap<>();
 
-    // dùng để tạo một đối tượng ImageCache
     private ImageCache() {}
 
-    // dùng để lấy đối tượng Singleton
     public static ImageCache getInstance() { return instance; }
 
     // lấy ảnh trong cache
-    // dùng để lấy
     public Image get(String key, String base64String) {
         if (key == null || base64String == null || base64String.isBlank())
             return null;
@@ -54,5 +51,24 @@ public final class ImageCache {
     // dùng để xóa sạch
     public void clear() {
         cache.clear();
+    }
+
+    // dùng để decode ảnh từ base64
+    public static Image decode(String base64String) {
+        if (base64String == null || base64String.isBlank())
+            return null;
+        try {
+            byte[] bytes = Base64.getDecoder().decode(base64String);
+            Image image = new Image(new ByteArrayInputStream(bytes));
+            if (image.isError()) {
+                logger.error("Decoded image is in error state");
+                return null;
+            }
+            return image;
+        }
+        catch (Exception e) {
+            logger.error("Failed to decode image", e);
+            return null;
+        }
     }
 }

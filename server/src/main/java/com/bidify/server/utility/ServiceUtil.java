@@ -39,7 +39,7 @@ public class ServiceUtil {
             return new Response(RequestStatus.FAILED, e.getMessage());
         }
         catch (Exception e) {
-            return new Response(RequestStatus.FAILED, "Internal server error: " + e.getMessage());
+            return new Response(RequestStatus.FAILED, "Internal server error");
         }
     }
 

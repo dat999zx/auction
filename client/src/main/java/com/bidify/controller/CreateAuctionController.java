@@ -1,13 +1,11 @@
 package com.bidify.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Base64;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -24,6 +22,7 @@ import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.InventoryClientService;
+import com.bidify.utility.ImageCache;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
@@ -35,7 +34,6 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.StringConverter;
 
@@ -340,7 +338,7 @@ public class CreateAuctionController {
         selectedCategoryLabel.setText(defaultText(item.getCategory(), "-"));
         selectedProductTypeLabel.setText(defaultText(item.getProductType(), "-"));
         selectedItemHintLabel.setText("Selected item is ready to be locked into this auction.");
-        selectedItemImageView.setImage(decodeBase64Image(item.getThumbnailBase64()));
+        selectedItemImageView.setImage(ImageCache.decode(item.getThumbnailBase64()));
     }
 
     // dùng để kiểm tra tính hợp lệ inputs
@@ -418,21 +416,6 @@ public class CreateAuctionController {
         }
 
         return TimeUtil.parseHHMM(parseValue);
-    }
-
-    // dùng để decode base64image
-    private Image decodeBase64Image(String base64) {
-        if (base64 == null || base64.isBlank()) return null;
-        try {
-            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
-            if (img.isError()) {
-                return null;
-            }
-            return img;
-        }
-        catch (Exception e) {
-            return null;
-        }
     }
 
     // dùng để default text

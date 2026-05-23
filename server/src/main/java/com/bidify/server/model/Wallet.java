@@ -50,6 +50,8 @@ public class Wallet {
     public synchronized void withdraw(double amount) {
         if (amount <= 0)
             throw new ValidationException("Withdraw amount must be positive");
+        if (amount > getAvailableBalance())
+            throw new InsufficientBalanceException("Insufficient available balance");
         balance -= amount;
     }
     

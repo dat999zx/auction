@@ -101,4 +101,35 @@ public class AuctionTest {
         assertEquals("user1", auction.getCurrentBidderUsername()); // người đặt cao nhất
         executor.shutdown(); // đóng thread
     }
+
+    @Test
+    void newAuctionWithFutureStartTimeStartsAsUpcoming() {
+        Auction auction = new Auction("seller", "item1", 1000.0, TimeUtil.nowInVietnam().plusHours(1), TimeUtil.nowInVietnam().plusHours(2));
+        assertEquals(AuctionStatus.UPCOMING, auction.getStatus());
+    }
+
+    @Test
+    void newAuctionWithPastStartTimeStartsAsActive() {
+        Auction auction = new Auction("seller", "item1", 1000.0, TimeUtil.nowInVietnam().minusHours(1), TimeUtil.nowInVietnam().plusHours(2));
+        assertEquals(AuctionStatus.ACTIVE, auction.getStatus());
+    }
+
+    @Test
+    void persistedConstructorPreservesExplicitStatus() {
+        Auction auction = new Auction(
+            "auc-123",
+            TimeUtil.nowInVietnam().minusDays(1),
+            "Auction Name",
+            "Desc",
+            "seller",
+            "item1",
+            "bidder1",
+            1000.0,
+            100.0,
+            TimeUtil.nowInVietnam().minusHours(2),
+            TimeUtil.nowInVietnam().minusHours(1),
+            AuctionStatus.COMPLETED
+        );
+        assertEquals(AuctionStatus.COMPLETED, auction.getStatus());
+    }
 }

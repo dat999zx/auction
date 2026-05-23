@@ -26,6 +26,8 @@ import com.bidify.service.TransactionClientService;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -41,15 +43,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.util.Duration;
 import javafx.util.StringConverter;
 
 public class HistoryController {
+    private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
     private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM HH:mm");
     private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
     private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
-    private static final ZoneId CHART_ZONE_ID = TimeUtil.VIETNAM_ZONE;
 
     @FXML
     private VBox biddingActivityContainer;
@@ -508,7 +509,7 @@ public class HistoryController {
             controller.setData(title, subtitle, amount, dateTime, status, auctionId);
             return node;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error loading bidding row", e);
             return new Label("Error loading row");
         }
     }
@@ -522,7 +523,7 @@ public class HistoryController {
             controller.setData(transaction);
             return node;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error loading transaction card", e);
             return new Label("Error loading card");
         }
     }
@@ -536,7 +537,7 @@ public class HistoryController {
             controller.setMessage(message);
             return node;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Error loading empty card", e);
             return new Label(message);
         }
     }

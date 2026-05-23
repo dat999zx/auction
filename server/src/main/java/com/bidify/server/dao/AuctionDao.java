@@ -95,7 +95,7 @@ public class AuctionDao {
             auction.setMaxEndTime(LocalDateTime.parse(maxEndTime));
         }
         
-        auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
+        auction.addBids(BidDao.getInstance().findByAuctionId(auction.getId()));
         return auction;
     }
 

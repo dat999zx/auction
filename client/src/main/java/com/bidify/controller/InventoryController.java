@@ -1,9 +1,7 @@
 package com.bidify.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 
 import com.bidify.common.dto.ItemDto;
@@ -11,6 +9,7 @@ import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.model.ClientSession;
 import com.bidify.service.InventoryClientService;
+import com.bidify.utility.ImageCache;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
@@ -66,7 +65,6 @@ public class InventoryController {
                 addItemButton.setManaged(allowCreate);
                 addItemButton.setVisible(allowCreate);
             }
-            // dùng để tải kho đồ
             loadInventory();
         });
     }
@@ -275,7 +273,7 @@ public class InventoryController {
         frame.getStyleClass().add("thumb-frame");
         frame.setPrefSize(64, 64);
 
-        Image image = decodeImage(item.getThumbnailBase64());
+        Image image = ImageCache.decode(item.getThumbnailBase64());
         if (image != null) {
             ImageView imageView = new ImageView(image);
             imageView.setFitWidth(64);
@@ -291,21 +289,6 @@ public class InventoryController {
         }
 
         return frame;
-    }
-
-    // dùng để decode hình ảnh
-    private Image decodeImage(String base64) {
-        if (base64 == null || base64.isBlank()) return null;
-        try {
-            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
-            if (img.isError()) {
-                return null;
-            }
-            return img;
-        }
-        catch (Exception e) {
-            return null;
-        }
     }
 
     // dùng để build meta line

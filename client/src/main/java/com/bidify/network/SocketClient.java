@@ -124,19 +124,22 @@ public class SocketClient {
                 throw new IOException("Client has not started listening");
     
             pendingResponses.put(request.getId(), queue);
-            out.println(JsonUtil.toJson(request));
         }
 
         try {
+            synchronized (connectionLock) {
+                out.println(JsonUtil.toJson(request));
+            }
             Response response = queue.poll(120, TimeUnit.SECONDS);
-            pendingResponses.remove(request.getId());
             if (response == null) throw new IOException("Request timed out");
             return response;
         }
         catch (InterruptedException e) {
-            pendingResponses.remove(request.getId());
             Thread.currentThread().interrupt();
             throw new IOException("Interrupted while waiting for response", e);
+        }
+        finally {
+            pendingResponses.remove(request.getId());
         }
     }
 

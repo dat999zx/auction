@@ -134,8 +134,8 @@ public class AuctionService {
                 Item item = getLinkedAuctionItem(auction);
                 String auctionName = item != null ? item.getName() : auction.getAuctionName();
                 String description = item != null ? item.getDescription() : auction.getDescription();
-                String category = item != null ? item.getCategory() : auction.getCategory();
-                String productType = item != null ? item.getProductType() : auction.getProductType();
+                String category = item != null ? item.getCategory() : null;
+                String productType = item != null ? item.getProductType() : null;
 
                 boolean matchesName = auctionName != null && auctionName.toLowerCase().contains(finalQuery);
                 boolean matchesDesc = description != null && description.toLowerCase().contains(finalQuery);
@@ -484,34 +484,49 @@ public class AuctionService {
                     if (prevBidderUsername != null && prevBidderUsername.equals(username))
                         throw new AuctionException("You are already the highest bidder");
 
-                    Bid bid = new Bid(auction.getId(), username, bidAmount, false);
-                    auction.placeBid(bid);
+                    double origCurrentBid = auction.getCurrentBid();
+                    String origCurrentBidder = auction.getCurrentBidderUsername();
+                    LocalDateTime origEndTime = auction.getEndTime();
 
                     wallet.lockBalance(bidAmount);
-                    // dùng để phát sự kiện locked số dư change
-                    publishLockedBalanceChange(username, bidAmount);
+                    boolean walletLocked = true;
 
-                    User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
-                    if (prevBidder != null) {
-                        prevBidder.getWallet().unlockBalance(prevBid);
-                        // dùng để phát sự kiện locked số dư change
-                        publishLockedBalanceChange(prevBidderUsername, -prevBid);
+                    try {
+                        Bid bid = new Bid(auction.getId(), username, bidAmount, false);
+                        auction.placeBid(bid);
+
+                        try {
+                            bidDao.create(bid);
+                            auctionDao.save(auction);
+
+                            User prevBidder = RealtimeDatabase.getActiveUser(prevBidderUsername);
+                            if (prevBidder != null) {
+                                prevBidder.getWallet().unlockBalance(prevBid);
+                                publishLockedBalanceChange(prevBidderUsername, -prevBid);
+                            }
+
+                            AutoBid existingAutoBid = auction.getAutoBid(username);
+                            if (existingAutoBid != null && bidAmount > existingAutoBid.getMaxBid())
+                                existingAutoBid.setMaxBid(bidAmount);
+
+                            applyAutoBidResolution(auction);
+
+                            publishLockedBalanceChange(username, bidAmount);
+                            publishAuctionBidEvent(auction, "New bid placed");
+
+                            logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
+                        } catch (Exception e) {
+                            auction.setCurrentBid(origCurrentBid);
+                            auction.setCurrentBidderUsername(origCurrentBidder);
+                            auction.setEndTime(origEndTime);
+                            auction.removeBid(bid);
+                            throw e;
+                        }
+                    } catch (Exception e) {
+                        if (walletLocked)
+                            wallet.unlockBalance(bidAmount);
+                        throw e;
                     }
-
-                    bidDao.create(bid);
-
-                    AutoBid existingAutoBid = auction.getAutoBid(username);
-                    if (existingAutoBid != null && bidAmount > existingAutoBid.getMaxBid())
-                        existingAutoBid.setMaxBid(bidAmount);
-
-                    // dùng để áp dụng auto lượt đặt giá resolution
-                    applyAutoBidResolution(auction);
-
-                    auctionDao.save(auction);
-                    // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
-                    publishAuctionBidEvent(auction, "New bid placed");
-
-                    logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
                 }
 
                 return new Response(RequestStatus.SUCCESS, "Place bid successfully");
@@ -598,31 +613,66 @@ public class AuctionService {
         User winner = ServiceUtil.getOrLoadUser(winnerUsername);
         Wallet winnerWallet = winner.getWallet();
 
-        if (winnerUsername.equals(previousLeader)) {
-            double extraNeeded = resolvedBid - previousBid;
-            if (extraNeeded > 0) {
-                winnerWallet.lockBalance(extraNeeded);
-                // dùng để phát sự kiện locked số dư change
-                publishLockedBalanceChange(winnerUsername, extraNeeded);
-            }
-        } else {
-            winnerWallet.lockBalance(resolvedBid);
-            // dùng để phát sự kiện locked số dư change
-            publishLockedBalanceChange(winnerUsername, resolvedBid);
+        boolean lockedWinnerExtra = false;
+        double winnerExtraAmount = 0;
 
-            if (previousLeader != null) {
-                User previousWinner = ServiceUtil.getOrLoadUser(previousLeader);
-                previousWinner.getWallet().unlockBalance(previousBid);
-                // dùng để phát sự kiện locked số dư change
-                publishLockedBalanceChange(previousLeader, -previousBid);
+        boolean lockedWinnerNew = false;
+        double winnerNewAmount = 0;
+
+        boolean unlockedPrev = false;
+        User previousWinner = null;
+        double prevAmount = 0;
+
+        try {
+            if (winnerUsername.equals(previousLeader)) {
+                double extraNeeded = resolvedBid - previousBid;
+                if (extraNeeded > 0) {
+                    winnerWallet.lockBalance(extraNeeded);
+                    lockedWinnerExtra = true;
+                    winnerExtraAmount = extraNeeded;
+                    publishLockedBalanceChange(winnerUsername, extraNeeded);
+                }
+            } else {
+                winnerWallet.lockBalance(resolvedBid);
+                lockedWinnerNew = true;
+                winnerNewAmount = resolvedBid;
+                publishLockedBalanceChange(winnerUsername, resolvedBid);
+
+                if (previousLeader != null) {
+                    previousWinner = ServiceUtil.getOrLoadUser(previousLeader);
+                    previousWinner.getWallet().unlockBalance(previousBid);
+                    unlockedPrev = true;
+                    prevAmount = previousBid;
+                    publishLockedBalanceChange(previousLeader, -previousBid);
+                }
             }
+
+            Bid autoBid = new Bid(auction.getId(), winnerUsername, resolvedBid, true);
+            double origCurrentBid = auction.getCurrentBid();
+            String origCurrentBidder = auction.getCurrentBidderUsername();
+
+            auction.setCurrentBidderUsername(winnerUsername);
+            auction.setCurrentBid(resolvedBid);
+            auction.addBid(autoBid);
+
+            try {
+                bidDao.create(autoBid);
+            } catch (Exception e) {
+                auction.setCurrentBidderUsername(origCurrentBidder);
+                auction.setCurrentBid(origCurrentBid);
+                auction.removeBid(autoBid);
+                throw e;
+            }
+        } catch (Exception e) {
+            if (lockedWinnerExtra)
+                winnerWallet.unlockBalance(winnerExtraAmount);
+            if (lockedWinnerNew)
+                winnerWallet.unlockBalance(winnerNewAmount);
+            if (unlockedPrev && previousWinner != null)
+                previousWinner.getWallet().lockBalance(prevAmount);
+            throw e;
         }
 
-        Bid autoBid = new Bid(auction.getId(), winnerUsername, resolvedBid, true);
-        auction.setCurrentBidderUsername(winnerUsername);
-        auction.setCurrentBid(resolvedBid);
-        auction.getBids().add(autoBid);
-        bidDao.create(autoBid);
         return true;
     }
 

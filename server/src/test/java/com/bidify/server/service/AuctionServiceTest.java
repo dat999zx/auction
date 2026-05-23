@@ -45,6 +45,7 @@ import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
 import com.bidify.server.model.User;
+import com.bidify.server.model.Wallet;
 import com.bidify.server.network.ClientHandler;
 import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.utility.ServiceUtil;
@@ -664,5 +665,61 @@ class AuctionServiceTest {
         public boolean isInSession() {
             return getCurrentUsername() != null;
         }
+    }
+
+    private static class FaultyWallet extends Wallet {
+        public FaultyWallet(double balance) {
+            super(balance);
+        }
+        @Override
+        public synchronized void lockBalance(double amount) {
+            throw new RuntimeException("Simulated lock balance failure");
+        }
+    }
+
+    private static class FaultyUser extends User {
+        private final Wallet faultyWallet;
+        public FaultyUser(String username, Wallet wallet) {
+            super(username, username, "password");
+            this.faultyWallet = wallet;
+        }
+        @Override
+        public Wallet getWallet() {
+            return faultyWallet;
+        }
+    }
+
+    @Test
+    void placeBidFailsButRollsBackStateSafely() {
+        String bidderUsername = uniqueUsername("faulty");
+        FaultyWallet wallet = new FaultyWallet(5000.0);
+        FaultyUser bidder = new FaultyUser(bidderUsername, wallet);
+        userDao.create(bidder);
+        createdUsernames.add(bidderUsername);
+
+        Auction auction = createTestAuction("Faulty Bid Auction", AuctionStatus.ACTIVE);
+        double originalBid = auction.getCurrentBid();
+        String originalBidder = auction.getCurrentBidderUsername();
+
+        TestClientHandler client = new TestClientHandler();
+        client.setCurrentUsername(bidderUsername);
+        RealtimeDatabase.addActiveUser(client, bidder);
+
+        Request request = new Request(RequestType.PLACE_BID, new PlaceBidRequest(auction.getId(), auction.getStartingPrice() + auction.getMinIncrement() + 100));
+        
+        try {
+            auctionService.placeBid(client, request);
+        } catch (Exception e) {
+            // Expected exception
+        }
+
+        // Verify auction state is unchanged
+        Auction updatedAuction = auctionDao.findById(auction.getId());
+        assertEquals(originalBid, updatedAuction.getCurrentBid());
+        assertEquals(originalBidder, updatedAuction.getCurrentBidderUsername());
+
+        // Verify wallet balance is not locked
+        assertEquals(5000.0, wallet.getBalance());
+        assertEquals(0.0, wallet.getLockedBalance());
     }
 }

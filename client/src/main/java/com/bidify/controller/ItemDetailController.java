@@ -1,6 +1,5 @@
 package com.bidify.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.utility.ImageUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.InventoryClientService;
+import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
@@ -308,21 +308,6 @@ public class ItemDetailController {
             throw new ValidationException("Please select a product type");
     }
 
-    // dùng để decode base64image
-    private Image decodeBase64Image(String base64) {
-        if (base64 == null || base64.isBlank()) return null;
-        try {
-            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
-            if (img.isError()) {
-                return null;
-            }
-            return img;
-        }
-        catch (Exception e) {
-            return null;
-        }
-    }
-
     // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
@@ -361,7 +346,7 @@ public class ItemDetailController {
                 if (file != null) {
                     img = new Image(file.toURI().toString());
                 } else {
-                    img = decodeBase64Image(base64);
+                    img = ImageCache.decode(base64);
                 }
                 if (img != null && img.isError()) {
                     return null;

@@ -32,8 +32,8 @@ public class AuctionMapper {
 
         String auctionName = item != null ? item.getName() : auction.getAuctionName();
         String description = item != null ? item.getDescription() : auction.getDescription();
-        String category = item != null ? item.getCategory() : auction.getCategory();
-        String productType = item != null ? item.getProductType() : auction.getProductType();
+        String category = item != null ? item.getCategory() : null;
+        String productType = item != null ? item.getProductType() : null;
 
         AuctionDto dto = new AuctionDto(
                 auction.getId(),

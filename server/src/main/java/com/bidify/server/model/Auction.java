@@ -116,11 +116,11 @@ public class Auction extends Entity {
     public double getStartingPrice() { return startingPrice; }
     public void setStartingPrice(double price) {this.startingPrice = price; }
 
-    public double getCurrentBid() { return currentBid; }
-    public void setCurrentBid(double bid) { this.currentBid = bid; }
+    public synchronized double getCurrentBid() { return currentBid; }
+    public synchronized void setCurrentBid(double bid) { this.currentBid = bid; }
 
-    public String getCurrentBidderUsername() { return currentBidderUsername; }
-    public void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
+    public synchronized String getCurrentBidderUsername() { return currentBidderUsername; }
+    public synchronized void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime start) { this.startTime = start; }
@@ -157,18 +157,28 @@ public class Auction extends Entity {
     public String getItemId() { return itemId; }
     public void setItemId(String itemId) { this.itemId = itemId; }
 
-    public int getBidCount(){ return bids.size(); }
+    public synchronized int getBidCount(){ return bids.size(); }
     
-    public String getProductType(){ return null; }
-    public void setProductType(String type){}
-
-    public String getCategory() { return null; }
-    public void setCategory(String category) {}
-
     public double getMinIncrement() { return minIncrement; }
     public void setMinIncrement(double num) { this.minIncrement = num; }
 
-    public List<Bid> getBids() { return bids; }
+    public synchronized List<Bid> getBids() { return new ArrayList<>(bids); }
+
+    public synchronized void addBid(Bid bid) {
+        if (bid != null)
+            bids.add(bid);
+    }
+
+    public synchronized void addBids(List<Bid> bidList) {
+        if (bidList != null)
+            bids.addAll(bidList);
+    }
+
+    public synchronized boolean removeBid(Bid bid) {
+        if (bid != null)
+            return bids.remove(bid);
+        return false;
+    }
 
     // dùng để lấy auto danh sách đặt giá
     public synchronized List<AutoBid> getAutoBids() {
