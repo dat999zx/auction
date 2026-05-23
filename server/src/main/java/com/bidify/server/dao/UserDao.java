@@ -21,13 +21,10 @@ public class UserDao  {
     private static UserDao instance = new UserDao();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
-    // dùng để tạo một đối tượng UserDao
     private UserDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static UserDao getInstance() { return instance; }
 
-    // dùng để exists bởi username
     public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
@@ -78,13 +75,10 @@ public class UserDao  {
         );
     }
 
-    // dùng để lưu
     public void save(User user) throws DatabaseException { // lưu user data mặc định cập nhật last login
-        // dùng để lưu
         save(user, true);
     }
 
-    // dùng để lưu
     public void save(User user, boolean saveLastLogin) throws DatabaseException { // lưu user data
         SQLiteHelper.update(
             """

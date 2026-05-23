@@ -32,9 +32,10 @@ public class MainApp extends Application {
         stage.setWidth(1280);
         stage.setHeight(720);
         stage.setResizable(true);
+        stage.setMaximized(true);
 
         stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (!stage.isFullScreen() && !Double.isNaN(newVal.doubleValue()))
+            if (!stage.isFullScreen() && !stage.isMaximized() && !Double.isNaN(newVal.doubleValue()))
                 stage.setHeight(newVal.doubleValue() * 9.0 / 16.0);
         });
 
