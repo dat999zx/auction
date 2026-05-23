@@ -6,8 +6,6 @@ public class ResolveAuctionRequest {
     private String auctionId;
     private AuctionResolutionAction action;
 
-    public ResolveAuctionRequest() {}
-
     public ResolveAuctionRequest(String auctionId, AuctionResolutionAction action) {
         this.auctionId = auctionId;
         this.action = action;

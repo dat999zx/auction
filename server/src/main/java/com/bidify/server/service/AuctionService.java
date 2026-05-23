@@ -76,13 +76,10 @@ public class AuctionService {
     private final TransactionDao transactionDao = TransactionDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
 
-    // dùng để tạo một đối tượng AuctionService
     private AuctionService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static AuctionService getInstance() { return instance; }
 
-    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.JOIN_AUCTION, this::join);
@@ -105,8 +102,6 @@ public class AuctionService {
         router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
     }
 
-    // load runtime auctions trong sql lên ram, chỉ gọi 1 lần khi server khởi chạy
-    // dùng để tải chuyển thành runtime
     public void loadToRuntime(){
         List<Auction> runtimeAuctions = new ArrayList<>();
         runtimeAuctions.addAll(auctionDao.findByStatus(AuctionStatus.UPCOMING));
@@ -116,7 +111,6 @@ public class AuctionService {
             RealtimeDatabase.addRuntimeAuction(auction);
     }
 
-    // dùng để tìm kiếm
     public Response search(Request request) {
         return ServiceUtil.handleRequest(() -> {
             SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
@@ -150,7 +144,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để tạo
     public Response create(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             CreateAuctionRequest data = JsonUtil.fromMap(request.getData(), CreateAuctionRequest.class);
@@ -169,7 +162,6 @@ public class AuctionService {
             ValidationUtil.requiresNonBlank(itemId, "Item ID");
             ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
             ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
-            // dùng để kiểm tra tính hợp lệ đấu giá thời gian
             validateAuctionTime(startTime, endTime);
 
             Item item = requireAvailableOwnedItem(itemId, sellerUsername);
@@ -201,7 +193,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để cập nhật
     public Response update(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             UpdateAuctionRequest data = JsonUtil.fromMap(request.getData(), UpdateAuctionRequest.class);
@@ -227,7 +218,6 @@ public class AuctionService {
             LocalDateTime endTime = parseDateTime(data.getEndTime());
 
             validateAuctionUpdateFields(auction.getSellerUsername(), startingPrice, minIncrement);
-            // dùng để kiểm tra tính hợp lệ đấu giá thời gian
             validateAuctionTime(startTime, endTime);
 
             auction.setStartingPrice(startingPrice);
@@ -253,13 +243,12 @@ public class AuctionService {
         });
     }
 
-    // dùng để lưu all runtime danh sách đấu giá
+    // Lưu trạng thái của tất cả các phiên đấu giá đang chạy nền vào SQLite.
     public void saveAllRuntimeAuctions(){
         for (Auction auction : RealtimeDatabase.getAllRuntimeAuctions())
             auctionDao.save(auction);
     }
 
-    // dùng để xóa
     public Response delete(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             DeleteAuctionRequest data = JsonUtil.fromMap(request.getData(), DeleteAuctionRequest.class);
@@ -347,8 +336,7 @@ public class AuctionService {
         });
     }
 
-    // lấy ảnh chính
-    // dùng để lấy thumbnail
+    // Lấy ảnh chính (thumbnail) đại diện cho sản phẩm.
     private String getThumbnail(Item item) {
         if (item == null) return null;
         try {
@@ -371,8 +359,7 @@ public class AuctionService {
         return null;
     }
 
-    // lấy tất cả ảnh của auction
-    // dùng để lấy gallery
+    // Lấy toàn bộ album ảnh (gallery) của sản phẩm.
     private List<String> getGallery(Item item) {
         List<String> gallery = new ArrayList<>();
         if (item == null) return gallery;
@@ -391,7 +378,6 @@ public class AuctionService {
         return gallery;
     }
 
-    // dùng để tham gia
     public Response join(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
@@ -415,13 +401,11 @@ public class AuctionService {
             RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
 
             AuctionDto auctionDto = toAuctionDto(auction, false);
-            // dùng để phát sự kiện đấu giá cập nhật
             publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
         });
     }
 
-    // dùng để rời khỏi
     public Response leave(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
@@ -439,13 +423,12 @@ public class AuctionService {
             RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
             Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
             if (auction != null)
-                // dùng để phát sự kiện đấu giá cập nhật
                 publishAuctionUpdate(auction, "Auction watcher count updated");
             return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
         });
     }
 
-    // dùng để place lượt đặt giá
+    // Đặt giá thủ công (placeBid) từ yêu cầu của client.
     public Response placeBid(ClientHandler client, Request request){
         return ServiceUtil.handleRequest(() -> {
             PlaceBidRequest data = JsonUtil.fromMap(request.getData(), PlaceBidRequest.class);
@@ -488,6 +471,7 @@ public class AuctionService {
                     String origCurrentBidder = auction.getCurrentBidderUsername();
                     LocalDateTime origEndTime = auction.getEndTime();
 
+                    // Khóa tiền trước khi công bố bidder mới để tránh trạng thái thắng bid nhưng chưa giữ tiền.
                     wallet.lockBalance(bidAmount);
                     boolean walletLocked = true;
 
@@ -512,6 +496,8 @@ public class AuctionService {
                             applyAutoBidResolution(auction);
 
                             publishLockedBalanceChange(username, bidAmount);
+                            
+                            // Chỉ publish event sau khi auction, bid history và wallet đã cập nhật xong.
                             publishAuctionBidEvent(auction, "New bid placed");
 
                             logger.info("bid placed: auction {} - {}, user {}: {}$", auction.getAuctionName(), auction.getId(), username, bidAmount);
@@ -566,7 +552,6 @@ public class AuctionService {
                     boolean visibleStateChanged = applyAutoBidResolution(auction);
                     auctionDao.save(auction);
                     if (visibleStateChanged)
-                        // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
                         publishAuctionBidEvent(auction, "New bid placed");
                 }
                 return new Response(RequestStatus.SUCCESS, "AutoBid saved successfully");
@@ -577,7 +562,6 @@ public class AuctionService {
         });
     }
 
-    // dùng để disable auto lượt đặt giá
     public Response disableAutoBid(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             DisableAutoBidRequest data = JsonUtil.fromMap(request.getData(), DisableAutoBidRequest.class);
@@ -593,13 +577,11 @@ public class AuctionService {
         });
     }
 
-    // dùng để auto lượt đặt giá candidate
     private record AutoBidCandidate(String username, double maxBid, LocalDateTime priorityTime) {}
 
-    // dùng để auto lượt đặt giá resolution
     private record AutoBidResolution(String winnerUsername, double resolvedBid, boolean stateChanged) {}
 
-    // dùng để áp dụng auto lượt đặt giá resolution
+    // Áp dụng kết quả phân giải đặt giá tự động vào phiên đấu giá.
     private boolean applyAutoBidResolution(Auction auction) {
         AutoBidResolution resolution = resolveAutoBid(auction);
         if (!resolution.stateChanged())
@@ -625,6 +607,7 @@ public class AuctionService {
 
         try {
             if (winnerUsername.equals(previousLeader)) {
+                // Người đang dẫn đầu được cộng lại currentBid vào budget vì số tiền đó đã bị lock sẵn.
                 double extraNeeded = resolvedBid - previousBid;
                 if (extraNeeded > 0) {
                     winnerWallet.lockBalance(extraNeeded);
@@ -676,7 +659,7 @@ public class AuctionService {
         return true;
     }
 
-    // dùng để giải quyết auto lượt đặt giá
+    // Phân giải và tìm ra người chiến thắng dựa trên danh sách các auto-bid hợp lệ.
     private AutoBidResolution resolveAutoBid(Auction auction) {
         List<AutoBidCandidate> candidates = collectAutoBidCandidates(auction);
         if (candidates.isEmpty())
@@ -696,6 +679,8 @@ public class AuctionService {
 
         double minAllowed = nextMinimumBid(auction);
         double secondHighest = second != null ? second.maxBid() : (auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice());
+        
+        // Giá thắng tự động chỉ tăng đến mức cần vượt người thứ hai theo minIncrement.
         double resolvedBid = Math.min(winner.maxBid(), Math.max(minAllowed, secondHighest + auction.getMinIncrement()));
 
         boolean sameWinner = winner.username().equals(auction.getCurrentBidderUsername());
@@ -703,7 +688,7 @@ public class AuctionService {
         return new AutoBidResolution(winner.username(), resolvedBid, !(sameWinner && sameAmount));
     }
 
-    // dùng để collect auto lượt đặt giá candidates
+    // Gom nhóm toàn bộ những người dùng đã cấu hình đặt giá tự động (auto-bid) hợp lệ.
     private List<AutoBidCandidate> collectAutoBidCandidates(Auction auction) {
         List<AutoBidCandidate> candidates = new ArrayList<>();
         double minAllowed = nextMinimumBid(auction);
@@ -742,7 +727,7 @@ public class AuctionService {
         return candidates;
     }
 
-    // dùng để lấy effective budget cho đấu giá
+    // Tính toán số dư khả dụng thực tế của người dùng đối với một phiên đấu giá cụ thể (bao gồm cộng lại số tiền đã bị khóa nếu họ đang dẫn đầu).
     private double getEffectiveBudgetForAuction(String username, Auction auction) {
         User user = ServiceUtil.getOrLoadUser(username);
         double effectiveBudget = user.getWallet().getAvailableBalance();
@@ -751,13 +736,11 @@ public class AuctionService {
         return effectiveBudget;
     }
 
-    // dùng để next minimum lượt đặt giá
     private double nextMinimumBid(Auction auction) {
         double currentReference = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
         return currentReference + auction.getMinIncrement();
     }
 
-    // dùng để kiểm tra tính hợp lệ auto lượt đặt giá yêu cầu
     private void validateAutoBidRequest(Auction auction, User user, double maxBid) {
         ValidationUtil.validatePositiveAmount(maxBid, "AutoBid max");
         double minimumRequired = nextMinimumBid(auction);
@@ -772,7 +755,6 @@ public class AuctionService {
             throw new InsufficientBalanceException("AutoBid max exceeds available balance");
     }
 
-    // dùng để bắt buộc phải có active đấu giá
     private Auction requireActiveAuction(String auctionId) {
         ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
         Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
@@ -781,7 +763,6 @@ public class AuctionService {
         return auction;
     }
 
-    // dùng để bắt buộc phải có active người dùng
     private User requireActiveUser(String username) {
         User user = RealtimeDatabase.getActiveUser(username);
         if (user == null)
@@ -789,7 +770,6 @@ public class AuctionService {
         return user;
     }
 
-    // dùng để thông báo auto lượt đặt giá insufficient số dư
     private void notifyAutoBidInsufficientBalance(String username, String auctionId) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
@@ -799,7 +779,6 @@ public class AuctionService {
         ));
     }
 
-    // dùng để phát sự kiện đấu giá lượt đặt giá sự kiện
     private void publishAuctionBidEvent(Auction auction, String message) {
         AuctionDto auctionDto = toAuctionDto(auction, false);
         AuctionChannel auctionChannel = RealtimeDatabase.getAuctionChannel(auction.getId());
@@ -808,13 +787,11 @@ public class AuctionService {
         RealtimeDatabase.getGlobalChannel().publish(new Event(EventType.BID_PLACED, message, auctionDto));
     }
 
-    // dùng để bắt buộc phải có seller
     private void requireSeller(Auction auction, String username, String message) {
         if (auction == null || username == null || !ServiceUtil.isOwnerOrAdmin(auction.getSellerUsername(), username))
             throw new ValidationException(message);
     }
 
-    // dùng để bắt buộc phải có available owned sản phẩm
     private Item requireAvailableOwnedItem(String itemId, String username) {
         Item item = itemDao.findById(itemId);
         if (item == null)
@@ -826,7 +803,6 @@ public class AuctionService {
         return item;
     }
 
-    // dùng để lấy linked đấu giá sản phẩm
     private Item getLinkedAuctionItem(Auction auction) {
         if (auction == null) return null;
 
@@ -836,12 +812,10 @@ public class AuctionService {
         return itemDao.findById(itemId);
     }
 
-    // dùng để chuyển thành đấu giá đối tượng truyền tải dữ liệu (DTO)
     public AuctionDto toAuctionDto(Auction auction, boolean includeGallery) {
         return toAuctionDto(auction, getLinkedAuctionItem(auction), includeGallery);
     }
 
-    // dùng để chuyển thành đấu giá đối tượng truyền tải dữ liệu (DTO)
     public AuctionDto toAuctionDto(Auction auction, Item item, boolean includeGallery) {
         List<String> gallery = includeGallery ? getGallery(item) : null;
         AuctionDto dto = AuctionMapper.toDto(auction, item, getThumbnail(item), gallery);
@@ -850,7 +824,6 @@ public class AuctionService {
         return dto;
     }
 
-    // dùng để giải quyết watcher count
     private int resolveWatcherCount(Auction auction) {
         if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE)
             return 0;
@@ -859,7 +832,6 @@ public class AuctionService {
         return channel == null ? 0 : channel.getObserverCount();
     }
 
-    // dùng để giải quyết active bidder count
     private int resolveActiveBidderCount(Auction auction) {
         if (auction == null || auction.getBids() == null || auction.getBids().isEmpty())
             return 0;
@@ -873,7 +845,6 @@ public class AuctionService {
         return bidders.size();
     }
 
-    // dùng để phát sự kiện đấu giá cập nhật
     private void publishAuctionUpdate(Auction auction, String message) {
         if (auction == null) return;
 
@@ -885,7 +856,6 @@ public class AuctionService {
         RealtimeDatabase.getGlobalChannel().publish(event);
     }
 
-    // dùng để phát sự kiện live audience cập nhật
     public void publishLiveAudienceUpdate(String auctionId) {
         if (auctionId == null || auctionId.isBlank())
             return;
@@ -894,7 +864,6 @@ public class AuctionService {
         if (auction == null)
             return;
 
-        // dùng để phát sự kiện đấu giá cập nhật
         publishAuctionUpdate(auction, "Auction watcher count updated");
     }
 
@@ -914,12 +883,10 @@ public class AuctionService {
         RealtimeDatabase.removeRuntimeAuction(auction.getId());
     }
 
-    // dùng để xóa đấu giá cascade
     public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
         if (auction == null)
             return;
 
-        // dùng để release current leader khóa đồng bộ
         releaseCurrentLeaderLock(auction);
 
         if (restoreLinkedItemToSeller && auction.getItemId() != null && !auction.getItemId().isBlank())
@@ -934,7 +901,6 @@ public class AuctionService {
         );
     }
 
-    // dùng để release current leader khóa đồng bộ
     private void releaseCurrentLeaderLock(Auction auction) {
         String currentBidderUsername = auction.getCurrentBidderUsername();
         double currentBid = auction.getCurrentBid();
@@ -963,7 +929,6 @@ public class AuctionService {
         }
     }
 
-    // dùng để cập nhật đấu giá sản phẩm state
     private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {
         Item item = getLinkedAuctionItem(auction);
         if (item == null) return;
@@ -973,14 +938,12 @@ public class AuctionService {
         itemDao.save(item);
     }
 
-    // dùng để kiểm tra tính hợp lệ đấu giá cập nhật fields
     private void validateAuctionUpdateFields(String sellerUsername, double startingPrice, double minIncrement) {
         ValidationUtil.requiresNonBlank(sellerUsername, "Seller");
         ValidationUtil.validatePositiveAmount(startingPrice, "Starting price");
         ValidationUtil.validatePositiveAmount(minIncrement, "Min increment");
     }
 
-    // dùng để kiểm tra tính hợp lệ đấu giá thời gian
     private void validateAuctionTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime == null) 
             throw new ValidationException("Start date cannot be empty");
@@ -992,20 +955,17 @@ public class AuctionService {
             throw new ValidationException("Start time must be in the future");
     }
 
-    // dùng để phân tích cú pháp ngày thời gian
     private LocalDateTime parseDateTime(String value) {
         return TimeUtil.parseDateTime(value);
     }
 
-    // dùng để kiểm tra xem runtime đấu giá
     private boolean isRuntimeAuction(Auction auction) {
         if (auction == null) return false;
         AuctionStatus status = auction.getStatus();
         return status == AuctionStatus.UPCOMING || status == AuctionStatus.ACTIVE;
     }
 
-    // chuyển auction từ ACTIVE -> ENDED, chuyển tiền các thứ...
-    // dùng để settle đấu giá
+    // Chuyển trạng thái đấu giá từ ACTIVE -> ENDED hoặc AWAITING_PAYMENT, xử lý giải phóng tiền đặt cọc.
     public void settleAuction(Auction auction) {
         String sellerUsername = auction.getSellerUsername();
         String winnerUsername = auction.getCurrentBidderUsername();
@@ -1013,11 +973,9 @@ public class AuctionService {
         if (winnerUsername != null) {
             auction.setStatus(AuctionStatus.AWAITING_PAYMENT);
             auctionDao.save(auction);
-            // dùng để phát sự kiện đấu giá cập nhật
             publishAuctionUpdate(auction, "Auction ended, awaiting payment from winner");
         }
         else {
-            // dùng để cập nhật đấu giá sản phẩm state
             updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
             auction.setStatus(AuctionStatus.CANCELED);
             auctionDao.save(auction);
@@ -1026,8 +984,7 @@ public class AuctionService {
         logger.info("auction settled: {} - {} (status: {})", auction.getAuctionName(), auction.getId(), auction.getStatus());
     }
 
-    // Event cập nhật wallet của User
-    // dùng để phát sự kiện số dư change
+    // Gửi sự kiện cập nhật số dư ví đến client của user
     private void publishBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;
@@ -1035,8 +992,7 @@ public class AuctionService {
         userClient.sendEvent(event);
     }
 
-    // Event cập nhật lockedBalance của User
-    // dùng để phát sự kiện locked số dư change
+    // Gửi sự kiện cập nhật số dư bị giữ đến client của user
     private void publishLockedBalanceChange(String username, double diff) {
         ClientHandler userClient = RealtimeDatabase.getUserClient(username);
         if (userClient == null) return;

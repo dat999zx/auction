@@ -14,7 +14,6 @@ public class Item extends Entity {
     private String productType;
     private ItemStatus availabilityStatus;
 
-    // dùng để tạo một đối tượng Item
     public Item(String ownerUsername, String name, String description, String category, String productType) {
         super(IdGenerator.genItemId(), TimeUtil.nowInVietnam());
         this.ownerUsername = ownerUsername;
@@ -35,7 +34,6 @@ public class Item extends Entity {
         String productType,
         ItemStatus availabilityStatus
     ) {
-        // dùng để super
         super(id, createdAt);
         this.ownerUsername = ownerUsername;
         this.name = name;

@@ -10,7 +10,6 @@ public class TransactionDto {
     private double amount;
     private String auctionId;
 
-    // dùng để tạo một đối tượng TransactionDto
     public TransactionDto(String id, String createdAt, String username, TransactionType type, double amount, String auctionId) {
         this.id = id;
         this.createdAt = createdAt;

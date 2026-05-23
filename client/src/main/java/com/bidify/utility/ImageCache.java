@@ -19,7 +19,6 @@ public final class ImageCache {
 
     public static ImageCache getInstance() { return instance; }
 
-    // lấy ảnh trong cache
     public Image get(String key, String base64String) {
         if (key == null || base64String == null || base64String.isBlank())
             return null;
@@ -41,19 +40,15 @@ public final class ImageCache {
         });
     }
 
-    // lưu ảnh vào cache
-    // dùng để put
     public void put(String key, Image image) {
         if (key != null && image != null)
             cache.put(key, image);
     }
 
-    // dùng để xóa sạch
     public void clear() {
         cache.clear();
     }
 
-    // dùng để decode ảnh từ base64
     public static Image decode(String base64String) {
         if (base64String == null || base64String.isBlank())
             return null;

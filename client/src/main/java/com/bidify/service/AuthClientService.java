@@ -19,7 +19,6 @@ import com.bidify.utility.SceneManager;
 public class AuthClientService {
     private final SocketClient client = SocketClient.getClient();
 
-    // dùng để đăng nhập
     public Response login(String username, String password) throws IOException {
         ValidationUtil.validateUsername(username);
         ValidationUtil.validatePassword(password);
@@ -35,7 +34,6 @@ public class AuthClientService {
         throw new AuthException(response.getMessage());
     }
 
-    // dùng để đăng ký
     public Response register(String username, String password) throws IOException {
         ValidationUtil.validateUsername(username);
         ValidationUtil.validatePassword(password);
@@ -45,7 +43,6 @@ public class AuthClientService {
         throw new AuthException(response.getMessage());
     }
 
-    // dùng để đăng xuất
     public Response logout() throws IOException {
         String currentUsername = client.getCurrentUsername();
         if (currentUsername == null || currentUsername.isBlank()) {

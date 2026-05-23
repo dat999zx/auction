@@ -11,22 +11,16 @@ import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
 
 public class AuctionMapper {
-    // dùng để tạo một đối tượng AuctionMapper
     private AuctionMapper() {}
     
-    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
     public static AuctionDto toDto(Auction auction) {
-        // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
         return toDto(auction, null, null, null);
     }
 
-    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
     public static AuctionDto toDto(Auction auction, Item item) {
-        // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
         return toDto(auction, item, null, null);
     }
 
-    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
     public static AuctionDto toDto(Auction auction, Item item, String thumbnailBase64, List<String> galleryBase64) {
         if (auction == null) return null;
 
@@ -61,7 +55,6 @@ public class AuctionMapper {
         return dto;
     }
 
-    // dùng để chuyển đổi lượt đặt giá lịch sử
     private static List<BidDto> mapBidHistory(Auction auction) {
         return auction.getBids().stream()
                 .sorted(Comparator.comparing(Bid::getCreatedAt).reversed())

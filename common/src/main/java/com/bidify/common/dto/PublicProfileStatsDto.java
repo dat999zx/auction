@@ -9,10 +9,6 @@ public class PublicProfileStatsDto {
     private double activeVolume;
     private String sellRate;
 
-    // dùng để tạo một đối tượng PublicProfileStatsDto
-    public PublicProfileStatsDto() {}
-
-    // dùng để tạo một đối tượng PublicProfileStatsDto
     public PublicProfileStatsDto(int totalAuctions, int activeAuctions, int closedAuctions, int soldAuctions, int totalBids, double activeVolume, String sellRate) {
         this.totalAuctions = totalAuctions;
         this.activeAuctions = activeAuctions;

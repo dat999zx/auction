@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.bidify.common.enums.RequestStatus;
 
 public class ResponseTest {
-    // dùng để constructor với trạng thái and tin nhắn
     @Test
     void constructorWithStatusAndMessage() {
         // Tạo Response với status và message (dùng cho login/register response)
@@ -22,7 +21,6 @@ public class ResponseTest {
         assertNull(response.getData());
     }
     
-    // dùng để constructor với trạng thái tin nhắn and data
     @Test
     void constructorWithStatusMessageAndData() {
         // Chuẩn bị một object data (giả sử là user info sau khi đăng ký)
@@ -40,7 +38,6 @@ public class ResponseTest {
         assertSame(userData, response.getData());
     }
     
-    // dùng để thiết lập and lấy ID
     @Test
     void setAndGetId() {
         // Tạo một Response bình thường
@@ -55,7 +52,6 @@ public class ResponseTest {
         assertEquals(testId, response.getId());
     }
     
-    // dùng để response với lỗi trạng thái
     @Test
     void responseWithErrorStatus() {
         // Tạo error response (khi validation fail hoặc exception xảy ra)
@@ -67,7 +63,6 @@ public class ResponseTest {
         assertEquals("Invalid input", errorResponse.getMessage());
     }
     
-    // dùng để response với complex data
     @Test
     void responseWithComplexData() {
         // Tạo một HashMap phức tạp (giả sử là user info, auction details, ...)

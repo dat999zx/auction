@@ -26,7 +26,6 @@ public class User extends Entity {
     private UserRole role;
     private Wallet wallet;
 
-    // dùng để tạo một đối tượng User
     public User(String username, String nickname, String password) {
         super(username, TimeUtil.nowInVietnam());
 
@@ -41,9 +40,7 @@ public class User extends Entity {
         this.profileImageId = null;
     }
 
-     // dùng để tạo một đối tượng User
      public User(String username, String nickname, String password, String email, String phone, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
-        // dùng để super
         super(username, createdAt);
 
         this.username = username;
@@ -59,9 +56,7 @@ public class User extends Entity {
         this.profileImageId = null;
     }
 
-    // dùng để tạo một đối tượng User
     public User(String username, String nickname, String password, String email, String phone, String profileImageId, UserStatus status, UserRole role, LocalDateTime createdAt, LocalDateTime lastLogin, double balance) {
-        // dùng để super
         super(username, createdAt);
 
         this.username = username;
@@ -98,11 +93,11 @@ public class User extends Entity {
     public boolean isAdmin() { return false; }
     public Wallet getWallet() { return wallet; }
 
-    // dùng để khóa
+    // Khóa tài khoản người dùng để thực hiện giao dịch ví đồng bộ.
     public void lock() { lock.lock(); }
-    // dùng để mở khóa
+    // Giải phóng khóa tài khoản người dùng.
     public void unlock() { lock.unlock(); }
-    // dùng để try khóa đồng bộ
+    // Thử lấy khóa với thời gian timeout để tránh deadlock.
     public void tryLock(int timeout) throws ServerTimeOutException {
         try {
             lock.tryLock(timeout, TimeUnit.SECONDS);

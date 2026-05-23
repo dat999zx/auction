@@ -12,24 +12,21 @@ import com.bidify.server.model.runtime.ClientSession;
 import com.bidify.server.model.runtime.GlobalChannel;
 import com.bidify.server.network.ClientHandler;
 
-// database được lưu trong ram, giúp truy cập nhanh trong thời gian thực. chỉ có hiệu lực khi server chạy
+// RealtimeDatabase lưu trữ trạng thái runtime (in-memory) phục vụ kết nối trực tuyến và sự kiện thời gian thực.
 public class RealtimeDatabase {
-    private static final ConcurrentHashMap<String, ClientSession> activeUsers = new ConcurrentHashMap<>(); // người dùng đang kết nối server
-    private static final ConcurrentHashMap<String, Auction> runtimeAuctions = new ConcurrentHashMap<>(); // các cuộc đấu giá UPCOMING / ACTIVE trong RAM
-    private static final ConcurrentHashMap<String, AuctionChannel> auctionChannels = new ConcurrentHashMap<>(); // các channel của các cuộc đấu giá
-    private static final GlobalChannel globalChannel = new GlobalChannel(); // channel chung của hệ thống
+    private static final ConcurrentHashMap<String, ClientSession> activeUsers = new ConcurrentHashMap<>(); // Người dùng hiện đang kết nối trực tuyến
+    private static final ConcurrentHashMap<String, Auction> runtimeAuctions = new ConcurrentHashMap<>(); // Các cuộc đấu giá UPCOMING hoặc ACTIVE đang diễn ra
+    private static final ConcurrentHashMap<String, AuctionChannel> auctionChannels = new ConcurrentHashMap<>(); // Kênh sự kiện cho từng cuộc đấu giá
+    private static final GlobalChannel globalChannel = new GlobalChannel(); // Kênh sự kiện chung toàn hệ thống
 
-    // dùng để tạo một đối tượng RealtimeDatabase
     private RealtimeDatabase(){}
 
-    // dùng để kiểm tra xem người dùng online
-    public static boolean isUserOnline(String username){ // kiểm tra user có online ko
+    public static boolean isUserOnline(String username){
         if (username == null) return false;
         return activeUsers.containsKey(username);
     }
 
-    // dùng để kiểm tra xem watching đấu giá
-    public static boolean isWatchingAuction(String username, String auctionId){ // kiểm tra user có đang xem auction ko
+    public static boolean isWatchingAuction(String username, String auctionId){
         if (username == null || auctionId == null) return false;
         ClientHandler client = getUserClient(username);
         AuctionChannel channel = auctionChannels.get(auctionId);
@@ -37,31 +34,27 @@ public class RealtimeDatabase {
         return channel.hasObserver(client);
     }
 
-    // dùng để thêm active người dùng
-    public static void addActiveUser(ClientHandler client, User user){ // thêm user vào database
+    public static void addActiveUser(ClientHandler client, User user){
         if (client == null || client.getCurrentUsername() == null) return;
         activeUsers.put(client.getCurrentUsername(), new ClientSession(client, user));
         globalChannel.subscribe(client);
     }
 
-    // dùng để lấy người dùng client
-    public static ClientHandler getUserClient(String username){ // lấy client trong database
+    public static ClientHandler getUserClient(String username){
         if (username == null) return null;
         ClientSession session = activeUsers.get(username);
         if (session == null) return null;
         return session.getClientHandler();
     }
 
-    // dùng để lấy active người dùng
-    public static User getActiveUser(String username){ // lấy user trong database
+    public static User getActiveUser(String username){
         if (username == null) return null;
         ClientSession session = activeUsers.get(username);
         if (session == null) return null;
         return session.getUser();
     }
 
-    // dùng để lấy all active danh sách người dùng
-    public static List<User> getAllActiveUsers(){ // lấy tất cả user trong database
+    public static List<User> getAllActiveUsers(){
         List<User> users = new ArrayList<>();
         for (ClientSession session : activeUsers.values()) {
             if (session != null && session.getUser() != null)
@@ -70,14 +63,12 @@ public class RealtimeDatabase {
         return users;
     }
 
-    // dùng để lấy người dùng phiên làm việc
-    public static ClientSession getUserSession(String username){ // lấy session trong database
+    public static ClientSession getUserSession(String username){
         if (username == null) return null;
         return activeUsers.get(username);
     }
 
-    // dùng để lấy all người dùng clients
-    public static List<ClientHandler> getAllUserClients(){ // lấy tất cả client trong database
+    public static List<ClientHandler> getAllUserClients(){
         List<ClientHandler> clients = new ArrayList<>();
         for (ClientSession session : activeUsers.values()){
             if (session != null && session.getClientHandler() != null)
@@ -86,8 +77,7 @@ public class RealtimeDatabase {
         return clients;
     }
 
-    // dùng để xóa active người dùng
-    public static List<String> removeActiveUser(String username){ // xóa user khỏi database
+    public static List<String> removeActiveUser(String username){
         List<String> affectedAuctionIds = new ArrayList<>();
         if (username == null) return affectedAuctionIds;
         ClientSession session = activeUsers.remove(username);
@@ -104,8 +94,7 @@ public class RealtimeDatabase {
         return affectedAuctionIds;
     }
 
-    // dùng để thêm runtime đấu giá
-    public static void addRuntimeAuction(Auction auction){ // thêm cuộc đấu giá UPCOMING / ACTIVE vào runtime
+    public static void addRuntimeAuction(Auction auction){
         if (auction == null) return;
         AuctionStatus status = auction.getStatus();
         if (status != AuctionStatus.UPCOMING && status != AuctionStatus.ACTIVE) return;
@@ -113,45 +102,36 @@ public class RealtimeDatabase {
         auctionChannels.putIfAbsent(auction.getId(), new AuctionChannel(auction.getId()));
     }
 
-    // dùng để lấy runtime đấu giá
-    public static Auction getRuntimeAuction(String auctionId){ // lấy cuộc đấu giá từ runtime
+    public static Auction getRuntimeAuction(String auctionId){
         if (auctionId == null) return null;
         return runtimeAuctions.get(auctionId);
     }
 
-    // dùng để lấy all runtime danh sách đấu giá
-    public static List<Auction> getAllRuntimeAuctions(){ // lấy tất cả cuộc đấu giá UPCOMING / ACTIVE trong runtime
+    public static List<Auction> getAllRuntimeAuctions(){
         return new ArrayList<>(runtimeAuctions.values());
     }
 
-    // dùng để lấy live đấu giá
-    public static Auction getLiveAuction(String auctionId){ // lấy cuộc đấu giá ACTIVE từ runtime
+    public static Auction getLiveAuction(String auctionId){
         Auction auction = getRuntimeAuction(auctionId);
         if (auction == null || auction.getStatus() != AuctionStatus.ACTIVE) return null;
         return auction;
     }
 
-    // dùng để lấy upcoming đấu giá
-    public static Auction getUpcomingAuction(String auctionId){ // lấy cuộc đấu giá UPCOMING từ runtime
+    public static Auction getUpcomingAuction(String auctionId){
         Auction auction = getRuntimeAuction(auctionId);
         if (auction == null || auction.getStatus() != AuctionStatus.UPCOMING) return null;
         return auction;
     }
 
-    // dùng để lấy all live danh sách đấu giá
-    public static List<Auction> getAllLiveAuctions(){ // lấy tất cả cuộc đấu giá ACTIVE trong runtime
-        // dùng để lấy runtime danh sách đấu giá bởi trạng thái
+    public static List<Auction> getAllLiveAuctions(){
         return getRuntimeAuctionsByStatus(AuctionStatus.ACTIVE);
     }
 
-    // dùng để lấy all upcoming danh sách đấu giá
-    public static List<Auction> getAllUpcomingAuctions(){ // lấy tất cả cuộc đấu giá UPCOMING trong runtime
-        // dùng để lấy runtime danh sách đấu giá bởi trạng thái
+    public static List<Auction> getAllUpcomingAuctions(){
         return getRuntimeAuctionsByStatus(AuctionStatus.UPCOMING);
     }
 
-    // dùng để lấy runtime danh sách đấu giá bởi trạng thái
-    public static List<Auction> getRuntimeAuctionsByStatus(AuctionStatus status){ // lấy các cuộc đấu giá trong runtime theo status
+    public static List<Auction> getRuntimeAuctionsByStatus(AuctionStatus status){
         List<Auction> auctions = new ArrayList<>();
         if (status == null) return auctions;
         for (Auction auction : runtimeAuctions.values()) {
@@ -161,15 +141,13 @@ public class RealtimeDatabase {
         return auctions;
     }
 
-    // dùng để xóa runtime đấu giá
-    public static void removeRuntimeAuction(String auctionId){ // xóa cuộc đấu giá khỏi runtime
+    public static void removeRuntimeAuction(String auctionId){
         if (auctionId == null) return;
         runtimeAuctions.remove(auctionId);
         auctionChannels.remove(auctionId);
     }
 
-    // dùng để đăng ký lắng nghe sự kiện đấu giá kênh truyền tải
-    public static void subscribeAuctionChannel(String auctionId, String username){ // thêm người xem vào database
+    public static void subscribeAuctionChannel(String auctionId, String username){
         if (auctionId == null || username == null) return;
         AuctionChannel channel = auctionChannels.get(auctionId);
         ClientHandler client = getUserClient(username);
@@ -177,8 +155,7 @@ public class RealtimeDatabase {
         channel.subscribe(client);
     }
 
-    // dùng để hủy đăng ký lắng nghe sự kiện đấu giá kênh truyền tải
-    public static void unsubscribeAuctionChannel(String auctionId, String username){ // xóa người xem auction
+    public static void unsubscribeAuctionChannel(String auctionId, String username){
         if (auctionId == null || username == null) return;
         AuctionChannel channel = auctionChannels.get(auctionId);
         ClientHandler client = getUserClient(username);
@@ -186,19 +163,16 @@ public class RealtimeDatabase {
         channel.unsubscribe(client);
     }
 
-    // dùng để lấy đấu giá kênh truyền tải
-    public static AuctionChannel getAuctionChannel(String auctionId){ // lấy channel của auction
+    public static AuctionChannel getAuctionChannel(String auctionId){
         if (auctionId == null) return null;
         return auctionChannels.get(auctionId);
     }
 
-    // dùng để lấy global kênh truyền tải
-    public static GlobalChannel getGlobalChannel(){ // lấy channel chung của hệ thống
+    public static GlobalChannel getGlobalChannel(){
         return globalChannel;
     }
 
-    // dùng để xóa sạch all
-    public static void clearAll(){ // xóa tất cả dữ liệu trong database
+    public static void clearAll(){
         activeUsers.clear();
         runtimeAuctions.clear();
         for (AuctionChannel channel : auctionChannels.values())

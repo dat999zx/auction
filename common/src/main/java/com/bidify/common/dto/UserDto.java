@@ -11,17 +11,14 @@ public class UserDto {
     private String email;
     private String phoneNumber;
 
-    // dùng để tạo một đối tượng UserDto
     public UserDto(String username, String nickname, WalletDto wallet, UserRole role){
         this(username, nickname, wallet, role, null, null, null);
     }
 
-    // dùng để tạo một đối tượng UserDto
     public UserDto(String username, String nickname, WalletDto wallet, UserRole role, String profileImageBase64){
         this(username, nickname, wallet, role, profileImageBase64, null, null);
     }
 
-    // dùng để tạo một đối tượng UserDto với email và số điện thoại
     public UserDto(String username, String nickname, WalletDto wallet, UserRole role, String profileImageBase64, String email, String phoneNumber){
         this.username = username;
         this.nickname = nickname;

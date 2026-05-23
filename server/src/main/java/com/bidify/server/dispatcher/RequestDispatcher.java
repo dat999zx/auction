@@ -11,13 +11,11 @@ import com.bidify.server.utility.ServiceUtil;
 public class RequestDispatcher extends Router<RequestType, RequestHandler> {
     private static final RequestDispatcher instance = new RequestDispatcher();
 
-    // dùng để tạo một đối tượng RequestDispatcher
     private RequestDispatcher() {}
 
-    // dùng để lấy đối tượng Singleton
     public static RequestDispatcher getInstance() { return instance; }
 
-    // dùng để dispatch
+    // Điều hướng request đến RequestHandler tương ứng dựa trên RequestType.
     public Response dispatch(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             if (request == null || request.getType() == null)

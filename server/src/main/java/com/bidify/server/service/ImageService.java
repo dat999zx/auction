@@ -23,7 +23,6 @@ public class ImageService {
     private static final String UPLOAD_DIR = resolveUploadPath();
     private static final ImageService instance = new ImageService();
 
-    // dùng để tạo một đối tượng ImageService
     private ImageService() {
         try {
             Files.createDirectories(Paths.get(UPLOAD_DIR));
@@ -33,10 +32,9 @@ public class ImageService {
         }
     }
 
-    // dùng để lấy đối tượng Singleton
     public static ImageService getInstance() { return instance; }
 
-    // dùng để giải quyết upload path
+    // Xác định thư mục lưu trữ ảnh tải lên.
     private static String resolveUploadPath() {
         Path curPath = Paths.get(System.getProperty("user.dir")).toAbsolutePath().normalize();
         Path serverDir = curPath.resolve("server");
@@ -47,7 +45,7 @@ public class ImageService {
         return curPath.resolve("uploads").toString();
     }
 
-    // dùng để lưu images
+    // Lưu trữ danh sách ảnh Base64 dưới dạng file PNG, có xử lý resize.
     public List<Image> saveImages(List<String> base64Images) {
         if (base64Images == null || base64Images.isEmpty())
             return new ArrayList<>();
@@ -94,7 +92,6 @@ public class ImageService {
         return null;
     }
 
-    // dùng để xóa hình ảnh file
     public void deleteImageFile(String filePath) {
         if (filePath == null || filePath.isBlank())
             return;

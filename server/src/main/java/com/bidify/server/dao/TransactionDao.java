@@ -12,13 +12,11 @@ import java.util.List;
 public class TransactionDao {
     private static TransactionDao instance = new TransactionDao();
 
-    // dùng để tạo một đối tượng TransactionDao
     private TransactionDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static TransactionDao getInstance() { return instance; }
 
-    // dùng để tạo
+    // Lưu giao dịch ví mới vào database.
     public void create(Transaction transaction) throws DatabaseException {
         String sql = "INSERT INTO Transactions(id, createdAt, username, type, amount, auctionId) VALUES (?, ?, ?, ?, ?, ?)";
         SQLiteHelper.update(sql,
@@ -31,7 +29,7 @@ public class TransactionDao {
         );
     }
 
-    // dùng để tìm kiếm bởi username
+    // Lấy lịch sử giao dịch ví của user.
     public List<Transaction> findByUsername(String username) throws DatabaseException {
         String sql = "SELECT * FROM Transactions WHERE username = ? ORDER BY createdAt DESC";
         return SQLiteHelper.query(sql, rs -> {
@@ -50,12 +48,10 @@ public class TransactionDao {
         }, username);
     }
 
-    // dùng để xóa bởi username
     public void deleteByUsername(String username) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Transactions WHERE username = ?", username);
     }
 
-    // dùng để xóa bởi đấu giá ID
     public void deleteByAuctionId(String auctionId) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Transactions WHERE auctionId = ?", auctionId);
     }

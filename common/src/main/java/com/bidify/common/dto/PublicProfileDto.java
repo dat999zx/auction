@@ -9,10 +9,6 @@ public class PublicProfileDto {
     private PublicProfileStatsDto stats;
     private AuctionDto[] auctions;
 
-    // dùng để tạo một đối tượng PublicProfileDto
-    public PublicProfileDto() {}
-
-    // dùng để tạo một đối tượng PublicProfileDto với email và số điện thoại
     public PublicProfileDto(String username, String nickname, String profileImageBase64, String email, String phoneNumber, PublicProfileStatsDto stats, AuctionDto[] auctions) {
         this.username = username;
         this.nickname = nickname;

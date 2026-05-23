@@ -49,12 +49,10 @@ public class InventoryController {
     @FXML
     private Button addItemButton;
 
-    // dùng để thiết lập managed chủ sở hữu username
     public static void setManagedOwnerUsername(String ownerUsername) {
         managedOwnerUsername = ownerUsername;
     }
 
-    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
@@ -69,7 +67,6 @@ public class InventoryController {
         });
     }
 
-    // dùng để xử lý thêm sản phẩm
     @FXML
     private void handleAddItem() {
         if (ClientSession.getInstance().isAdmin()) {
@@ -81,14 +78,11 @@ public class InventoryController {
         SceneManager.switchScene("item-detail.fxml", false, false);
     }
 
-    // dùng để xử lý refresh
     @FXML
     private void handleRefresh() {
-        // dùng để tải kho đồ
         loadInventory();
     }
 
-    // dùng để tải kho đồ
     private void loadInventory() {
         try {
             if (isAdminManagedView()) {
@@ -111,7 +105,6 @@ public class InventoryController {
         }
     }
 
-    // dùng để filter danh sách sản phẩm
     private List<ItemDto> filterItems(String rawQuery) {
         String query = rawQuery == null ? "" : rawQuery.trim().toLowerCase();
         if (query.isBlank()) return allItems;
@@ -134,7 +127,6 @@ public class InventoryController {
         return filtered;
     }
 
-    // dùng để hiển thị danh sách sản phẩm
     private void renderItems(List<ItemDto> items) {
         itemsContainer.getChildren().clear();
 
@@ -150,7 +142,6 @@ public class InventoryController {
         summaryLabel.setText("Showing " + items.size() + " item" + (items.size() == 1 ? "" : "s"));
     }
 
-    // dùng để tạo empty state
     private Node createEmptyState() {
         VBox box = new VBox(10);
         box.getStyleClass().add("empty-state");
@@ -170,7 +161,6 @@ public class InventoryController {
         return box;
     }
 
-    // dùng để tạo dòng hiển thị
     private Node createRow(ItemDto item, boolean isLast) {
         GridPane row = new GridPane();
         row.getStyleClass().add(isLast ? "table-row-last" : "table-row");
@@ -232,21 +222,18 @@ public class InventoryController {
         return row;
     }
 
-    // dùng để tạo column
     private ColumnConstraints createColumn(double percentWidth) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
         return constraints;
     }
 
-    // dùng để mở sản phẩm editor
     private void openItemEditor(String itemId) {
         ItemDetailController.setItemId(itemId);
         SceneManager.clearCache("item-detail.fxml");
         SceneManager.switchScene("item-detail.fxml", false, false);
     }
 
-    // dùng để xử lý xóa sản phẩm
     private void handleDeleteItem(ItemDto item, boolean editable) {
         if (!editable) {
             NotificationUtil.info("Only available items can be deleted.");
@@ -256,7 +243,6 @@ public class InventoryController {
         try {
             inventoryClientService.deleteItem(item.getId());
             NotificationUtil.success("Item deleted successfully.");
-            // dùng để tải kho đồ
             loadInventory();
         }
         catch (IOException e) {
@@ -267,7 +253,6 @@ public class InventoryController {
         }
     }
 
-    // dùng để tạo thumbnail node
     private Node createThumbnailNode(ItemDto item) {
         StackPane frame = new StackPane();
         frame.getStyleClass().add("thumb-frame");
@@ -291,7 +276,6 @@ public class InventoryController {
         return frame;
     }
 
-    // dùng để build meta line
     private String buildMetaLine(ItemDto item) {
         List<String> parts = new ArrayList<>();
         if (!safe(item.getCategory()).isBlank())
@@ -302,30 +286,25 @@ public class InventoryController {
         return String.join(" • ", parts);
     }
 
-    // dùng để giải quyết initial
     private String resolveInitial(String value) {
         if (value == null || value.isBlank()) return "I";
         return value.substring(0, 1).toUpperCase();
     }
 
-    // dùng để định dạng trạng thái
     private String formatStatus(String availabilityStatus) {
         if (ItemStatus.LOCKED_IN_AUCTION.name().equals(availabilityStatus))
             return "Locked";
         return "Available";
     }
 
-    // dùng để default text
     private String defaultText(String value, String fallback) {
         return safe(value).isBlank() ? fallback : value;
     }
 
-    // dùng để safe
     private String safe(String value) {
         return value == null ? "" : value;
     }
 
-    // dùng để kiểm tra xem quản trị viên (admin) managed giao diện
     private boolean isAdminManagedView() {
         return managedOwnerUsername != null && !managedOwnerUsername.isBlank();
     }

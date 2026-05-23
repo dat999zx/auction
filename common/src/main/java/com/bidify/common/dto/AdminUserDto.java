@@ -9,7 +9,6 @@ public class AdminUserDto {
     private UserStatus status;
     private UserRole role;
 
-    // dùng để tạo một đối tượng AdminUserDto
     public AdminUserDto(String username, String nickname, UserStatus status, UserRole role) {
         this.username = username;
         this.nickname = nickname;

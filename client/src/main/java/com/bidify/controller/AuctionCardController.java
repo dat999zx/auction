@@ -43,9 +43,7 @@ public class AuctionCardController {
     private AuctionDto auction;
     private String timerSubscriptionId;
 
-    // dùng để liên kết dữ liệu
     public void bind(AuctionDto auction) {
-        // dùng để dọn dẹp tài nguyên
         cleanup();
         this.auction = auction;
         String status = DisplayUtil.defaultText(auction.getStatus(), "LIVE").toUpperCase();
@@ -57,10 +55,8 @@ public class AuctionCardController {
         lotPill.setText(DisplayUtil.defaultText(auction.getId(), "Auction"));
         title.setText(DisplayUtil.defaultText(auction.getAuctionName(), "Untitled auction"));
         subtitle.setText(DisplayUtil.defaultText(auction.getDescription(), "No description."));
-        // dùng để bắt đầu timer
         startTimer(status);
 
-        //dealing with no one bidded yet case
         if (auction.getCurrentBid() == 0) {
             currentBidValue.setText(DisplayUtil.formatCashSuffix(auction.getStartingPrice()));
             currentBidder.setText("No bids yet");
@@ -69,7 +65,6 @@ public class AuctionCardController {
             currentBidder.setText(auction.getCurrentBidderUsername());
         }
         sellerLabel.setText("Seller: " + DisplayUtil.defaultText(auction.getSellerUsername(), "Unknown"));
-        // dùng để liên kết dữ liệu live stats
         bindLiveStats(isUpcoming);
 
         if (auction.getThumbnailBase64() != null && !auction.getThumbnailBase64().isEmpty()) {
@@ -85,7 +80,6 @@ public class AuctionCardController {
         return auction == null ? null : auction.getId();
     }
 
-    // dùng để liên kết dữ liệu live stats
     private void bindLiveStats(boolean isUpcoming) {
         if (liveStatsRow == null)
             return;
@@ -99,12 +93,11 @@ public class AuctionCardController {
         activeBidderCountLabel.setText(formatCount(auction.getActiveBidderCount(), "active bidder", "active bidders"));
     }
 
-    // dùng để định dạng count
     private String formatCount(int count, String singular, String plural) {
         return count + " " + (count == 1 ? singular : plural);
     }
 
-    // dùng để dọn dẹp tài nguyên
+    // Dừng timer của thẻ đấu giá để tránh rò rỉ bộ nhớ hoặc chạy song song nhiều timer.
     public void cleanup() {
         if (timerSubscriptionId == null || timerSubscriptionId.isBlank())
             return;
@@ -113,7 +106,6 @@ public class AuctionCardController {
         timerSubscriptionId = null;
     }
 
-    // dùng để bắt đầu timer
     private void startTimer(String status) {
         boolean isUpcoming = "UPCOMING".equals(status);
         String targetTime = isUpcoming ? auction.getStartTime() : auction.getEndTime();
@@ -122,7 +114,6 @@ public class AuctionCardController {
                 .subscribe(() -> timerText.setText(DisplayUtil.formatRemainingTime(targetTime)));
     }
 
-    // dùng để mở đấu giá
     @FXML
     private void openAuction() {
         if (auction == null) return;
@@ -131,17 +122,14 @@ public class AuctionCardController {
         String auctionId = auction.getId();
         String sellerUsername = auction.getSellerUsername();
 
-        // 2. Decide the destination
         boolean canModifyUpcoming = "UPCOMING".equals(auction.getStatus())
             && ((sellerUsername != null && sellerUsername.equals(currentUsername)) || ClientSession.getInstance().isAdmin());
 
         if (canModifyUpcoming) {
-            // User owns it -> Go to Modify
             ModifyAuctionController.setAuctionId(auctionId);
             SceneManager.clearCache("modifyauction.fxml");
             SceneManager.switchScene("modifyauction.fxml", false, false);
         } else {
-            // User is a buyer -> Go to Details
             AuctionDetailsController.setAuctionId(auctionId);
             SceneManager.clearCache("auctiondetail.fxml");
             SceneManager.switchScene("auctiondetail.fxml", false, false);

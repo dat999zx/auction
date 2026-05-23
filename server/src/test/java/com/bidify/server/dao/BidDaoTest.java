@@ -25,14 +25,12 @@ class BidDaoTest {
     private String testBidId;
     private final List<String> createdItemIds = new ArrayList<>();
 
-    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         // Khởi tạo SQLite schema trước khi chạy tất cả tests
         SQLiteHelper.init();
     }
 
-    // dùng để thiết lập up
     @BeforeEach
     void setUp() throws Exception {
         // Tạo auction test trước mỗi test case
@@ -55,7 +53,6 @@ class BidDaoTest {
         testBidId = bid.getId();
     }
 
-    // dùng để tear down
     @AfterEach
     void tearDown() throws Exception {
         // Dọn dẹp bids và auction test sau mỗi test case
@@ -73,7 +70,6 @@ class BidDaoTest {
         createdItemIds.clear();
     }
 
-    // dùng để tạo and tìm kiếm danh sách đặt giá bởi đấu giá ID successfully
     @Test
     void createAndFindBidsByAuctionIdSuccessfully() throws Exception {
         // Bid đã được tạo trong setUp()
@@ -90,7 +86,6 @@ class BidDaoTest {
         assertEquals(1100.0, firstBid.getAmount());
     }
 
-    // dùng để tìm kiếm danh sách đặt giá bởi đấu giá ID returns empty when no danh sách đặt giá
     @Test
     void findBidsByAuctionIdReturnsEmptyWhenNoBids() throws Exception {
         // Tạo auction mới không có bids
@@ -116,7 +111,6 @@ class BidDaoTest {
         auctionDao.deleteById(newAuction.getId());
     }
 
-    // dùng để tìm kiếm danh sách đặt giá bởi username returns correct danh sách đặt giá
     @Test
     void findBidsByUsernameReturnsCorrectBids() throws Exception {
         // Tạo thêm bid từ cùng bidder
@@ -130,14 +124,12 @@ class BidDaoTest {
         assertTrue(userBids.size() >= 2);
         boolean foundTestBid = userBids.stream()
             .anyMatch(b -> b.getId().equals(testBidId));
-        // dùng để assert true
         assertTrue(foundTestBid);
 
         // Cleanup
         bidDao.deleteById(anotherBid.getId());
     }
 
-    // dùng để đặt giá ordered bởi số tiền ascending
     @Test
     void bidsOrderedByAmountAscending() throws Exception {
         // Tạo nhiều bids với amount khác nhau
@@ -164,7 +156,6 @@ class BidDaoTest {
         bidDao.deleteById(highBid.getId());
     }
 
-    // dùng để đặt giá ordered bởi thời gian descending
     @Test
     void bidsOrderedByTimeDescending() throws Exception {
         // Tạo bids với thời gian khác nhau
@@ -193,7 +184,7 @@ class BidDaoTest {
         bidDao.deleteById(olderBid.getId());
         bidDao.deleteById(newerBid.getId());
     }
-    // dùng để tạo sản phẩm
+    
     private Item createItem(String ownerUsername, String name) {
         Item item = new Item(ownerUsername, name, "Test Description", "General", "Electronics");
         itemDao.create(item);

@@ -11,13 +11,10 @@ public class Bid extends Entity {
     private double amount;
     private boolean autoBidGenerated;
 
-    // dùng để tạo một đối tượng Bid
     public Bid(String auctionId, String bidderUsername, double amount) {
-        // dùng để this
         this(auctionId, bidderUsername, amount, false);
     }
 
-    // dùng để tạo một đối tượng Bid
     public Bid(String auctionId, String bidderUsername, double amount, boolean autoBidGenerated) {
         super(IdGenerator.genBidId(), TimeUtil.nowInVietnam());
         this.auctionId = auctionId;
@@ -26,15 +23,11 @@ public class Bid extends Entity {
         this.autoBidGenerated = autoBidGenerated;
     }
 
-    // dùng để tạo một đối tượng Bid
     public Bid(String id, LocalDateTime createdAt, String auctionId, String bidderUsername, double amount) {
-        // dùng để this
         this(id, createdAt, auctionId, bidderUsername, amount, false);
     }
 
-    // dùng để tạo một đối tượng Bid
     public Bid(String id, LocalDateTime createdAt, String auctionId, String bidderUsername, double amount, boolean autoBidGenerated) {
-        // dùng để super
         super(id, createdAt);
         this.auctionId = auctionId;
         this.bidderUsername = bidderUsername;
@@ -54,7 +47,6 @@ public class Bid extends Entity {
         return amount;
     }
 
-    // dùng để kiểm tra xem auto lượt đặt giá generated
     public boolean isAutoBidGenerated() {
         return autoBidGenerated;
     }

@@ -50,7 +50,6 @@ public class TransactionCardController {
         }
     }
 
-    // dùng để giải quyết giao dịch border style
     private String resolveTransactionBorderStyle(TransactionDto transaction) {
         if (transaction.getType() == null) return "border-gray";
         return switch (transaction.getType()) {
@@ -61,7 +60,6 @@ public class TransactionCardController {
         };
     }
 
-    // dùng để giải quyết giao dịch icon
     private String resolveTransactionIcon(TransactionDto transaction) {
         if (transaction.getType() == null) return "help";
         return switch (transaction.getType()) {
@@ -72,7 +70,6 @@ public class TransactionCardController {
         };
     }
 
-    // dùng để giải quyết giao dịch title
     private String resolveTransactionTitle(TransactionDto transaction) {
         if (transaction.getType() == null) return "Transaction";
         return switch (transaction.getType()) {

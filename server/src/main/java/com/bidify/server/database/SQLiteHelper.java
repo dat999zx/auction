@@ -21,12 +21,10 @@ public class SQLiteHelper {
     private static final Logger logger = LoggerFactory.getLogger(SQLiteHelper.class);
     private static final String SCHEMA_PATH = "/database/schema.sql";
 
-    // dùng để tạo một đối tượng SQLiteHelper
     private SQLiteHelper() {}
 
-    // tạo bảng nếu chưa tồn tại
-    // dùng để khởi tạo
-    public static void init() throws DatabaseException { // chỉ chạy 1 lần khi server start
+    // Khởi tạo database bằng cách chạy file schema.sql và tạo tài khoản bootstrap admin nếu chưa tồn tại.
+    public static void init() throws DatabaseException {
         try (
             Connection connection = SQLiteConnection.connect();
             InputStream in = SQLiteHelper.class.getResourceAsStream(SCHEMA_PATH);
@@ -77,14 +75,11 @@ public class SQLiteHelper {
         }
     }
 
-    // INSERT / UPDATE / DELETE
-    // dùng để cập nhật
     public static void update(String sql, Object... params) throws DatabaseException {
         try (
             Connection connection = SQLiteConnection.connect();
             PreparedStatement statement = connection.prepareStatement(sql)
         ) {
-            // dùng để thiết lập params
             setParams(statement, params);
             statement.executeUpdate();
         }
@@ -94,14 +89,11 @@ public class SQLiteHelper {
         }
     }
 
-    // SELECT
-    // dùng để truy vấn
     public static <T> T query(String sql, ResultHandler<T> handler, Object... params) throws DatabaseException {
         try (
             Connection connection = SQLiteConnection.connect();
             PreparedStatement statement = connection.prepareStatement(sql)
         ) {
-            // dùng để thiết lập params
             setParams(statement, params);
             try (ResultSet rs = statement.executeQuery()) {
                 return handler.handle(rs);
@@ -113,7 +105,6 @@ public class SQLiteHelper {
         }
     }
 
-    // dùng để thiết lập params
     private static void setParams(PreparedStatement statement, Object... params) throws SQLException {
         if (params == null) return;
         for (int i = 0; i < params.length; i++)

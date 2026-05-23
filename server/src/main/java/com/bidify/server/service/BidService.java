@@ -21,13 +21,10 @@ public class BidService {
     private final BidDao bidDao = BidDao.getInstance();
     private final AuctionDao auctionDao = AuctionDao.getInstance();
 
-    // dùng để tạo một đối tượng BidService
     private BidService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static BidService getInstance() { return instance; }
 
-    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_BID_HISTORY, (client, req) -> getUserBids(client));
