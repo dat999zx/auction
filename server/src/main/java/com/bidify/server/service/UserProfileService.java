@@ -26,11 +26,7 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.model.PublicProfileRequest;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
-import com.bidify.server.dao.ItemDao;
 import com.bidify.server.model.Auction;
-import com.bidify.server.model.Item;
-import com.bidify.server.utility.AuctionMapper;
-import java.util.ArrayList;
 import java.util.List;
 
 public class UserProfileService {
@@ -39,13 +35,10 @@ public class UserProfileService {
     private final ImageDao imageDao = ImageDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
 
-    // dùng để tạo một đối tượng UserProfileService
     private UserProfileService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static UserProfileService getInstance() { return instance; }
 
-    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
@@ -61,7 +54,7 @@ public class UserProfileService {
         });
     }
 
-    // dùng để cập nhật thông tin tài khoản
+    // Cập nhật thông tin hồ sơ cá nhân (nickname, email, số điện thoại, ảnh đại diện).
     public Response updateProfile(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
@@ -84,6 +77,24 @@ public class UserProfileService {
                 hasChange = true;
             }
 
+            String email = normalizeOptionalProfileField(data.getEmail());
+            if (data.getEmail() != null) {
+                if (email != null) {
+                    ValidationUtil.validateEmail(email);
+                }
+                user.setEmail(email);
+                hasChange = true;
+            }
+
+            String phoneNumber = normalizeOptionalProfileField(data.getPhoneNumber());
+            if (data.getPhoneNumber() != null) {
+                if (phoneNumber != null) {
+                    ValidationUtil.validatePhone(phoneNumber);
+                }
+                user.setPhoneNumber(phoneNumber);
+                hasChange = true;
+            }
+
             if (!hasChange)
                 throw new ValidationException("No profile changes were provided");
 
@@ -92,7 +103,14 @@ public class UserProfileService {
         });
     }
 
-    // dùng để thay thế ảnh đại diện
+    private String normalizeOptionalProfileField(String value) {
+        if (value == null) return null;
+
+        String trimmed = value.trim();
+        return trimmed.isBlank() ? null : trimmed;
+    }
+
+    // Thay thế ảnh đại diện cũ bằng ảnh mới.
     private void replaceProfileImage(User user, String base64) throws DatabaseException {
         var savedImages = imageService.saveImages(List.of(base64));
         if (savedImages.isEmpty())
@@ -113,7 +131,7 @@ public class UserProfileService {
         }
     }
 
-    // dùng để cập nhật mật khẩu
+    // Cập nhật mật khẩu mới cho tài khoản.
     public Response updatePassword(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdatePasswordRequest data = JsonUtil.fromMap(request.getData(), UpdatePasswordRequest.class);
@@ -141,7 +159,7 @@ public class UserProfileService {
         });
     }
 
-    // dùng để lấy thông tin hồ sơ công khai
+    // Lấy thông tin hồ sơ công khai của người dùng khác kèm thống kê giao dịch.
     public Response getPublicProfile(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             PublicProfileRequest data = JsonUtil.fromMap(request.getData(), PublicProfileRequest.class);
@@ -210,6 +228,8 @@ public class UserProfileService {
                 user.getUsername(),
                 user.getNickname(),
                 profileImageBase64,
+                user.getEmail(),
+                user.getPhoneNumber(),
                 stats,
                 auctionDtos
             );

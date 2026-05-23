@@ -25,14 +25,12 @@ class AuctionDaoTest {
     private String testAuctionId;
     private final List<String> createdItemIds = new ArrayList<>();
 
-    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         // Khởi tạo SQLite schema trước khi chạy tất cả tests
         SQLiteHelper.init();
     }
 
-    // dùng để thiết lập up
     @BeforeEach
     void setUp() throws Exception {
         // Tạo auction test trước mỗi test case
@@ -50,7 +48,6 @@ class AuctionDaoTest {
         testAuctionId = auction.getId();
     }
 
-    // dùng để tear down
     @AfterEach
     void tearDown() throws Exception {
         // Dọn dẹp auction test sau mỗi test case
@@ -62,7 +59,6 @@ class AuctionDaoTest {
         createdItemIds.clear();
     }
 
-    // dùng để tạo and tìm kiếm đấu giá successfully
     @Test
     void createAndFindAuctionSuccessfully() {
         // Auction đã được tạo trong setUp()
@@ -74,14 +70,12 @@ class AuctionDaoTest {
         // - Không null (tức là tìm thấy)
         // - Tên auction khớp với dữ liệu đã tạo
         // - Seller username khớp
-        // dùng để assert not null
         assertNotNull(found);
         assertEquals("Test Auction", found.getAuctionName());
         assertEquals("seller", found.getSellerUsername());
         assertEquals(1000.0, found.getStartingPrice());
     }
 
-    // dùng để tìm kiếm đấu giá bởi ID returns null when not found
     @Test
     void findAuctionByIdReturnsNullWhenNotFound() {
         // ID không tồn tại trong DB
@@ -91,16 +85,13 @@ class AuctionDaoTest {
         Auction found = auctionDao.findById(invalidId);
 
         // Kết quả phải null (không tìm thấy)
-        // dùng để assert null
         assertNull(found);
     }
 
-    // dùng để cập nhật đấu giá successfully
     @Test
     void updateAuctionSuccessfully() {
         // Lấy auction hiện tại từ DB
         Auction auction = auctionDao.findById(testAuctionId);
-        // dùng để assert not null
         assertNotNull(auction);
 
         // Cập nhật tên auction và lưu vào DB
@@ -114,12 +105,10 @@ class AuctionDaoTest {
         assertEquals("Updated Description", updated.getDescription());
     }
 
-    // dùng để xóa đấu giá bởi ID successfully
     @Test
     void deleteAuctionByIdSuccessfully() {
         // Auction tồn tại trong DB (từ setUp)
         Auction beforeDelete = auctionDao.findById(testAuctionId);
-        // dùng để assert not null
         assertNotNull(beforeDelete);
 
         // Xóa auction theo ID
@@ -127,14 +116,12 @@ class AuctionDaoTest {
 
         // Auction không còn tồn tại trong DB
         Auction afterDelete = auctionDao.findById(testAuctionId);
-        // dùng để assert null
         assertNull(afterDelete);
 
         // Đánh dấu để tearDown không xóa lại
         testAuctionId = null;
     }
 
-    // dùng để tìm kiếm danh sách đấu giá bởi trạng thái returns correct list
     @Test
     void findAuctionsByStatusReturnsCorrectList() throws Exception {
         // Tạo thêm auction với status khác nhau
@@ -157,13 +144,12 @@ class AuctionDaoTest {
         assertTrue(upcomingAuctions.size() >= 1);
         boolean foundTestAuction = upcomingAuctions.stream()
             .anyMatch(a -> a.getId().equals(testAuctionId));
-        // dùng để assert true
         assertTrue(foundTestAuction);
 
         // Cleanup
         auctionDao.deleteById(activeAuction.getId());
     }
-    // dùng để tạo sản phẩm
+
     private Item createItem(String ownerUsername, String name) {
         Item item = new Item(ownerUsername, name, "Test Description", "General", "Electronics");
         itemDao.create(item);

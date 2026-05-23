@@ -7,7 +7,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,7 @@ import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
+import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
 
@@ -30,7 +30,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
 public class ModifyAuctionController {
@@ -166,7 +165,7 @@ public class ModifyAuctionController {
         categoryLabel.setText(defaultText(data.getCategory(), "-"));
         productTypeLabel.setText(defaultText(data.getProductType(), "-"));
         itemStatusLabel.setText("Linked inventory item is locked by this auction.");
-        linkedItemImageView.setImage(decodeBase64Image(data.getThumbnailBase64()));
+        linkedItemImageView.setImage(ImageCache.decode(data.getThumbnailBase64()));
 
         startingPriceField.setText(String.valueOf(data.getStartingPrice()));
         minIncrementField.setText(String.valueOf(data.getMinIncrement()));
@@ -347,17 +346,6 @@ public class ModifyAuctionController {
         }
 
         return TimeUtil.parseHHMM(parseValue);
-    }
-
-    private Image decodeBase64Image(String base64) {
-        if (base64 == null || base64.isBlank()) return null;
-        try {
-            Image img = new Image(new ByteArrayInputStream(Base64.getDecoder().decode(base64)));
-            if (img.isError()) return null;
-            return img;
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     private String defaultText(String value, String fallback) {

@@ -10,18 +10,15 @@ import com.bidify.server.database.SQLiteHelper;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
 
-// giao tiếp với SQLite database về bảng Auctions
+// Quản lý truy xuất dữ liệu Auctions trong database SQLite
 public class AuctionDao {
     private static AuctionDao instance = new AuctionDao();
 
-    // dùng để tạo một đối tượng AuctionDao
     private AuctionDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static AuctionDao getInstance() { return instance; }
 
-    // tạm thêm cái này để về sau seller tìm lại các auction theo trạng thái của mình
-    // dùng để tìm kiếm bởi trạng thái
+    // Tìm kiếm các phiên đấu giá theo trạng thái.
     public List<Auction> findByStatus(AuctionStatus status) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE status = ?";
         return SQLiteHelper.query(sql, rs -> {
@@ -33,7 +30,6 @@ public class AuctionDao {
         }, status.toString());
     }
 
-    // dùng để tìm kiếm bởi seller username
     public List<Auction> findBySellerUsername(String sellerUsername) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE seller = ? ORDER BY createdAt DESC";
         return SQLiteHelper.query(sql, rs -> {
@@ -45,7 +41,7 @@ public class AuctionDao {
         }, sellerUsername);
     }
 
-    // dùng để tìm kiếm các phiên đấu giá đã kết thúc cần xử lý của user (winner hoặc seller)
+    // Lấy danh sách phiên đấu giá đã kết thúc cần xử lý của user (làm winner hoặc seller).
     public List<Auction> findUserSettlements(String username) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE (seller = ? OR currentBidder = ?) AND status NOT IN ('ACTIVE', 'UPCOMING') ORDER BY createdAt DESC";
         return SQLiteHelper.query(sql, rs -> {
@@ -58,7 +54,6 @@ public class AuctionDao {
     }
 
 
-    // dùng để tìm kiếm bởi ID
     public Auction findById(String id) throws DatabaseException {
         String sql = "SELECT * FROM Auctions WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> {
@@ -95,11 +90,11 @@ public class AuctionDao {
             auction.setMaxEndTime(LocalDateTime.parse(maxEndTime));
         }
         
-        auction.getBids().addAll(BidDao.getInstance().findByAuctionId(auction.getId()));
+        auction.addBids(BidDao.getInstance().findByAuctionId(auction.getId()));
         return auction;
     }
 
-    // dùng để tạo
+    // Thêm mới một phiên đấu giá vào database.
     public void create(Auction auction) throws DatabaseException {
         LocalDateTime createdAt = auction.getCreatedAt() == null ? TimeUtil.nowInVietnam() : auction.getCreatedAt();
         String sql = """
@@ -143,13 +138,12 @@ public class AuctionDao {
         );
     }
 
-    // dùng để xóa bởi ID
     public void deleteById(String id) throws DatabaseException {
         String sql = "DELETE FROM Auctions WHERE id = ?";
         SQLiteHelper.update(sql, id);
     }
 
-    // dùng để lưu
+    // Cập nhật thông tin phiên đấu giá hiện tại vào database.
     public void save(Auction auction) throws DatabaseException {
         LocalDateTime createdAt = auction.getCreatedAt() == null ? TimeUtil.nowInVietnam() : auction.getCreatedAt();
         SQLiteHelper.update(
@@ -202,9 +196,7 @@ public class AuctionDao {
         });
     }
 
-    // lấy tổng số tiền đã bid (nếu là đang là bidder cao nhất) của 1 user
-    // là lockedBalance
-    // dùng để tính tổng winning danh sách đặt giá cho người dùng
+    // Tính tổng số tiền đang bị giữ ở các phiên đấu giá mà user đang dẫn đầu.
     public double sumWinningBidsForUser(String username) throws DatabaseException {
         String sql = "SELECT SUM(currentBid) FROM Auctions WHERE currentBidder = ? AND status IN ('ACTIVE', 'AWAITING_PAYMENT')";
         return SQLiteHelper.query(sql, rs -> {

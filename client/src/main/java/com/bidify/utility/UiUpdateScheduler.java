@@ -20,14 +20,10 @@ public final class UiUpdateScheduler {
     private Timeline timeline;
     // dùng Timeline mà ko dùng ScheduledExecutorService như trong server vì Timeline trong JavaFX thread, chuyên để update UI
 
-    // dùng để tạo một đối tượng UiUpdateScheduler
     private UiUpdateScheduler() {}
 
-    // dùng để lấy đối tượng Singleton
     public static UiUpdateScheduler getInstance() { return INSTANCE; }
 
-    // đăng kí cho task chạy sau mỗi UPDATE_INTERVAL giây (vd: task update thời gian)
-    // dùng để đăng ký lắng nghe sự kiện
     public String subscribe(Runnable task) {
         if (task == null)
             throw new IllegalArgumentException("Task cannot be null");
@@ -36,7 +32,6 @@ public final class UiUpdateScheduler {
         tasks.put(taskId, task);
 
         Platform.runLater(() -> {
-            // dùng để ensure timeline started
             ensureTimelineStarted();
             task.run();
         });
@@ -44,8 +39,6 @@ public final class UiUpdateScheduler {
         return taskId;
     }
 
-    // hủy đăng kí task
-    // dùng để hủy đăng ký lắng nghe sự kiện
     public void unsubscribe(String taskId) {
         if (taskId == null || taskId.isBlank())
             return;
@@ -54,8 +47,6 @@ public final class UiUpdateScheduler {
         Platform.runLater(this::stopTimelineIfIdle);
     }
 
-    // đảm bảo timeline chạy, nếu chưa chạy thì bắt đầu
-    // dùng để ensure timeline started
     private void ensureTimelineStarted() {
         if (timeline != null) {
             if (timeline.getStatus() != Timeline.Status.RUNNING)
@@ -68,17 +59,12 @@ public final class UiUpdateScheduler {
         timeline.play();
     }
 
-    // chạy các task đã đăng kí
-    // dùng để chạy tasks
     private void runTasks() {
         for (Runnable task : tasks.values()) task.run();
 
-        // dùng để dừng timeline if idle
         stopTimelineIfIdle();
     }
 
-    // nếu không có task nào thì dừng timeline
-    // dùng để dừng timeline if idle
     private void stopTimelineIfIdle() {
         if (!tasks.isEmpty() || timeline == null)
             return;

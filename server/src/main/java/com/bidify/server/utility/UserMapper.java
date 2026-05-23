@@ -12,10 +12,8 @@ import org.slf4j.LoggerFactory;
 public class UserMapper {
     private static final Logger logger = LoggerFactory.getLogger(UserMapper.class);
 
-    // dùng để tạo một đối tượng UserMapper
     private UserMapper() {}
 
-    // dùng để chuyển thành đối tượng truyền tải dữ liệu (DTO)
     public static UserDto toDto(User user) {
         if (user == null) return null;
 
@@ -36,7 +34,9 @@ public class UserMapper {
             user.getNickname(),
             WalletMapper.toDto(user.getWallet()),
             user.getRole(),
-            profileImageBase64
+            profileImageBase64,
+            user.getEmail(),
+            user.getPhoneNumber()
         );
     }
 }

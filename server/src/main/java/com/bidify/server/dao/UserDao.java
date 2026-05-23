@@ -21,14 +21,11 @@ public class UserDao  {
     private static UserDao instance = new UserDao();
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
-    // dùng để tạo một đối tượng UserDao
     private UserDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static UserDao getInstance() { return instance; }
 
-    // dùng để exists bởi username
-    public boolean existsByUsername(String username) throws DatabaseException { // xét tồn tại username trong database
+    public boolean existsByUsername(String username) throws DatabaseException {
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
             rs -> rs != null && rs.next(),
@@ -37,8 +34,7 @@ public class UserDao  {
         return exists != null && exists;
     }
 
-    // dùng để tìm kiếm bởi username
-    public User findByUsername(String username) throws DatabaseException { // lấy User từ database bằng username
+    public User findByUsername(String username) throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
             rs -> {
@@ -50,7 +46,6 @@ public class UserDao  {
         );
     }
 
-    // dùng để tìm kiếm all
     public List<User> findAll() throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT * FROM Users ORDER BY createdAt DESC",
@@ -63,8 +58,8 @@ public class UserDao  {
         );
     }
 
-    // dùng để tạo
-    public void create(User user) throws DatabaseException { // đăng kí
+    // Đăng ký mới một User vào database.
+    public void create(User user) throws DatabaseException {
         SQLiteHelper.update(
             "INSERT INTO Users(username, nickname, password, role, createdAt, lastLogin, balance, profileImageId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             user.getUsername(),
@@ -78,14 +73,12 @@ public class UserDao  {
         );
     }
 
-    // dùng để lưu
-    public void save(User user) throws DatabaseException { // lưu user data mặc định cập nhật last login
-        // dùng để lưu
+    public void save(User user) throws DatabaseException {
         save(user, true);
     }
 
-    // dùng để lưu
-    public void save(User user, boolean saveLastLogin) throws DatabaseException { // lưu user data
+    // Lưu/Cập nhật thông tin User vào database.
+    public void save(User user, boolean saveLastLogin) throws DatabaseException {
         SQLiteHelper.update(
             """
             UPDATE Users SET 
@@ -122,7 +115,6 @@ public class UserDao  {
         logger.debug("saved user: {}", user.getUsername());
     }
 
-    // dùng để xóa bởi username
     public void deleteByUsername(String username) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
     }

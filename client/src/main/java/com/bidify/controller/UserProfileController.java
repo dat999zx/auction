@@ -63,6 +63,12 @@ public class UserProfileController {
     private TextField nicknameField;
 
     @FXML
+    private TextField emailField;
+
+    @FXML
+    private TextField phoneNumberField;
+
+    @FXML
     private PasswordField currentPasswordField;
 
     @FXML
@@ -76,10 +82,8 @@ public class UserProfileController {
     // Store listener references so unsubscribe can remove the exact same object.
     private final Consumer<Event> onServerNotice = e -> Platform.runLater(() -> NotificationUtil.info(e.getMessage()));
 
-    // dùng để hiển thị profile hiện tại và đăng ký lắng nghe sự kiện từ server
     @FXML
     private void initialize() {
-        // dùng để cắt ảnh đại diện thành hình tròn
         Circle profileClip = new Circle(57, 57, 57);
         profileAvatarImageView.setClip(profileClip);
 
@@ -87,26 +91,26 @@ public class UserProfileController {
         heroAvatarImageView.setClip(heroClip);
 
         Platform.runLater(() -> {
-            // dùng để liên kết dữ liệu top bar
             bindTopBar();
-            // dùng để đổ dữ liệu vào thông tin tài khoản
             populateProfile();
         });
 
         EventManager.getInstance().subscribe(EventType.SERVER_NOTICE, onServerNotice);
     }
 
-    // dùng để hủy lắng nghe sự kiện tránh bị rò rỉ bộ nhớ (memory leak)
     public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.SERVER_NOTICE, onServerNotice);
     }
 
-    // dùng để gửi yêu cầu lưu thay đổi nickname của user lên server
     @FXML
     private void handleSaveProfile() {
         try {
-            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText());
-            // dùng để refresh thông tin tài khoản
+            UserDto updatedUser = userProfileClientService.updateProfile(
+                nicknameField.getText(),
+                emailField.getText(),
+                phoneNumberField.getText(),
+                null
+            );
             refreshProfile(updatedUser);
             NotificationUtil.success("Profile updated successfully.");
         }
@@ -120,7 +124,6 @@ public class UserProfileController {
 
 
 
-    // dùng để thay đổi mật khẩu tài khoản
     @FXML
     private void handleChangePassword() {
         try {
@@ -142,13 +145,11 @@ public class UserProfileController {
         }
     }
 
-    // dùng để xử lý thông tin tài khoản hình ảnh placeholder
     @FXML
     private void handleProfileImagePlaceholder() {
         NotificationUtil.info("Profile image upload is a UI placeholder right now.");
     }
 
-    // dùng để xử lý tải ảnh đại diện lên
     @FXML
     private void handleProfileImageUpload() {
         FileChooser chooser = new FileChooser();
@@ -164,8 +165,12 @@ public class UserProfileController {
 
         try {
             String base64 = Base64.getEncoder().encodeToString(Files.readAllBytes(file.toPath()));
-            UserDto updatedUser = userProfileClientService.updateProfile(nicknameField.getText(), base64);
-            // dùng để refresh thông tin tài khoản
+            UserDto updatedUser = userProfileClientService.updateProfile(
+                nicknameField.getText(),
+                emailField.getText(),
+                phoneNumberField.getText(),
+                base64
+            );
             refreshProfile(updatedUser);
             profileImageHintLabel.setText("Profile image updated");
             NotificationUtil.success("Profile image updated successfully.");
@@ -176,7 +181,6 @@ public class UserProfileController {
         }
     }
 
-    // dùng để load thông tin người dùng từ server hoặc cache
     private void populateProfile() {
         try {
             refreshProfile(userProfileClientService.getCurrentProfile());
@@ -193,16 +197,16 @@ public class UserProfileController {
 
 
 
-    // dùng để refresh thông tin tài khoản
     private void refreshProfile(UserDto user) {
         usernameValueLabel.setText(DisplayUtil.defaultText(user.getUsername(), "Unknown"));
         nicknameField.setText(DisplayUtil.defaultText(user.getNickname(), user.getUsername()));
+        emailField.setText(DisplayUtil.defaultText(user.getEmail(), ""));
+        phoneNumberField.setText(DisplayUtil.defaultText(user.getPhoneNumber(), ""));
         
         memberStatusLabel.setText(clientSession.isAdmin() ? "Administrator" : "Active bidder");
         String avatarLetter = resolveAvatarLetter(user.getNickname(), user.getUsername());
         profileAvatarLabel.setText(avatarLetter);
         
-        // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu
         renderProfileAvatar(user);
         
         var controller = SceneManager.getMissionBarController();
@@ -215,7 +219,6 @@ public class UserProfileController {
         }
     }
 
-    // dùng để hiển thị ảnh đại diện hoặc chữ cái đầu tùy theo trạng thái ảnh
     private void renderProfileAvatar(UserDto user) {
         String base64 = user == null ? null : user.getProfileImageBase64();
         String cacheKey = "profile_" + (user == null ? "guest" : user.getUsername()) + "_" + (base64 == null ? 0 : base64.hashCode());
@@ -230,12 +233,10 @@ public class UserProfileController {
         profileImageHintLabel.setVisible(!hasImage);
     }
 
-    // dùng để liên kết dữ liệu top bar
     private void bindTopBar() {
         MissionBarUtil.setup(NavPage.PROFILE, false, null, this::cleanup);
     }
 
-    // dùng để giải quyết ảnh đại diện letter
     private String resolveAvatarLetter(String nickname, String username) {
         String source = nickname;
         if (source == null || source.isBlank()) {

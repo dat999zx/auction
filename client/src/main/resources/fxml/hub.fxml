@@ -8,7 +8,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <AnchorPane prefHeight="720.0" prefWidth="1280.0" styleClass="root-bg" stylesheets="@../css/hub.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HubController">
@@ -31,13 +30,6 @@
                                 </HBox>
                                 <Label styleClass="page-title" text="Auction Hub" />
                             </VBox>
-
-                            <Region HBox.hgrow="ALWAYS" />
-
-                            <HBox spacing="8.0">
-                                <Button styleClass="view-toggle-active" text="◦" />
-                                <Button styleClass="view-toggle" text="☰" />
-                            </HBox>
                         </HBox>
 
                         <VBox fx:id="defaultSections" spacing="28.0">

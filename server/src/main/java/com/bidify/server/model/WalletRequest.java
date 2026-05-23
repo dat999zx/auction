@@ -18,7 +18,7 @@ public class WalletRequest {
     private WalletRequestStatus status;
     private String reviewedBy;
 
-    // dùng để tạo một yêu cầu ví mới với ID ngẫu nhiên và thời gian hiện tại
+    // Khởi tạo yêu cầu nạp/rút mới với ID tự sinh và thời gian hiện tại.
     public WalletRequest(String username, TransactionType type, double amount) {
         this.id = UUID.randomUUID().toString();
         this.createdAt = TimeUtil.nowInVietnam();
@@ -28,7 +28,6 @@ public class WalletRequest {
         this.status = WalletRequestStatus.PENDING;
     }
 
-    // dùng để tải thông tin yêu cầu ví từ database khi đã có sẵn đầy đủ thuộc tính
     public WalletRequest(String id, LocalDateTime createdAt, LocalDateTime reviewedAt, String username, TransactionType type, double amount, WalletRequestStatus status, String reviewedBy) {
         this.id = id;
         this.createdAt = createdAt;
@@ -49,14 +48,12 @@ public class WalletRequest {
     public WalletRequestStatus getStatus() { return status; }
     public String getReviewedBy() { return reviewedBy; }
 
-    // dùng để phê duyệt yêu cầu nạp/rút tiền này
     public void approve(String reviewer) {
         this.status = WalletRequestStatus.APPROVED;
         this.reviewedAt = TimeUtil.nowInVietnam();
         this.reviewedBy = reviewer;
     }
 
-    // dùng để từ chối yêu cầu nạp/rút tiền này
     public void deny(String reviewer) {
         this.status = WalletRequestStatus.DENIED;
         this.reviewedAt = TimeUtil.nowInVietnam();

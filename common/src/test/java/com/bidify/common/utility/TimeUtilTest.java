@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
@@ -20,7 +21,7 @@ class TimeUtilTest {
         LocalDateTime now = TimeUtil.nowInVietnam();
 
         assertNotNull(now);
-        assertTrue(Math.abs(java.time.Duration.between(
+        assertTrue(Math.abs(Duration.between(
                 LocalDateTime.now(TimeUtil.VIETNAM_ZONE),
                 now
         ).toSeconds()) < 2);

@@ -8,23 +8,25 @@ public class UserDto {
     private WalletDto wallet;
     private UserRole role;
     private String profileImageBase64;
+    private String email;
+    private String phoneNumber;
 
-    // dùng để tạo một đối tượng UserDto
     public UserDto(String username, String nickname, WalletDto wallet, UserRole role){
-        this.username = username;
-        this.nickname = nickname;
-        this.wallet = wallet;
-        this.role = role;
-        this.profileImageBase64 = null;
+        this(username, nickname, wallet, role, null, null, null);
     }
 
-    // dùng để tạo một đối tượng UserDto
     public UserDto(String username, String nickname, WalletDto wallet, UserRole role, String profileImageBase64){
+        this(username, nickname, wallet, role, profileImageBase64, null, null);
+    }
+
+    public UserDto(String username, String nickname, WalletDto wallet, UserRole role, String profileImageBase64, String email, String phoneNumber){
         this.username = username;
         this.nickname = nickname;
         this.wallet = wallet;
         this.role = role;
         this.profileImageBase64 = profileImageBase64;
+        this.email = email;
+        this.phoneNumber = phoneNumber;
     }
     
     public String getUsername() { return username; }
@@ -32,5 +34,7 @@ public class UserDto {
     public WalletDto getWallet() { return wallet; }
     public UserRole getRole() { return role; }
     public String getProfileImageBase64() { return profileImageBase64; }
+    public String getEmail() { return email; }
+    public String getPhoneNumber() { return phoneNumber; }
 }
 

@@ -44,25 +44,20 @@ public class SettlementsController {
     @FXML
     private Label summaryLabel;
 
-    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
             MissionBarUtil.setup(NavPage.SETTLEMENTS, false, null);
             searchField.textProperty().addListener((obs, oldValue, newValue) -> renderSettlements(filterSettlements(newValue)));
-            // dùng để tải danh sách các phiên đấu giá đã kết thúc cần xử lý
             loadSettlements();
         });
     }
 
-    // dùng để xử lý refresh
     @FXML
     private void handleRefresh() {
-        // dùng để tải danh sách các phiên đấu giá đã kết thúc cần xử lý
         loadSettlements();
     }
 
-    // dùng để tải các phiên đấu giá cần quyết toán/xử lý
     private void loadSettlements() {
         try {
             AuctionDto[] settlements = auctionClientService.getUserSettlements();
@@ -81,7 +76,6 @@ public class SettlementsController {
         }
     }
 
-    // dùng để lọc danh sách các phiên quyết toán
     private List<AuctionDto> filterSettlements(String rawQuery) {
         String query = rawQuery == null ? "" : rawQuery.trim().toLowerCase();
         if (query.isBlank()) return allSettlements;
@@ -112,7 +106,6 @@ public class SettlementsController {
         return filtered;
     }
 
-    // dùng để hiển thị danh sách quyết toán
     private void renderSettlements(List<AuctionDto> auctions) {
         settlementsContainer.getChildren().clear();
 
@@ -129,7 +122,6 @@ public class SettlementsController {
         summaryLabel.setText("Showing " + auctions.size() + " settlement" + (auctions.size() == 1 ? "" : "s"));
     }
 
-    // dùng để tạo giao diện trống rỗng
     private Node createEmptyState() {
         VBox box = new VBox(10);
         box.getStyleClass().add("empty-state");
@@ -149,7 +141,6 @@ public class SettlementsController {
         return box;
     }
 
-    // dùng để tạo dòng quyết toán
     private Node createRow(AuctionDto auction, boolean isLast) {
         GridPane row = new GridPane();
         row.getStyleClass().add(isLast ? "table-row-last" : "table-row");
@@ -211,14 +202,12 @@ public class SettlementsController {
         return row;
     }
 
-    // dùng để tạo column với chiều rộng phần trăm
     private ColumnConstraints createColumn(double percentWidth) {
         ColumnConstraints constraints = new ColumnConstraints();
         constraints.setPercentWidth(percentWidth);
         return constraints;
     }
 
-    // dùng để tạo Status Chip tương ứng với trạng thái phiên đấu giá
     private Label createStatusChip(String statusStr) {
         String displayName = statusStr;
         String styleClass = "status-chip-generic";
@@ -258,7 +247,6 @@ public class SettlementsController {
         return chip;
     }
 
-    // dùng để tạo thumbnail node
     private Node createThumbnailNode(AuctionDto auction) {
         StackPane frame = new StackPane();
         frame.getStyleClass().add("thumb-frame");
@@ -282,7 +270,6 @@ public class SettlementsController {
         return frame;
     }
 
-    // dùng để giải mã hình ảnh Base64
     private Image decodeImage(String base64) {
         if (base64 == null || base64.isBlank()) return null;
         try {
@@ -297,7 +284,6 @@ public class SettlementsController {
         }
     }
 
-    // dùng để xây dựng dòng metadata
     private String buildMetaLine(AuctionDto auction) {
         List<String> parts = new ArrayList<>();
         if (!safe(auction.getCategory()).isBlank())
@@ -309,13 +295,11 @@ public class SettlementsController {
         return String.join(" • ", parts);
     }
 
-    // dùng để lấy chữ cái đầu của chuỗi
     private String resolveInitial(String value) {
         if (value == null || value.isBlank()) return "A";
         return value.substring(0, 1).toUpperCase();
     }
 
-    // dùng để đảm bảo chuỗi không null
     private String safe(String value) {
         return value == null ? "" : value;
     }

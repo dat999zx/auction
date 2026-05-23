@@ -8,33 +8,17 @@ import com.bidify.common.dto.BidDto;
 import com.bidify.common.enums.RequestType;
 
 public class RequestTest {
-    
-    // dùng để default constructor generates ID
-    @Test
-    void defaultConstructorGeneratesId() {
-        // Tạo Request mà không truyền tham số nào
-        Request request = new Request();
-        
-        // Kiểm tra ID được generate tự động
-        // - ID phải không null
-        // - ID phải là string khác rỗng (từ IdGenerator)
-        assertNotNull(request.getId());
-        assertFalse(request.getId().isEmpty());
-    }
-    
-    // dùng để multiple danh sách yêu cầu have different ids
     @Test
     void multipleRequestsHaveDifferentIds() {
         // Tạo 2 Request khác nhau
-        Request req1 = new Request();
-        Request req2 = new Request();
+        Request req1 = new Request(RequestType.LOGIN, null);
+        Request req2 = new Request(RequestType.LOGIN, null);
         
         // Kiểm tra mỗi Request có ID độc nhất
         // Quan trọng để tracking request-response pairs
         assertNotEquals(req1.getId(), req2.getId());
     }
     
-    // dùng để constructor với type and data
     @Test
     void constructorWithTypeAndData() {
         // Chuẩn bị data cho login request
@@ -52,7 +36,6 @@ public class RequestTest {
         assertSame(loginData, request.getData());
     }
     
-    // dùng để tạo đăng ký yêu cầu
     @Test
     void createRegisterRequest() {
         // Chuẩn bị data register
@@ -66,7 +49,6 @@ public class RequestTest {
         assertEquals(regData, request.getData());
     }
     
-    // dùng để tạo đấu giá list yêu cầu
     @Test
     void createAuctionListRequest() {
         // Tạo request lấy danh sách auction (không cần data)
@@ -79,7 +61,6 @@ public class RequestTest {
         assertNull(request.getData());
     }
     
-    // dùng để tạo lượt đặt giá yêu cầu
     @Test
     void createBidRequest() {
         // Chuẩn bị data bid (thường là JSON object chứa auctionId, amount)
@@ -93,7 +74,6 @@ public class RequestTest {
         assertEquals(bidData, request.getData());
     }
 
-    // dùng để tạo thiết lập auto lượt đặt giá yêu cầu
     @Test
     void createSetAutoBidRequest() {
         SetAutoBidRequest autoBidData = new SetAutoBidRequest("auc-1", 2500.0);
@@ -103,7 +83,6 @@ public class RequestTest {
         assertSame(autoBidData, request.getData());
     }
 
-    // dùng để tạo disable auto lượt đặt giá yêu cầu
     @Test
     void createDisableAutoBidRequest() {
         DisableAutoBidRequest autoBidData = new DisableAutoBidRequest("auc-1");
@@ -113,7 +92,6 @@ public class RequestTest {
         assertSame(autoBidData, request.getData());
     }
 
-    // dùng để đặt giá đối tượng truyền tải dữ liệu (DTO) can mark auto lượt đặt giá generated entries
     @Test
     void bidDtoCanMarkAutoBidGeneratedEntries() {
         BidDto dto = new BidDto("bid-1", "2026-05-17T10:00:00", "auc-1", "alice", 1200.0, true);
@@ -122,11 +100,10 @@ public class RequestTest {
         assertEquals("alice", dto.getBidderUsername());
     }
     
-    // dùng để request ID never null
     @Test
     void requestIdNeverNull() {
-        // Tạo 2 requests khác nhau: 1 cái với default constructor, 1 cái có tham số
-        Request request1 = new Request();
+        // Tạo 2 requests khác nhau
+        Request request1 = new Request(RequestType.CREATE_AUCTION, null);
         Request request2 = new Request(RequestType.LOGIN, null);
         
         // Kiểm tra cả 2 đều có ID (không bao giờ null)

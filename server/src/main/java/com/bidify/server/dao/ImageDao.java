@@ -14,30 +14,26 @@ import com.bidify.server.model.ItemImageLink;
 public class ImageDao {
     private static final ImageDao instance = new ImageDao();
 
-    // dùng để tạo một đối tượng ImageDao
     private ImageDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static ImageDao getInstance() { return instance; }
 
-    // dùng để tạo
+    // Lưu thực thể Image mới vào database.
     public void create(Image image) throws DatabaseException {
         String sql = "INSERT INTO Images(id, createdAt, filePath) VALUES (?, ?, ?)";
         SQLiteHelper.update(sql, image.getId(), image.getCreatedAt().toString(), image.getFilePath());
     }
 
-    // dùng để tìm kiếm bởi ID
     public Image findById(String imageId) throws DatabaseException {
         String sql = "SELECT * FROM Images WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> rs.next() ? mapImage(rs) : null, imageId);
     }
 
-    // dùng để xóa bởi ID
     public void deleteById(String imageId) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Images WHERE id = ?", imageId);
     }
 
-    // dùng để tạo sản phẩm hình ảnh link
+    // Lưu mối liên kết giữa Item và Image vào database.
     public void createItemImageLink(ItemImageLink link) throws DatabaseException {
         String sql = "INSERT INTO ItemImageLinks(id, createdAt, itemId, imageId, displayOrder, isPrimary) VALUES (?, ?, ?, ?, ?, ?)";
         SQLiteHelper.update(
@@ -51,7 +47,7 @@ public class ImageDao {
         );
     }
 
-    // dùng để tìm kiếm sản phẩm links
+    // Lấy danh sách liên kết ảnh của một Item, ưu tiên ảnh chính (isPrimary).
     public List<ItemImageLink> findItemLinks(String itemId) throws DatabaseException {
         String sql = "SELECT * FROM ItemImageLinks WHERE itemId = ? ORDER BY isPrimary DESC, displayOrder ASC, createdAt ASC";
         return SQLiteHelper.query(sql, rs -> {
@@ -62,7 +58,6 @@ public class ImageDao {
         }, itemId);
     }
 
-    // dùng để chuyển đổi hình ảnh
     private Image mapImage(ResultSet rs) throws SQLException {
         return new Image(
             rs.getString("id"),
@@ -71,7 +66,6 @@ public class ImageDao {
         );
     }
 
-    // dùng để chuyển đổi sản phẩm link
     private ItemImageLink mapItemLink(ResultSet rs) throws SQLException {
         return new ItemImageLink(
             rs.getString("id"),

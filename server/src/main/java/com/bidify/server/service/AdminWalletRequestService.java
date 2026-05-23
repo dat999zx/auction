@@ -35,13 +35,10 @@ public class AdminWalletRequestService {
     private final UserDao userDao = UserDao.getInstance();
     private final TransactionDao transactionDao = TransactionDao.getInstance();
 
-    // dùng để tạo một đối tượng AdminWalletRequestService
     private AdminWalletRequestService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static AdminWalletRequestService getInstance() { return instance; }
 
-    // dùng để đăng ký API routes với router hệ thống cho phần duyệt tiền
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_PENDING_WALLET_REQUESTS, (client, req) -> getPendingRequests(client));
@@ -72,7 +69,7 @@ public class AdminWalletRequestService {
         });
     }
 
-    // dùng để xử lý admin approve hoặc deny một request nạp/rút
+    // Phê duyệt hoặc từ chối yêu cầu ví từ người dùng.
     public Response reviewRequest(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             User admin = ServiceUtil.requireSessionUser(client);
@@ -122,7 +119,6 @@ public class AdminWalletRequestService {
             }
 
             // Publish events
-            // dùng để phát sự kiện ví danh sách yêu cầu changed
             publishWalletRequestsChanged(client);
             publishUserRequestsChanged(walletRequest.getUsername());
             
@@ -138,7 +134,7 @@ public class AdminWalletRequestService {
         });
     }
 
-    // dùng để báo cho toàn bộ admin đang online biết danh sách request đã thay đổi để reload UI
+    // Phát sự kiện cập nhật danh sách yêu cầu ví đến toàn bộ admin trực tuyến.
     private void publishWalletRequestsChanged(ClientHandler client) {
         if (client == null) return;
         // Only send to admin clients, not every connected user.
@@ -152,7 +148,7 @@ public class AdminWalletRequestService {
     }
 
     /** Notify the target user that their own request list changed. */
-    // dùng để báo cho user có request được duyệt biết để cập nhật lịch sử nạp/rút của họ
+    // Gửi thông báo đến người gửi yêu cầu để tải lại danh sách cá nhân.
     private void publishUserRequestsChanged(String username) {
         if (username == null) return;
         ClientHandler targetClient = RealtimeDatabase.getUserClient(username);
