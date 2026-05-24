@@ -2,9 +2,6 @@ package com.bidify.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
-import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
 import java.util.List;
@@ -18,6 +15,7 @@ import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.exception.AuctionException;
+import com.bidify.common.exception.AuthException;
 import com.bidify.common.model.Event;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.DisplayUtil;
@@ -25,8 +23,13 @@ import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
+import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.utility.AuctionActivityRenderer;
+import com.bidify.utility.AuctionImageCarousel;
+import com.bidify.utility.AuctionSettlementViewState;
+import com.bidify.utility.ChartRenderUtil;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
@@ -45,8 +48,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -56,10 +57,6 @@ import javafx.util.StringConverter;
 public class AuctionDetailsController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
-    private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("MM-dd HH:mm");
-    private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
-    private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
     private static String selectedAuctionId;
 
@@ -101,8 +98,8 @@ public class AuctionDetailsController {
     @FXML
     private HBox thumbnailContainer;
 
-    private final java.util.List<Image> carouselImages = new java.util.ArrayList<>();
-    private int currentCarouselIndex = 0;
+    private final AuctionImageCarousel carousel = new AuctionImageCarousel();
+    private final AuctionActivityRenderer activityRenderer = new AuctionActivityRenderer();
     @FXML
     private Label openingBidderLabel;
     @FXML
@@ -195,6 +192,8 @@ public class AuctionDetailsController {
                 }
             });
         }
+
+        carousel.bind(previewimage, prevImageButton, nextImageButton, thumbnailContainer, DEFAULT_PREVIEW_IMAGE);
 
         if (selectedAuctionId != null && !selectedAuctionId.isBlank()) {
             loadAuctionDetails(selectedAuctionId);
@@ -463,9 +462,11 @@ public class AuctionDetailsController {
         refreshAutoBidStatusLabel();
         renderAudienceStats(data, isUpcoming);
 
+        carousel.reset();
+
         if (AntiSnipingVisualLabel != null) {
-            String currentUser = com.bidify.model.ClientSession.getInstance().getCurrentUsername();
-            boolean isAdmin = com.bidify.model.ClientSession.getInstance().isAdmin();
+            String currentUser = ClientSession.getInstance().getCurrentUsername();
+            boolean isAdmin = ClientSession.getInstance().isAdmin();
             boolean isSeller = currentUser != null && currentUser.equals(data.getSellerUsername());
             boolean hasConfig = data.getAntiSnipingTriggerTime() != null && data.getAntiSnipingExtensionTime() != null 
             && data.getMaxEndTime().compareTo(data.getEndTime()) > 0;
@@ -481,16 +482,13 @@ public class AuctionDetailsController {
                     AntiSnipingVisualLabel.setText("Anti-sniping not configured for this auction.");
                 }
             }
-        // Populate carousel images
-        carouselImages.clear();
-        currentCarouselIndex = 0;
         }
 
         if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
             String cacheKey = "auction_" + data.getId() + "_thumb";
             Image img = ImageCache.getInstance().get(cacheKey, data.getThumbnailBase64());
             if (img != null && !img.isError()) {
-                carouselImages.add(img);
+                carousel.addImage(img);
             }
         }
 
@@ -500,18 +498,14 @@ public class AuctionDetailsController {
                 if (base64 != null && !base64.isBlank()) {
                     String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
                     Image img = ImageCache.getInstance().get(cacheKey, base64);
-                    if (img != null && !img.isError() && !carouselImages.contains(img)) {
-                        carouselImages.add(img);
+                    if (img != null && !img.isError() && !carousel.getImages().contains(img)) {
+                        carousel.addImage(img);
                     }
                 }
             }
         }
 
-        if (data.getThumbnailBase64() != null)
-            setPreviewImageFromBase64(data.getThumbnailBase64());
-        else
-            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-        updateCarouselDisplay();
+        carousel.updateDisplay();
 
 
     }
@@ -542,56 +536,40 @@ public class AuctionDetailsController {
             inputprice.clear();
         }
 
-        boolean showSellerCancel = isActive && (isSeller || isAdmin);
+        AuctionSettlementViewState settlementState = AuctionSettlementViewState.resolve(
+            status,
+            currentAuction == null ? null : currentAuction.getCurrentBidderUsername(),
+            currentAuction == null ? null : currentAuction.getSellerUsername(),
+            currentUsername,
+            isAdmin
+        );
+
         if (sellerCancelButton != null) {
-            sellerCancelButton.setManaged(showSellerCancel);
-            sellerCancelButton.setVisible(showSellerCancel);
+            sellerCancelButton.setManaged(settlementState.showSellerCancelButton());
+            sellerCancelButton.setVisible(settlementState.showSellerCancelButton());
         }
 
         if (settlementActionSection != null) {
-            boolean showSettlementSection = false;
-            boolean showPay = false;
-            boolean showConfirm = false;
-            boolean showAdminComplete = false;
-            boolean showAdminCancel = false;
-            String statusText = "";
-
-            if ("AWAITING_PAYMENT".equalsIgnoreCase(status)) {
-                showSettlementSection = true;
-                statusText = "Status: AWAITING PAYMENT (Winner: " + currentAuction.getCurrentBidderUsername() + ")";
-                if (currentUsername != null && currentUsername.equals(currentAuction.getCurrentBidderUsername())) {
-                    showPay = true;
+            settlementActionSection.setManaged(settlementState.showSettlementSection());
+            settlementActionSection.setVisible(settlementState.showSettlementSection());
+            payNowButton.setManaged(settlementState.showPayButton());
+            payNowButton.setVisible(settlementState.showPayButton());
+            confirmDeliveryButton.setManaged(settlementState.showConfirmDeliveryButton());
+            confirmDeliveryButton.setVisible(settlementState.showConfirmDeliveryButton());
+            adminCompleteButton.setManaged(settlementState.showAdminCompleteButton());
+            adminCompleteButton.setVisible(settlementState.showAdminCompleteButton());
+            adminCancelButton.setManaged(settlementState.showAdminCancelButton());
+            adminCancelButton.setVisible(settlementState.showAdminCancelButton());
+            if (settlementState.showSettlementSection()) {
+                String statusText = "";
+                if ("AWAITING_PAYMENT".equalsIgnoreCase(status)) {
+                    statusText = "Status: AWAITING PAYMENT (Winner: " + (currentAuction != null ? currentAuction.getCurrentBidderUsername() : "") + ")";
+                } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
+                    statusText = "Status: AWAITING DELIVERY";
+                } else if ("COMPLETED".equalsIgnoreCase(status)) {
+                    statusText = "Status: COMPLETED (Winner: " + (currentAuction != null ? currentAuction.getCurrentBidderUsername() : "") + " paid and received)";
                 }
-                if (isAdmin) {
-                    showAdminCancel = true;
-                }
-            } else if ("AWAITING_DELIVERY".equalsIgnoreCase(status)) {
-                showSettlementSection = true;
-                statusText = "Status: AWAITING DELIVERY";
-                if (isSeller || isAdmin) {
-                    showConfirm = true;
-                }
-                if (isAdmin) {
-                    showAdminComplete = true;
-                    showAdminCancel = true;
-                }
-            } else if ("COMPLETED".equalsIgnoreCase(status)) {
-                showSettlementSection = true;
-                statusText = "Status: COMPLETED (Winner: " + currentAuction.getCurrentBidderUsername() + " paid and received)";
-            }
-
-            settlementActionSection.setManaged(showSettlementSection);
-            settlementActionSection.setVisible(showSettlementSection);
-            if (showSettlementSection) {
                 settlementStatusLabel.setText(statusText);
-                payNowButton.setManaged(showPay);
-                payNowButton.setVisible(showPay);
-                confirmDeliveryButton.setManaged(showConfirm);
-                confirmDeliveryButton.setVisible(showConfirm);
-                adminCompleteButton.setManaged(showAdminComplete);
-                adminCompleteButton.setVisible(showAdminComplete);
-                adminCancelButton.setManaged(showAdminCancel);
-                adminCancelButton.setVisible(showAdminCancel);
             }
         }
     }
@@ -607,53 +585,6 @@ public class AuctionDetailsController {
 
         watcherCountLabel.setText(formatCount(data.getWatcherCount(), "watching", "watching"));
         activeBidderCountLabel.setText(formatCount(data.getActiveBidderCount(), "active bidder", "active bidders"));
-    }
-
-
-    private void resetView() {
-        stopTimer();
-        currentAuction = null;
-        name.setText("Loading auction...");
-        description.setText("Please wait while the auction details are fetched.");
-
-        openingBidAmountLabel.setText("Loading...");
-        currentprice.setText("Loading...");
-        leftMetricLabel.setText("STARTING PRICE");
-        rightMetricLabel.setText("CURRENT BID");
-        openDateLabel.setText("Open at:");
-        endDateLabel.setText("End at:");
-        recentActivityLabel.setText("RECENT ACTIVITY");
-        bidActionSection.setManaged(true);
-        bidActionSection.setVisible(true);
-
-        enddate.setText("Loading...");
-        activityList.getChildren().clear();
-        showBiddingChartState("Loading bid history...");
-        updateBiddingTrendDetail("$0.00", "Loading bid trend...", "neutral");
-
-        openingBidderLabel.setText("Starting price");
-        opendate.setText("Opening bid");
-
-        carouselImages.clear();
-        currentCarouselIndex = 0;
-        if (prevImageButton != null) {
-            prevImageButton.setVisible(false);
-            prevImageButton.setManaged(false);
-        }
-        if (nextImageButton != null) {
-            nextImageButton.setVisible(false);
-            nextImageButton.setManaged(false);
-        }
-        if (thumbnailContainer != null) {
-            thumbnailContainer.getChildren().clear();
-            thumbnailContainer.setVisible(false);
-            thumbnailContainer.setManaged(false);
-        }
-
-        currentDisplayedPrice = 0;
-        placebid.setDisable(true);
-        currentUserAutoBidActive = false;
-        refreshAutoBidStatusLabel();
     }
 
     private void refreshAutoBidStatusLabel() {
@@ -787,7 +718,7 @@ public class AuctionDetailsController {
 
         LocalDateTime firstBidTime = parseBidCreatedAt(sortedBids.getFirst());
         LocalDateTime lastBidTime = parseBidCreatedAt(sortedBids.getLast());
-        biddingTimeAxis.setTickLabelFormatter(createTimeAxisFormatter(firstBidTime, lastBidTime));
+        biddingTimeAxis.setTickLabelFormatter(ChartRenderUtil.createTimeAxisFormatter(firstBidTime, lastBidTime));
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         for (BidDto bid : sortedBids) {
@@ -847,7 +778,7 @@ public class AuctionDetailsController {
     }
 
     private XYChart.Data<Number, Number> createBidPoint(BidDto bid) {
-        XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), bid.getAmount());
+        XYChart.Data<Number, Number> point = new XYChart.Data<>(ChartRenderUtil.toEpochSeconds(parseBidCreatedAt(bid)), bid.getAmount());
         point.setNode(createBidPointNode(bid));
         return point;
     }
@@ -859,7 +790,7 @@ public class AuctionDetailsController {
         node.setPrefSize(10, 10);
         node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         node.setPickOnBounds(true);
-        attachTooltip(node, createDetailedTooltip(buildBidTooltipText(bid)));
+        ChartRenderUtil.attachTooltip(node, ChartRenderUtil.createDetailedTooltip(buildBidTooltipText(bid)));
         return node;
     }
 
@@ -871,25 +802,6 @@ public class AuctionDetailsController {
                 + "\nTime: " + DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown time")
                 + "\nType: " + bidType
                 + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
-    }
-
-    private Tooltip createDetailedTooltip(String text) {
-        Tooltip tooltip = new Tooltip(text);
-        tooltip.getStyleClass().add("chart-tooltip");
-        tooltip.setWrapText(true);
-        tooltip.setMaxWidth(300);
-        return tooltip;
-    }
-
-    private void attachTooltip(Node node, Tooltip tooltip) {
-        node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
-        node.setOnMouseMoved(event -> {
-            if (tooltip.isShowing()) {
-                tooltip.setAnchorX(event.getScreenX() + 14);
-                tooltip.setAnchorY(event.getScreenY() + 14);
-            }
-        });
-        node.setOnMouseExited(event -> tooltip.hide());
     }
 
     private void showBiddingChartState(String message) {
@@ -915,45 +827,6 @@ public class AuctionDetailsController {
         }
     }
 
-    private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
-        DateTimeFormatter formatter = resolveTimeAxisFormatter(firstBidTime, lastBidTime);
-
-        return new StringConverter<>() {
-            @Override
-            public String toString(Number value) {
-                LocalDateTime dateTime = fromEpochSeconds(value.longValue());
-                return dateTime == null
-                        ? ""
-                        : dateTime.format(formatter);
-            }
-
-            @Override
-            public Number fromString(String string) {
-                return 0;
-            }
-        };
-    }
-
-    private DateTimeFormatter resolveTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
-        if (firstBidTime == null || lastBidTime == null) {
-            return CHART_SHORT_TIME_FORMATTER;
-        }
-
-        long totalHours = Math.abs(ChronoUnit.HOURS.between(firstBidTime, lastBidTime));
-        long totalDays = Math.abs(ChronoUnit.DAYS.between(firstBidTime.toLocalDate(), lastBidTime.toLocalDate()));
-
-        if (totalHours < 24) {
-            return CHART_SHORT_TIME_FORMATTER;
-        }
-        if (totalDays <= 14) {
-            return CHART_DAY_FORMATTER;
-        }
-        if (totalDays <= 90) {
-            return CHART_FULL_TIME_FORMATTER;
-        }
-        return CHART_YEAR_FORMATTER;
-    }
-
     private LocalDateTime parseBidCreatedAt(BidDto bid) {
         if (bid == null || bid.getCreatedAt() == null || bid.getCreatedAt().isBlank()) {
             return null;
@@ -966,210 +839,13 @@ public class AuctionDetailsController {
         }
     }
 
-    private long toEpochSeconds(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return 0L;
-        }
-        return TimeUtil.toVietnamEpochSeconds(dateTime);
-    }
-
-    private LocalDateTime fromEpochSeconds(long epochSeconds) {
-        try {
-            return TimeUtil.fromVietnamEpochSeconds(epochSeconds);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
     private void renderRecentActivity(AuctionDto data, boolean isUpcoming) {
-        if (activityList == null) return;
-
-        activityList.getChildren().clear();
-        if (isUpcoming) {
-            activityList.getChildren().add(createActivityRow("Bidding opens when the auction goes live.", "", ""));
-            return;
-        }
-
-        List<BidDto> bidHistory = data.getBidHistory();
-        if (bidHistory == null || bidHistory.isEmpty()) {
-            activityList.getChildren().add(createActivityRow("No bids placed yet.", "", ""));
-            return;
-        }
-
-        for (BidDto bid : bidHistory) {
-            String bidderText = bid.isAutoBidGenerated()
-                    ? DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder") + " (AutoBid)"
-                    : DisplayUtil.defaultText(bid.getBidderUsername(), "Unknown bidder");
-            activityList.getChildren().add(createActivityRow(
-                    bidderText,
-                    DisplayUtil.formatCashSuffix(bid.getAmount()),
-                    DisplayUtil.formatDateTime(bid.getCreatedAt(), "Unknown")
-            ));
-        }
-    }
-
-    private GridPane createActivityRow(String bidderText, String amountText, String timeText) {
-        GridPane row = new GridPane();
-        row.getStyleClass().add("activity-row");
-        row.getColumnConstraints().addAll(
-                createActivityColumn(34.0),
-                createActivityColumn(33.0),
-                createActivityColumn(33.0)
-        );
-
-        Label bidderLabel = new Label(bidderText);
-        bidderLabel.getStyleClass().add("bidder-name");
-        bidderLabel.setWrapText(true);
-
-        Label amountLabel = new Label(amountText);
-        amountLabel.getStyleClass().addAll("bidder-name", "right");
-        amountLabel.setMaxWidth(Double.MAX_VALUE);
-
-        Label timeLabel = new Label(timeText);
-        timeLabel.getStyleClass().addAll("bidder-name", "right");
-        timeLabel.setMaxWidth(Double.MAX_VALUE);
-
-        row.add(bidderLabel, 0, 0);
-        row.add(amountLabel, 1, 0);
-        row.add(timeLabel, 2, 0);
-        return row;
-    }
-
-    private ColumnConstraints createActivityColumn(double percentWidth) {
-        ColumnConstraints column = new ColumnConstraints();
-        column.setPercentWidth(percentWidth);
-        return column;
-    }
-
-    private void setPreviewImageFromBase64(String base64) {
-        if (selectedAuctionId != null && base64 != null) {
-            String cacheKey = "auction_" + selectedAuctionId + "_thumb";
-            Image cachedImage = ImageCache.getInstance().get(cacheKey, base64);
-            if (cachedImage != null) {
-                previewimage.setImage(cachedImage);
-                return;
-            }
-        }
-        setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-    }
-
-    private void setPreviewImage(String imagePath) {
-        if (previewimage == null) {
-            return;
-        }
-
-        String resolvedPath = (imagePath == null || imagePath.isBlank()) ? DEFAULT_PREVIEW_IMAGE : imagePath;
-        try {
-            Image image;
-            if (resolvedPath.startsWith("http://") || resolvedPath.startsWith("https://")) {
-                image = new Image(resolvedPath, true);
-            } else {
-                var resource = getClass().getResource(resolvedPath.startsWith("/") ? resolvedPath : "/" + resolvedPath);
-                image = resource == null
-                    ? new Image(getClass().getResourceAsStream(DEFAULT_PREVIEW_IMAGE))
-                    : new Image(resource.toExternalForm(), true);
-            }
-            previewimage.setImage(image);
-        } catch (Exception e) {
-            previewimage.setImage(new Image(getClass().getResourceAsStream(DEFAULT_PREVIEW_IMAGE)));
-        }
-    }
-
-    private void updateCarouselDisplay() {
-        if (carouselImages.isEmpty()) {
-            setPreviewImage(DEFAULT_PREVIEW_IMAGE);
-            if (prevImageButton != null) {
-                prevImageButton.setVisible(false);
-                prevImageButton.setManaged(false);
-            }
-            if (nextImageButton != null) {
-                nextImageButton.setVisible(false);
-                nextImageButton.setManaged(false);
-            }
-            renderThumbnails();
-            return;
-        }
-
-        if (currentCarouselIndex < 0) {
-            currentCarouselIndex = carouselImages.size() - 1;
-        } else if (currentCarouselIndex >= carouselImages.size()) {
-            currentCarouselIndex = 0;
-        }
-
-        previewimage.setImage(carouselImages.get(currentCarouselIndex));
-
-        boolean showNavigation = carouselImages.size() > 1;
-        if (prevImageButton != null) {
-            prevImageButton.setVisible(showNavigation);
-            prevImageButton.setManaged(showNavigation);
-        }
-        if (nextImageButton != null) {
-            nextImageButton.setVisible(showNavigation);
-            nextImageButton.setManaged(showNavigation);
-        }
-
-        renderThumbnails();
-    }
-
-    @FXML
-    private void handlePrevImage() {
-        currentCarouselIndex--;
-        updateCarouselDisplay();
-    }
-
-    @FXML
-    private void handleNextImage() {
-        currentCarouselIndex++;
-        updateCarouselDisplay();
-    }
-
-    private void renderThumbnails() {
-        if (thumbnailContainer == null) return;
-        thumbnailContainer.getChildren().clear();
-
-        if (carouselImages.size() <= 1) {
-            thumbnailContainer.setVisible(false);
-            thumbnailContainer.setManaged(false);
-            return;
-        }
-
-        thumbnailContainer.setVisible(true);
-        thumbnailContainer.setManaged(true);
-
-        for (int i = 0; i < carouselImages.size(); i++) {
-            final int index = i;
-            Image img = carouselImages.get(i);
-
-            StackPane thumbPane = new StackPane();
-            thumbPane.getStyleClass().add("thumb-card");
-            thumbPane.setPrefSize(80, 80);
-
-            if (i == currentCarouselIndex) {
-                thumbPane.setStyle("-fx-border-color: #00458f; -fx-border-width: 2px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
-            } else {
-                thumbPane.setStyle("-fx-border-color: #d8e3fb; -fx-border-width: 1px; -fx-border-radius: 6px; -fx-background-radius: 6px;");
-            }
-
-            ImageView thumbView = new ImageView(img);
-            thumbView.setFitHeight(72);
-            thumbView.setFitWidth(72);
-            thumbView.setPreserveRatio(true);
-            thumbView.setSmooth(true);
-
-            thumbPane.getChildren().add(thumbView);
-            thumbPane.setOnMouseClicked(e -> {
-                currentCarouselIndex = index;
-                updateCarouselDisplay();
-            });
-            thumbPane.setStyle(thumbPane.getStyle() + " -fx-cursor: hand;");
-
-            thumbnailContainer.getChildren().add(thumbPane);
-        }
+        activityRenderer.render(activityList, data, isUpcoming);
     }
 
     @FXML
     private void handleLogout() {
-        String currentUsername = com.bidify.network.SocketClient.getClient().getCurrentUsername();
+        String currentUsername = SocketClient.getClient().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             cleanup();
@@ -1191,7 +867,7 @@ public class AuctionDetailsController {
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
             logger.error("Exception occurred", e);
-        } catch (com.bidify.common.exception.AuthException e) {
+        } catch (AuthException e) {
             NotificationUtil.error(e.getMessage());
         }
     }
