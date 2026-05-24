@@ -2,8 +2,6 @@ package com.bidify.controller;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Comparator;
@@ -23,6 +21,7 @@ import com.bidify.controller.history.TransactionCardController;
 import com.bidify.event.EventManager;
 import com.bidify.service.BidClientService;
 import com.bidify.service.TransactionClientService;
+import com.bidify.utility.ChartRenderUtil;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
@@ -37,7 +36,6 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
-import javafx.scene.control.Tooltip;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -48,9 +46,6 @@ import javafx.util.StringConverter;
 public class HistoryController {
     private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
     private static final DateTimeFormatter CHART_SHORT_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
-    private static final DateTimeFormatter CHART_FULL_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM HH:mm");
-    private static final DateTimeFormatter CHART_DAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM");
-    private static final DateTimeFormatter CHART_YEAR_FORMATTER = DateTimeFormatter.ofPattern("MMM yyyy");
 
     @FXML
     private VBox biddingActivityContainer;
@@ -205,7 +200,7 @@ public class HistoryController {
         timeAxis.setTickLabelFormatter(new StringConverter<>() {
             @Override
             public String toString(Number value) {
-                LocalDateTime dateTime = fromEpochSeconds(value.longValue());
+                LocalDateTime dateTime = ChartRenderUtil.fromEpochSeconds(value.longValue());
                 return dateTime == null ? "" : dateTime.format(CHART_SHORT_TIME_FORMATTER);
             }
 
@@ -270,7 +265,7 @@ public class HistoryController {
 
         LocalDateTime firstTime = parseTransactionCreatedAt(sortedTransactions.getFirst());
         LocalDateTime lastTime = parseTransactionCreatedAt(sortedTransactions.getLast());
-        moneyFlowTimeAxis.setTickLabelFormatter(createTimeAxisFormatter(firstTime, lastTime));
+        moneyFlowTimeAxis.setTickLabelFormatter(ChartRenderUtil.createTimeAxisFormatter(firstTime, lastTime));
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         double runningTotal = 0.0;
@@ -302,7 +297,7 @@ public class HistoryController {
 
         LocalDateTime firstBidTime = parseBidCreatedAt(sortedBids.getFirst());
         LocalDateTime lastBidTime = parseBidCreatedAt(sortedBids.getLast());
-        biddingActivityTimeAxis.setTickLabelFormatter(createTimeAxisFormatter(firstBidTime, lastBidTime));
+        biddingActivityTimeAxis.setTickLabelFormatter(ChartRenderUtil.createTimeAxisFormatter(firstBidTime, lastBidTime));
 
         XYChart.Series<Number, Number> series = new XYChart.Series<>();
         int runningCount = 0;
@@ -517,13 +512,13 @@ public class HistoryController {
     }
 
     private XYChart.Data<Number, Number> createMoneyFlowPoint(TransactionDto transaction, double runningTotal) {
-        XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseTransactionCreatedAt(transaction)), runningTotal);
+        XYChart.Data<Number, Number> point = new XYChart.Data<>(ChartRenderUtil.toEpochSeconds(parseTransactionCreatedAt(transaction)), runningTotal);
         point.setNode(createMoneyFlowPointNode(transaction, runningTotal));
         return point;
     }
 
     private XYChart.Data<Number, Number> createBiddingActivityPoint(BidDto bid, int runningCount) {
-        XYChart.Data<Number, Number> point = new XYChart.Data<>(toEpochSeconds(parseBidCreatedAt(bid)), runningCount);
+        XYChart.Data<Number, Number> point = new XYChart.Data<>(ChartRenderUtil.toEpochSeconds(parseBidCreatedAt(bid)), runningCount);
         point.setNode(createBiddingActivityPointNode(bid, runningCount));
         return point;
     }
@@ -538,7 +533,7 @@ public class HistoryController {
         node.setPrefSize(10, 10);
         node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         node.setPickOnBounds(true);
-        attachTooltip(node, createDetailedTooltip(buildMoneyFlowTooltipText(transaction, runningTotal)));
+        ChartRenderUtil.attachTooltip(node, ChartRenderUtil.createDetailedTooltip(buildMoneyFlowTooltipText(transaction, runningTotal)));
         return node;
     }
 
@@ -552,7 +547,7 @@ public class HistoryController {
         node.setPrefSize(10, 10);
         node.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
         node.setPickOnBounds(true);
-        attachTooltip(node, createDetailedTooltip(buildBiddingActivityTooltipText(bid, runningCount)));
+        ChartRenderUtil.attachTooltip(node, ChartRenderUtil.createDetailedTooltip(buildBiddingActivityTooltipText(bid, runningCount)));
         return node;
     }
 
@@ -584,25 +579,6 @@ public class HistoryController {
             + "\nBid ID: " + DisplayUtil.defaultText(bid.getId(), "Unknown");
     }
 
-    private Tooltip createDetailedTooltip(String text) {
-        Tooltip tooltip = new Tooltip(text);
-        tooltip.getStyleClass().add("chart-tooltip");
-        tooltip.setWrapText(true);
-        tooltip.setMaxWidth(300);
-        return tooltip;
-    }
-
-    private void attachTooltip(Node node, Tooltip tooltip) {
-        node.setOnMouseEntered(event -> tooltip.show(node, event.getScreenX() + 14, event.getScreenY() + 14));
-        node.setOnMouseMoved(event -> {
-            if (tooltip.isShowing()) {
-                tooltip.setAnchorX(event.getScreenX() + 14);
-                tooltip.setAnchorY(event.getScreenY() + 14);
-            }
-        });
-        node.setOnMouseExited(event -> tooltip.hide());
-    }
-
     private void showChartState(StackPane chartHost, Label stateLabel, String message) {
         if (chartHost != null) {
             chartHost.setManaged(false);
@@ -626,44 +602,6 @@ public class HistoryController {
         }
     }
 
-    private StringConverter<Number> createTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
-        DateTimeFormatter formatter = resolveTimeAxisFormatter(firstBidTime, lastBidTime);
-
-        return new StringConverter<>() {
-            @Override
-            public String toString(Number value) {
-                LocalDateTime dateTime = fromEpochSeconds(value.longValue());
-                return dateTime == null
-                    ? ""
-                    : dateTime.format(formatter);
-            }
-
-            @Override
-            public Number fromString(String string) {
-                return 0;
-            }
-        };
-    }
-
-    private DateTimeFormatter resolveTimeAxisFormatter(LocalDateTime firstBidTime, LocalDateTime lastBidTime) {
-        if (firstBidTime == null || lastBidTime == null) {
-            return CHART_SHORT_TIME_FORMATTER;
-        }
-
-        long totalHours = Math.abs(ChronoUnit.HOURS.between(firstBidTime, lastBidTime));
-        long totalDays = Math.abs(ChronoUnit.DAYS.between(firstBidTime.toLocalDate(), lastBidTime.toLocalDate()));
-
-        if (totalHours < 24) {
-            return CHART_SHORT_TIME_FORMATTER;
-        }
-        if (totalDays <= 14) {
-            return CHART_DAY_FORMATTER;
-        }
-        if (totalDays <= 90) {
-            return CHART_FULL_TIME_FORMATTER;
-        }
-        return CHART_YEAR_FORMATTER;
-    }
 
     private LocalDateTime parseBidCreatedAt(BidDto bid) {
         if (bid == null || bid.getCreatedAt() == null || bid.getCreatedAt().isBlank()) {
@@ -719,13 +657,5 @@ public class HistoryController {
         }
 
         return isPositiveFlow(transaction) ? transaction.getAmount() : -transaction.getAmount();
-    }
-
-    private long toEpochSeconds(LocalDateTime dateTime) {
-        return dateTime == null ? 0L : TimeUtil.toVietnamEpochSeconds(dateTime);
-    }
-
-    private LocalDateTime fromEpochSeconds(long epochSeconds) {
-        return TimeUtil.fromVietnamEpochSeconds(epochSeconds);
     }
 }
