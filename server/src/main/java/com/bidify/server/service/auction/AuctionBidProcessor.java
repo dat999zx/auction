@@ -316,10 +316,7 @@ public class AuctionBidProcessor {
         }
 
         for (AutoBid autoBid : auction.getAutoBids()) {
-            if (!autoBid.isEnabled())
-                continue;
-            if (autoBid.getUsername().equals(currentLeader))
-                continue;
+            if (!autoBid.isEnabled() || autoBid.getUsername().equals(currentLeader)) continue;
 
             double effectiveBudget = getEffectiveBudgetForAuction(autoBid.getUsername(), auction);
             double effectiveMax = Math.min(autoBid.getMaxBid(), effectiveBudget);
