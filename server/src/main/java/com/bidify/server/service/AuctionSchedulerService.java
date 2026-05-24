@@ -17,6 +17,7 @@ import com.bidify.common.utility.TimeUtil;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.model.Auction;
+import com.bidify.server.service.auction.AuctionDtoAssembler;
 
 // Dịch vụ lập lịch cập nhật tự động trạng thái các phiên đấu giá theo thời gian thực.
 public class AuctionSchedulerService {
@@ -27,6 +28,7 @@ public class AuctionSchedulerService {
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final AuctionService auctionService = AuctionService.getInstance();
     private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private final AuctionDtoAssembler auctionDtoAssembler = new AuctionDtoAssembler();
 
     private AuctionSchedulerService() {}
 
@@ -72,7 +74,7 @@ public class AuctionSchedulerService {
     }
 
     private void publishStatusEvent(EventType eventType, String message, Auction auction) {
-        AuctionDto auctionDto = auctionService.toAuctionDto(auction, false);
+        AuctionDto auctionDto = auctionDtoAssembler.toAuctionDto(auction, false);
         RealtimeDatabase.getGlobalChannel().publish(new Event(eventType, message, auctionDto));
     }
 }

@@ -16,6 +16,7 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.auction.AuctionDtoAssembler;
 import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
@@ -34,6 +35,7 @@ public class UserProfileService {
     private final UserDao userDao = UserDao.getInstance();
     private final ImageDao imageDao = ImageDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
+    private final AuctionDtoAssembler auctionDtoAssembler = new AuctionDtoAssembler();
 
     private UserProfileService() {}
 
@@ -221,7 +223,7 @@ public class UserProfileService {
 
             AuctionDto[] auctionDtos = new AuctionDto[userAuctions.size()];
             for (int i = 0; i < userAuctions.size(); i++) {
-                auctionDtos[i] = AuctionService.getInstance().toAuctionDto(userAuctions.get(i), false);
+                auctionDtos[i] = auctionDtoAssembler.toAuctionDto(userAuctions.get(i), false);
             }
 
             PublicProfileDto publicProfile = new PublicProfileDto(
