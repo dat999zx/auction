@@ -1,12 +1,10 @@
 package com.bidify.controller;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +16,8 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.TimeUtil;
-import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.AuctionClientService;
+import com.bidify.utility.AuctionFormParser;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
@@ -92,8 +90,8 @@ public class ModifyAuctionController {
                 String maxEndText = maxEndTimeField.getText();
                 if (endText == null || endText.trim().isEmpty() || maxEndText == null || maxEndText.trim().isEmpty()) return;
 
-                LocalTime endTime = parseTime(endText.trim(), "End time");
-                LocalTime maxEndTime = parseTime(maxEndText.trim(), "Maximum end time");
+                LocalTime endTime = AuctionFormParser.parseTime(endText.trim(), "End time");
+                LocalTime maxEndTime = AuctionFormParser.parseTime(maxEndText.trim(), "Maximum end time");
 
                 LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
                 LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
@@ -216,12 +214,12 @@ public class ModifyAuctionController {
         }
 
         try {
-            double price = parseAmount(startingPriceField.getText(), "Starting Price");
+            double price = AuctionFormParser.parseAmount(startingPriceField.getText(), "Starting Price");
             
             LocalDate startDate = startDatePicker.getValue();
-            LocalTime startTime = parseTime(startTimeField.getText(), "Start Time");
+            LocalTime startTime = AuctionFormParser.parseTime(startTimeField.getText(), "Start Time");
             LocalDate endDate = endDatePicker.getValue();
-            LocalTime endTime = parseTime(endTimeField.getText(), "End Time");
+            LocalTime endTime = AuctionFormParser.parseTime(endTimeField.getText(), "End Time");
 
             LocalDateTime startDateTime = LocalDateTime.of(startDate, startTime);
             LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
@@ -231,20 +229,20 @@ public class ModifyAuctionController {
             }
 
             LocalDate maxEndDate = maxEndDatePicker.getValue();
-            LocalTime maxEndTime = parseTime(maxEndTimeField.getText(), "Maximum End Time");
+            LocalTime maxEndTime = AuctionFormParser.parseTime(maxEndTimeField.getText(), "Maximum End Time");
             LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
 
             if (maxEndDateTime.isBefore(endDateTime)) {
                 throw new ValidationException("Maximum end date & time cannot be earlier than the standard end time.");
             }
 
-            double minIncrement = parseAmount(minIncrementField.getText(), "Minimum Increment");
+            double minIncrement = AuctionFormParser.parseAmount(minIncrementField.getText(), "Minimum Increment");
             
             String triggerTime = triggerTimeField.getText();
             String extensionTime = extensionTimeField.getText();
 
-            parseDuration(triggerTime, "Trigger Window");
-            parseDuration(extensionTime, "Extension");
+            AuctionFormParser.parseDuration(triggerTime, "Trigger Window");
+            AuctionFormParser.parseDuration(extensionTime, "Extension");
 
             // Mapping raw structural payload conversions directly to clear formats
             String finalStartTimeStr = startDateTime.format(ISO_SERVER_FORMATTER);
@@ -315,37 +313,6 @@ public class ModifyAuctionController {
         } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
         }
-    }
-
-    private double parseAmount(String value, String fieldName) {
-        String parseValue = (value == null) ? "" : value.trim();
-        ValidationUtil.requiresNonBlank(parseValue, fieldName);
-        try {
-            return Double.parseDouble(parseValue);
-        } catch (NumberFormatException e) {
-            throw new ValidationException(fieldName + " must be a valid number.");
-        }
-    }
-
-    private LocalTime parseTime(String value, String fieldName) {
-        String parseValue = (value == null) ? "" : value.trim();
-        ValidationUtil.requiresNonBlank(parseValue, fieldName);
-        try {
-            return LocalTime.parse(parseValue, TIME_FORMATTER);
-        } catch (DateTimeParseException e) {
-            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
-        }
-    }
-
-    private java.time.Duration parseDuration(String value, String fieldName) {
-        String parseValue = value == null ? "" : value.trim();
-        ValidationUtil.requiresNonBlank(parseValue, fieldName);
-
-        if (!parseValue.matches("^\\d+:[0-5]\\d$")) {
-            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
-        }
-
-        return TimeUtil.parseHHMM(parseValue);
     }
 
     private String defaultText(String value, String fallback) {
