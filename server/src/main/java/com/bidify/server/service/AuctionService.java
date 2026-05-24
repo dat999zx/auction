@@ -18,12 +18,8 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.DeleteAuctionRequest;
 import com.bidify.common.model.Event;
-import com.bidify.common.model.GetAuctionDetailRequest;
-import com.bidify.common.model.JoinAuctionRequest;
-import com.bidify.common.model.LeaveAuctionRequest;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
-import com.bidify.common.model.SearchAuctionRequest;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.TimeUtil;
@@ -37,28 +33,38 @@ import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.model.Auction;
-import com.bidify.server.model.AutoBid;
 import com.bidify.server.model.Item;
 import com.bidify.server.model.User;
-import com.bidify.server.model.Wallet;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.auction.AuctionAudienceService;
 import com.bidify.server.service.auction.AuctionBidProcessor;
+import com.bidify.server.service.auction.AuctionCascadeService;
 import com.bidify.server.service.auction.AuctionDtoAssembler;
+import com.bidify.server.service.auction.AuctionQueryService;
 import com.bidify.server.service.auction.AuctionRealtimePublisher;
 import com.bidify.server.service.auction.AuctionSettlementProcessor;
 import com.bidify.server.utility.ServiceUtil;
 
-// service xử lý các logic liên quan đến auction, tương tác với database thông qua AuctionDao và cập nhật realtime database để đồng bộ với client
 public class AuctionService {
-    private static Logger logger = LoggerFactory.getLogger(AuctionService.class);
-    private static AuctionService instance = new AuctionService();
+    private static final Logger logger = LoggerFactory.getLogger(AuctionService.class);
+    private static final AuctionService instance = new AuctionService();
+
     private final AuctionDao auctionDao = AuctionDao.getInstance();
     private final ItemDao itemDao = ItemDao.getInstance();
     private final UserDao userDao = UserDao.getInstance();
     private final BidDao bidDao = BidDao.getInstance();
     private final TransactionDao transactionDao = TransactionDao.getInstance();
+
     private final AuctionRealtimePublisher realtimePublisher = new AuctionRealtimePublisher();
     private final AuctionDtoAssembler auctionDtoAssembler = new AuctionDtoAssembler();
+
+    private final AuctionAudienceService audienceService =
+            new AuctionAudienceService(auctionDtoAssembler, realtimePublisher);
+    private final AuctionQueryService queryService =
+            new AuctionQueryService(auctionDao, auctionDtoAssembler);
+    private final AuctionCascadeService cascadeService =
+            new AuctionCascadeService(auctionDao, itemDao, bidDao, transactionDao, userDao, auctionDtoAssembler, realtimePublisher);
+
     private final AuctionSettlementProcessor settlementProcessor =
             new AuctionSettlementProcessor(auctionDao, transactionDao, auctionDtoAssembler, realtimePublisher);
     private final AuctionBidProcessor bidProcessor =
@@ -70,24 +76,24 @@ public class AuctionService {
 
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
-        router.register(RequestType.JOIN_AUCTION, this::join);
-        router.register(RequestType.LEAVE_AUCTION, this::leave);
+        router.register(RequestType.JOIN_AUCTION, audienceService::join);
+        router.register(RequestType.LEAVE_AUCTION, audienceService::leave);
         router.register(RequestType.CREATE_AUCTION, this::create);
         router.register(RequestType.UPDATE_AUCTION, this::update);
-        router.register(RequestType.GET_LIVE_AUCTIONS, (client, req) -> getAllLiveAuctions());
-        router.register(RequestType.GET_UPCOMING_AUCTIONS, (client, req) -> getAllUpcomingAuctions());
-        router.register(RequestType.GET_AUCTION_DETAIL, this::getDetail);
+        router.register(RequestType.GET_LIVE_AUCTIONS, (client, req) -> queryService.getAllLiveAuctions());
+        router.register(RequestType.GET_UPCOMING_AUCTIONS, (client, req) -> queryService.getAllUpcomingAuctions());
+        router.register(RequestType.GET_AUCTION_DETAIL, queryService::getDetail);
         router.register(RequestType.DELETE_AUCTION, this::delete);
         router.register(RequestType.PLACE_BID, bidProcessor::placeBid);
         router.register(RequestType.SET_AUTO_BID, bidProcessor::setAutoBid);
         router.register(RequestType.DISABLE_AUTO_BID, bidProcessor::disableAutoBid);
-        router.register(RequestType.SEARCH_AUCTIONS, (client, req) -> search(req));
+        router.register(RequestType.SEARCH_AUCTIONS, (client, req) -> queryService.search(req));
         router.register(RequestType.PAY_AUCTION, settlementProcessor::payAuction);
         router.register(RequestType.CONFIRM_AUCTION_DELIVERY, settlementProcessor::confirmAuctionDelivery);
         router.register(RequestType.RESOLVE_AUCTION, settlementProcessor::resolveAuction);
-        router.register(RequestType.GET_USER_SETTLEMENTS, this::getUserSettlements);
-        router.register(RequestType.GET_ADMIN_AUCTIONS, this::getAdminAuctions);
-        router.register(RequestType.GET_MY_AUCTIONS, this::getMyAuctions);
+        router.register(RequestType.GET_USER_SETTLEMENTS, queryService::getUserSettlements);
+        router.register(RequestType.GET_ADMIN_AUCTIONS, queryService::getAdminAuctions);
+        router.register(RequestType.GET_MY_AUCTIONS, queryService::getMyAuctions);
     }
 
     public void loadToRuntime(){
@@ -99,37 +105,49 @@ public class AuctionService {
             RealtimeDatabase.addRuntimeAuction(auction);
     }
 
+    // Public wrapper methods for backward compatibility and test stability
     public Response search(Request request) {
-        return ServiceUtil.handleRequest(() -> {
-            SearchAuctionRequest data = JsonUtil.fromMap(request.getData(), SearchAuctionRequest.class);
-            ServiceUtil.validateRequestData(data);
+        return queryService.search(request);
+    }
 
-            // Xử lý query để tiện hơn trong việc đối chiếu
-            String query = data.getQuery();
-            if (query == null) query = "";
-            String finalQuery = query.toLowerCase().trim();
+    public Response getDetail(ClientHandler client, Request request) {
+        return queryService.getDetail(client, request);
+    }
 
-            List<Auction> allAuctions = RealtimeDatabase.getAllRuntimeAuctions();
-            List<AuctionDto> results = new ArrayList<>(); // lưu các auctiondto thỏa mãn
+    public Response join(ClientHandler client, Request request) {
+        return audienceService.join(client, request);
+    }
 
-            for (Auction auction : allAuctions) {
-                Item item = auctionDtoAssembler.getLinkedAuctionItem(auction);
-                String auctionName = item != null ? item.getName() : auction.getAuctionName();
-                String description = item != null ? item.getDescription() : auction.getDescription();
-                String category = item != null ? item.getCategory() : null;
-                String productType = item != null ? item.getProductType() : null;
+    public Response leave(ClientHandler client, Request request) {
+        return audienceService.leave(client, request);
+    }
 
-                boolean matchesName = auctionName != null && auctionName.toLowerCase().contains(finalQuery);
-                boolean matchesDesc = description != null && description.toLowerCase().contains(finalQuery);
-                boolean matchesSeller = auction.getSellerUsername() != null && auction.getSellerUsername().toLowerCase().contains(finalQuery);
-                boolean matchesCategory = category != null && category.toLowerCase().contains(finalQuery);
-                boolean matchesProductType = productType != null && productType.toLowerCase().contains(finalQuery);
-                if (matchesName || matchesDesc || matchesSeller || matchesCategory || matchesProductType)
-                    results.add(auctionDtoAssembler.toAuctionDto(auction, item, false));
-            }
+    public void publishLiveAudienceUpdate(String auctionId) {
+        audienceService.publishLiveAudienceUpdate(auctionId);
+    }
 
-            return new Response(RequestStatus.SUCCESS, "Search completed", results);
-        });
+    public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
+        cascadeService.deleteAuctionCascade(auction, restoreLinkedItemToSeller);
+    }
+
+    public Response getAllLiveAuctions() {
+        return queryService.getAllLiveAuctions();
+    }
+
+    public Response getAllUpcomingAuctions() {
+        return queryService.getAllUpcomingAuctions();
+    }
+
+    public Response getUserSettlements(ClientHandler client, Request request) {
+        return queryService.getUserSettlements(client, request);
+    }
+
+    public Response getMyAuctions(ClientHandler client, Request request) {
+        return queryService.getMyAuctions(client, request);
+    }
+
+    public Response getAdminAuctions(ClientHandler client, Request request) {
+        return queryService.getAdminAuctions(client, request);
     }
 
     public Response create(ClientHandler client, Request request){
@@ -231,7 +249,6 @@ public class AuctionService {
         });
     }
 
-    // Lưu trạng thái của tất cả các phiên đấu giá đang chạy nền vào SQLite.
     public void saveAllRuntimeAuctions(){
         for (Auction auction : RealtimeDatabase.getAllRuntimeAuctions())
             auctionDao.save(auction);
@@ -255,7 +272,7 @@ public class AuctionService {
             requireSeller(auction, client.getCurrentUsername(), "Only seller can delete their auction");
 
             if (auction.getStatus() == AuctionStatus.UPCOMING) {
-                deleteAuctionCascade(auction, true);
+                cascadeService.deleteAuctionCascade(auction, true);
                 return new Response(RequestStatus.SUCCESS, "Auction deleted successfully");
             }
 
@@ -267,110 +284,6 @@ public class AuctionService {
             }
 
             throw new AuctionException("Can only delete upcoming auctions or cancel active auctions");
-        });
-    }
-
-    public Response getDetail(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
-            GetAuctionDetailRequest data = JsonUtil.fromMap(request.getData(), GetAuctionDetailRequest.class);
-            ServiceUtil.validateRequestData(data);
-
-            String auctionId = data.getAuctionId();
-            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-
-            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
-            if (auction == null)
-                auction = auctionDao.findById(auctionId);
-            if (auction == null)
-                throw new AuctionException("Auction not found");
-
-            AuctionDto auctionDto = auctionDtoAssembler.toAuctionDto(auction, true);
-            if (client != null && client.isInSession()) {
-                AutoBid currentUserAutoBid = auction.getAutoBid(client.getCurrentUsername());
-                auctionDto.setCurrentUserAutoBidActive(currentUserAutoBid != null);
-                auctionDto.setCurrentUserAutoBidMax(currentUserAutoBid == null ? null : currentUserAutoBid.getMaxBid());
-            }
-            return new Response(RequestStatus.SUCCESS, "Get auction detail successfully", auctionDto);
-        });
-    }
-
-    public Response getAllLiveAuctions(){
-        return ServiceUtil.handleRequest(() -> {
-            List<Auction> auctions = RealtimeDatabase.getAllLiveAuctions();
-            List<AuctionDto> summaries = new ArrayList<>();
-
-            if (auctions == null || auctions.isEmpty())
-                return new Response(RequestStatus.SUCCESS, "No live auctions", summaries);
-
-            for (Auction auction : auctions)
-                summaries.add(auctionDtoAssembler.toAuctionDto(auction, false));
-
-            return new Response(RequestStatus.SUCCESS, "Get live auctions successfully", summaries);
-        });
-    }
-
-    public Response getAllUpcomingAuctions(){
-        return ServiceUtil.handleRequest(() -> {
-            List<Auction> auctions = RealtimeDatabase.getAllUpcomingAuctions();
-            List<AuctionDto> summaries = new ArrayList<>();
-
-            if (auctions == null || auctions.isEmpty())
-                return new Response(RequestStatus.SUCCESS, "No upcoming auctions", summaries);
-
-            for (Auction auction : auctions)
-                summaries.add(auctionDtoAssembler.toAuctionDto(auction, false));
-
-            return new Response(RequestStatus.SUCCESS, "Get upcoming auctions successfully", summaries);
-        });
-    }
-
-    public Response join(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
-            JoinAuctionRequest data = JsonUtil.fromMap(request.getData(), JoinAuctionRequest.class);
-            ServiceUtil.validateRequestData(data);
-
-            ServiceUtil.requireSession(client);
-
-            String auctionId = data.getAuctionId();
-            String username = client.getCurrentUsername();
-
-            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
-            if (auction == null)
-                throw new AuctionException("Auction not found");
-
-            if (!isRuntimeAuction(auction))
-                throw new AuctionException("Auction not found");
-            if (RealtimeDatabase.isWatchingAuction(username, auctionId))
-                return new Response(RequestStatus.SUCCESS, "You are already watching this auction");
-
-            RealtimeDatabase.subscribeAuctionChannel(auctionId, username);
-
-            AuctionDto auctionDto = auctionDtoAssembler.toAuctionDto(auction, false);
-            publishAuctionUpdate(auction, "Auction watcher count updated");
-            return new Response(RequestStatus.SUCCESS, "Join auction successfully", auctionDto);
-        });
-    }
-
-    public Response leave(ClientHandler client, Request request){
-        return ServiceUtil.handleRequest(() -> {
-            LeaveAuctionRequest data = JsonUtil.fromMap(request.getData(), LeaveAuctionRequest.class);
-            ServiceUtil.validateRequestData(data);
-            ServiceUtil.requireSession(client);
-
-            String auctionId = data.getAuctionId();
-            String username = client.getCurrentUsername();
-
-            ValidationUtil.requiresNonBlank(auctionId, "Auction ID");
-
-            if (!RealtimeDatabase.isWatchingAuction(username, auctionId))
-                throw new AuctionException("You are not watching this auction");
-
-            RealtimeDatabase.unsubscribeAuctionChannel(auctionId, username);
-            Auction auction = RealtimeDatabase.getRuntimeAuction(auctionId);
-            if (auction != null)
-                publishAuctionUpdate(auction, "Auction watcher count updated");
-            return new Response(RequestStatus.SUCCESS, "Leave auction successfully");
         });
     }
 
@@ -406,84 +319,20 @@ public class AuctionService {
         realtimePublisher.publishAuctionUpdate(auction, auctionDtoAssembler.toAuctionDto(auction, false), message);
     }
 
-    public void publishLiveAudienceUpdate(String auctionId) {
-        if (auctionId == null || auctionId.isBlank())
-            return;
-
-        Auction auction = RealtimeDatabase.getLiveAuction(auctionId);
-        if (auction == null)
-            return;
-
-        publishAuctionUpdate(auction, "Auction watcher count updated");
-    }
-
     private void cancelActiveAuction(Auction auction) throws DatabaseException {
         if (auction == null)
             throw new AuctionException("Auction not found");
         if (auction.getStatus() != AuctionStatus.ACTIVE)
             throw new AuctionException("Can only cancel active auctions");
 
-        releaseCurrentLeaderLock(auction);
-        updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
+        cascadeService.releaseCurrentLeaderLock(auction);
+        cascadeService.updateAuctionItemState(auction, auction.getSellerUsername(), ItemStatus.AVAILABLE);
 
         auction.setStatus(AuctionStatus.CANCELED);
         auctionDao.save(auction);
 
         publishAuctionUpdate(auction, "Auction canceled");
         RealtimeDatabase.removeRuntimeAuction(auction.getId());
-    }
-
-    public void deleteAuctionCascade(Auction auction, boolean restoreLinkedItemToSeller) {
-        if (auction == null)
-            return;
-
-        releaseCurrentLeaderLock(auction);
-
-        if (restoreLinkedItemToSeller && auction.getItemId() != null && !auction.getItemId().isBlank())
-            itemDao.updateAvailabilityStatus(auction.getItemId(), ItemStatus.AVAILABLE);
-
-        bidDao.deleteByAuctionId(auction.getId());
-        transactionDao.deleteByAuctionId(auction.getId());
-        RealtimeDatabase.removeRuntimeAuction(auction.getId());
-        auctionDao.deleteById(auction.getId());
-        realtimePublisher.publishAuctionDeleted(auction);
-    }
-
-    private void releaseCurrentLeaderLock(Auction auction) {
-        String currentBidderUsername = auction.getCurrentBidderUsername();
-        double currentBid = auction.getCurrentBid();
-
-        if (currentBidderUsername == null || currentBid <= 0)
-            return;
-
-        User activeBidder = RealtimeDatabase.getActiveUser(currentBidderUsername);
-        User bidder = activeBidder != null ? activeBidder : ServiceUtil.getOrLoadUser(currentBidderUsername);
-        if (bidder == null)
-            return;
-
-        Wallet wallet = bidder.getWallet();
-        if (wallet == null || wallet.getLockedBalance() < currentBid)
-            return;
-
-        wallet.unlockBalance(currentBid);
-        userDao.save(bidder, false);
-
-        ClientHandler clientHandler = RealtimeDatabase.getUserClient(currentBidderUsername);
-        if (clientHandler != null) {
-            clientHandler.sendEvent(new Event(
-                EventType.LOCKED_BALANCE_CHANGED,
-                "Locked balance changed: -" + currentBid
-            ));
-        }
-    }
-
-    private void updateAuctionItemState(Auction auction, String ownerUsername, ItemStatus status) {
-        Item item = auctionDtoAssembler.getLinkedAuctionItem(auction);
-        if (item == null) return;
-
-        item.setOwnerUsername(ownerUsername);
-        item.setAvailabilityStatus(status);
-        itemDao.save(item);
     }
 
     private void validateAuctionUpdateFields(String sellerUsername, double startingPrice, double minIncrement) {
@@ -507,13 +356,6 @@ public class AuctionService {
         return TimeUtil.parseDateTime(value);
     }
 
-    private boolean isRuntimeAuction(Auction auction) {
-        if (auction == null) return false;
-        AuctionStatus status = auction.getStatus();
-        return status == AuctionStatus.UPCOMING || status == AuctionStatus.ACTIVE;
-    }
-
-    // Chuyển trạng thái đấu giá từ ACTIVE -> ENDED hoặc AWAITING_PAYMENT, xử lý giải phóng tiền đặt cọc.
     public void settleAuction(Auction auction) {
         String sellerUsername = auction.getSellerUsername();
         String winnerUsername = auction.getCurrentBidderUsername();
@@ -524,65 +366,12 @@ public class AuctionService {
             publishAuctionUpdate(auction, "Auction ended, awaiting payment from winner");
         }
         else {
-            updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
+            cascadeService.updateAuctionItemState(auction, sellerUsername, ItemStatus.AVAILABLE);
             auction.setStatus(AuctionStatus.CANCELED);
             auctionDao.save(auction);
         }
 
         logger.info("auction settled: {} - {} (status: {})", auction.getAuctionName(), auction.getId(), auction.getStatus());
-    }
-
-    // Gửi sự kiện cập nhật số dư ví đến client của user
-    private void publishBalanceChange(String username, double diff) {
-        realtimePublisher.publishBalanceChange(username, diff);
-    }
-
-    // Gửi sự kiện cập nhật số dư bị giữ đến client của user
-    private void publishLockedBalanceChange(String username, double diff) {
-        realtimePublisher.publishLockedBalanceChange(username, diff);
-    }
-
-    public Response getUserSettlements(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
-            User user = ServiceUtil.requireSessionUser(client);
-            List<Auction> auctions = auctionDao.findUserSettlements(user.getUsername());
-            List<AuctionDto> result = new ArrayList<>();
-            for (Auction auction : auctions) {
-                result.add(auctionDtoAssembler.toAuctionDto(auction, false));
-            }
-            return new Response(RequestStatus.SUCCESS, "Get user settlements successfully", result);
-        });
-    }
-
-    public Response getMyAuctions(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
-            User user = ServiceUtil.requireSessionUser(client);
-            String username = user.getUsername();
-            List<Auction> dbAuctions = auctionDao.findBySellerUsername(username);
-            List<AuctionDto> result = new ArrayList<>();
-            for (Auction auction : dbAuctions) {
-                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
-                Auction effective = runtime != null ? runtime : auction;
-                result.add(auctionDtoAssembler.toAuctionDto(effective, false));
-            }
-            return new Response(RequestStatus.SUCCESS, "Get my auctions successfully", result);
-        });
-    }
-
-    public Response getAdminAuctions(ClientHandler client, Request request) {
-        return ServiceUtil.handleRequest(() -> {
-            ServiceUtil.requireAdmin(client);
-
-            List<Auction> dbAuctions = auctionDao.findAll();
-            List<AuctionDto> result = new ArrayList<>();
-            for (Auction auction : dbAuctions) {
-                Auction runtime = RealtimeDatabase.getRuntimeAuction(auction.getId());
-                Auction effective = runtime != null ? runtime : auction;
-                result.add(auctionDtoAssembler.toAuctionDto(effective, false));
-            }
-
-            return new Response(RequestStatus.SUCCESS, "Get admin auctions successfully", result);
-        });
     }
 
     public Response payAuction(ClientHandler client, Request request) {
