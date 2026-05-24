@@ -60,17 +60,6 @@ public class SocketClient {
         return client;
     }
 
-    public String getCurrentUsername() {
-        return clientSession.getCurrentUsername();
-    }
-
-    public ClientSession getClientSession() {
-        return clientSession;
-    }
-
-    public void setCurrentUsername(String currentUsername) {
-        clientSession.setCurrentUsername(currentUsername);
-    }
 
     public void connect(String host, int port) throws IOException {
         synchronized (connectionLock) {

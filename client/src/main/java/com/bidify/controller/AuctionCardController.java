@@ -3,7 +3,7 @@ package com.bidify.controller;
 import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.model.ClientSession;
-import com.bidify.network.SocketClient;
+
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.SceneManager;
 import com.bidify.utility.UiUpdateScheduler;
@@ -118,7 +118,7 @@ public class AuctionCardController {
     private void openAuction() {
         if (auction == null) return;
 
-        String currentUsername = SocketClient.getClient().getCurrentUsername();
+        String currentUsername = ClientSession.getInstance().getCurrentUsername();
         String auctionId = auction.getId();
         String sellerUsername = auction.getSellerUsername();
 

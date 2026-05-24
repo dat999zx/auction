@@ -16,8 +16,11 @@ import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
 
+import com.bidify.model.ClientSession;
+
 public class AuthClientService {
     private final SocketClient client = SocketClient.getClient();
+    private final ClientSession clientSession = ClientSession.getInstance();
 
     public Response login(String username, String password) throws IOException {
         ValidationUtil.validateUsername(username);
@@ -25,9 +28,11 @@ public class AuthClientService {
 
         Response response = client.send(new Request(RequestType.LOGIN, new LoginRequest(username, password)));
         if (response.getStatus() == RequestStatus.SUCCESS) {
-            client.setCurrentUsername(username);
             if (response.getData() != null) {
-                client.getClientSession().setCurrentUser(JsonUtil.fromMap(response.getData(), UserDto.class));
+                clientSession.setCurrentUser(JsonUtil.fromMap(response.getData(), UserDto.class));
+            }
+            else {
+                clientSession.setCurrentUsername(username);
             }
             return response;
         }
@@ -44,15 +49,15 @@ public class AuthClientService {
     }
 
     public Response logout() throws IOException {
-        String currentUsername = client.getCurrentUsername();
+        String currentUsername = clientSession.getCurrentUsername();
         if (currentUsername == null || currentUsername.isBlank()) {
-            client.setCurrentUsername(null);
+            clientSession.clear();
             return new Response(RequestStatus.SUCCESS, "Logged out");
         }
 
         Response response = client.send(new Request(RequestType.LOGOUT, new LogoutRequest()));
         if (response.getStatus() == RequestStatus.SUCCESS) {
-            client.getClientSession().clear();
+            clientSession.clear();
             SceneManager.clearAllCache();
             return response;
         }

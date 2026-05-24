@@ -646,7 +646,7 @@ public class AuctionDetailsController {
 
     @FXML
     private void handleLogout() {
-        String currentUsername = SocketClient.getClient().getCurrentUsername();
+        String currentUsername = ClientSession.getInstance().getCurrentUsername();
 
         if (currentUsername == null || currentUsername.isBlank()) {
             cleanup();

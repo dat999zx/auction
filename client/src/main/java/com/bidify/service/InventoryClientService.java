@@ -18,10 +18,12 @@ import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateItemRequest;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
+import com.bidify.model.ClientSession;
 import com.bidify.network.SocketClient;
 
 public class InventoryClientService {
     private final SocketClient client = SocketClient.getClient();
+    private final ClientSession clientSession = ClientSession.getInstance();
 
     public List<ItemDto> getMyInventory() throws IOException {
         Response response = client.send(new Request(RequestType.GET_MY_INVENTORY, new GetInventoryRequest()));
@@ -57,7 +59,7 @@ public class InventoryClientService {
 
     public ItemDto createItem(String name, String description, String category, String productType, List<String> imagesBase64)
             throws IOException {
-        String ownerUsername = client.getCurrentUsername();
+        String ownerUsername = clientSession.getCurrentUsername();
         ValidationUtil.validateUsername(ownerUsername);
         validateItemFields(name, description, category, productType);
 
@@ -105,7 +107,7 @@ public class InventoryClientService {
 
     public ItemDto updateItem(String itemId, String name, String description, String category, String productType,
             List<String> imagesBase64) throws IOException {
-        String ownerUsername = client.getCurrentUsername();
+        String ownerUsername = clientSession.getCurrentUsername();
         ValidationUtil.validateUsername(ownerUsername);
         ValidationUtil.requiresNonBlank(itemId, "Item ID");
         validateItemFields(name, description, category, productType);

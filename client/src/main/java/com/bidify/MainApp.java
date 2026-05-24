@@ -11,6 +11,7 @@ import javafx.stage.Stage;
 
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
+import com.bidify.model.ClientSession;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,7 +89,7 @@ public class MainApp extends Application {
     }
 
     private static void handleForcedLogout(Event event) {
-        SocketClient.getClient().getClientSession().clear();
+        ClientSession.getInstance().clear();
         SceneManager.clearAllCache();
         if (event != null && event.getMessage() != null && !event.getMessage().isBlank())
             NotificationUtil.info(event.getMessage());

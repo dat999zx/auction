@@ -5,7 +5,6 @@ import com.bidify.common.model.Response;
 import com.bidify.controller.MissionBarController;
 import com.bidify.controller.PublicProfileController;
 import com.bidify.model.ClientSession;
-import com.bidify.network.SocketClient;
 import com.bidify.service.AuthClientService;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
@@ -180,7 +179,7 @@ public class MissionBarUtil {
 
     private static String resolveAvatarLetter(UserDto user) {
         if (user == null) {
-            String username = SocketClient.getClient().getCurrentUsername();
+            String username = clientSession.getCurrentUsername();
             if (username == null || username.isBlank()) return "U";
             return username.substring(0, 1).toUpperCase();
         }

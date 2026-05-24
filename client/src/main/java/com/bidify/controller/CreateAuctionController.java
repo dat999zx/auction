@@ -19,6 +19,7 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.CreateAuctionRequest;
 import com.bidify.common.model.Response;
 import com.bidify.common.utility.TimeUtil;
+import com.bidify.model.ClientSession;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.InventoryClientService;
 import com.bidify.utility.AuctionAntiSnipingFormState;
@@ -223,7 +224,7 @@ public class CreateAuctionController {
              * java.time.Duration.between(endDateTime, maxEndDateTime)... or standard formatting utilities.
              */
             CreateAuctionRequest data = new CreateAuctionRequest(
-                com.bidify.network.SocketClient.getClient().getCurrentUsername(),
+                ClientSession.getInstance().getCurrentUsername(),
                 selectedItem.getId(),
                 startingPrice,
                 minIncrement,
