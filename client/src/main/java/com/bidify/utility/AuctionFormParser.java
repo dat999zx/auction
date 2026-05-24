@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.common.utility.ValidationUtil;
+import javafx.scene.control.Label;
 
 /**
  * Shared form-field parsing utilities for auction create/modify controllers.
@@ -35,7 +36,7 @@ public class AuctionFormParser {
         try {
             return LocalTime.parse(parseValue, TIME_FORMATTER);
         } catch (DateTimeParseException e) {
-            throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
+            throw new ValidationException("Invalid format: " + fieldName + " must use HH:mm format (e.g., 09:30 or 23:59)");
         }
     }
 
@@ -46,5 +47,10 @@ public class AuctionFormParser {
             throw new ValidationException("Invalid format: " + fieldName + " must use H...H:mm format (e.g., 01:30 or 25:00)");
         }
         return TimeUtil.parseHHMM(parseValue);
+    }
+
+    public static void applyAntiSnipingState(Label label, AuctionAntiSnipingFormState state) {
+        label.setText(state.labelText());
+        label.setStyle(state.style());
     }
 }

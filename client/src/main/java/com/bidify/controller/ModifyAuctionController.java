@@ -17,6 +17,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.service.AuctionClientService;
+import com.bidify.utility.AuctionAntiSnipingFormState;
 import com.bidify.utility.AuctionFormParser;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
@@ -96,24 +97,16 @@ public class ModifyAuctionController {
                 LocalDateTime endDateTime = LocalDateTime.of(endDate, endTime);
                 LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
 
-                if (maxEndDateTime.isBefore(endDateTime)) {
-                    Platform.runLater(() -> {
+                AuctionAntiSnipingFormState state = AuctionAntiSnipingFormState.from(endDateTime, maxEndDateTime);
+                Platform.runLater(() -> {
+                    if (state.maxEndBeforeStandardEnd()) {
                         NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
                         syncMaxEndTimeWithStandardEnd();
-                        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-                    });
-                } else if (maxEndDateTime.isAfter(endDateTime)) {
-                    Platform.runLater(() -> {
-                        AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
-                        AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
-                    });
-                } else {
-                    Platform.runLater(() -> {
-                        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-                    });
-                }
+                        AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, AuctionAntiSnipingFormState.disabled());
+                    } else {
+                        AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, state);
+                    }
+                });
             } catch (Exception ignored) {
             }
         };
@@ -186,18 +179,12 @@ public class ModifyAuctionController {
                 maxEndDatePicker.setValue(maxEnd.toLocalDate());
                 maxEndTimeField.setText(maxEnd.toLocalTime().format(TIME_FORMATTER));
                 
-                if (maxEnd.isAfter(end)) {
-                    AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
-                    AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
-                } else {
-                    AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                    AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-                }
+                AuctionAntiSnipingFormState state = AuctionAntiSnipingFormState.from(end, maxEnd);
+                AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, state);
             } else {
                 maxEndDatePicker.setValue(end.toLocalDate());
                 maxEndTimeField.setText(end.toLocalTime().format(TIME_FORMATTER));
-                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, AuctionAntiSnipingFormState.disabled());
             }
         } catch (Exception e) {
             logger.warn("Could not parse auction dates: {}", e.getMessage());

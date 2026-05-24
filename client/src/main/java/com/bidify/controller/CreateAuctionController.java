@@ -21,6 +21,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.InventoryClientService;
+import com.bidify.utility.AuctionAntiSnipingFormState;
 import com.bidify.utility.AuctionFormParser;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.MissionBarUtil;
@@ -161,28 +162,18 @@ public class CreateAuctionController {
 
             LocalDateTime maxEndDateTime = LocalDateTime.of(maxEndDate, maxEndTime);
 
-            if (maxEndDateTime.isBefore(endDateTime)) {
+            AuctionAntiSnipingFormState state = AuctionAntiSnipingFormState.from(endDateTime, maxEndDateTime);
+            if (state.maxEndBeforeStandardEnd()) {
                 NotificationUtil.error("Maximum end date & time cannot be earlier than the standard end time.");
                 syncMaxEndTimeWithStandardEnd();
-
-                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
-
-            } else if (maxEndDateTime.isAfter(endDateTime)) {
-                // Strictly greater than -> Turn Green
-                AntiSnipingStatusField.setText("Anti-Sniping Status: Enabled");
-                AntiSnipingStatusField.setStyle("-fx-text-fill: #2ecc71; -fx-font-weight: bold;");
-
+                AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, AuctionAntiSnipingFormState.disabled());
             } else {
-                // Exactly Equal -> Explicitly force it to Red/Disabled to override old green states
-                AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-                AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+                AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, state);
             }
         } catch (ValidationException | DateTimeParseException e) {
             // Silently ignore or show error if it's a final action, 
             // but for a listener, it's safer to just reset the status UI.
-            AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-            AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+            AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, AuctionAntiSnipingFormState.disabled());
         }
     }
     @FXML
@@ -341,8 +332,7 @@ public class CreateAuctionController {
 
     // Tự động đồng bộ hóa thời gian kết thúc tối đa sau khi cập nhật thời gian kết thúc chuẩn
     private void syncMaxEndTimeWithStandardEnd() {
-        AntiSnipingStatusField.setText("Anti-Sniping Status: Disabled");
-        AntiSnipingStatusField.setStyle("-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        AuctionFormParser.applyAntiSnipingState(AntiSnipingStatusField, AuctionAntiSnipingFormState.disabled());
         try {
             LocalDate endDate = endDatePicker.getValue();
             if (endDate == null) return;
