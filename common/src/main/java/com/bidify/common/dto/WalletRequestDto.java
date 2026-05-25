@@ -13,10 +13,6 @@ public class WalletRequestDto {
     private WalletRequestStatus status;
     private String reviewedBy;
 
-    // dùng để tạo một đối tượng DTO trống
-    public WalletRequestDto() {}
-
-    // dùng để tạo một đối tượng DTO đầy đủ thông tin yêu cầu ví
     public WalletRequestDto(String id, String createdAt, String reviewedAt, String username, TransactionType type, double amount, WalletRequestStatus status, String reviewedBy) {
         this.id = id;
         this.createdAt = createdAt;

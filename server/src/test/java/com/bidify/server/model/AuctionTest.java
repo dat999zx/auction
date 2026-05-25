@@ -15,7 +15,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AuctionTest {
-    // dùng để cập nhật đấu giá after place lượt đặt giá successfully
     @Test
     void updateAuctionAfterPlaceBidSuccessfully() { // cập nhật auction sau khi đặt bid thành công
         Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
@@ -29,7 +28,6 @@ public class AuctionTest {
         assertEquals(1, auction.getBidCount());
     }
 
-    // dùng để place lượt đặt giá lower than min increment
     @Test
     void placeBidLowerThanMinIncrement() { // đặt bid thấp hơn min increment
         Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
@@ -44,7 +42,6 @@ public class AuctionTest {
         assertEquals(0, auction.getBidCount());
     }
 
-    // dùng để place lượt đặt giá when đấu giá kiểm tra xem not active
     @Test
     void placeBidWhenAuctionIsNotActive() { // đặt bid khi auction đang ko live
         Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam().plusDays(1), TimeUtil.nowInVietnam());
@@ -57,7 +54,6 @@ public class AuctionTest {
         assertEquals(0, auction.getBidCount());
     }
 
-    // dùng để xử lý concurrent lượt đặt giá safely
     @Test
     void handleConcurrentBidSafely() throws Exception { // test nhiều người đặt bid cùng lúc
         Auction auction = new Auction("test auction", "testing", "seller", 1000, TimeUtil.nowInVietnam(), TimeUtil.nowInVietnam().plusDays(1));
@@ -100,5 +96,36 @@ public class AuctionTest {
         assertNotNull(auction.getCurrentBidderUsername());
         assertEquals("user1", auction.getCurrentBidderUsername()); // người đặt cao nhất
         executor.shutdown(); // đóng thread
+    }
+
+    @Test
+    void newAuctionWithFutureStartTimeStartsAsUpcoming() {
+        Auction auction = new Auction("seller", "item1", 1000.0, TimeUtil.nowInVietnam().plusHours(1), TimeUtil.nowInVietnam().plusHours(2));
+        assertEquals(AuctionStatus.UPCOMING, auction.getStatus());
+    }
+
+    @Test
+    void newAuctionWithPastStartTimeStartsAsActive() {
+        Auction auction = new Auction("seller", "item1", 1000.0, TimeUtil.nowInVietnam().minusHours(1), TimeUtil.nowInVietnam().plusHours(2));
+        assertEquals(AuctionStatus.ACTIVE, auction.getStatus());
+    }
+
+    @Test
+    void persistedConstructorPreservesExplicitStatus() {
+        Auction auction = new Auction(
+            "auc-123",
+            TimeUtil.nowInVietnam().minusDays(1),
+            "Auction Name",
+            "Desc",
+            "seller",
+            "item1",
+            "bidder1",
+            1000.0,
+            100.0,
+            TimeUtil.nowInVietnam().minusHours(2),
+            TimeUtil.nowInVietnam().minusHours(1),
+            AuctionStatus.COMPLETED
+        );
+        assertEquals(AuctionStatus.COMPLETED, auction.getStatus());
     }
 }

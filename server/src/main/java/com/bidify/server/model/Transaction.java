@@ -12,14 +12,11 @@ public class Transaction extends Entity {
     private String auctionId;
 
     // nạp tiền / rút tiền
-    // dùng để tạo một đối tượng Transaction
     public Transaction(String username, TransactionType type, double amount) {
-        // dùng để this
         this(username, type, amount, null);
     }
 
     // thanh toán / nhận tiền trong auction
-    // dùng để tạo một đối tượng Transaction
     public Transaction(String username, TransactionType type, double amount, String auctionId) {
         super(IdGenerator.genTransactionId(), TimeUtil.nowInVietnam());
         this.username = username;
@@ -29,9 +26,7 @@ public class Transaction extends Entity {
     }
 
     // load từ db
-    // dùng để tạo một đối tượng Transaction
     public Transaction(String id, LocalDateTime createdAt, String username, TransactionType type, double amount, String auctionId) {
-        // dùng để super
         super(id, createdAt);
         this.username = username;
         this.type = type;

@@ -3,8 +3,6 @@ package com.bidify.common.model;
 public class PayAuctionRequest {
     private String auctionId;
 
-    public PayAuctionRequest() {}
-
     public PayAuctionRequest(String auctionId) {
         this.auctionId = auctionId;
     }

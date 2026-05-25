@@ -43,14 +43,12 @@ class TransactionServiceTest {
     // Danh sách lưu trữ các username được tạo ra trong quá trình chạy test để dọn dẹp sau khi test xong
     private final List<String> createdUsernames = new ArrayList<>();
 
-    // dùng để khởi tạo cơ sở dữ liệu
     @BeforeAll
     static void initDatabase() {
         // Đảm bảo cấu trúc bảng (schema) của SQLite đã được khởi tạo trước khi bất kỳ test nào chạy
         SQLiteHelper.init();
     }
 
-    // dùng để thiết lập up
     @BeforeEach
     void setUp() {
         // Làm sạch bộ nhớ tạm (RAM) và danh sách dọn dẹp trước mỗi test để đảm bảo các test độc lập, không ảnh hưởng lẫn nhau
@@ -60,7 +58,6 @@ class TransactionServiceTest {
         SQLiteHelper.update("DELETE FROM Transactions");
     }
 
-    // dùng để tear down
     @AfterEach
     void tearDown() {
         RealtimeDatabase.clearAll();
@@ -73,7 +70,6 @@ class TransactionServiceTest {
         }
     }
 
-    // dùng để nạp tiền successfully increases số dư and creates giao dịch
     @Test
     void depositSuccessfullyIncreasesBalanceAndCreatesTransaction() {
         // 1. Chuẩn bị dữ liệu (Arrange)
@@ -122,7 +118,6 @@ class TransactionServiceTest {
         assertEquals(500.0, transactions.get(0).getAmount());
     }
 
-    // dùng để nạp tiền fails when số tiền kiểm tra xem negative
     @Test
     void depositFailsWhenAmountIsNegative() {
         // 1. Chuẩn bị dữ liệu (Arrange)
@@ -148,7 +143,6 @@ class TransactionServiceTest {
         assertTrue(transactions.isEmpty());
     }
 
-    // dùng để rút tiền successfully decreases số dư and creates giao dịch
     @Test
     void withdrawSuccessfullyDecreasesBalanceAndCreatesTransaction() {
         // 1. Chuẩn bị (Arrange)
@@ -197,7 +191,6 @@ class TransactionServiceTest {
         assertEquals(400.0, transactions.get(0).getAmount());
     }
 
-    // dùng để rút tiền fails when insufficient số dư
     @Test
     void withdrawFailsWhenInsufficientBalance() {
         // 1. Chuẩn bị dữ liệu
@@ -225,7 +218,6 @@ class TransactionServiceTest {
         assertEquals(100.0, updatedUser.getWallet().getBalance()); 
     }
 
-    // dùng để lấy người dùng danh sách giao dịch returns lịch sử
     @Test
     void getUserTransactionsReturnsHistory() {
         // 1. Chuẩn bị dữ liệu
@@ -254,7 +246,6 @@ class TransactionServiceTest {
     /**
      * Phương thức tiện ích để tạo User trực tiếp xuống Database.
      */
-    // dùng để tạo test người dùng
     private User createTestUser(String username, String rawPassword) {
         User user = new User(username, username, PasswordUtil.hash(rawPassword));
         userDao.create(user);
@@ -265,7 +256,6 @@ class TransactionServiceTest {
     /**
      * Trả về chuỗi username ngẫu nhiên để tránh xung đột (Conflict) giữa các Test.
      */
-    // dùng để unique username
     private String uniqueUsername(String prefix) {
         return prefix + UUID.randomUUID().toString().replace("-", "").substring(0, 6);
     }
@@ -277,19 +267,15 @@ class TransactionServiceTest {
      * Cho phép test logic Server mà không cần mở Port mạng thật.
      */
     private static class TestClientHandler extends ClientHandler {
-        // dùng để test client trình xử lý
         TestClientHandler() {
-            // dùng để super
             super(null);
         }
 
-        // dùng để kiểm tra xem trong phiên làm việc
         @Override
         public boolean isInSession() {
             return getCurrentUsername() != null;
         }
 
-        // dùng để gửi sự kiện
         @Override
         public void sendEvent(Event event) {
             // Ghi đè lại hàm này để vô hiệu hoá việc bắn Event qua Socket thật, tránh lỗi NullPointerException

@@ -58,17 +58,14 @@ public class UserProfileClientService {
         return new UserDto(username, username, new WalletDto(0, 0), UserRole.USER);
     }
 
-    // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname) throws IOException {
         return updateProfile(nickname, null, null, null);
     }
 
-    // dùng để cập nhật thông tin tài khoản
     public UserDto updateProfile(String nickname, String profileImageBase64) throws IOException {
         return updateProfile(nickname, null, null, profileImageBase64);
     }
 
-    // dùng để cập nhật thông tin tài khoản với email và số điện thoại
     public UserDto updateProfile(String nickname, String email, String phoneNumber, String profileImageBase64) throws IOException {
         ValidationUtil.validateNickname(nickname);
 
@@ -86,7 +83,6 @@ public class UserProfileClientService {
             RequestType.UPDATE_PROFILE,
             new UpdateProfileRequest(nickname.trim(), null, profileImageBase64, normalizedEmail, normalizedPhoneNumber)
         ));
-        // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
         return consumeProfileResponse(response, "Cannot update profile.");
     }
 
@@ -97,7 +93,6 @@ public class UserProfileClientService {
         return trimmed.isBlank() ? null : trimmed;
     }
 
-    // dùng để gửi yêu cầu nạp tiền lên server thông qua socket connection
     public void addWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Deposit amount");
         Response response = client.send(new Request(RequestType.DEPOSIT, new WalletRequest(amount)));
@@ -105,7 +100,6 @@ public class UserProfileClientService {
             throw new ValidationException(response.getMessage() == null ? "Cannot submit deposit request." : response.getMessage());
     }
 
-    // dùng để gửi yêu cầu rút tiền lên server thông qua socket connection
     public void withdrawWalletBalance(double amount) throws IOException {
         ValidationUtil.validatePositiveAmount(amount, "Withdraw amount");
         Response response = client.send(new Request(RequestType.WITHDRAW, new WalletRequest(amount)));
@@ -132,7 +126,6 @@ public class UserProfileClientService {
         return requests;
     }
 
-    // dùng để change mật khẩu
     public void changePassword(String currentPassword, String newPassword, String confirmPassword) throws IOException {
         ValidationUtil.validatePassword(currentPassword);
         ValidationUtil.validatePassword(newPassword);
@@ -149,7 +142,6 @@ public class UserProfileClientService {
             throw new ValidationException(response.getMessage() == null ? "Cannot update password." : response.getMessage());
     }
 
-    // dùng để change mật khẩu preview
     public void changePasswordPreview(String currentPassword, String newPassword, String confirmPassword) {
         ValidationUtil.validatePassword(currentPassword);
         ValidationUtil.validatePassword(newPassword);
@@ -164,7 +156,6 @@ public class UserProfileClientService {
         }
     }
 
-    // dùng để xử lý kết quả thông tin tài khoản kết quả trả về (Response)
     private UserDto consumeProfileResponse(Response response, String fallbackMessage) {
         if (response.getStatus() != RequestStatus.SUCCESS || response.getData() == null) {
             throw new ValidationException(response.getMessage() == null ? fallbackMessage : response.getMessage());

@@ -18,13 +18,11 @@ import com.bidify.server.model.ItemImageLink;
 public class ItemDao {
     private static ItemDao instance = new ItemDao();
 
-    // dùng để tạo một đối tượng ItemDao
     private ItemDao() {}
 
-    // dùng để lấy đối tượng Singleton
     public static ItemDao getInstance() { return instance; }
 
-    // dùng để tạo
+    // Lưu thực thể Item mới vào database.
     public void create(Item item) throws DatabaseException {
         LocalDateTime createdAt = item.getCreatedAt() == null ? TimeUtil.nowInVietnam() : item.getCreatedAt();
         String sql = """
@@ -53,26 +51,21 @@ public class ItemDao {
         );
     }
 
-    // dùng để tìm kiếm bởi ID
     public Item findById(String id) throws DatabaseException {
         String sql = "SELECT * FROM Items WHERE id = ?";
         return SQLiteHelper.query(sql, rs -> rs.next() ? mapItem(rs) : null, id);
     }
 
-    // dùng để tìm kiếm bởi chủ sở hữu username
     public List<Item> findByOwnerUsername(String ownerUsername) throws DatabaseException {
         String sql = "SELECT * FROM Items WHERE ownerUsername = ? ORDER BY createdAt DESC";
-        // dùng để tìm kiếm many
         return findMany(sql, ownerUsername);
     }
 
-    // dùng để tìm kiếm bởi availability trạng thái
     public List<Item> findByAvailabilityStatus(ItemStatus availabilityStatus) throws DatabaseException {
         String sql = "SELECT * FROM Items WHERE availabilityStatus = ? ORDER BY createdAt DESC";
         return findMany(sql, availabilityStatus.toString());
     }
 
-    // dùng để tìm kiếm bởi chủ sở hữu username and availability trạng thái
     public List<Item> findByOwnerUsernameAndAvailabilityStatus(String ownerUsername, ItemStatus availabilityStatus) throws DatabaseException {
         String sql = """
             SELECT * FROM Items
@@ -82,7 +75,7 @@ public class ItemDao {
         return findMany(sql, ownerUsername, availabilityStatus.toString());
     }
 
-    // dùng để lưu
+    // Cập nhật thông tin Item hiện tại vào database.
     public void save(Item item) throws DatabaseException {
         LocalDateTime createdAt = item.getCreatedAt() == null ? TimeUtil.nowInVietnam() : item.getCreatedAt();
         String sql = """
@@ -110,18 +103,17 @@ public class ItemDao {
         );
     }
 
-    // dùng để cập nhật availability trạng thái
+    // Cập nhật trạng thái khả dụng của Item (ví dụ: đã đăng đấu giá, đã bán).
     public void updateAvailabilityStatus(String itemId, ItemStatus availabilityStatus) throws DatabaseException {
         String sql = "UPDATE Items SET availabilityStatus = ? WHERE id = ?";
         SQLiteHelper.update(sql, availabilityStatus.toString(), itemId);
     }
 
-    // dùng để xóa bởi ID
     public void deleteById(String id) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Items WHERE id = ?", id);
     }
 
-    // dùng để lưu sản phẩm hình ảnh links
+    // Lưu các mối liên kết ảnh của Item. Ảnh đầu tiên được thiết lập làm ảnh chính.
     public void saveItemImageLinks(String itemId, List<Image> images) throws DatabaseException {
         String sql = "INSERT INTO ItemImageLinks(id, createdAt, itemId, imageId, displayOrder, isPrimary) VALUES (?, ?, ?, ?, ?, ?)";
         for (int i = 0; i < images.size(); i++) {
@@ -156,12 +148,10 @@ public class ItemDao {
         }, itemId);
     }
 
-    // dùng để xóa sản phẩm hình ảnh links
     public void deleteItemImageLinks(String itemId) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM ItemImageLinks WHERE itemId = ?", itemId);
     }
 
-    // dùng để tìm kiếm hình ảnh ids bởi sản phẩm ID
     public List<String> findImageIdsByItemId(String itemId) throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT imageId FROM ItemImageLinks WHERE itemId = ? ORDER BY displayOrder ASC, createdAt ASC",
@@ -175,7 +165,6 @@ public class ItemDao {
         );
     }
 
-    // dùng để tìm kiếm many
     private List<Item> findMany(String sql, Object... params) throws DatabaseException {
         return SQLiteHelper.query(sql, rs -> {
             List<Item> items = new ArrayList<>();
@@ -185,7 +174,6 @@ public class ItemDao {
         }, params);
     }
 
-    // dùng để chuyển đổi sản phẩm
     private Item mapItem(ResultSet rs) throws SQLException {
         return new Item(
             rs.getString("id"),

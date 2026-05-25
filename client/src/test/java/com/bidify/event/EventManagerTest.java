@@ -13,14 +13,12 @@ import static org.junit.jupiter.api.Assertions.*;
 public class EventManagerTest {
     private EventManager eventManager;
 
-    // dùng để setup
     @BeforeEach
     void setup() { // reset sau mỗi test
         eventManager = EventManager.getInstance();
         eventManager.clear();
     }
 
-    // dùng để phát sự kiện chuyển thành listeners
     @Test
     void publishToListeners() { // gửi event đến 1 listener đã đăng kí
         AtomicInteger counter = new AtomicInteger(0);
@@ -33,7 +31,6 @@ public class EventManagerTest {
         assertEquals(1, counter.get());
     }
 
-    // dùng để hủy đăng ký lắng nghe sự kiện từ sự kiện
     @Test
     void unsubscribeFromEvent() { // hủy đăng kí lắng nghe event
         AtomicInteger counter = new AtomicInteger(0);
@@ -49,7 +46,6 @@ public class EventManagerTest {
         assertEquals(0, counter.get());
     }
 
-    // dùng để phát sự kiện thông báo correct type
     @Test
     void publishNotifyCorrectType() { // gửi chỉ gửi event tới người đã đăng kí đúng event type
         AtomicInteger counter = new AtomicInteger(0);
@@ -62,7 +58,6 @@ public class EventManagerTest {
         assertEquals(0, counter.get());
     }
 
-    // dùng để phát sự kiện chuyển thành all listeners
     @Test
     void publishToAllListeners() { // gửi event đến tất cả các listener đã đăng kí
         AtomicInteger counter = new AtomicInteger(0);

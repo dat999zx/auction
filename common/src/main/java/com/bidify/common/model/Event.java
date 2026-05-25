@@ -7,16 +7,11 @@ public class Event {
     private String message;
     private Object data;
 
-    // dùng để tạo một đối tượng Event
-    public Event(){}
-
-    // dùng để tạo một đối tượng Event
     public Event(EventType type, String message){
         this.type = type;
         this.message = message;
     }
 
-    // dùng để tạo một đối tượng Event
     public Event(EventType type, String message, Object data){
         this.type = type;
         this.message = message;

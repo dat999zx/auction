@@ -8,11 +8,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
 public final class ImageUtil {
-    // dùng để tạo một đối tượng ImageUtil
     private ImageUtil() {}
 
-    // resize ảnh nếu như quá to
-    // dùng để resize hình ảnh
+    // Tự động resize ảnh nếu kích thước vượt quá giới hạn tối đa.
     public static byte[] resizeImage(byte[] imageData, int maxDimension) throws IOException {
         if (imageData == null || imageData.length == 0) return imageData;
 
@@ -23,7 +21,7 @@ public final class ImageUtil {
         int width = originalImage.getWidth();
         int height = originalImage.getHeight();
 
-        // nếu ảnh đủ nhỏ thì skip
+        // Bỏ qua nếu ảnh đã nhỏ hơn kích thước giới hạn.
         if (width <= maxDimension && height <= maxDimension) return imageData;
 
         double ratio = (double) width / height;
@@ -38,7 +36,7 @@ public final class ImageUtil {
             newWidth = (int) (maxDimension * ratio);
         }
 
-        // lấy loại transparency (độ mờ)
+        // Xác định hệ màu (RGB hoặc ARGB) để giữ độ trong suốt.
         int type = (originalImage.getTransparency() == Transparency.OPAQUE) ?
             BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
         
@@ -50,7 +48,7 @@ public final class ImageUtil {
             g.fillRect(0, 0, newWidth, newHeight);
         }
 
-        // render ảnh lên
+        // Vẽ lại ảnh với chất lượng tốt nhất.
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

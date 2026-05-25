@@ -4,14 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.bidify.common.dto.AdminUserDto;
-import com.bidify.common.enums.EventType;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
 import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.AuthException;
 import com.bidify.common.exception.ValidationException;
-import com.bidify.common.model.Event;
 import com.bidify.common.model.Request;
 import com.bidify.common.model.Response;
 import com.bidify.common.model.UserTargetRequest;
@@ -23,13 +21,10 @@ import com.bidify.server.dao.ImageDao;
 import com.bidify.server.dao.ItemDao;
 import com.bidify.server.dao.TransactionDao;
 import com.bidify.server.dao.UserDao;
-import com.bidify.server.database.RealtimeDatabase;
 import com.bidify.server.dispatcher.RequestDispatcher;
-import com.bidify.server.model.Auction;
-import com.bidify.server.model.Image;
-import com.bidify.server.model.Item;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.admin.AdminUserCleanupService;
 import com.bidify.server.utility.ServiceUtil;
 
 public class AdminService {
@@ -43,14 +38,21 @@ public class AdminService {
     private final ImageDao imageDao = ImageDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
     private final AuctionService auctionService = AuctionService.getInstance();
+    private final AdminUserCleanupService userCleanupService =
+            new AdminUserCleanupService(
+                    userDao,
+                    auctionDao,
+                    itemDao,
+                    bidDao,
+                    transactionDao,
+                    imageDao,
+                    imageService,
+                    auctionService);
 
-    // dùng để tạo một đối tượng AdminService
     private AdminService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static AdminService getInstance() { return instance; }
 
-    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_ADMIN_USERS, (client, req) -> getUsers(client));
@@ -73,7 +75,7 @@ public class AdminService {
         });
     }
 
-    // dùng để cấm người dùng
+    // Cấm người dùng và buộc đăng xuất.
     public Response banUser(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);
@@ -81,13 +83,13 @@ public class AdminService {
             User target = requireManageableTarget(request);
             target.setStatus(UserStatus.BANNED);
             userDao.save(target, false);
-            forceLogoutUser(target.getUsername(), "Your account has been banned.");
+            userCleanupService.forceLogoutUser(target.getUsername(), "Your account has been banned.");
 
             return new Response(RequestStatus.SUCCESS, "User banned successfully");
         });
     }
 
-    // dùng để gỡ cấm người dùng
+    // Gỡ cấm người dùng.
     public Response unbanUser(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);
@@ -100,34 +102,19 @@ public class AdminService {
         });
     }
 
-    // dùng để xóa người dùng
+    // Xóa tài khoản người dùng và dọn dẹp toàn bộ dữ liệu liên quan (Cascade).
     public Response deleteUser(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireAdmin(client);
 
             User target = requireManageableTarget(request);
-            String username = target.getUsername();
-
-            // dùng để ngắt kết nối người dùng
-            disconnectUser(username, "Your account has been deleted by an administrator.");
-
-            for (Auction auction : auctionDao.findBySellerUsername(username))
-                // dùng để xóa đấu giá cascade
-                deleteAuctionCascade(auction);
-
-            for (Item item : itemDao.findByOwnerUsername(username))
-                // dùng để xóa sản phẩm cascade
-                deleteItemCascade(item);
-
-            bidDao.deleteByUsername(username);
-            transactionDao.deleteByUsername(username);
-            userDao.deleteByUsername(username);
+            userCleanupService.deleteUser(target);
 
             return new Response(RequestStatus.SUCCESS, "User deleted successfully");
         });
     }
 
-    // dùng để thăng chức quản trị viên (admin)
+    // Thăng chức user thành admin.
     public Response promoteAdmin(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireBootstrapAdmin(client);
@@ -138,13 +125,13 @@ public class AdminService {
 
             target.setRole(UserRole.ADMIN);
             userDao.save(target, false);
-            forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
+            userCleanupService.forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
 
             return new Response(RequestStatus.SUCCESS, "User promoted to admin successfully");
         });
     }
 
-    // dùng để bãi nhiệm quản trị viên (admin)
+    // Bãi nhiệm quyền admin của user.
     public Response demoteAdmin(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             ServiceUtil.requireBootstrapAdmin(client);
@@ -155,26 +142,22 @@ public class AdminService {
 
             target.setRole(UserRole.USER);
             userDao.save(target, false);
-            forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
+            userCleanupService.forceLogoutUser(target.getUsername(), "Your account role has changed. Please log in again.");
 
             return new Response(RequestStatus.SUCCESS, "Admin removed successfully");
         });
     }
 
-    // dùng để bắt buộc phải có manageable target
     private User requireManageableTarget(Request request) {
         User target = requireExistingTarget(request);
         ServiceUtil.requireNonAdmin(target, "Cannot manage admin accounts");
         return target;
     }
 
-    // dùng để bắt buộc phải có quản trị viên (admin) vai trò target
     private User requireAdminRoleTarget(Request request) {
-        // dùng để bắt buộc phải có existing target
         return requireExistingTarget(request);
     }
 
-    // dùng để bắt buộc phải có existing target
     private User requireExistingTarget(Request request) {
         UserTargetRequest data = JsonUtil.fromMap(request.getData(), UserTargetRequest.class);
         ServiceUtil.validateRequestData(data);
@@ -185,62 +168,5 @@ public class AdminService {
         if (AuthService.BOOTSTRAP_ADMIN_USERNAME.equals(username))
             throw new AuthException("Cannot manage the bootstrap admin account");
         return ServiceUtil.getOrLoadUser(username);
-    }
-
-    // dùng để ngắt kết nối người dùng
-    private void disconnectUser(String username, String message) {
-        ClientHandler clientHandler = RealtimeDatabase.getUserClient(username);
-        // dùng để xóa sạch active phiên làm việc
-        clearActiveSession(username);
-        if (clientHandler != null) {
-            clientHandler.sendEvent(new Event(EventType.SERVER_NOTICE, message));
-            clientHandler.setCurrentUsername(null);
-            clientHandler.closeConnection();
-        }
-    }
-
-    // dùng để force đăng xuất người dùng
-    private void forceLogoutUser(String username, String message) {
-        ClientHandler clientHandler = RealtimeDatabase.getUserClient(username);
-        // dùng để xóa sạch active phiên làm việc
-        clearActiveSession(username);
-        if (clientHandler != null) {
-            clientHandler.sendEvent(new Event(EventType.FORCED_LOGOUT, message));
-            clientHandler.setCurrentUsername(null);
-        }
-    }
-
-    // dùng để xóa sạch active phiên làm việc
-    private void clearActiveSession(String username) {
-        User activeUser = RealtimeDatabase.getActiveUser(username);
-        if (activeUser != null)
-            userDao.save(activeUser, false);
-
-        List<String> affectedAuctionIds = RealtimeDatabase.removeActiveUser(username);
-        for (String auctionId : affectedAuctionIds)
-            AuctionService.getInstance().publishLiveAudienceUpdate(auctionId);
-    }
-
-    // dùng để xóa đấu giá cascade
-    private void deleteAuctionCascade(Auction auction) {
-        if (auction == null)
-            return;
-        auctionService.deleteAuctionCascade(auction, false);
-    }
-
-    // dùng để xóa sản phẩm cascade
-    private void deleteItemCascade(Item item) {
-        if (item == null)
-            return;
-
-        for (String imageId : itemDao.findImageIdsByItemId(item.getId())) {
-            Image image = imageDao.findById(imageId);
-            if (image != null)
-                imageService.deleteImageFile(image.getFilePath());
-            imageDao.deleteById(imageId);
-        }
-
-        itemDao.deleteItemImageLinks(item.getId());
-        itemDao.deleteById(item.getId());
     }
 }

@@ -25,7 +25,6 @@ public class Auction extends Entity {
     private List<Bid> bids = new ArrayList<>();
     private List<AutoBid> autoBids = new ArrayList<>();
 
-    // dùng để tạo một đối tượng Auction
     public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         super(IdGenerator.genAuctionId(), TimeUtil.nowInVietnam());
         this.sellerUsername = sellerUsername;
@@ -41,14 +40,12 @@ public class Auction extends Entity {
             this.status = AuctionStatus.ACTIVE;
     }
 
-    // dùng để tạo một đối tượng Auction
     public Auction(String auctionName, String description, String sellerUsername, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
         this(sellerUsername, null, startingPrice, startTime, endTime);
         this.auctionName = auctionName;
         this.description = description;
     }
     
-    // dùng để tạo một đối tượng Auction
     public Auction(String id, LocalDateTime createdAt, String auctionName, String description, String sellerUsername, String itemId, String currentBidderUsername, double startingPrice, double minIncrement, LocalDateTime startTime, LocalDateTime endTime, AuctionStatus status) {
         super(id, createdAt);
         this.auctionName = auctionName;
@@ -64,7 +61,7 @@ public class Auction extends Entity {
         this.status = status == null ? AuctionStatus.UPCOMING : status;
     }
     
-    // dùng để place lượt đặt giá
+    // Đặt bid mới lên phiên đấu giá. Thực hiện kiểm tra trạng thái và tính toán anti-sniping.
     public synchronized void placeBid(Bid bid) {
         if (bid == null)
             throw new BidException("Invalid bid");
@@ -76,11 +73,11 @@ public class Auction extends Entity {
             throw new BidException("Bid must be at least " + minAllowed);
 
         if (isAntiSnipingConfigured()) {
-            // Fix: Use the official bid creation time to calculate true remaining time
+            // Dùng thời điểm tạo bid để tính thời gian còn lại, tránh sai lệch do xử lý chậm.
             LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
             Duration remaining = Duration.between(bidTime, endTime);
 
-            // Fix: Use <= 0 to safely capture when remaining time matches the trigger window exactly down to the nanosecond
+            // Chỉ gia hạn khi bid đến trong vùng anti-sniping và chưa vượt quá maxEndTime.
             if (remaining.compareTo(antiSnipingTriggerTime) <= 0 && !remaining.isNegative()) {
                 
                 LocalDateTime newEndTime = endTime.plus(antiSnipingExtensionTime);
@@ -99,14 +96,13 @@ public class Auction extends Entity {
         this.currentBidderUsername = bid.getBidderUsername();
         this.bids.add(bid);
     }
-    // dùng để kiểm tra xem có cấu hình anti-sniping không
+    // Kiểm tra xem phiên đấu giá có cấu hình quy tắc chống bắn tỉa (anti-sniping) hay không.
     public boolean isAntiSnipingConfigured() {
     return antiSnipingTriggerTime != null && !antiSnipingTriggerTime.isZero() 
         && antiSnipingExtensionTime != null && !antiSnipingExtensionTime.isZero()
         && maxEndTime != null && !maxEndTime.isBefore(endTime); // 2048: Allowed to be equal
     }
 
-    // dùng để lấy đấu giá tên
     public String getAuctionName() { return auctionName; }
     public void setAuctionName(String name) {this.auctionName = name; }
 
@@ -116,11 +112,11 @@ public class Auction extends Entity {
     public double getStartingPrice() { return startingPrice; }
     public void setStartingPrice(double price) {this.startingPrice = price; }
 
-    public double getCurrentBid() { return currentBid; }
-    public void setCurrentBid(double bid) { this.currentBid = bid; }
+    public synchronized double getCurrentBid() { return currentBid; }
+    public synchronized void setCurrentBid(double bid) { this.currentBid = bid; }
 
-    public String getCurrentBidderUsername() { return currentBidderUsername; }
-    public void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
+    public synchronized String getCurrentBidderUsername() { return currentBidderUsername; }
+    public synchronized void setCurrentBidderUsername(String username) { this.currentBidderUsername = username; }
 
     public LocalDateTime getStartTime() { return startTime; }
     public void setStartTime(LocalDateTime start) { this.startTime = start; }
@@ -140,15 +136,12 @@ public class Auction extends Entity {
     public AuctionStatus getStatus() { return status; }
     public void setStatus(AuctionStatus status) { this.status = status; }
 
-    // dùng để kiểm tra xem active
     public boolean isActive(){ 
         return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime);
     }
-    // dùng để kiểm tra xem ended
     public boolean isEnded() { 
         return status == AuctionStatus.ENDED || status == AuctionStatus.CANCELED; 
     }
-    // dùng để kiểm tra xem upcoming
     public boolean isUpcoming() { return status == AuctionStatus.UPCOMING; }
 
     public String getSellerUsername() { return sellerUsername; }
@@ -157,25 +150,34 @@ public class Auction extends Entity {
     public String getItemId() { return itemId; }
     public void setItemId(String itemId) { this.itemId = itemId; }
 
-    public int getBidCount(){ return bids.size(); }
+    public synchronized int getBidCount(){ return bids.size(); }
     
-    public String getProductType(){ return null; }
-    public void setProductType(String type){}
-
-    public String getCategory() { return null; }
-    public void setCategory(String category) {}
-
     public double getMinIncrement() { return minIncrement; }
     public void setMinIncrement(double num) { this.minIncrement = num; }
 
-    public List<Bid> getBids() { return bids; }
+    public synchronized List<Bid> getBids() { return new ArrayList<>(bids); }
 
-    // dùng để lấy auto danh sách đặt giá
+    public synchronized void addBid(Bid bid) {
+        if (bid != null)
+            bids.add(bid);
+    }
+
+    public synchronized void addBids(List<Bid> bidList) {
+        if (bidList != null)
+            bids.addAll(bidList);
+    }
+
+    public synchronized boolean removeBid(Bid bid) {
+        if (bid != null)
+            return bids.remove(bid);
+        return false;
+    }
+
+    // Trả về bản copy danh sách đặt giá tự động (auto-bid) để tránh sửa đổi ngoài ý muốn.
     public synchronized List<AutoBid> getAutoBids() {
         return new ArrayList<>(autoBids);
     }
 
-    // dùng để lấy auto lượt đặt giá
     public synchronized AutoBid getAutoBid(String username) {
         if (username == null) return null;
         return autoBids.stream()
@@ -184,13 +186,11 @@ public class Auction extends Entity {
                 .orElse(null);
     }
 
-    // dùng để upsert auto lượt đặt giá
     public synchronized void upsertAutoBid(AutoBid autoBid) {
         autoBids.removeIf(existing -> existing.getUsername().equals(autoBid.getUsername()));
         autoBids.add(autoBid);
     }
 
-    // dùng để disable auto lượt đặt giá
     public synchronized void disableAutoBid(String username) {
         AutoBid autoBid = getAutoBid(username);
         if (autoBid != null) autoBid.disable();

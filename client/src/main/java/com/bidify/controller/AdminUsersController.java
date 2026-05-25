@@ -34,7 +34,6 @@ public class AdminUsersController {
     @FXML
     private Label summaryLabel;
 
-    // dùng để khởi tạo
     @FXML
     private void initialize() {
         Platform.runLater(() -> {
@@ -45,19 +44,15 @@ public class AdminUsersController {
             }
 
             MissionBarUtil.setup(NavPage.ADMIN_USERS, false, null);
-            // dùng để tải danh sách người dùng
             loadUsers();
         });
     }
 
-    // dùng để xử lý refresh
     @FXML
     private void handleRefresh() {
-        // dùng để tải danh sách người dùng
         loadUsers();
     }
 
-    // dùng để tải danh sách người dùng
     private void loadUsers() {
         try {
             renderUsers(adminClientService.getUsers());
@@ -74,7 +69,6 @@ public class AdminUsersController {
         }
     }
 
-    // dùng để hiển thị danh sách người dùng
     private void renderUsers(List<AdminUserDto> users) {
         usersContainer.getChildren().clear();
         if (users == null || users.isEmpty()) {
@@ -88,7 +82,6 @@ public class AdminUsersController {
             usersContainer.getChildren().add(createUserRow(user));
     }
 
-    // dùng để tạo empty state
     private VBox createEmptyState() {
         VBox box = new VBox(10);
         box.getStyleClass().add("admin-empty-state");
@@ -100,7 +93,6 @@ public class AdminUsersController {
         return box;
     }
 
-    // dùng để tạo người dùng dòng hiển thị
     private HBox createUserRow(AdminUserDto user) {
         HBox row = new HBox(12);
         row.getStyleClass().add("admin-user-row");
@@ -144,13 +136,11 @@ public class AdminUsersController {
         return row;
     }
 
-    // dùng để build subtitle
     private String buildSubtitle(AdminUserDto user) {
         String nickname = user.getNickname() == null || user.getNickname().isBlank() ? user.getUsername() : user.getNickname();
         return nickname + " • " + user.getRole().name();
     }
 
-    // dùng để xử lý cấm bật tắt
     private void handleBanToggle(AdminUserDto user) {
         try {
             if (user.getStatus() == UserStatus.BANNED) {
@@ -161,7 +151,6 @@ public class AdminUsersController {
                 adminClientService.banUser(user.getUsername());
                 NotificationUtil.success("User banned successfully.");
             }
-            // dùng để tải danh sách người dùng
             loadUsers();
         }
         catch (IOException e) {
@@ -172,7 +161,6 @@ public class AdminUsersController {
         }
     }
 
-    // dùng để tạo vai trò nút nhấn
     private Button createRoleButton(AdminUserDto user) {
         if (!isBootstrapAdminSession())
             return null;
@@ -185,7 +173,6 @@ public class AdminUsersController {
         return roleButton;
     }
 
-    // dùng để xử lý vai trò bật tắt
     private void handleRoleToggle(AdminUserDto user) {
         try {
             if (user.getRole() == UserRole.ADMIN) {
@@ -196,7 +183,6 @@ public class AdminUsersController {
                 adminClientService.promoteAdmin(user.getUsername());
                 NotificationUtil.success("User promoted to admin successfully.");
             }
-            // dùng để tải danh sách người dùng
             loadUsers();
         }
         catch (IOException e) {
@@ -207,17 +193,14 @@ public class AdminUsersController {
         }
     }
 
-    // dùng để kiểm tra xem khởi tạo hệ thống quản trị viên (admin) phiên làm việc
     private boolean isBootstrapAdminSession() {
         return BOOTSTRAP_ADMIN_USERNAME.equals(ClientSession.getInstance().getCurrentUsername());
     }
 
-    // dùng để xử lý xóa
     private void handleDelete(String username) {
         try {
             adminClientService.deleteUser(username);
             NotificationUtil.success("User deleted successfully.");
-            // dùng để tải danh sách người dùng
             loadUsers();
         }
         catch (IOException e) {
@@ -228,7 +211,6 @@ public class AdminUsersController {
         }
     }
 
-    // dùng để mở kho đồ
     private void openInventory(String username) {
         InventoryController.setManagedOwnerUsername(username);
         SceneManager.clearCache("inventory.fxml");

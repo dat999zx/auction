@@ -1,0 +1,83 @@
+.notification-toast {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #c6c5d4;
+    -fx-border-radius: 10;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.12), 16, 0.18, 0, 4);
+}
+
+.notification-accent {
+    -fx-background-color: #2563eb;
+    -fx-background-radius: 10 0 0 10;
+}
+
+.notification-header {
+    -fx-padding: 0 0 1 0;
+}
+
+.notification-dot {
+    -fx-background-color: #2563eb;
+    -fx-background-radius: 999;
+}
+
+.notification-title {
+    -fx-text-fill: #001e40;
+    -fx-font-size: 11px;
+    -fx-font-weight: 900;
+    -fx-letter-spacing: 0.7px;
+}
+
+.notification-message {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 13.5px;
+    -fx-line-spacing: 2px;
+}
+
+.notification-toast.success {
+    -fx-border-color: #bbf7d0;
+}
+
+.notification-toast.success .notification-accent {
+    -fx-background-color: #16a34a;
+}
+
+.notification-toast.success .notification-dot {
+    -fx-background-color: #16a34a;
+}
+
+.notification-toast.success .notification-title {
+    -fx-text-fill: #166534;
+}
+
+.notification-toast.error {
+    -fx-border-color: #fecdd3;
+}
+
+.notification-toast.error .notification-accent {
+    -fx-background-color: #e11d48;
+}
+
+.notification-toast.error .notification-dot {
+    -fx-background-color: #e11d48;
+}
+
+.notification-toast.error .notification-title {
+    -fx-text-fill: #991b1b;
+}
+
+.notification-toast.info {
+    -fx-border-color: #bfdbfe;
+}
+
+.notification-toast.info .notification-accent {
+    -fx-background-color: #2563eb;
+}
+
+.notification-toast.info .notification-dot {
+    -fx-background-color: #2563eb;
+}
+
+.notification-toast.info .notification-title {
+    -fx-text-fill: #1d4ed8;
+}

@@ -41,13 +41,11 @@ public class RegisterController {
     private boolean showingPassword;
     private final AuthClientService authClientService = new AuthClientService();
 
-    // dùng để khởi tạo
     @FXML
     public void initialize() {
         Platform.runLater(() -> {
             passwordFieldVisible.textProperty().bindBidirectional(passwordField.textProperty());
             passwordConfirmFieldVisible.textProperty().bindBidirectional(passwordConfirmField.textProperty());
-            // dùng để thiết lập mật khẩu visibility
             setPasswordVisibility(false);
         });
         usernameField.setOnKeyPressed(event -> {
@@ -64,14 +62,12 @@ public class RegisterController {
         });
         passwordConfirmField.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ENTER) {
-                // dùng để xử lý đăng ký
                 handleRegister();
                 event.consume(); // Prevents the event from traveling further
             }
         });
     }
 
-    // dùng để xử lý đăng ký
     @FXML
     private void handleRegister() {
         try {
@@ -98,14 +94,11 @@ public class RegisterController {
         }
     }
 
-    // dùng để bật tắt mật khẩu visibility
     @FXML
     private void togglePasswordVisibility() {
-        // dùng để thiết lập mật khẩu visibility
         setPasswordVisibility(!showingPassword);
     }
 
-    // dùng để thiết lập mật khẩu visibility
     private void setPasswordVisibility(boolean visible) {
         showingPassword = visible;
 
@@ -128,7 +121,6 @@ public class RegisterController {
         activeField.positionCaret(activeField.getText().length());
     }
 
-    // dùng để chuyển thành đăng nhập
     @FXML
     private void toLogin(ActionEvent event) {
         SceneManager.switchScene("login.fxml", true, false);

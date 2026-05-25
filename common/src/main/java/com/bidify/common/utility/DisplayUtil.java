@@ -23,20 +23,16 @@ public final class DisplayUtil {
         CURRENCY_FORMAT.setMaximumFractionDigits(2);
     }
 
-    // dùng để tạo một đối tượng DisplayUtil
     private DisplayUtil() {}
 
-    // dùng để default text
     public static String defaultText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    // dùng để định dạng đơn vị tiền tệ
     public static String formatCurrency(double amount) {
         return CURRENCY_FORMAT.format(amount);
     }
 
-    // dùng để định dạng remaining thời gian
     public static String formatRemainingTime(String endTime) {
         if (endTime == null || endTime.isBlank()) {
             return "Unknown";
@@ -61,7 +57,6 @@ public final class DisplayUtil {
         }
     }
 
-    // dùng để định dạng ngày thời gian
     public static String formatDateTime(String rawDate, String fallback) {
         if (rawDate == null || rawDate.isBlank() || "Unknown".equals(rawDate)) {
             return fallback;
@@ -96,7 +91,6 @@ public final class DisplayUtil {
         "CENT", "UNCENT"
     };
 
-    // dùng để định dạng tiền mặt suffix
     public static String formatCashSuffix(Double number) {
         BigDecimal bd = new BigDecimal(number);
         
@@ -109,9 +103,9 @@ public final class DisplayUtil {
         boolean isNegative = bd.compareTo(BigDecimal.ZERO) < 0;
         bd = bd.abs();
 
-        // 3. Convert to flat integer string to find the EXACT total digit length
-        // This stops Java's internal scientific representation from messing up the index.
+        // Chuyển sang chuỗi số nguyên để tránh sai vị trí suffix khi double dùng dạng scientific notation.
         int totalDigits = bd.toBigInteger().toString().length();
+        // Mỗi suffix đại diện cho một nhóm 3 chữ số.
         int suffixIndex = (totalDigits - 1) / 3;
 
         // 4. Over the limit check
@@ -123,7 +117,7 @@ public final class DisplayUtil {
         BigDecimal divisor = BigDecimal.TEN.pow(suffixIndex * 3);
         BigDecimal shortValue = bd.divide(divisor, 4, RoundingMode.HALF_UP);
 
-        // 6. Enforce strict 3-digit display format rules
+        // Giữ định dạng tối đa 3 chữ số để UI không bị dài bất thường.
         int leftSideDigits = shortValue.setScale(0, RoundingMode.DOWN).toString().length();
         DecimalFormat df;
         

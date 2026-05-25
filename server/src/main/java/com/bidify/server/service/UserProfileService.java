@@ -16,21 +16,16 @@ import com.bidify.server.exception.DatabaseException;
 import com.bidify.server.dispatcher.RequestDispatcher;
 import com.bidify.server.model.User;
 import com.bidify.server.network.ClientHandler;
+import com.bidify.server.service.auction.AuctionDtoAssembler;
 import com.bidify.server.utility.PasswordUtil;
 import com.bidify.server.utility.ServiceUtil;
 import com.bidify.server.utility.UserMapper;
 
 import com.bidify.common.dto.PublicProfileDto;
-import com.bidify.common.dto.PublicProfileStatsDto;
-import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.model.PublicProfileRequest;
 import com.bidify.server.dao.AuctionDao;
 import com.bidify.server.dao.BidDao;
-import com.bidify.server.dao.ItemDao;
-import com.bidify.server.model.Auction;
-import com.bidify.server.model.Item;
-import com.bidify.server.utility.AuctionMapper;
-import java.util.ArrayList;
+import com.bidify.server.service.profile.PublicProfileAssembler;
 import java.util.List;
 
 public class UserProfileService {
@@ -38,14 +33,19 @@ public class UserProfileService {
     private final UserDao userDao = UserDao.getInstance();
     private final ImageDao imageDao = ImageDao.getInstance();
     private final ImageService imageService = ImageService.getInstance();
+    private final AuctionDtoAssembler auctionDtoAssembler = new AuctionDtoAssembler();
+    private final PublicProfileAssembler publicProfileAssembler =
+            new PublicProfileAssembler(
+                    AuctionDao.getInstance(),
+                    BidDao.getInstance(),
+                    imageDao,
+                    imageService,
+                    auctionDtoAssembler);
 
-    // dùng để tạo một đối tượng UserProfileService
     private UserProfileService() {}
 
-    // dùng để lấy đối tượng Singleton
     public static UserProfileService getInstance() { return instance; }
 
-    // dùng để khởi tạo
     public void initialize() {
         RequestDispatcher router = RequestDispatcher.getInstance();
         router.register(RequestType.GET_PROFILE, (client, req) -> getProfile(client));
@@ -61,7 +61,7 @@ public class UserProfileService {
         });
     }
 
-    // dùng để cập nhật thông tin tài khoản
+    // Cập nhật thông tin hồ sơ cá nhân (nickname, email, số điện thoại, ảnh đại diện).
     public Response updateProfile(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdateProfileRequest data = JsonUtil.fromMap(request.getData(), UpdateProfileRequest.class);
@@ -117,7 +117,7 @@ public class UserProfileService {
         return trimmed.isBlank() ? null : trimmed;
     }
 
-    // dùng để thay thế ảnh đại diện
+    // Thay thế ảnh đại diện cũ bằng ảnh mới.
     private void replaceProfileImage(User user, String base64) throws DatabaseException {
         var savedImages = imageService.saveImages(List.of(base64));
         if (savedImages.isEmpty())
@@ -138,7 +138,7 @@ public class UserProfileService {
         }
     }
 
-    // dùng để cập nhật mật khẩu
+    // Cập nhật mật khẩu mới cho tài khoản.
     public Response updatePassword(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             UpdatePasswordRequest data = JsonUtil.fromMap(request.getData(), UpdatePasswordRequest.class);
@@ -166,7 +166,7 @@ public class UserProfileService {
         });
     }
 
-    // dùng để lấy thông tin hồ sơ công khai
+    // Lấy thông tin hồ sơ công khai của người dùng khác kèm thống kê giao dịch.
     public Response getPublicProfile(ClientHandler client, Request request) {
         return ServiceUtil.handleRequest(() -> {
             PublicProfileRequest data = JsonUtil.fromMap(request.getData(), PublicProfileRequest.class);
@@ -182,65 +182,7 @@ public class UserProfileService {
                 throw new ValidationException("User not found");
             }
 
-            String profileImageBase64 = null;
-            if (user.getProfileImageId() != null && !user.getProfileImageId().isBlank()) {
-                try {
-                    Image image = imageDao.findById(user.getProfileImageId());
-                    if (image != null) {
-                        profileImageBase64 = imageService.getBase64Image(image.getFilePath());
-                    }
-                } catch (DatabaseException e) {
-                    // ignore
-                }
-            }
-
-            List<Auction> userAuctions = AuctionDao.getInstance().findBySellerUsername(username);
-            int totalAuctions = userAuctions.size();
-            int activeAuctions = 0;
-            int closedAuctions = 0;
-            int soldAuctions = 0;
-            double activeVolume = 0.0;
-
-            for (Auction a : userAuctions) {
-                if (a.getStatus() == com.bidify.common.enums.AuctionStatus.ACTIVE) {
-                    activeAuctions++;
-                    activeVolume += (a.getCurrentBid() > 0 ? a.getCurrentBid() : a.getStartingPrice());
-                } else if (a.getStatus() != com.bidify.common.enums.AuctionStatus.UPCOMING) {
-                    closedAuctions++;
-                    if (a.getCurrentBidderUsername() != null && !a.getCurrentBidderUsername().isBlank()) {
-                        soldAuctions++;
-                    }
-                }
-            }
-
-            int totalBids = BidDao.getInstance().findByUsername(username).size();
-            String sellRate = closedAuctions > 0 ? String.format("%.1f%%", (double) soldAuctions / closedAuctions * 100) : "0.0%";
-
-            PublicProfileStatsDto stats = new PublicProfileStatsDto(
-                totalAuctions,
-                activeAuctions,
-                closedAuctions,
-                soldAuctions,
-                totalBids,
-                activeVolume,
-                sellRate
-            );
-
-            AuctionDto[] auctionDtos = new AuctionDto[userAuctions.size()];
-            for (int i = 0; i < userAuctions.size(); i++) {
-                auctionDtos[i] = AuctionService.getInstance().toAuctionDto(userAuctions.get(i), false);
-            }
-
-            PublicProfileDto publicProfile = new PublicProfileDto(
-                user.getUsername(),
-                user.getNickname(),
-                profileImageBase64,
-                user.getEmail(),
-                user.getPhoneNumber(),
-                stats,
-                auctionDtos
-            );
-
+            PublicProfileDto publicProfile = publicProfileAssembler.assemble(user);
             return new Response(RequestStatus.SUCCESS, "Public profile loaded successfully", publicProfile);
         });
     }

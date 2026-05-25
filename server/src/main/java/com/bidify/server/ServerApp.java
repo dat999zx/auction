@@ -30,7 +30,6 @@ public class ServerApp {
     private static final String KEYSTORE_PATH = "/keystore/server.jks";
     private static final char[] KEYSTORE_PASSWORD = "blablablabidifyserver".toCharArray();
 
-    // dùng để main
     public static void main(String[] args) {
         logger.info("Server is starting...");
         
@@ -55,7 +54,7 @@ public class ServerApp {
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
-
+ 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Server is shutting down, saving all data...");
             AuthService.getInstance().saveAllUsers();
@@ -63,19 +62,19 @@ public class ServerApp {
             auctionService.saveAllRuntimeAuctions();
             RealtimeDatabase.clearAll();
         }));
-
+ 
         try {
             SSLContext sslContext = createServerSslContext();
             SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
             int port = resolvePort();
-
+ 
             try (SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port)) {
                 logger.info("Server running on port: " + port);
-
+ 
                 while (!serverSocket.isClosed()) {
                     SSLSocket socket = (SSLSocket) serverSocket.accept();
                     logger.info("Client connected: {}", socket.getInetAddress());
-
+ 
                     new Thread(new ClientHandler(socket), socket.getInetAddress().toString()).start();
                 }
             }
@@ -85,24 +84,24 @@ public class ServerApp {
             System.exit(1);
         }
     }
-
-    // dùng để tạo server ssl context
+ 
+    // Khởi tạo SSLContext sử dụng Keystore cấu hình sẵn cho kết nối bảo mật SSL/TLS.
     private static SSLContext createServerSslContext() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");
         try (InputStream in = ServerApp.class.getResourceAsStream(KEYSTORE_PATH)) {
             if (in == null) throw new FileNotFoundException("Missing resource: " + KEYSTORE_PATH);
             keyStore.load(in, KEYSTORE_PASSWORD);
         }
-
+ 
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(keyStore, KEYSTORE_PASSWORD);
-
+ 
         SSLContext context = SSLContext.getInstance("TLS");
         context.init(kmf.getKeyManagers(), null, new SecureRandom());
         return context;
     }
-
-    // dùng để giải quyết cổng kết nối
+ 
+    // Đọc cổng cấu hình từ System properties hoặc dùng cổng mặc định.
     private static int resolvePort() {
         String rawPort = System.getProperty("server.port");
         if (rawPort == null || rawPort.isBlank())
