@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -23,7 +25,11 @@
 
             <HBox alignment="BOTTOM_LEFT" spacing="20">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label text="Bidify" styleClass="brand-logo"/>
+                    <ImageView fitHeight="72" fitWidth="72" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@../images/bidify-logo-header.png"/>
+                        </image>
+                    </ImageView>
                     <Label text="Inventory" styleClass="page-title"/>
                     <Label text="Manage your product catalog and items." styleClass="muted-text"/>
                 </VBox>
@@ -59,9 +65,6 @@
 
             <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
                 <Label text="Inventory items become available for auction selection once created." HBox.hgrow="ALWAYS"/>
-                <Hyperlink text="Privacy"/>
-                <Hyperlink text="Terms"/>
-                <Hyperlink text="Support"/>
             </HBox>
         </VBox>
     </content>

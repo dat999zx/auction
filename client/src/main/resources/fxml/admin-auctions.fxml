@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -22,7 +24,11 @@
 
             <HBox alignment="BOTTOM_LEFT" spacing="20">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label text="Bidify" styleClass="brand-logo"/>
+                    <ImageView fitHeight="72" fitWidth="72" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@../images/bidify-logo-header.png"/>
+                        </image>
+                    </ImageView>
                     <Label text="Auction Management" styleClass="page-title"/>
                     <Label text="Review user auctions and resolve auctions that need admin action." styleClass="muted-text"/>
                 </VBox>

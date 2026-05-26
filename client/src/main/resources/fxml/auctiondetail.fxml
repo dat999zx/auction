@@ -188,7 +188,7 @@
                                             </HBox>
                                         </VBox>
             
-                                        <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
+                                        <Label styleClass="footnote-text" text="Bids are final once accepted by the server." wrapText="true" />
                                     </VBox>
 
                                     <Button fx:id="sellerCancelButton" onAction="#handleSellerCancel" styleClass="autobid-disable-button" text="Cancel Auction" visible="false" managed="false" />

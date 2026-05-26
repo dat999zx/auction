@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
@@ -57,7 +58,11 @@
                         <padding>
                             <Insets bottom="0.0" left="24.0" right="24.0" top="0.0" />
                         </padding>
-                        <Label styleClass="sidebar-brand" text="BIDIFY" />
+                        <ImageView fitHeight="96.0" fitWidth="96.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                            <image>
+                                <Image url="@../../images/bidify-logo-sidebar.png" />
+                            </image>
+                        </ImageView>
                         <Label styleClass="sidebar-subtitle" text="Bid Smart - Win Fast" />
                     </VBox>
 
