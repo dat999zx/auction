@@ -209,9 +209,9 @@
                 <children>
                     <VBox spacing="8.0" GridPane.columnIndex="0">
                         <Label styleClass="section-title" text="Anti-Sniping Settings" />
-                        <Label styleClass="section-description" text="This feature prevents &quot;sniping&quot; - where buyers bid at the absolute last second to win before others can react - by dynamically extending the clock to keep the bidding fair." wrapText="true" />
-                              <Label layoutX="10.0" layoutY="43.0" styleClass="section-description" text="Leave these settings at their default values if you want to disable anti-sniping." wrapText="true" />
-                              <Label fx:id="AntiSnipingStatusField" styleClass="field-label" text="Anti-Sniping Status:" wrapText="true" />
+                        <Label styleClass="section-description" text="Extends the auction when a bid arrives near the end, giving other bidders time to respond." wrapText="true" />
+                        <Label styleClass="section-description" text="Leave the maximum end date and time blank to disable anti-sniping." wrapText="true" />
+                        <Label fx:id="AntiSnipingStatusField" maxWidth="Infinity" styleClass="field-label" text="Anti-Sniping Status:" wrapText="true" />
                     </VBox>
                     <VBox maxWidth="Infinity" spacing="16.0" GridPane.columnIndex="1">
             <!-- Top Row: Trigger and Extension Windows -->
@@ -222,11 +222,13 @@
                 </columnConstraints>
                 <children>
                     <VBox spacing="6.0" GridPane.columnIndex="0">
-                        <Label styleClass="field-label" text="TRIGGER WINDOW (HH:MM) - How close to the end a bid must be to trigger an extension." />
+                        <Label styleClass="field-label" text="TRIGGER WINDOW (HH:MM)" />
+                        <Label styleClass="section-description" text="How close to the end a bid must be to trigger an extension." wrapText="true" />
                         <TextField fx:id="triggerTimeField" promptText="00:05" styleClass="text-field-modern" text="00:05" />
                     </VBox>
                     <VBox spacing="6.0" GridPane.columnIndex="1">
-                        <Label styleClass="field-label" text="EXTENSION (HH:MM) - The amount of bonus time added to the clock " />
+                        <Label styleClass="field-label" text="EXTENSION (HH:MM)" />
+                        <Label styleClass="section-description" text="The amount of bonus time added to the clock." wrapText="true" />
                         <TextField fx:id="extensionTimeField" promptText="00:05" styleClass="text-field-modern" text="00:05" />
                     </VBox>
                 </children>
@@ -237,10 +239,10 @@
 
             <!-- Bottom Row: Hard Cap Maximum End Date/Time -->
             <VBox spacing="6.0">
-                <Label styleClass="field-label" text="MAXIMUM END DATE &amp; TIME - The absolute hard stop deadline. No matter how many last-second bids come in, the auction will definitively close at this exact moment." />
+                <Label styleClass="field-label" text="MAXIMUM END DATE &amp; TIME" />
+                <Label styleClass="section-description" text="The hard stop deadline. The auction closes at this time even if more late bids arrive." wrapText="true" />
                 <HBox spacing="10.0">
                     <children>
-                        <!-- Swap out fx:id here to match your controller hook -->
                         <DatePicker fx:id="maxEndDatePicker" editable="false" maxWidth="Infinity" styleClass="date-picker-modern" HBox.hgrow="ALWAYS" />
                         <TextField fx:id="maxEndTimeField" prefWidth="90.0" promptText="HH:mm" styleClass="text-field-modern" />
                     </children>

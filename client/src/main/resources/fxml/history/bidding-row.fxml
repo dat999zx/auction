@@ -6,16 +6,16 @@
 <?import javafx.scene.layout.VBox?>
 
 <HBox fx:id="row" alignment="CENTER_LEFT" styleClass="table-row" stylesheets="@../../css/history.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.history.BiddingRowController">
-    <HBox alignment="CENTER_LEFT" prefWidth="320" spacing="16">
+    <HBox alignment="CENTER_LEFT" minWidth="260.0" spacing="16" HBox.hgrow="ALWAYS">
         <Pane prefHeight="48" prefWidth="48" styleClass="image-placeholder" />
-        <VBox spacing="4">
-            <Label fx:id="titleLabel" styleClass="text-primary, table-row-title" />
-            <Label fx:id="subtitleLabel" styleClass="text-on-surface-variant, table-row-subtitle" />
+        <VBox minWidth="0.0" spacing="4" HBox.hgrow="ALWAYS">
+            <Label fx:id="titleLabel" maxWidth="Infinity" styleClass="text-primary, table-row-title" wrapText="true" />
+            <Label fx:id="subtitleLabel" maxWidth="Infinity" styleClass="text-on-surface-variant, table-row-subtitle" wrapText="true" />
         </VBox>
     </HBox>
-    <Label fx:id="amountLabel" prefWidth="180" styleClass="text-secondary, table-row-amount" text="Value" />
-    <Label fx:id="dateLabel" prefWidth="240" styleClass="text-on-surface-variant" text="date" />
-    <HBox fx:id="statusBox" alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
+    <Label fx:id="amountLabel" minWidth="150.0" styleClass="text-secondary, table-row-amount" text="Value" wrapText="true" />
+    <Label fx:id="dateLabel" minWidth="180.0" styleClass="text-on-surface-variant" text="date" wrapText="true" />
+    <HBox fx:id="statusBox" alignment="CENTER_RIGHT" minWidth="120.0">
         <Label fx:id="statusLabel" text="status" />
     </HBox>
 </HBox>

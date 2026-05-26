@@ -5,6 +5,8 @@
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
@@ -21,7 +23,11 @@
 
             <HBox alignment="BOTTOM_LEFT" spacing="20">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label text="Bidify" styleClass="brand-logo"/>
+                    <ImageView fitHeight="72" fitWidth="72" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@../images/bidify-logo-header.png"/>
+                        </image>
+                    </ImageView>
                     <Label text="Admin Users" styleClass="page-title"/>
                     <Label text="Ban, unban, delete users, and browse their inventory." styleClass="muted-text"/>
                 </VBox>
@@ -39,9 +45,6 @@
 
             <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
                 <Label text="Destructive actions apply immediately and may remove auctions, items, bids, and transactions." HBox.hgrow="ALWAYS"/>
-                <Hyperlink text="Privacy"/>
-                <Hyperlink text="Terms"/>
-                <Hyperlink text="Support"/>
             </HBox>
         </VBox>
     </content>

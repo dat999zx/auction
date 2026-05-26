@@ -173,8 +173,12 @@ public class MyAuctionsController {
         VBox textBox = new VBox(3);
         Label titleLabel = new Label(DisplayUtil.defaultText(auction.getAuctionName(), "Untitled"));
         titleLabel.getStyleClass().add("product-title");
+        titleLabel.setWrapText(true);
+        titleLabel.setMaxWidth(Double.MAX_VALUE);
         Label subtitleLabel = new Label(buildSubtitle(auction));
         subtitleLabel.getStyleClass().add("product-subtitle");
+        subtitleLabel.setWrapText(true);
+        subtitleLabel.setMaxWidth(Double.MAX_VALUE);
         textBox.getChildren().addAll(titleLabel, subtitleLabel);
         details.getChildren().add(textBox);
         row.add(details, 0, 0);
@@ -201,16 +205,19 @@ public class MyAuctionsController {
             double price = auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
             Label priceLabel = new Label(DisplayUtil.formatCurrency(price));
             priceLabel.getStyleClass().add("price-value");
+            priceLabel.setWrapText(true);
             String capText = isClosedStatus(status) ? "Final Price"
                     : (auction.getBidHistory() != null ? auction.getBidHistory().size() + " Bids total" : "0 Bids total");
             Label cap = new Label(capText);
             cap.getStyleClass().add("caption");
+            cap.setWrapText(true);
             bidBox.getChildren().addAll(priceLabel, cap);
         }
         row.add(bidBox, 2, 0);
 
         // Column 3: time remaining
         Label timeLabel = new Label();
+        timeLabel.setWrapText(true);
         GridPane.setValignment(timeLabel, javafx.geometry.VPos.CENTER);
         if ("ACTIVE".equals(status)) {
             if (endingSoon) {

@@ -61,6 +61,7 @@
                                         <VBox spacing="6.0">
                                             <Label fx:id="name" styleClass="item-title" text="Auction title" />
                                             <Label fx:id="openingBidderLabel" alignment="CENTER" styleClass="bidder-name" text="openingBidderLabel" />
+                                            <Label fx:id="sellerReputationLabel" alignment="CENTER" styleClass="seller-reputation-pill" text="Seller reputation loading" visible="false" managed="false" />
                                             <Region maxWidth="513.0" prefHeight="3.0" prefWidth="517.0" styleClass="title-accent" />
                                         </VBox>
                                         <Label fx:id="description" styleClass="item-description" text="Auction description" wrapText="true" />
@@ -188,7 +189,7 @@
                                             </HBox>
                                         </VBox>
             
-                                        <Label styleClass="footnote-text" text="By clicking &quot;Place Bid&quot; you agree to our Terms of Exchange." wrapText="true" />
+                                        <Label styleClass="footnote-text" text="Bids are final once accepted by the server." wrapText="true" />
                                     </VBox>
 
                                     <Button fx:id="sellerCancelButton" onAction="#handleSellerCancel" styleClass="autobid-disable-button" text="Cancel Auction" visible="false" managed="false" />

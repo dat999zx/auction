@@ -141,6 +141,15 @@ public final class SceneManager {
         sceneCache.clearAll();
     }
 
+    public static void resetMissionBar() {
+        Runnable reset = () -> {
+            MissionBarController controller = sceneShell.missionBarController();
+            if (controller != null) controller.resetState();
+        };
+        if (Platform.isFxApplicationThread()) reset.run();
+        else Platform.runLater(reset);
+    }
+
     public static MissionBarController getMissionBarController() {
         return sceneShell.missionBarController();
     }

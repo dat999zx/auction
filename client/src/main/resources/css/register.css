@@ -79,7 +79,7 @@
 }
 
 .avatar-text {
-    -fx-text-fill: #000666;
+    -fx-text-fill: #001e40;
     -fx-font-family: "Manrope", "Arial";
     -fx-font-size: 13px;
     -fx-font-weight: 800;
@@ -156,8 +156,8 @@
 }
 
 .terms-check:selected .box {
-    -fx-background-color: #000666;
-    -fx-border-color: #000666;
+    -fx-background-color: #104ddd;
+    -fx-border-color: #104ddd;
 }
 
 .terms-check:selected .mark {
@@ -187,7 +187,7 @@
 .footer-link {
     -fx-background-color: transparent;
     -fx-border-color: transparent;
-    -fx-text-fill: #000666;
+    -fx-text-fill: #001e40;
     -fx-font-family: "Inter", "Arial";
     -fx-font-size: 14px;
     -fx-font-weight: 700;

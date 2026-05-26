@@ -79,43 +79,9 @@
                             </HBox>
                         </VBox>
 
-                        <GridPane hgap="24">
-                            <columnConstraints><ColumnConstraints hgrow="ALWAYS" percentWidth="50" /><ColumnConstraints hgrow="ALWAYS" percentWidth="50" /></columnConstraints>
-                            <VBox spacing="10" styleClass="concierge-card">
-                                <Label styleClass="concierge-label" text="SELLER RANKING" />
-                                <Label styleClass="concierge-title" text="Unlock Concierge Access" />
-                                <Label styleClass="concierge-body" text="Reach Diamond Status for 0.5% reduced fees." />
-                                <Region VBox.vgrow="ALWAYS" />
-                                <Button styleClass="secondary-button" text="View Eligibility" />
-                            </VBox>
-                            <VBox spacing="12" styleClass="market-card" GridPane.columnIndex="1">
-                                <padding><Insets bottom="24" left="24" right="24" top="24" /></padding>
-                                <Label styleClass="label-caps" text="MARKET PULSE" />
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-blue" /><Label text="Luxury Watches" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="success-text" text="+8.2%" /></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-gray" /><Label text="Vintage Leather" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="error-text" text="-1.4%" /></HBox>
-                                <HBox alignment="CENTER_LEFT" spacing="12"><Circle radius="4" styleClass="market-dot-light" /><Label text="Art &amp; Prints" /><Region HBox.hgrow="ALWAYS" /><Label styleClass="success-text" text="+15.7%" /></HBox>
-                                <Region VBox.vgrow="ALWAYS" />
-                                <Label styleClass="market-link" text="Full Market Report  &#x2192;" />
-                            </VBox>
-                            <rowConstraints>
-                                <RowConstraints />
-                            </rowConstraints>
-                        </GridPane>
                     </VBox>
                 </ScrollPane>
             </center>
-            <bottom>
-                <HBox alignment="CENTER_LEFT" spacing="26" styleClass="footer">
-                    <padding><Insets bottom="10" left="32" right="32" top="10" /></padding>
-                    <Circle radius="4" styleClass="status-dot" /><Label styleClass="footer-text" text="SYSTEM ONLINE" />
-                    <Label styleClass="footer-text" text="ACTIVE VOLUME: $1.2M" />
-                    <Label styleClass="footer-text" text="PARTICIPANTS: 3,492" />
-                    <Region HBox.hgrow="ALWAYS" />
-                    <Label styleClass="footer-link" text="Support" />
-                    <Label styleClass="footer-link" text="Privacy" />
-                    <Label styleClass="footer-link" text="&#x00A9; 2024 Bidify Luxury" />
-                </HBox>
-            </bottom>
         </BorderPane>
     </center>
 </BorderPane>

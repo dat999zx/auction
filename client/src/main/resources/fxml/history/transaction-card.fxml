@@ -9,15 +9,15 @@
         <HBox alignment="CENTER" styleClass="icon-circle">
             <Label fx:id="iconLabel" styleClass="icon, text-primary" />
         </HBox>
-        <VBox spacing="4">
-            <Label fx:id="titleLabel" styleClass="text-primary, transaction-card-title" />
-            <Label fx:id="idLabel" styleClass="text-on-surface-variant, transaction-card-id" />
+        <VBox minWidth="0.0" spacing="4" HBox.hgrow="ALWAYS">
+            <Label fx:id="titleLabel" maxWidth="Infinity" styleClass="text-primary, transaction-card-title" wrapText="true" />
+            <Label fx:id="idLabel" maxWidth="Infinity" styleClass="text-on-surface-variant, transaction-card-id" wrapText="true" />
         </VBox>
     </HBox>
 
-    <VBox alignment="CENTER_RIGHT" spacing="4">
+    <VBox alignment="CENTER_RIGHT" minWidth="160.0" spacing="4">
         <Label styleClass="table-header-text" text="AMOUNT" />
-        <Label fx:id="amountLabel" styleClass="amount-text, text-primary" text="Value" />
-      <Label fx:id="fullValue" maxWidth="600.0" styleClass="table-header-text" text="fullValue" />
+        <Label fx:id="amountLabel" styleClass="amount-text, text-primary" text="Value" wrapText="true" />
+        <Label fx:id="fullValue" maxWidth="600.0" styleClass="table-header-text" text="fullValue" wrapText="true" />
     </VBox>
 </HBox>

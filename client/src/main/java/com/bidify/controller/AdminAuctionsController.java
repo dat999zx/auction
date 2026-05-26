@@ -16,6 +16,7 @@ import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
+import com.bidify.utility.SoundUtil;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -191,6 +192,7 @@ public class AdminAuctionsController {
     private void cancelAuction(AuctionDto auction) {
         try {
             auctionClientService.deleteAuction(auction.getId());
+            SoundUtil.success();
             NotificationUtil.success("Auction canceled successfully.");
             loadAuctions();
         } catch (IOException e) {
@@ -203,6 +205,7 @@ public class AdminAuctionsController {
     private void resolveAuction(AuctionDto auction, AuctionResolutionAction action) {
         try {
             auctionClientService.resolveAuction(auction.getId(), action);
+            SoundUtil.success();
             NotificationUtil.success("Auction resolved successfully.");
             loadAuctions();
         } catch (IOException e) {

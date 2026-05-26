@@ -24,7 +24,11 @@
                         <Insets bottom="48.0" left="48.0" right="48.0" top="48.0" />
                     </padding>
                     <children>
-                        <Label styleClass="left-brand" text="Bidify" />
+                        <ImageView fitHeight="170.0" fitWidth="170.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                            <image>
+                                <Image url="@../images/bidify-logo-login.png" />
+                            </image>
+                        </ImageView>
 
                         <VBox spacing="18.0">
                             <padding>
@@ -140,7 +144,7 @@
 
                                 <VBox spacing="12.0">
                                     <children>
-                              <Label styleClass="form-subtitle" text="&quot;By clicking 'Register', you agree to our Terms of Service and Privacy Policy.&quot;" />
+                              <Label styleClass="form-subtitle" text="Create an account to start bidding and listing items." />
                                         <Button maxWidth="1.7976931348623157E308" onAction="#handleRegister" prefHeight="52.0" styleClass="primary-button" text="Register" />
 
                                     </children>

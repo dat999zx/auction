@@ -137,6 +137,25 @@ public class MissionBarController {
         hideSidebar();
     }
 
+    public void closeSidebarImmediately() {
+        double hiddenOffset = getSidebarWidth();
+        sidebarVisible = false;
+        sidebarAnimating = false;
+        sidebarLayer.setVisible(false);
+        sidebarLayer.setManaged(false);
+        sidebarLayer.setMouseTransparent(true);
+        sidebarOverlay.setOpacity(0.0);
+        sidebarContent.setTranslateX(-hiddenOffset);
+    }
+
+    public void resetState() {
+        closeSidebarImmediately();
+        setSubMenuVisible(accountSubMenu, false);
+        setSubMenuVisible(myActivitiesSubMenu, false);
+        setActiveNavigation(auctionsButton);
+        searchBar.clear();
+    }
+
     @FXML
     private void handleOverlayClick() {
         closeSidebar();
@@ -151,16 +170,14 @@ public class MissionBarController {
     @FXML
     private void handleAccountToggle(ActionEvent event) {
         boolean isVisible = accountSubMenu.isVisible();
-        accountSubMenu.setVisible(!isVisible);
-        accountSubMenu.setManaged(!isVisible);
+        setSubMenuVisible(accountSubMenu, !isVisible);
         updateSidebarButtonStyle(myAccountButton);
     }
 
     @FXML
     private void handleActivitiesToggle(ActionEvent event) {
         boolean isVisible = myActivitiesSubMenu.isVisible();
-        myActivitiesSubMenu.setVisible(!isVisible);
-        myActivitiesSubMenu.setManaged(!isVisible);
+        setSubMenuVisible(myActivitiesSubMenu, !isVisible);
         updateSidebarButtonStyle(myActivitiesButton);
     }
 
@@ -344,6 +361,12 @@ public class MissionBarController {
 
         button.getStyleClass().removeAll("top-link", "top-link-active");
         button.getStyleClass().add(active ? "top-link-active" : "top-link");
+    }
+
+    private void setSubMenuVisible(VBox subMenu, boolean visible) {
+        if (subMenu == null) return;
+        subMenu.setVisible(visible);
+        subMenu.setManaged(visible);
     }
 
     private double getSidebarWidth() {

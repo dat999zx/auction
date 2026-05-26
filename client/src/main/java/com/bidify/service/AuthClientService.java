@@ -52,6 +52,7 @@ public class AuthClientService {
         String currentUsername = clientSession.getCurrentUsername();
         if (currentUsername == null || currentUsername.isBlank()) {
             clientSession.clear();
+            SceneManager.resetMissionBar();
             return new Response(RequestStatus.SUCCESS, "Logged out");
         }
 
@@ -59,6 +60,7 @@ public class AuthClientService {
         if (response.getStatus() == RequestStatus.SUCCESS) {
             clientSession.clear();
             SceneManager.clearAllCache();
+            SceneManager.resetMissionBar();
             return response;
         }
         throw new AuthException(response.getMessage());

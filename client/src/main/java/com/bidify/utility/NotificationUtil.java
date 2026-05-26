@@ -49,6 +49,7 @@ public class NotificationUtil {
     }
 
     public static void error(String message) {
+        SoundUtil.error();
         show(message, NotificationType.ERROR);
     }
 
