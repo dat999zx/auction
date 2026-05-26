@@ -17,7 +17,6 @@ import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
-import com.bidify.network.SocketClient;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.utility.AuctionActivityRenderer;
@@ -27,6 +26,7 @@ import com.bidify.utility.AuctionSettlementViewState;
 import com.bidify.utility.ImageCache;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SceneManager;
+import com.bidify.utility.SoundUtil;
 import com.bidify.utility.UiUpdateScheduler;
 
 import javafx.application.Platform;
@@ -201,8 +201,10 @@ public class AuctionDetailsController {
                 updatedAuction.setCurrentUserAutoBidActive(currentUserAutoBidActive);
                 updatedAuction.setCurrentUserAutoBidMax(currentUserAutoBidMax);
                 bindAuctionData(updatedAuction);
-                if (event.getType() == EventType.BID_PLACED)
+                if (event.getType() == EventType.BID_PLACED) {
+                    SoundUtil.success();
                     NotificationUtil.info(event.getMessage());
+                }
             });
         }
     }
@@ -213,6 +215,7 @@ public class AuctionDetailsController {
         AuctionDto endedAuction = JsonUtil.fromMap(event.getData(), AuctionDto.class);
         if (endedAuction != null && selectedAuctionId.equals(endedAuction.getId())) {
             Platform.runLater(() -> {
+                SoundUtil.success();
                 bindAuctionData(endedAuction);
                 placebid.setDisable(true);
                 NotificationUtil.info("Auction has ended.");
@@ -296,6 +299,7 @@ public class AuctionDetailsController {
                 return;
             }
 
+            SoundUtil.success();
             inputprice.clear();
             NotificationUtil.success(response.getMessage() == null ? "Bid placed successfully." : response.getMessage());
             loadAuctionDetails(selectedAuctionId);
@@ -695,6 +699,7 @@ public class AuctionDetailsController {
         try {
             Response response = auctionClientService.payAuction(selectedAuctionId);
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                SoundUtil.success();
                 NotificationUtil.success("Paid for auction successfully!");
                 loadAuctionDetails(selectedAuctionId);
             } else {
@@ -714,6 +719,7 @@ public class AuctionDetailsController {
         try {
             Response response = auctionClientService.confirmAuctionDelivery(selectedAuctionId);
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                SoundUtil.success();
                 NotificationUtil.success("Delivery confirmed successfully!");
                 loadAuctionDetails(selectedAuctionId);
             } else {
@@ -733,6 +739,7 @@ public class AuctionDetailsController {
         try {
             Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.COMPLETE);
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                SoundUtil.success();
                 NotificationUtil.success("Auction resolved as completed successfully!");
                 loadAuctionDetails(selectedAuctionId);
             } else {
@@ -752,6 +759,7 @@ public class AuctionDetailsController {
         try {
             Response response = auctionClientService.resolveAuction(selectedAuctionId, AuctionResolutionAction.CANCEL);
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                SoundUtil.success();
                 NotificationUtil.success("Auction resolved as canceled successfully!");
                 loadAuctionDetails(selectedAuctionId);
             } else {
@@ -770,6 +778,7 @@ public class AuctionDetailsController {
         try {
             Response response = auctionClientService.deleteAuction(selectedAuctionId);
             if (response.getStatus() == RequestStatus.SUCCESS) {
+                SoundUtil.success();
                 NotificationUtil.success("Auction canceled successfully!");
                 loadAuctionDetails(selectedAuctionId);
             } else {

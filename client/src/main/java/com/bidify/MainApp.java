@@ -4,6 +4,7 @@ import com.bidify.common.enums.EventType;
 import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.utility.NotificationUtil;
+import com.bidify.utility.SoundUtil;
 import javafx.application.Application;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -89,6 +90,7 @@ public class MainApp extends Application {
     }
 
     private static void handleForcedLogout(Event event) {
+        SoundUtil.error();
         ClientSession.getInstance().clear();
         SceneManager.clearAllCache();
         if (event != null && event.getMessage() != null && !event.getMessage().isBlank())

@@ -55,6 +55,11 @@
             <artifactId>javafx-base</artifactId>
             <version>${javafx.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
 
         <!-- Platform-specific natives for Universal JAR -->
         <!-- Windows -->
@@ -79,6 +84,12 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
+            <version>${javafx.version}</version>
+            <classifier>win</classifier>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-media</artifactId>
             <version>${javafx.version}</version>
             <classifier>win</classifier>
         </dependency>
@@ -126,6 +137,12 @@
                     <version>${javafx.version}</version>
                     <classifier>win</classifier>
                 </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>win</classifier>
+                </dependency>
 
                 <!-- Linux -->
                 <dependency>
@@ -149,6 +166,12 @@
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-base</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>linux</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
                     <version>${javafx.version}</version>
                     <classifier>linux</classifier>
                 </dependency>
@@ -178,6 +201,12 @@
                     <version>${javafx.version}</version>
                     <classifier>mac</classifier>
                 </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>mac</classifier>
+                </dependency>
 
                 <!-- Mac (Apple Silicon) -->
                 <dependency>
@@ -201,6 +230,12 @@
                 <dependency>
                     <groupId>org.openjfx</groupId>
                     <artifactId>javafx-base</artifactId>
+                    <version>${javafx.version}</version>
+                    <classifier>mac-aarch64</classifier>
+                </dependency>
+                <dependency>
+                    <groupId>org.openjfx</groupId>
+                    <artifactId>javafx-media</artifactId>
                     <version>${javafx.version}</version>
                     <classifier>mac-aarch64</classifier>
                 </dependency>
