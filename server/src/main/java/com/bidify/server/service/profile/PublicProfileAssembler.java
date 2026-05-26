@@ -36,6 +36,69 @@ public class PublicProfileAssembler {
         this.auctionDtoAssembler = auctionDtoAssembler;
     }
 
+    public static class ReputationSummary {
+        private final int completedSales;
+        private final int failedSales;
+        private final String completionRate;
+        private final String reputationLabel;
+        private final double starRating;
+        private final String starVisual;
+
+        public ReputationSummary(
+                int completedSales,
+                int failedSales,
+                String completionRate,
+                String reputationLabel,
+                double starRating,
+                String starVisual) {
+            this.completedSales = completedSales;
+            this.failedSales = failedSales;
+            this.completionRate = completionRate;
+            this.reputationLabel = reputationLabel;
+            this.starRating = starRating;
+            this.starVisual = starVisual;
+        }
+
+        public int completedSales() { return completedSales; }
+        public int failedSales() { return failedSales; }
+        public String completionRate() { return completionRate; }
+        public String reputationLabel() { return reputationLabel; }
+        public double starRating() { return starRating; }
+        public String starVisual() { return starVisual; }
+
+        public static ReputationSummary from(int completedSales, int failedSales, int ratedSales) {
+            String completionRate = ratedSales > 0
+                    ? String.format("%.1f%%", (double) completedSales / ratedSales * 100)
+                    : "0.0%";
+            double rateValue = ratedSales > 0 ? (double) completedSales / ratedSales * 100 : 0.0;
+            
+            double starRating = ratedSales > 0 ? ((double) completedSales / ratedSales) * 5.0 : 5.0;
+            
+            int fullStars = (int) Math.round(starRating);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 5; i++) {
+                if (i < fullStars) {
+                    sb.append("★");
+                } else {
+                    sb.append("☆");
+                }
+            }
+            String starVisual = sb.toString();
+
+            String label;
+            if (ratedSales < 3) {
+                label = "New Seller";
+            } else if (completedSales >= 10 && rateValue >= 95.0) {
+                label = "Top Seller";
+            } else if (rateValue >= 80.0) {
+                label = "Reliable Seller";
+            } else {
+                label = "Needs Review";
+            }
+            return new ReputationSummary(completedSales, failedSales, completionRate, label, starRating, starVisual);
+        }
+    }
+
     public PublicProfileDto assemble(User user) {
         String profileImageBase64 = loadProfileImage(user);
         List<Auction> userAuctions = auctionDao.findBySellerUsername(user.getUsername());
@@ -67,17 +130,31 @@ public class PublicProfileAssembler {
         int activeAuctions = 0;
         int closedAuctions = 0;
         int soldAuctions = 0;
+        int completedSales = 0;
+        int failedSales = 0;
+        int ratedSales = 0;
         double activeVolume = 0.0;
 
         for (Auction auction : userAuctions) {
-            if (auction.getStatus() == AuctionStatus.ACTIVE) {
+            AuctionStatus status = auction.getStatus();
+            if (status == AuctionStatus.ACTIVE) {
                 activeAuctions++;
                 activeVolume += auction.getCurrentBid() > 0 ? auction.getCurrentBid() : auction.getStartingPrice();
-            } else if (auction.getStatus() != AuctionStatus.UPCOMING) {
+            } else if (status != AuctionStatus.UPCOMING) {
                 closedAuctions++;
                 if (auction.getCurrentBidderUsername() != null && !auction.getCurrentBidderUsername().isBlank()) {
                     soldAuctions++;
                 }
+            }
+
+            if (status == AuctionStatus.COMPLETED) {
+                completedSales++;
+                ratedSales++;
+            } else if (status == AuctionStatus.PAID || status == AuctionStatus.AWAITING_DELIVERY) {
+                ratedSales++;
+            } else if (status == AuctionStatus.CANCELED || status == AuctionStatus.BANNED) {
+                failedSales++;
+                ratedSales++;
             }
         }
 
@@ -85,6 +162,7 @@ public class PublicProfileAssembler {
         String sellRate = closedAuctions > 0
                 ? String.format("%.1f%%", (double) soldAuctions / closedAuctions * 100)
                 : "0.0%";
+        ReputationSummary reputation = ReputationSummary.from(completedSales, failedSales, ratedSales);
 
         return new PublicProfileStatsDto(
                 totalAuctions,
@@ -93,7 +171,13 @@ public class PublicProfileAssembler {
                 soldAuctions,
                 totalBids,
                 activeVolume,
-                sellRate);
+                sellRate,
+                reputation.completedSales(),
+                reputation.failedSales(),
+                reputation.completionRate(),
+                reputation.reputationLabel(),
+                reputation.starRating(),
+                reputation.starVisual());
     }
 
     private AuctionDto[] toAuctionDtos(List<Auction> auctions) {
