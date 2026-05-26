@@ -48,8 +48,8 @@
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                                     <Label text="MONEY FLOW" styleClass="table-header-text"/>
-                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value"/>
-                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral"/>
+                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value" wrapText="true"/>
+                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral" wrapText="true"/>
                                 </VBox>
                                 <Label text="\$" styleClass="analytics-symbol analytics-symbol-blue"/>
                             </HBox>
@@ -61,8 +61,8 @@
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                                     <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
-                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value"/>
-                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral"/>
+                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value" wrapText="true"/>
+                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral" wrapText="true"/>
                                 </VBox>
                                 <Label text="&#8599;" styleClass="analytics-symbol analytics-symbol-green"/>
                             </HBox>
@@ -74,10 +74,10 @@
                     <VBox fx:id="biddingActivityContainer" styleClass="table-container">
                         <!-- Table Header -->
                         <HBox styleClass="table-header">
-                            <Label text="AUCTION ITEM" prefWidth="320" styleClass="table-header-text"/>
-                            <Label text="BID AMOUNT" prefWidth="180" styleClass="table-header-text"/>
-                            <Label text="DATE &amp; TIME" prefWidth="240" styleClass="table-header-text"/>
-                            <Label text="STATUS" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="table-header-text"/>
+                            <Label text="AUCTION ITEM" minWidth="260.0" styleClass="table-header-text" HBox.hgrow="ALWAYS"/>
+                            <Label text="BID AMOUNT" minWidth="150.0" styleClass="table-header-text"/>
+                            <Label text="DATE &amp; TIME" minWidth="180.0" styleClass="table-header-text"/>
+                            <Label text="STATUS" minWidth="120.0" styleClass="table-header-text"/>
                         </HBox>
 
                     </VBox>

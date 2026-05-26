@@ -116,7 +116,6 @@
     -fx-border-radius: 12;
     -fx-border-color: #c6c5d4;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 1);
-    -fx-transition: all 0.2s ease-in-out;
 }
 
 .stat-card:hover {
@@ -185,7 +184,6 @@
 .table-row,
 .table-row-last {
     -fx-background-color: #ffffff;
-    -fx-transition: background-color 0.15s ease;
 }
 
 .table-row {

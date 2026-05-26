@@ -22,7 +22,7 @@
 }
 
 .brand-title {
-    -fx-text-fill: #000666;
+    -fx-text-fill: #001e40;
     -fx-font-family: "Manrope", "Arial";
     -fx-font-size: 32px;
     -fx-font-weight: 800;
@@ -109,7 +109,7 @@
 }
 
 .secondary-link {
-    -fx-text-fill: #0048d8;
+    -fx-text-fill: #104ddd;
     -fx-font-family: "Inter", "Arial";
     -fx-font-size: 14px;
 }
@@ -121,7 +121,7 @@
 }
 
 .footer-link {
-    -fx-text-fill: #000666;
+    -fx-text-fill: #001e40;
     -fx-font-family: "Inter", "Arial";
     -fx-font-size: 14px;
     -fx-font-weight: 700;
