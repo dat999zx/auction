@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox alignment="CENTER_LEFT"
+      maxWidth="380.0"
+      minWidth="320.0"
+      prefWidth="380.0"
+      styleClass="notification-toast"
+      stylesheets="@../css/notification.css"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1">
+    <children>
+        <Region maxWidth="6.0" minWidth="6.0" prefWidth="6.0" styleClass="notification-accent" />
+
+        <VBox alignment="CENTER_LEFT" minWidth="314.0" prefWidth="374.0" spacing="7.0" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets bottom="14.0" left="16.0" right="18.0" top="14.0" />
+            </padding>
+            <children>
+                <HBox alignment="CENTER_LEFT" spacing="7.0" styleClass="notification-header">
+                    <children>
+                        <Region maxHeight="8.0" maxWidth="8.0" minHeight="8.0" minWidth="8.0" prefHeight="8.0" prefWidth="8.0" styleClass="notification-dot" />
+                        <Label fx:id="notificationTitle" styleClass="notification-title" text="Notice" />
+                    </children>
+                </HBox>
+                <Label fx:id="notificationMessage"
+                       maxWidth="324.0"
+                       styleClass="notification-message"
+                       text="Notification message"
+                       wrapText="true" />
+            </children>
+        </VBox>
+    </children>
+</HBox>

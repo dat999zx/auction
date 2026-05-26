@@ -23,7 +23,7 @@
                 <VBox spacing="8">
                     <Label text="History &amp; Archives" styleClass="page-title"/>
                     <Label wrapText="true" styleClass="text-on-surface-variant"
-                           text="A comprehensive overview of your curatorial journey, featuring all auction engagements and financial settlements handled with precision."/>
+                           text="Review your bidding activity and transaction history."/>
                 </VBox>
 
                 <!-- Bidding Activity Section -->
@@ -48,8 +48,8 @@
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                                     <Label text="MONEY FLOW" styleClass="table-header-text"/>
-                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value"/>
-                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral"/>
+                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value" wrapText="true"/>
+                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral" wrapText="true"/>
                                 </VBox>
                                 <Label text="\$" styleClass="analytics-symbol analytics-symbol-blue"/>
                             </HBox>
@@ -61,8 +61,8 @@
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
                                     <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
-                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value"/>
-                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral"/>
+                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value" wrapText="true"/>
+                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral" wrapText="true"/>
                                 </VBox>
                                 <Label text="&#8599;" styleClass="analytics-symbol analytics-symbol-green"/>
                             </HBox>
@@ -74,27 +74,12 @@
                     <VBox fx:id="biddingActivityContainer" styleClass="table-container">
                         <!-- Table Header -->
                         <HBox styleClass="table-header">
-                            <Label text="AUCTION ITEM" prefWidth="320" styleClass="table-header-text"/>
-                            <Label text="BID AMOUNT" prefWidth="180" styleClass="table-header-text"/>
-                            <Label text="DATE &amp; TIME" prefWidth="240" styleClass="table-header-text"/>
-                            <Label text="STATUS" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="table-header-text"/>
+                            <Label text="AUCTION ITEM" minWidth="260.0" styleClass="table-header-text" HBox.hgrow="ALWAYS"/>
+                            <Label text="BID AMOUNT" minWidth="150.0" styleClass="table-header-text"/>
+                            <Label text="DATE &amp; TIME" minWidth="180.0" styleClass="table-header-text"/>
+                            <Label text="STATUS" minWidth="120.0" styleClass="table-header-text"/>
                         </HBox>
 
-                        <!-- Sample Row -->
-                        <HBox alignment="CENTER_LEFT" styleClass="table-row">
-                            <HBox spacing="16" alignment="CENTER_LEFT" prefWidth="320">
-                                <Pane prefWidth="48" prefHeight="48" styleClass="image-placeholder"/>
-                                <VBox spacing="4">
-                                    <Label text="Ethereal Symmetry #04" styleClass="text-primary table-row-title"/>
-                                    <Label text="Contemporary Digital Art" styleClass="text-on-surface-variant table-row-subtitle"/>
-                                </VBox>
-                            </HBox>
-                            <Label text="14,500.00" prefWidth="180" styleClass="text-secondary table-row-amount"/>
-                            <Label text="Oct 12, 2023 • 14:22 PM" prefWidth="240" styleClass="text-on-surface-variant"/>
-                            <HBox alignment="CENTER_RIGHT" HBox.hgrow="ALWAYS">
-                                <Label text="WON" styleClass="badge-won"/>
-                            </HBox>
-                        </HBox>
                     </VBox>
                 </VBox>
 
@@ -116,37 +101,8 @@
                     </BorderPane>
 
                     <VBox fx:id="transactionRecordsContainer" spacing="16">
-                        <HBox alignment="CENTER_LEFT" spacing="24" styleClass="transaction-card border-green">
-                            <HBox alignment="CENTER_LEFT" spacing="16" HBox.hgrow="ALWAYS">
-                                <HBox styleClass="icon-circle">
-                                    <Label text="payments" styleClass="icon text-primary"/>
-                                </HBox>
-                                <VBox spacing="4">
-                                    <Label text="Ethereal Symmetry #04" styleClass="text-primary transaction-card-title"/>
-                                    <Label text="Transaction ID: #TRX-992011" styleClass="text-on-surface-variant transaction-card-id"/>
-                                </VBox>
-                            </HBox>
-                            <VBox alignment="CENTER_RIGHT" spacing="4">
-                                <Label text="AMOUNT" styleClass="table-header-text"/>
-                                <Label text="15,225.00" styleClass="amount-text text-primary"/>
-                            </VBox>
-                        </HBox>
                     </VBox>
                 </VBox>
-
-                <!-- Footer -->
-                <BorderPane styleClass="footer">
-                    <left>
-                        <Label text="© 2023 Bidify Collective • Absolute Transparency in Luxury Trading" styleClass="table-header-text"/>
-                    </left>
-                    <right>
-                        <HBox spacing="24">
-                            <Label text="TAX DOCUMENTS" styleClass="table-header-text"/>
-                            <Label text="PRIVACY CHARTER" styleClass="table-header-text"/>
-                            <Label text="HELP DESK" styleClass="table-header-text"/>
-                        </HBox>
-                    </right>
-                </BorderPane>
             </VBox>
         </ScrollPane>
     </center>

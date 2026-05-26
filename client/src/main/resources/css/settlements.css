@@ -62,7 +62,6 @@
 .empty-state-title { -fx-font-size: 16px; -fx-font-weight: 800; -fx-text-fill: -primary; }
 .empty-state-subtitle { -fx-font-size: 13px; -fx-text-fill: #64748b; }
 
-/* Custom Roles Styles */
 .role-chip {
     -fx-padding: 8 14 8 14;
     -fx-background-radius: 999;
@@ -78,7 +77,6 @@
     -fx-text-fill: #d97706;
 }
 
-/* Custom Status Styles */
 .status-chip-awaiting-payment {
     -fx-background-color: rgba(217, 119, 6, 0.12);
     -fx-text-fill: #b45309;

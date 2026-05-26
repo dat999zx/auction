@@ -6,6 +6,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
@@ -23,7 +25,11 @@
 
             <HBox alignment="BOTTOM_LEFT" spacing="20">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
-                    <Label text="Bidify" styleClass="brand-logo"/>
+                    <ImageView fitHeight="72" fitWidth="72" preserveRatio="true" smooth="true">
+                        <image>
+                            <Image url="@../images/bidify-logo-header.png"/>
+                        </image>
+                    </ImageView>
                     <Label text="Settlements" styleClass="page-title"/>
                     <Label text="Manage and execute pending actions on ended auctions." styleClass="muted-text"/>
                 </VBox>
@@ -62,9 +68,6 @@
 
             <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
                 <Label text="Double-click an auction row to view full details and execute settlement actions." HBox.hgrow="ALWAYS"/>
-                <Hyperlink text="Privacy"/>
-                <Hyperlink text="Terms"/>
-                <Hyperlink text="Support"/>
             </HBox>
         </VBox>
     </content>

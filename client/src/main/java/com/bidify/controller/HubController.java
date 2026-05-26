@@ -19,6 +19,8 @@ import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.common.utility.JsonUtil;
+import com.bidify.utility.HubAuctionPatcher;
+import com.bidify.utility.HubAuctionSectionRenderer;
 import com.bidify.utility.MissionBarUtil;
 import com.bidify.utility.NavPage;
 import com.bidify.utility.SceneManager;
@@ -28,13 +30,11 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -198,7 +198,7 @@ public class HubController {
         defaultSections.setManaged(true);
         searchSection.setVisible(false);
         searchSection.setManaged(false);
-        cleanupControllers(searchCardControllers);
+        HubAuctionSectionRenderer.cleanupControllers(searchCardControllers);
         searchResultsContainer.getChildren().clear();
     }
 
@@ -211,51 +211,21 @@ public class HubController {
 
     private void renderSection(HBox container, Label emptyLabel, AuctionDto[] auctions,
             Map<String, AuctionCardController> controllerMap, String emptyMessage) {
-        cleanupControllers(controllerMap);
-        container.getChildren().clear();
-        resetNavigationForContainer(container);
-
-        if (auctions == null || auctions.length == 0) {
-            emptyLabel.setText(emptyMessage);
-            emptyLabel.setVisible(true);
-            emptyLabel.setManaged(true);
-            refreshNavigationForContainer(container);
-            return;
-        }
-
-        emptyLabel.setVisible(false);
-        emptyLabel.setManaged(false);
-
-        for (AuctionDto auction : auctions)
-            container.getChildren().add(loadAuctionCard(auction, controllerMap));
-
-        refreshNavigationForContainer(container);
-    }
-
-    private AnchorPane loadAuctionCard(AuctionDto auction, Map<String, AuctionCardController> controllerMap) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auction-card.fxml"));
-            AnchorPane card = loader.load();
-            AuctionCardController controller = loader.getController();
-            controller.bind(auction);
-            if (auction != null && auction.getId() != null)
-                controllerMap.put(auction.getId(), controller);
-            return card;
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot load auction-card.fxml", e);
-        }
-    }
-
-    private void cleanupControllers(Map<String, AuctionCardController> controllerMap) {
-        for (AuctionCardController controller : controllerMap.values())
-            controller.cleanup();
-        controllerMap.clear();
+        HubAuctionSectionRenderer.renderSection(
+                container,
+                emptyLabel,
+                auctions,
+                controllerMap,
+                emptyMessage,
+                () -> resetNavigationForContainer(container),
+                () -> refreshNavigationForContainer(container)
+        );
     }
 
     private void cleanupAllRenderedCards() {
-        cleanupControllers(liveCardControllers);
-        cleanupControllers(upcomingCardControllers);
-        cleanupControllers(searchCardControllers);
+        HubAuctionSectionRenderer.cleanupControllers(liveCardControllers);
+        HubAuctionSectionRenderer.cleanupControllers(upcomingCardControllers);
+        HubAuctionSectionRenderer.cleanupControllers(searchCardControllers);
     }
 
     private void search() {
@@ -397,16 +367,12 @@ public class HubController {
         if (scrollableWidth <= 0) return 0;
 
         double currentPixel = currentHValue * scrollableWidth;
-        double targetPixel = clamp(currentPixel + pixelDelta, 0, scrollableWidth);
+        double targetPixel = Math.clamp(currentPixel + pixelDelta, 0, scrollableWidth);
         return targetPixel / scrollableWidth;
     }
 
     static boolean hasHorizontalOverflow(double contentWidth, double viewportWidth) {
         return contentWidth > viewportWidth + 1;
-    }
-
-    private static double clamp(double value, double min, double max) {
-        return Math.max(min, Math.min(max, value));
     }
 
     private void setupSortControls() {
@@ -457,7 +423,7 @@ public class HubController {
     }
 
     private void patchAuction(AuctionDto updatedAuction) {
-        boolean updatedLive = replaceAuction(liveAuctions, updatedAuction);
+        boolean updatedLive = HubAuctionPatcher.replaceAuction(liveAuctions, updatedAuction);
         if (updatedLive) {
             if (SORT_NEWEST.equals(currentLiveSort))
                 patchCard(liveCardControllers, updatedAuction);
@@ -465,7 +431,7 @@ public class HubController {
                 renderLiveSection();
         }
 
-        if (replaceAuction(searchResults, updatedAuction))
+        if (HubAuctionPatcher.replaceAuction(searchResults, updatedAuction))
             patchCard(searchCardControllers, updatedAuction);
     }
 
@@ -476,12 +442,12 @@ public class HubController {
 
         boolean isActive = "ACTIVE".equalsIgnoreCase(updatedAuction.getStatus());
         boolean isUpcoming = "UPCOMING".equalsIgnoreCase(updatedAuction.getStatus());
-        boolean existsInLive = containsAuction(liveAuctions, auctionId);
-        boolean existsInUpcoming = containsAuction(upcomingAuctions, auctionId);
+        boolean existsInLive = HubAuctionPatcher.containsAuction(liveAuctions, auctionId);
+        boolean existsInUpcoming = HubAuctionPatcher.containsAuction(upcomingAuctions, auctionId);
 
         if (isActive && existsInUpcoming) {
-            upcomingAuctions = removeAuction(upcomingAuctions, auctionId);
-            liveAuctions = upsertAuction(liveAuctions, updatedAuction);
+            upcomingAuctions = HubAuctionPatcher.removeAuction(upcomingAuctions, auctionId);
+            liveAuctions = HubAuctionPatcher.upsertAuction(liveAuctions, updatedAuction);
             renderUpcomingSection();
             renderLiveSection();
             patchSearchResult(updatedAuction);
@@ -489,8 +455,8 @@ public class HubController {
         }
 
         if (isUpcoming && existsInLive) {
-            liveAuctions = removeAuction(liveAuctions, auctionId);
-            upcomingAuctions = upsertAuction(upcomingAuctions, updatedAuction);
+            liveAuctions = HubAuctionPatcher.removeAuction(liveAuctions, auctionId);
+            upcomingAuctions = HubAuctionPatcher.upsertAuction(upcomingAuctions, updatedAuction);
             renderLiveSection();
             renderUpcomingSection();
             patchSearchResult(updatedAuction);
@@ -501,71 +467,8 @@ public class HubController {
     }
 
     private void patchSearchResult(AuctionDto updatedAuction) {
-        if (replaceAuction(searchResults, updatedAuction))
+        if (HubAuctionPatcher.replaceAuction(searchResults, updatedAuction))
             patchCard(searchCardControllers, updatedAuction);
-    }
-
-    private boolean replaceAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
-        if (auctions == null || updatedAuction == null || updatedAuction.getId() == null)
-            return false;
-
-        for (int i = 0; i < auctions.length; i++) {
-            AuctionDto existing = auctions[i];
-            if (existing == null || existing.getId() == null)
-                continue;
-            if (!updatedAuction.getId().equals(existing.getId()))
-                continue;
-            auctions[i] = updatedAuction;
-            return true;
-        }
-
-        return false;
-    }
-
-    private boolean containsAuction(AuctionDto[] auctions, String auctionId) {
-        if (auctions == null || auctionId == null || auctionId.isBlank())
-            return false;
-
-        for (AuctionDto auction : auctions) {
-            if (auction == null || auction.getId() == null)
-                continue;
-            if (auctionId.equals(auction.getId()))
-                return true;
-        }
-
-        return false;
-    }
-
-    private AuctionDto[] removeAuction(AuctionDto[] auctions, String auctionId) {
-        if (auctions == null || auctions.length == 0 || auctionId == null || auctionId.isBlank())
-            return new AuctionDto[0];
-
-        List<AuctionDto> remaining = new ArrayList<>();
-        for (AuctionDto auction : auctions) {
-            if (auction == null || auction.getId() == null || auctionId.equals(auction.getId()))
-                continue;
-            remaining.add(auction);
-        }
-        return remaining.toArray(AuctionDto[]::new);
-    }
-
-    private AuctionDto[] upsertAuction(AuctionDto[] auctions, AuctionDto updatedAuction) {
-        if (updatedAuction == null || updatedAuction.getId() == null || updatedAuction.getId().isBlank())
-            return auctions == null ? new AuctionDto[0] : auctions;
-
-        List<AuctionDto> next = new ArrayList<>(Arrays.asList(auctions == null ? new AuctionDto[0] : auctions));
-        for (int i = 0; i < next.size(); i++) {
-            AuctionDto existing = next.get(i);
-            if (existing == null || existing.getId() == null)
-                continue;
-            if (!updatedAuction.getId().equals(existing.getId()))
-                continue;
-            next.set(i, updatedAuction);
-            return next.toArray(AuctionDto[]::new);
-        }
-
-        next.add(updatedAuction);
-        return next.toArray(AuctionDto[]::new);
     }
 
     private void patchCard(Map<String, AuctionCardController> controllerMap, AuctionDto updatedAuction) {

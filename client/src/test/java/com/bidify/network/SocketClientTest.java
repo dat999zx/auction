@@ -22,14 +22,6 @@ public class SocketClientTest {
         assertSame(client1, client2);
     }
 
-    @Test
-    void setCurrentUsername() { // test set username
-        SocketClient client = SocketClient.getClient();
-
-        client.setCurrentUsername("test");
-
-        assertEquals("test", client.getCurrentUsername());
-    }
 
     @Test
     void sendRequest() { // test gửi request

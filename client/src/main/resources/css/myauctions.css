@@ -48,7 +48,7 @@
 .page-title {
     -fx-font-family: "Manrope", "Segoe UI", Arial, sans-serif;
     -fx-font-size: 24px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 800;
     -fx-text-fill: #000000;
 }
 .ghost-button, .primary-button, .small-button, .pager-button {
@@ -113,26 +113,8 @@
 .table-footer { -fx-background-color: #f2f4f7; }
 .pager-button { -fx-background-color: transparent; -fx-border-color: #c6c5d4; -fx-padding: 2 6; }
 
-.concierge-card {
-    -fx-background-color: #010766;
-    -fx-background-radius: 14;
-    -fx-padding: 24;
-    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 1);
-}
-.concierge-label { -fx-font-size: 11px; -fx-font-weight: 700; -fx-text-fill: #bdc2ff; }
-.concierge-title { -fx-font-family: "Manrope"; -fx-font-size: 24px; -fx-font-weight: 700; -fx-text-fill: white; }
-.concierge-body { -fx-font-size: 14px; -fx-text-fill: #e0e0ff; }
 .secondary-button { -fx-background-color: linear-gradient(to right, #1d4ed8, #2563eb); -fx-text-fill: white; -fx-font-weight: 700; -fx-background-radius: 10; -fx-padding: 8 20; }
 .market-dot-blue { -fx-fill: #104ddd; }
 .market-dot-gray { -fx-fill: #454652; }
 .market-dot-light { -fx-fill: #3a69f6; }
 .market-link { -fx-text-fill: #104ddd; -fx-font-size: 14px; -fx-font-weight: 700; }
-
-.footer {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #c6c5d4 transparent transparent transparent;
-    -fx-border-width: 1 0 0 0;
-}
-.status-dot { -fx-fill: #22c55e; }
-.footer-link, .footer-text { -fx-font-size: 10px; -fx-text-fill: #767683; }
-.footer-text { -fx-font-weight: 700; }

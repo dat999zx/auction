@@ -28,13 +28,13 @@
                         </padding>
 
                         <HBox alignment="CENTER_LEFT" spacing="20.0">
-                            <VBox minWidth="850.0" spacing="6.0" HBox.hgrow="ALWAYS">
+                            <VBox minWidth="0.0" spacing="6.0" HBox.hgrow="ALWAYS">
                                 <HBox alignment="CENTER_LEFT" spacing="8.0">
                                     <Label styleClass="eyebrow-accent" text="PUBLIC PROFILE" />
                                     <Label styleClass="eyebrow-muted" text="READ-ONLY VIEW" />
                                 </HBox>
                                 <Label fx:id="pageTitleLabel" styleClass="page-title" text="Member Profile" />
-                                <Label fx:id="pageSubtitleLabel" maxWidth="860.0" minWidth="860.0" prefHeight="18.0" prefWidth="860.0" styleClass="page-subtitle" text="View statistics, rating estimates, and active auction history." wrapText="true" />
+                                <Label fx:id="pageSubtitleLabel" maxWidth="Infinity" styleClass="page-subtitle" text="View statistics, rating estimates, and active auction history." wrapText="true" />
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
                             <StackPane prefHeight="92.0" prefWidth="92.0" styleClass="hero-avatar">
@@ -82,6 +82,17 @@
                                 <VBox spacing="6.0">
                                     <Label styleClass="meta-label" text="ACCOUNT TYPE" />
                                     <Label fx:id="roleValueLabel" styleClass="status-pill" text="Member" />
+                                </VBox>
+
+                                <Separator />
+
+                                <VBox spacing="10.0" styleClass="reputation-card">
+                                    <Label styleClass="meta-label" text="SELLER REPUTATION" />
+                                    <Label fx:id="reputationLabel" styleClass="reputation-title" text="New Seller" wrapText="true" />
+                                    <Label fx:id="reputationStarsLabel" styleClass="reputation-stars" text="★★★★★" wrapText="true" />
+                                    <Label fx:id="completionRateLabel" styleClass="reputation-metric" text="0.0% completion" wrapText="true" />
+                                    <Label fx:id="completedSalesLabel" styleClass="profile-keyline" text="0 completed sales" wrapText="true" />
+                                    <Label fx:id="failedSalesLabel" styleClass="profile-keyline" text="0 failed sales" wrapText="true" />
                                 </VBox>
                             </VBox>
 

@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.time.LocalDateTime;
 import com.bidify.common.utility.TimeUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +19,6 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.enums.RequestType;
-import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.enums.AuctionResolutionAction;
 import com.bidify.common.model.DisableAutoBidRequest;

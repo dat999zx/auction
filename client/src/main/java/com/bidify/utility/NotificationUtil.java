@@ -1,5 +1,6 @@
 package com.bidify.utility;
 
+import java.io.IOException;
 import java.util.LinkedList;
 
 import javafx.animation.FadeTransition;
@@ -7,20 +8,19 @@ import javafx.animation.Interpolator;
 import javafx.animation.ParallelTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.effect.DropShadow;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
 public class NotificationUtil {
-    private static final double MAX_NOTIFICATION_WIDTH = 300;
+    private static final double MAX_NOTIFICATION_WIDTH = 380;
     private static final Duration ANIM_DURATION = Duration.millis(250);
     private static final Duration DISPLAY_DURATION = Duration.seconds(3);
     private static final int MAX_NOTIFICATIONS = 5;
@@ -31,16 +31,16 @@ public class NotificationUtil {
     private NotificationUtil() {}
 
     public enum NotificationType {
-        SUCCESS("#1f7a1f", "#e6f4ea"),
-        ERROR("#ba1a1a", "#fce8e6"),
-        INFO("#0048d8", "#e7eeff");
+        SUCCESS("Success", "success"),
+        ERROR("Error", "error"),
+        INFO("Notice", "info");
 
-        final String textColor;
-        final String bgColor;
+        final String title;
+        final String styleClass;
 
-        NotificationType(String textColor, String bgColor) {
-            this.textColor = textColor;
-            this.bgColor = bgColor;
+        NotificationType(String title, String styleClass) {
+            this.title = title;
+            this.styleClass = styleClass;
         }
     }
 
@@ -49,6 +49,7 @@ public class NotificationUtil {
     }
 
     public static void error(String message) {
+        SoundUtil.error();
         show(message, NotificationType.ERROR);
     }
 
@@ -81,15 +82,15 @@ public class NotificationUtil {
 
     private static VBox getNotificationContainer(StackPane overlay) {
         if (notificationContainer == null) {
-            notificationContainer = new VBox(10); // khoảng cách giữa các thông báo
+            notificationContainer = new VBox(12);
             notificationContainer.setAlignment(Pos.TOP_RIGHT);
             notificationContainer.setPickOnBounds(false);
             notificationContainer.setMouseTransparent(true);
-            notificationContainer.setMaxWidth(MAX_NOTIFICATION_WIDTH + 40);
+            notificationContainer.setMaxWidth(MAX_NOTIFICATION_WIDTH + 48);
             notificationContainer.setMaxHeight(Region.USE_COMPUTED_SIZE);
             
             StackPane.setAlignment(notificationContainer, Pos.TOP_RIGHT);
-            StackPane.setMargin(notificationContainer, new Insets(95, 15, 0, 0));
+            StackPane.setMargin(notificationContainer, new Insets(88, 24, 0, 0));
             overlay.getChildren().add(notificationContainer);
         }
         return notificationContainer;
@@ -136,31 +137,22 @@ public class NotificationUtil {
 
     // tạo notification
     private static HBox createNotification(String message, NotificationType type) {
-        Label label = new Label(message);
-        label.setWrapText(true);
-        label.setMaxWidth(MAX_NOTIFICATION_WIDTH - 20);
-        label.setStyle("-fx-text-fill: " + type.textColor + "; -fx-font-weight: bold; -fx-font-size: 11px;");
+        try {
+            FXMLLoader loader = new FXMLLoader(NotificationUtil.class.getResource("/fxml/notification.fxml"));
+            HBox notification = loader.load();
 
-        HBox container = new HBox(label);
-        container.setPadding(new Insets(6, 12, 6, 12));
-        container.setAlignment(Pos.CENTER_LEFT);
-        
-        container.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        container.setMinSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        
-        container.setStyle("-fx-background-color: " + type.bgColor + "; " +
-                           "-fx-background-radius: 6; " +
-                           "-fx-border-color: " + type.textColor + "; " +
-                           "-fx-border-radius: 6; " +
-                           "-fx-border-width: 0.8;");
+            Label title = (Label) loader.getNamespace().get("notificationTitle");
+            Label body = (Label) loader.getNamespace().get("notificationMessage");
 
-        DropShadow shadow = new DropShadow();
-        shadow.setColor(Color.rgb(0, 0, 0, 0.08));
-        shadow.setRadius(3);
-        shadow.setOffsetY(1);
-        container.setEffect(shadow);
+            title.setText(type.title);
+            body.setText(message);
+            notification.getStyleClass().add(type.styleClass);
 
-        return container;
+            return notification;
+        }
+        catch (IOException e) {
+            throw new IllegalStateException("Cannot load notification view.", e);
+        }
     }
 
     // ẩn notification

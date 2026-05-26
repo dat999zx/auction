@@ -18,7 +18,11 @@
             <children>
                 <VBox alignment="CENTER" spacing="6.0">
                     <children>
-                        <Label styleClass="brand-title" text="Bidify" />
+                        <ImageView fitHeight="220.0" fitWidth="220.0" pickOnBounds="true" preserveRatio="true" smooth="true">
+                            <image>
+                                <Image url="@../images/bidify-logo-login.png" />
+                            </image>
+                        </ImageView>
                         <Label styleClass="brand-subtitle" text="The Precision Curator" />
                     </children>
                 </VBox>

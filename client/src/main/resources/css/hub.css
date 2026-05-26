@@ -521,15 +521,11 @@
 }
 
 .card-darken {
-    /* Base state: maybe a very subtle shadow or none */
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 0);
-    -fx-cursor: hand; /* Makes the mouse change to a pointer */
-    -fx-transition: 0.3s; /* Note: JavaFX transitions are usually done in Java/Kotlin code, not CSS */
+    -fx-cursor: hand;
 }
 
 .card-darken:hover {
-    /* The JavaFX version of a shadow */
-    /* dropshadow( <type>, <color>, <radius>, <spread>, <offset-x>, <offset-y> ) */
     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 20, 0, 0, 10);
 }
 
