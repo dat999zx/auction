@@ -149,6 +149,7 @@ public class MainApp extends Application {
         SoundUtil.error();
         ClientSession.getInstance().clear();
         SceneManager.clearAllCache();
+        SceneManager.resetMissionBar();
         if (event != null && event.getMessage() != null && !event.getMessage().isBlank())
             NotificationUtil.info(event.getMessage());
         SceneManager.switchScene("login.fxml", true, false);

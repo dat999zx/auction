@@ -655,6 +655,7 @@ public class AuctionDetailsController {
         if (currentUsername == null || currentUsername.isBlank()) {
             cleanup();
             SceneManager.clearAllCache();
+            SceneManager.resetMissionBar();
             SceneManager.switchScene("login.fxml", true, false);
             return;
         }
@@ -665,6 +666,7 @@ public class AuctionDetailsController {
                 NotificationUtil.success("Logged out successfully.");
                 cleanup();
                 SceneManager.clearAllCache();
+                SceneManager.resetMissionBar();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }
