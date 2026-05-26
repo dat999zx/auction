@@ -60,6 +60,12 @@ public class PublicProfileController {
     @FXML private Label summaryLabel;
     @FXML private Button backButton;
 
+    @FXML private Label reputationLabel;
+    @FXML private Label reputationStarsLabel;
+    @FXML private Label completionRateLabel;
+    @FXML private Label completedSalesLabel;
+    @FXML private Label failedSalesLabel;
+
     public static void setTargetUsername(String username) {
         targetUsername = username;
     }
@@ -149,6 +155,11 @@ public class PublicProfileController {
             totalBidsLabel.setText(String.valueOf(stats.getTotalBids()));
             activeVolumeLabel.setText(DisplayUtil.formatCashSuffix(stats.getActiveVolume()));
             sellRateLabel.setText(stats.getSellRate());
+            reputationLabel.setText(DisplayUtil.defaultText(stats.getReputationLabel(), "New Seller"));
+            reputationStarsLabel.setText(DisplayUtil.defaultText(stats.getStarVisual(), "★★★★★") + " (" + String.format("%.1f", stats.getStarRating()) + "/5.0)");
+            completionRateLabel.setText(DisplayUtil.defaultText(stats.getCompletionRate(), "0.0%") + " completion");
+            completedSalesLabel.setText(stats.getCompletedSales() + " completed sale" + (stats.getCompletedSales() == 1 ? "" : "s"));
+            failedSalesLabel.setText(stats.getFailedSales() + " failed sale" + (stats.getFailedSales() == 1 ? "" : "s"));
         }
 
         // Render auctions list

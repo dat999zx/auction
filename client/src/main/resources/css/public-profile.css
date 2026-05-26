@@ -302,3 +302,30 @@
     -fx-text-fill: #737780;
     -fx-font-size: 13px;
 }
+
+.reputation-card {
+    -fx-background-color: #f7f9ff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #d8e3fb;
+    -fx-padding: 14;
+}
+
+.reputation-title {
+    -fx-text-fill: #001e40;
+    -fx-font-family: "Manrope", "Segoe UI", sans-serif;
+    -fx-font-size: 18px;
+    -fx-font-weight: 900;
+}
+
+.reputation-metric {
+    -fx-text-fill: #104ddd;
+    -fx-font-size: 13px;
+    -fx-font-weight: 800;
+}
+
+.reputation-stars {
+    -fx-text-fill: #eab308;
+    -fx-font-size: 16px;
+    -fx-font-weight: 800;
+}
