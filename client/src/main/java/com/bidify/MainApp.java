@@ -6,9 +6,12 @@ import com.bidify.event.EventManager;
 import com.bidify.utility.NotificationUtil;
 import com.bidify.utility.SoundUtil;
 import javafx.application.Application;
+import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+
+import java.net.URL;
 
 import com.bidify.network.SocketClient;
 import com.bidify.utility.SceneManager;
@@ -21,6 +24,10 @@ public class MainApp extends Application {
     private static final Logger logger = LoggerFactory.getLogger(MainApp.class);
     private static final String DEFAULT_SERVER_HOST = "localhost";
     private static final int DEFAULT_SERVER_PORT = 5000;
+    private static final String APP_ICON_RESOURCE = "/images/bidify-logo-sidebar.png";
+    private static final double WINDOW_ASPECT_RATIO = 16.0 / 9.0;
+
+    private boolean adjustingWindowAspectRatio;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -29,6 +36,7 @@ public class MainApp extends Application {
         client.connect(resolveServerHost(), resolveServerPort());
         
         stage.setTitle("Bidify");
+        setAppIcon(stage);
         stage.setMinWidth(1280);
         stage.setMinHeight(720);
         stage.setWidth(1280);
@@ -36,10 +44,8 @@ public class MainApp extends Application {
         stage.setResizable(true);
         stage.setMaximized(true);
 
-        stage.widthProperty().addListener((obs, oldVal, newVal) -> {
-            if (!stage.isFullScreen() && !stage.isMaximized() && !Double.isNaN(newVal.doubleValue()))
-                stage.setHeight(newVal.doubleValue() * 9.0 / 16.0);
-        });
+        stage.widthProperty().addListener((obs, oldVal, newVal) -> adjustWindowHeight(stage, newVal.doubleValue()));
+        stage.heightProperty().addListener((obs, oldVal, newVal) -> adjustWindowWidth(stage, newVal.doubleValue()));
 
         stage.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
             if (event.getCode() == KeyCode.F11)
@@ -83,6 +89,56 @@ public class MainApp extends Application {
             logger.warn("Invalid server.port '{}', using default {}", rawPort, DEFAULT_SERVER_PORT);
             return DEFAULT_SERVER_PORT;
         }
+    }
+
+    private void adjustWindowHeight(Stage stage, double width) {
+        if (shouldSkipAspectRatioAdjustment(stage, width)) return;
+
+        adjustingWindowAspectRatio = true;
+        try {
+            stage.setHeight(calculateHeightForWidth(width));
+        }
+        finally {
+            adjustingWindowAspectRatio = false;
+        }
+    }
+
+    private void adjustWindowWidth(Stage stage, double height) {
+        if (shouldSkipAspectRatioAdjustment(stage, height)) return;
+
+        adjustingWindowAspectRatio = true;
+        try {
+            stage.setWidth(calculateWidthForHeight(height));
+        }
+        finally {
+            adjustingWindowAspectRatio = false;
+        }
+    }
+
+    private boolean shouldSkipAspectRatioAdjustment(Stage stage, double value) {
+        return adjustingWindowAspectRatio
+                || stage.isFullScreen()
+                || stage.isMaximized()
+                || !Double.isFinite(value)
+                || value <= 0.0;
+    }
+
+    static double calculateHeightForWidth(double width) {
+        return width / WINDOW_ASPECT_RATIO;
+    }
+
+    static double calculateWidthForHeight(double height) {
+        return height * WINDOW_ASPECT_RATIO;
+    }
+
+    private static void setAppIcon(Stage stage) {
+        URL iconResource = MainApp.class.getResource(APP_ICON_RESOURCE);
+        if (iconResource == null) {
+            logger.warn("App icon resource not found: {}", APP_ICON_RESOURCE);
+            return;
+        }
+
+        stage.getIcons().add(new Image(iconResource.toExternalForm()));
     }
 
     private static void registerGlobalEventHandlers() {
