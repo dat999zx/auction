@@ -17,8 +17,10 @@ import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
+import com.bidify.common.dto.PublicProfileDto;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
+import com.bidify.service.PublicProfileClientService;
 import com.bidify.utility.AuctionActivityRenderer;
 import com.bidify.utility.AuctionBiddingChartRenderer;
 import com.bidify.utility.AuctionImageCarousel;
@@ -90,6 +92,8 @@ public class AuctionDetailsController {
     @FXML
     private Label openingBidderLabel;
     @FXML
+    private Label sellerReputationLabel;
+    @FXML
     private Label openingBidAmountLabel;
     @FXML
     private Label fullStartingPriceLabel;
@@ -153,6 +157,7 @@ public class AuctionDetailsController {
     private Double currentUserAutoBidMax;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
+    private final PublicProfileClientService publicProfileClientService = new PublicProfileClientService();
     private double minIncrement;
     private double currentValue;
     private AuctionBiddingChartRenderer biddingChartRenderer;
@@ -247,7 +252,6 @@ public class AuctionDetailsController {
         });
     }
 
-    // Hủy các đăng ký sự kiện và thoát kênh truyền của đấu giá để tránh leak bộ nhớ.
     public void cleanup() {
         stopTimer();
         if (selectedAuctionId != null) {
@@ -262,8 +266,6 @@ public class AuctionDetailsController {
         EventManager.getInstance().unsubscribe(EventType.AUCTION_ENDED, this::handleAuctionEnded);
         EventManager.getInstance().unsubscribe(EventType.AUCTION_DELETED, this::handleAuctionDeleted);
     }
-
-    //bid placing
 
     @FXML
     private void handlePlaceBid() {
@@ -390,7 +392,6 @@ public class AuctionDetailsController {
         }
     }
 
-    // Tải thông tin chi tiết của phiên đấu giá bất đồng bộ.
     private void loadAuctionDetails(String auctionId) {
         Thread loader = new Thread(() -> {
             try {
@@ -417,14 +418,12 @@ public class AuctionDetailsController {
         loader.start();
     }
 
-    // Tham gia kênh để nhận cập nhật realtime cho đấu giá này.
     private void joinAuctionChannel(String auctionId) {
         try {
             auctionClientService.join(auctionId);
         } catch (IOException e) {
             Platform.runLater(() -> NotificationUtil.error("Auction loaded, but live bid updates could not be joined."));
         } catch (AuctionException e) {
-            // Being already joined should not block the detail screen.
         }
     }
 
@@ -437,6 +436,7 @@ public class AuctionDetailsController {
         name.setText(DisplayUtil.defaultText(data.getAuctionName(), "Untitled auction"));
         openingBidderLabel.setText(DisplayUtil.defaultText(data.getSellerUsername(), "Unknown seller"));
         description.setText(DisplayUtil.defaultText(data.getDescription(), "No description."));
+        loadSellerReputation(data.getSellerUsername());
 
         double startingValue = data.getStartingPrice();
         this.currentValue= data.getCurrentBid();
@@ -792,5 +792,34 @@ public class AuctionDetailsController {
         } catch (AuctionException e) {
             NotificationUtil.error(e.getMessage());
         }
+    }
+
+    private void loadSellerReputation(String sellerUsername) {
+        if (sellerReputationLabel == null || sellerUsername == null || sellerUsername.isBlank()) return;
+
+        Thread thread = new Thread(() -> {
+            try {
+                PublicProfileDto profile = publicProfileClientService.getPublicProfile(sellerUsername);
+                if (profile != null && profile.getStats() != null) {
+                    String stars = profile.getStats().getStarVisual();
+                    double rating = profile.getStats().getStarRating();
+                    String display = stars + " (" + String.format("%.1f", rating) + ")";
+                    Platform.runLater(() -> showSellerReputation(display));
+                } else {
+                    Platform.runLater(() -> showSellerReputation("★★★★★ (5.0)"));
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> showSellerReputation("★★★★★ (5.0)"));
+            }
+        });
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private void showSellerReputation(String text) {
+        if (sellerReputationLabel == null) return;
+        sellerReputationLabel.setText(text != null ? text : "★★★★★ (5.0)");
+        sellerReputationLabel.setManaged(true);
+        sellerReputationLabel.setVisible(true);
     }
 }
