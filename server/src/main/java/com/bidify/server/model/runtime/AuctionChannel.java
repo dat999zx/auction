@@ -7,9 +7,9 @@ import com.bidify.common.model.Event;
 import com.bidify.server.contract.Channel;
 import com.bidify.server.contract.Observer;
 
-public class AuctionChannel implements Channel {
-    private final String auctionId;
-    private final Set<Observer> observers = ConcurrentHashMap.newKeySet();
+public class AuctionChannel implements Channel {                         
+    private final String auctionId;                                             // kênh này của phiên nào
+    private final Set<Observer> observers = ConcurrentHashMap.newKeySet();      // danh sách người đang xem
     
     public AuctionChannel(String auctionId) { this.auctionId = auctionId; }
     public String getAuctionId() { return auctionId; }
@@ -26,6 +26,7 @@ public class AuctionChannel implements Channel {
             observer.onEvent(event);
     }
 
+    // → Tiện ích: kiểm tra ai đó có trong phòng không / đếm số người / dọn sạch khi server tắt
     public boolean hasObserver(Observer observer) {
         if (observer == null) return false;
         return observers.contains(observer);

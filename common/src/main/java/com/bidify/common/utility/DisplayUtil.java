@@ -10,6 +10,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
+// Format số tiền, đồng hồ đếm ngược, ngày giờ để hiển thị đẹp trên giao diện
 public final class DisplayUtil {
 
     private static final NumberFormat CURRENCY_FORMAT =
@@ -74,7 +75,7 @@ public final class DisplayUtil {
 
 
     /**
-     * Formats a massive number into a suffix style 
+     * Formats a massive number into a suffix style (format số lớn thành dạng viết tắt, ví dụ: 1000 → $1.00k)
      */
 
     private static final String[] SUFFIXES = {
@@ -94,12 +95,12 @@ public final class DisplayUtil {
     public static String formatCashSuffix(Double number) {
         BigDecimal bd = new BigDecimal(number);
         
-        // 1. Handle base zero edge case safely
+        // 1. Handle base zero edge case safely (xử lý trường hợp số = 0)
         if (bd.compareTo(BigDecimal.ZERO) == 0) {
             return "$0.00"; 
         }
         
-        // 2. Track negativity and normalize to positive values for parsing
+        // 2. Track negativity and normalize to positive values for parsing (ghi nhớ số âm, rồi chuyển sang dương để tính)
         boolean isNegative = bd.compareTo(BigDecimal.ZERO) < 0;
         bd = bd.abs();
 
@@ -108,12 +109,12 @@ public final class DisplayUtil {
         // Mỗi suffix đại diện cho một nhóm 3 chữ số.
         int suffixIndex = (totalDigits - 1) / 3;
 
-        // 4. Over the limit check
+        // 4. Over the limit check (vượt quá giới hạn suffix thì trả về INF)
         if (suffixIndex >= SUFFIXES.length) {
             return (isNegative ? "-$" : "+$") + "INF";
         }
 
-        // 5. Shift the decimal point to read the localized short prefix
+        // 5. Shift the decimal point to read the localized short prefix (dịch chuyển dấu thập phân để lấy giá trị rút gọn)
         BigDecimal divisor = BigDecimal.TEN.pow(suffixIndex * 3);
         BigDecimal shortValue = bd.divide(divisor, 4, RoundingMode.HALF_UP);
 
@@ -132,7 +133,7 @@ public final class DisplayUtil {
         df.setRoundingMode(RoundingMode.HALF_UP);
         String formattedNumber = df.format(shortValue);
 
-        // 7. Combine parts back together
+        // 7. Combine parts back together (ghép dấu âm/dương + số + suffix lại thành chuỗi cuối)
         return (isNegative ? "-$" : "$") + formattedNumber + SUFFIXES[suffixIndex];
     }
 }

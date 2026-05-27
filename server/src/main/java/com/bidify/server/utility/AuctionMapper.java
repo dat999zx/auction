@@ -10,6 +10,7 @@ import com.bidify.server.model.Auction;
 import com.bidify.server.model.Bid;
 import com.bidify.server.model.Item;
 
+// Chuyển đổi object Auction (server) → AuctionDto (gửi cho client), kèm lịch sử bid và ảnh
 public class AuctionMapper {
     private AuctionMapper() {}
     

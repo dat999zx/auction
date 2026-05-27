@@ -21,11 +21,12 @@ public class RequestDispatcher extends Router<RequestType, RequestHandler> {
             if (request == null || request.getType() == null)
                 throw new ValidationException("Invalid request");
 
+            // ClientHandler nhận request từ client
             RequestHandler handler = getHandler(request.getType());
             if (handler == null)
                 throw new ValidationException("Unsupported request type: " + request.getType());
 
-            return handler.handle(client, request);
+            return handler.handle(client, request); // → tra bảng: "LOGIN thì gọi hàm login()"
         });
     }
 }

@@ -2,13 +2,21 @@ package com.bidify.common.model;
 
 import java.util.List;
 
+// Dữ liệu gửi lên khi chỉnh sửa thông tin vật phẩm
 public class UpdateItemRequest {
+    // ID vật phẩm cần cập nhật
     private String itemId;
+    // Username chủ sở hữu (để xác minh quyền)
     private String ownerUsername;
+    // Tên mới
     private String name;
+    // Mô tả mới
     private String description;
+    // Danh mục mới
     private String category;
+    // Loại sản phẩm mới
     private String productType;
+    // Danh sách ảnh mới (thay thế toàn bộ ảnh cũ)
     private List<String> imagesBase64;
 
     public UpdateItemRequest(String itemId, String ownerUsername, String name, String description,
