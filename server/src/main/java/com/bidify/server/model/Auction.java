@@ -11,18 +11,31 @@ import com.bidify.common.exception.BidException;
 import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.TimeUtil;
 
+// Phiên đấu giá — chứa toàn bộ thông tin và logic của 1 cuộc đấu giá (UPCOMING → ACTIVE → ENDED)
 public class Auction extends Entity {
+    // Tên hiển thị của phiên đấu giá
     private String auctionName;
+    // Mô tả chi tiết
     private String description;
+    // Username người bán
     private String sellerUsername;
+    // ID vật phẩm đem ra đấu giá
     private String itemId;
+    // Username người đang đặt giá cao nhất
     private String currentBidderUsername;
+    // Giá khởi điểm / giá hiện tại / bước giá tối thiểu
     private double startingPrice = 0, currentBid = 0, minIncrement = 0;
+    // Trạng thái phiên: UPCOMING, ACTIVE, ENDED, CANCELED
     private AuctionStatus status = AuctionStatus.ACTIVE;
+    // Thời gian kết thúc / bắt đầu / kết thúc tối đa (sau anti-sniping)
     private LocalDateTime endTime, startTime, maxEndTime;
+    // Ngưỡng thời gian trước khi kết thúc để kích hoạt cơ chế anti-sniping
     private Duration antiSnipingTriggerTime = Duration.ZERO; // minTime
+    // Thời gian gia hạn mỗi lần anti-sniping được kích hoạt
     private Duration antiSnipingExtensionTime = Duration.ZERO;
+    // Lịch sử tất cả các lần đặt giá
     private List<Bid> bids = new ArrayList<>();
+    // Danh sách cấu hình đặt giá tự động của các user
     private List<AutoBid> autoBids = new ArrayList<>();
 
     public Auction(String sellerUsername, String itemId, double startingPrice, LocalDateTime startTime, LocalDateTime endTime) {
@@ -136,12 +149,15 @@ public class Auction extends Entity {
     public AuctionStatus getStatus() { return status; }
     public void setStatus(AuctionStatus status) { this.status = status; }
 
+    // true nếu phiên đang ACTIVE và chưa hết giờ
     public boolean isActive(){ 
         return status == AuctionStatus.ACTIVE && !TimeUtil.nowInVietnam().isAfter(endTime);
     }
+    // true nếu phiên đã kết thúc (ENDED) hoặc bị hủy (CANCELED)
     public boolean isEnded() { 
         return status == AuctionStatus.ENDED || status == AuctionStatus.CANCELED; 
     }
+    // true nếu phiên chưa bắt đầu (chưa đến startTime)
     public boolean isUpcoming() { return status == AuctionStatus.UPCOMING; }
 
     public String getSellerUsername() { return sellerUsername; }
@@ -157,16 +173,19 @@ public class Auction extends Entity {
 
     public synchronized List<Bid> getBids() { return new ArrayList<>(bids); }
 
+    // Thêm 1 bid vào lịch sử (không kiểm tra hợp lệ, dùng khi load từ DB)
     public synchronized void addBid(Bid bid) {
         if (bid != null)
             bids.add(bid);
     }
 
+    // Thêm nhiều bid cùng lúc vào lịch sử (dùng khi load từ DB)
     public synchronized void addBids(List<Bid> bidList) {
         if (bidList != null)
             bids.addAll(bidList);
     }
 
+    // Xóa 1 bid khỏi lịch sử (hiếm dùng, chủ yếu khi rollback)
     public synchronized boolean removeBid(Bid bid) {
         if (bid != null)
             return bids.remove(bid);
@@ -178,6 +197,7 @@ public class Auction extends Entity {
         return new ArrayList<>(autoBids);
     }
 
+    // Lấy cấu hình auto bid hiện tại của 1 user trong phiên này
     public synchronized AutoBid getAutoBid(String username) {
         if (username == null) return null;
         return autoBids.stream()
@@ -186,11 +206,13 @@ public class Auction extends Entity {
                 .orElse(null);
     }
 
+    // Cập nhật hoặc thêm mới auto bid của user (nếu đã có thì ghi đè)
     public synchronized void upsertAutoBid(AutoBid autoBid) {
         autoBids.removeIf(existing -> existing.getUsername().equals(autoBid.getUsername()));
         autoBids.add(autoBid);
     }
 
+    // Tắt auto bid của 1 user trong phiên này
     public synchronized void disableAutoBid(String username) {
         AutoBid autoBid = getAutoBid(username);
         if (autoBid != null) autoBid.disable();
