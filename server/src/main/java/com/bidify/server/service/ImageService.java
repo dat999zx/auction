@@ -18,6 +18,7 @@ import com.bidify.server.model.Image;
 
 public class ImageService {
     private static final Logger logger = LoggerFactory.getLogger(ImageService.class);
+    private static final int MAX_IMAGE_DIMENSION = 1200;
     private static final String UPLOAD_DIR = resolveUploadPath();
     private static final ImageService instance = new ImageService();
 
@@ -43,7 +44,7 @@ public class ImageService {
         return curPath.resolve("uploads").toString();
     }
 
-    // Lưu trữ danh sách ảnh Base64 dưới dạng file PNG, có xử lý resize.
+    // Lưu trữ danh sách ảnh Base64, có xử lý resize cho ảnh tĩnh.
     public List<Image> saveImages(List<String> base64Images) {
         if (base64Images == null || base64Images.isEmpty())
             return new ArrayList<>();
@@ -58,9 +59,9 @@ public class ImageService {
                     continue;
 
                 byte[] imageBytes = Base64.getDecoder().decode(base64);
-                imageBytes = ImageUtil.resizeImage(imageBytes, 800);
+                imageBytes = ImageUtil.resizeImage(imageBytes, MAX_IMAGE_DIMENSION);
                 String imageId = IdGenerator.genImageId();
-                Path filePath = uploadDir.resolve(imageId + ".png");
+                Path filePath = uploadDir.resolve(imageId + "." + ImageUtil.extensionFor(imageBytes));
                 Files.write(filePath, imageBytes);
                 savedImages.add(new Image(imageId, TimeUtil.nowInVietnam(), filePath.toString()));
             }
