@@ -17,6 +17,8 @@ import org.slf4j.LoggerFactory;
 public final class SceneManager {
     private static final Logger logger = LoggerFactory.getLogger(SceneManager.class);
     private static final long LOADING_DELAY_MS = 250;
+    private static final String LOGIN_SCENE = "login.fxml";
+    private static final String REGISTER_SCENE = "register.fxml";
 
     private static Stage stage;
     private static final SceneCache sceneCache = new SceneCache();
@@ -45,6 +47,7 @@ public final class SceneManager {
 
     public static void switchScene(String fxml, boolean remember, boolean showBar) {
         if (!isSwitchingScene.compareAndSet(false, true)) return;
+        if (!remember) sceneCache.clear(fxml);
         Platform.runLater(() -> setInputBlocked(true));
 
         long token = navigationToken.incrementAndGet();
@@ -139,6 +142,10 @@ public final class SceneManager {
 
     public static void clearAllCache() {
         sceneCache.clearAll();
+    }
+
+    public static void preloadAuthScenes() {
+        preloadScenes(LOGIN_SCENE, REGISTER_SCENE);
     }
 
     public static void resetMissionBar() {

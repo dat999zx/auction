@@ -154,6 +154,7 @@ public class MissionBarUtil {
                 if (currentCleanupAction != null) currentCleanupAction.run();
                 SceneManager.clearAllCache();
                 SceneManager.resetMissionBar();
+                SceneManager.preloadAuthScenes();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }

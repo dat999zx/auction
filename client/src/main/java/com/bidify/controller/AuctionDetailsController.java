@@ -669,6 +669,7 @@ public class AuctionDetailsController {
             cleanup();
             SceneManager.clearAllCache();
             SceneManager.resetMissionBar();
+            SceneManager.preloadAuthScenes();
             SceneManager.switchScene("login.fxml", true, false);
             return;
         }
@@ -680,6 +681,7 @@ public class AuctionDetailsController {
                 cleanup();
                 SceneManager.clearAllCache();
                 SceneManager.resetMissionBar();
+                SceneManager.preloadAuthScenes();
                 SceneManager.switchScene("login.fxml", true, false);
                 return;
             }

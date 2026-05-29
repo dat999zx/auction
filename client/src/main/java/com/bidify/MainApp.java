@@ -55,9 +55,8 @@ public class MainApp extends Application {
         SceneManager.setStage(stage);
         registerGlobalEventHandlers();
 
-        SceneManager.preloadScenes("login.fxml", "register.fxml");
-
-        SceneManager.switchScene("login.fxml");
+        SceneManager.switchScene("login.fxml", true, false);
+        SceneManager.preloadScenes("register.fxml");
         stage.show();
     }
 
@@ -153,5 +152,6 @@ public class MainApp extends Application {
         if (event != null && event.getMessage() != null && !event.getMessage().isBlank())
             NotificationUtil.info(event.getMessage());
         SceneManager.switchScene("login.fxml", true, false);
+        SceneManager.preloadScenes("register.fxml");
     }
 }
