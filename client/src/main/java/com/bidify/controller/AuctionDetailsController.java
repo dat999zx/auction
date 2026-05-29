@@ -428,6 +428,14 @@ public class AuctionDetailsController {
     }
 
     private void bindAuctionData(AuctionDto data) {
+        AuctionDto previousAuction = currentAuction;
+        if (data.getGalleryBase64() == null
+                && previousAuction != null
+                && data.getId() != null
+                && data.getId().equals(previousAuction.getId())) {
+            data.setGalleryBase64(previousAuction.getGalleryBase64());
+        }
+
         currentAuction = data;
         currentUserAutoBidActive = data.isCurrentUserAutoBidActive();
         currentUserAutoBidMax = data.getCurrentUserAutoBidMax();
@@ -481,9 +489,10 @@ public class AuctionDetailsController {
             }
         }
 
-        if (data.getThumbnailBase64() != null && !data.getThumbnailBase64().isBlank()) {
+        String thumbnailBase64 = data.getThumbnailBase64();
+        if (thumbnailBase64 != null && !thumbnailBase64.isBlank()) {
             String cacheKey = "auction_" + data.getId() + "_thumb";
-            Image img = ImageCache.getInstance().get(cacheKey, data.getThumbnailBase64());
+            Image img = ImageCache.getInstance().get(cacheKey, thumbnailBase64);
             if (img != null && !img.isError()) {
                 carousel.addImage(img);
             }
@@ -493,6 +502,10 @@ public class AuctionDetailsController {
             int index = 0;
             for (String base64 : data.getGalleryBase64()) {
                 if (base64 != null && !base64.isBlank()) {
+                    if (base64.equals(thumbnailBase64)) {
+                        index++;
+                        continue;
+                    }
                     String cacheKey = "auction_" + data.getId() + "_gallery_" + index++;
                     Image img = ImageCache.getInstance().get(cacheKey, base64);
                     if (img != null && !img.isError() && !carousel.getImages().contains(img)) {
