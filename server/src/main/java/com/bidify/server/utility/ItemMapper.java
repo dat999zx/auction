@@ -3,6 +3,7 @@ package com.bidify.server.utility;
 import com.bidify.common.dto.ItemDto;
 import com.bidify.server.model.Item;
 
+// Chuyển đổi object Item (server) → ItemDto (gửi cho client)
 public class ItemMapper {
     private ItemMapper() {}
 

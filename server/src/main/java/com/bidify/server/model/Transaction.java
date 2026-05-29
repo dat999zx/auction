@@ -5,10 +5,15 @@ import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.TimeUtil;
 import java.time.LocalDateTime;
 
+// Lịch sử giao dịch tiền của user (nạp, rút, thanh toán đấu giá, nhận tiền bán)
 public class Transaction extends Entity {
+    // Username chủ giao dịch
     private String username;
+    // Loại giao dịch: DEPOSIT, WITHDRAW, PAYMENT, INCOME...
     private TransactionType type;
+    // Số tiền giao dịch
     private double amount;
+    // ID phiên đấu giá liên quan (null nếu là giao dịch nạp/rút thường)
     private String auctionId;
 
     // nạp tiền / rút tiền

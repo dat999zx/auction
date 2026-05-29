@@ -2,12 +2,19 @@ package com.bidify.common.model;
 
 import java.util.List;
 
+// Dữ liệu gửi lên khi tạo vật phẩm mới vào kho
 public class CreateItemRequest {
+    // Username chủ sở hữu vật phẩm
     private String ownerUsername;
+    // Tên vật phẩm
     private String name;
+    // Mô tả chi tiết
     private String description;
+    // Danh mục (Electronics, Clothing...)
     private String category;
+    // Loại sản phẩm cụ thể hơn
     private String productType;
+    // Danh sách ảnh vật phẩm (encode base64)
     private List<String> imagesBase64;
 
     public CreateItemRequest(String ownerUsername, String name, String description, String category, String productType,

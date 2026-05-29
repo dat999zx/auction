@@ -1,13 +1,25 @@
 package com.bidify.common.model;
 
+// Dữ liệu gửi lên khi tạo phiên đấu giá mới
 public class CreateAuctionRequest {
+    // Username người bán tạo đấu giá
     private String seller;
+    // ID vật phẩm đem ra đấu giá
     private String itemId;
-    private double startingPrice, minIncrement;
-    private String startTime, endTime;
-    private String triggerTime; // minTime, HH:MM
-    private String extensionTime; // HH:MM
-    private String maxExtensionTime; // HH:MM
+    // Giá khởi điểm
+    private double startingPrice;
+    // Bước giá tối thiểu mỗi lần đặt
+    private double minIncrement;
+    // Thời gian bắt đầu phiên (format chuỗi)
+    private String startTime;
+    // Thời gian kết thúc phiên (format chuỗi)
+    private String endTime;
+    // Ngưỡng thời gian kích hoạt anti-sniping (HH:MM)
+    private String triggerTime;
+    // Thời gian gia hạn mỗi lần bị kích hoạt anti-sniping (HH:MM)
+    private String extensionTime;
+    // Tổng thời gian gia hạn tối đa (HH:MM)
+    private String maxExtensionTime;
 
     public CreateAuctionRequest(
         String seller,

@@ -2,6 +2,7 @@ package com.bidify.common.utility;
 
 import com.bidify.common.exception.ValidationException;
 
+// Kiểm tra dữ liệu đầu vào hợp lệ (username đủ ký tự, password đủ mạnh, email đúng định dạng...)
 public class ValidationUtil {
     private ValidationUtil(){}
 

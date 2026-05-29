@@ -4,5 +4,5 @@ import com.bidify.common.model.Event;
 
 // Observer định nghĩa giao diện nhận thông báo sự kiện từ các kênh phát (Channel).
 public interface Observer {
-    void onEvent(Event event);
+    void onEvent(Event event);   // "khi có sự kiện thì gọi hàm này"
 }

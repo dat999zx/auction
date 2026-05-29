@@ -25,6 +25,7 @@ public class UserDao  {
 
     public static UserDao getInstance() { return instance; }
 
+    // Kiểm tra username có tồn tại không
     public boolean existsByUsername(String username) throws DatabaseException {
         Boolean exists = SQLiteHelper.query(
             "SELECT username FROM Users WHERE username = ?",
@@ -34,6 +35,7 @@ public class UserDao  {
         return exists != null && exists;
     }
 
+    // Đọc 1 user từ DB
     public User findByUsername(String username) throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT * FROM Users WHERE username = ?",
@@ -46,6 +48,7 @@ public class UserDao  {
         );
     }
 
+    // Đọc toàn bộ user
     public List<User> findAll() throws DatabaseException {
         return SQLiteHelper.query(
             "SELECT * FROM Users ORDER BY createdAt DESC",
@@ -115,10 +118,12 @@ public class UserDao  {
         logger.debug("saved user: {}", user.getUsername());
     }
 
+    // Xóa user khỏi DB
     public void deleteByUsername(String username) throws DatabaseException {
         SQLiteHelper.update("DELETE FROM Users WHERE username = ?", username);
     }
 
+    // phiên dịch viên, chuyển dữ liệu từ ngôn ngữ database (bảng/cột) sang ngôn ngữ Java (object).
     private User mapUser(ResultSet rs) throws SQLException {
         String createdAt = rs.getString("createdAt");
         String lastLogin = rs.getString("lastLogin");

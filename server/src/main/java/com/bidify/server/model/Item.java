@@ -6,12 +6,19 @@ import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.utility.IdGenerator;
 import com.bidify.common.utility.TimeUtil;
 
+// Vật phẩm trong kho của user — có thể đem ra đấu giá
 public class Item extends Entity {
+    // Username chủ sở hữu vật phẩm
     private String ownerUsername;
+    // Tên vật phẩm
     private String name;
+    // Mô tả chi tiết
     private String description;
+    // Danh mục (Electronics, Clothing...)
     private String category;
+    // Loại sản phẩm cụ thể hơn trong danh mục
     private String productType;
+    // Trạng thái: AVAILABLE (có thể đấu giá) hoặc IN_AUCTION (đang được đem ra đấu giá)
     private ItemStatus availabilityStatus;
 
     public Item(String ownerUsername, String name, String description, String category, String productType) {
