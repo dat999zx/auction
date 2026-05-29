@@ -2,7 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
@@ -11,64 +10,63 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.bidify.controller.SettlementsController"
-            fitToWidth="true" fitToHeight="true" pannable="true"
-            prefWidth="1080" prefHeight="720" styleClass="page-scroll">
+<ScrollPane fitToHeight="true" fitToWidth="true" pannable="true" prefHeight="720" prefWidth="1080" styleClass="page-scroll" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.SettlementsController">
     <content>
-        <VBox styleClass="inventory-page" spacing="32" prefWidth="1080" prefHeight="720">
+        <VBox prefHeight="720" prefWidth="1080" spacing="32" styleClass="inventory-page">
             <padding>
-                <Insets top="32" right="32" bottom="32" left="32"/>
+                <Insets bottom="32" left="32" right="32" top="32" />
             </padding>
 
             <HBox alignment="BOTTOM_LEFT" spacing="20">
                 <VBox spacing="8" HBox.hgrow="ALWAYS">
                     <ImageView fitHeight="72" fitWidth="72" preserveRatio="true" smooth="true">
                         <image>
-                            <Image url="@../images/bidify-logo-header.png"/>
+                            <Image url="@../images/bidify-logo-header.png" />
                         </image>
                     </ImageView>
-                    <Label text="Settlements" styleClass="page-title"/>
-                    <Label text="Manage and execute pending actions on ended auctions." styleClass="muted-text"/>
+                    <Label styleClass="page-title" text="Settlements" />
+                    <Label styleClass="muted-text" text="Manage and execute pending actions on ended auctions." />
                 </VBox>
             </HBox>
 
-            <VBox styleClass="card" spacing="0">
-                <HBox alignment="CENTER_LEFT" styleClass="card-header" spacing="16">
-                    <Label text="Ended Auctions Action Items" styleClass="section-title" HBox.hgrow="ALWAYS"/>
-                    <HBox alignment="CENTER_LEFT" styleClass="search-box" spacing="10">
-                        <Label text="Search" styleClass="search-icon"/>
-                        <TextField fx:id="searchField" promptText="Search..." styleClass="plain-field" prefWidth="190"/>
+            <VBox spacing="0" styleClass="card">
+                <HBox alignment="CENTER_LEFT" spacing="16" styleClass="card-header">
+                    <Label styleClass="section-title" text="Ended Auctions Action Items" HBox.hgrow="ALWAYS" />
+                    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="search-box">
+                        <Label styleClass="search-icon" text="Search" />
+                        <TextField fx:id="searchField" prefWidth="190" promptText="Search..." styleClass="plain-field" />
                     </HBox>
                 </HBox>
 
                 <GridPane styleClass="table-header">
                     <columnConstraints>
-                        <ColumnConstraints percentWidth="45"/>
-                        <ColumnConstraints percentWidth="20"/>
-                        <ColumnConstraints percentWidth="15"/>
-                        <ColumnConstraints percentWidth="20"/>
+                        <ColumnConstraints percentWidth="45" />
+                        <ColumnConstraints percentWidth="20" />
+                        <ColumnConstraints percentWidth="15" />
+                        <ColumnConstraints percentWidth="20" />
                     </columnConstraints>
-                    <Label text="Auction Name" styleClass="table-heading" GridPane.columnIndex="0"/>
-                    <Label text="Final Bid" styleClass="table-heading" GridPane.columnIndex="1"/>
-                    <Label text="Your Role" styleClass="table-heading" GridPane.columnIndex="2"/>
-                    <Label text="Status" styleClass="table-heading-center" GridPane.columnIndex="3"/>
-                    <padding><Insets top="14" right="32" bottom="14" left="32"/></padding>
+                    <Label styleClass="table-heading" text="Auction Name" GridPane.columnIndex="0" />
+                    <Label styleClass="table-heading" text="Final Bid" GridPane.columnIndex="1" />
+                    <Label styleClass="table-heading" text="Your Role" GridPane.columnIndex="2" />
+                    <Label styleClass="table-heading-center" text="Status" GridPane.columnIndex="3" />
+                    <padding><Insets bottom="14" left="32" right="32" top="14" /></padding>
+               <rowConstraints>
+                  <RowConstraints />
+               </rowConstraints>
                 </GridPane>
 
-                <VBox fx:id="settlementsContainer" styleClass="table-body" spacing="0"/>
+                <VBox fx:id="settlementsContainer" spacing="0" styleClass="table-body" />
 
-                <HBox alignment="CENTER_LEFT" styleClass="pagination" spacing="8">
-                    <Label fx:id="summaryLabel" text="Loading settlements..." styleClass="muted-text" HBox.hgrow="ALWAYS"/>
-                    <Button onAction="#handleRefresh" text="Refresh" styleClass="pager-button"/>
+                <HBox alignment="CENTER_LEFT" spacing="8" styleClass="pagination">
+                    <Label fx:id="summaryLabel" styleClass="muted-text" text="Loading settlements..." HBox.hgrow="ALWAYS" />
+                    <Button onAction="#handleRefresh" styleClass="pager-button" text="Refresh" />
                 </HBox>
             </VBox>
 
-            <HBox alignment="CENTER_LEFT" styleClass="footer" spacing="24">
-                <Label text="Double-click an auction row to view full details and execute settlement actions." HBox.hgrow="ALWAYS"/>
-            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="24" styleClass="footer" />
         </VBox>
     </content>
 </ScrollPane>
