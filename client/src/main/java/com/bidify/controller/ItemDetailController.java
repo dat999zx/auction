@@ -126,7 +126,9 @@ public class ItemDetailController {
 
         Thread saver = new Thread(() -> {
             try {
+                Platform.runLater(() -> setSavingMessage("Compressing item media..."));
                 List<String> encodedImages = encodeGalleryImages(entriesToSave);
+                Platform.runLater(() -> setSavingMessage("Uploading item media..."));
                 ItemDto savedItem = saveItem(itemId, name, description, category, productType, encodedImages);
                 Platform.runLater(() -> handleSaveSuccess(savedItem, itemId));
             }
@@ -309,6 +311,10 @@ public class ItemDetailController {
         if (saveButton != null)
             saveButton.setDisable(saving);
         statusFooterLabel.setText(saving ? "Saving item media..." : "New item draft");
+    }
+
+    private void setSavingMessage(String message) {
+        statusFooterLabel.setText(message);
     }
 
     private List<String> encodeGalleryImages(List<GalleryImageEntry> entries) throws IOException {
