@@ -1,11 +1,12 @@
-package com.bidify.utility;
+package com.bidify.navigation;
 
 import com.bidify.common.enums.RequestStatus;
 import com.bidify.common.model.Response;
 import com.bidify.controller.MissionBarController;
-import com.bidify.controller.PublicProfileController;
+import com.bidify.media.ImageCache;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AuthClientService;
+import com.bidify.ui.NotificationUtil;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -65,9 +66,7 @@ public class MissionBarUtil {
         missionBarController.setLogoutHandler(event -> handleLogout());
         missionBarController.setAvatarHandler(event -> {
             if (currentCleanupAction != null) currentCleanupAction.run();
-            PublicProfileController.setTargetUsername(null);
-            SceneManager.clearCache("public-profile.fxml");
-            SceneManager.switchScene("public-profile.fxml", false, true);
+            SceneManager.goPublicProfile(null);
         });
 
         // set avatar text và avatar image
@@ -91,57 +90,57 @@ public class MissionBarUtil {
         if (selectedButton == controller.getAuctionsButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("hub.fxml", false, true);
+            SceneManager.goHome();
         } 
         else if (selectedButton == controller.getCreateAuctionButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("create-auction.fxml", false, true);
+            SceneManager.goCreateAuction();
         } 
         else if (selectedButton == controller.getInventoryButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("inventory.fxml", false, true);
+            SceneManager.goMyInventory();
         } 
         else if (selectedButton == controller.getProfileButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("user-profile.fxml", false, true);
+            SceneManager.goUserProfile();
         } 
         else if (selectedButton == controller.getWalletButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("wallet.fxml", false, true);
+            SceneManager.goWallet();
         }
         else if (selectedButton == controller.getHistoryButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("history.fxml", false, true);
+            SceneManager.goHistory();
         }
         else if (selectedButton == controller.getSettlementsButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("settlements.fxml", false, true);
+            SceneManager.goSettlements();
         }
         else if (selectedButton == controller.getAdminUsersButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("admin-users.fxml", false, true);
+            SceneManager.goAdminUsers();
         }
         else if (selectedButton == controller.getAdminWalletRequestsButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("admin-wallet-requests.fxml", false, true);
+            SceneManager.goAdminWalletRequests();
         }
         else if (selectedButton == controller.getAdminAuctionsButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("admin-auctions.fxml", false, true);
+            SceneManager.goAdminAuctions();
         }
         else if (selectedButton == controller.getMyAuctionsButton()) {
             controller.closeSidebar();
             if (currentCleanupAction != null) currentCleanupAction.run();
-            SceneManager.switchScene("myauctions.fxml", false, true);
+            SceneManager.goMyAuctions();
         }
         else if (selectedButton == controller.getLogoutLinkButton()) handleLogout();
     }
@@ -152,9 +151,7 @@ public class MissionBarUtil {
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Logged out successfully.");
                 if (currentCleanupAction != null) currentCleanupAction.run();
-                SceneManager.clearAllCache();
-                SceneManager.resetMissionBar();
-                SceneManager.switchScene("login.fxml", true, false);
+                SceneManager.goLoginAfterLogout();
                 return;
             }
             NotificationUtil.error(response.getMessage() == null ? "Logout failed." : response.getMessage());

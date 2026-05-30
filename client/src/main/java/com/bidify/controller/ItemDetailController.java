@@ -12,9 +12,9 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.utility.ImageUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.InventoryClientService;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.media.ImageCache;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -32,7 +32,9 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
 
 public class ItemDetailController {
-    private static final int MAX_IMAGES = 3;
+    private static final int MAX_IMAGES = 5;
+    private static final int MAX_IMAGE_DIMENSION = 1200;
+    private static final long MAX_IMAGE_BYTES = 10L * 1024L * 1024L;
     private static String currentItemId;
 
     private final InventoryClientService inventoryClientService = new InventoryClientService();
@@ -59,6 +61,9 @@ public class ItemDetailController {
     @FXML
     private Label statusFooterLabel;
 
+    @FXML
+    private Button saveButton;
+
     public static void setItemId(String itemId) {
         currentItemId = itemId;
     }
@@ -81,13 +86,13 @@ public class ItemDetailController {
     @FXML
     private void handleBack() {
         clearEditingState();
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goInventory();
     }
 
     @FXML
     private void handleCancel() {
         clearEditingState();
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goInventory();
     }
 
     @FXML
@@ -104,43 +109,44 @@ public class ItemDetailController {
     private void handleSave() {
         try {
             validateFields();
-            List<String> encodedImages = encodeGalleryImages();
-
-            ItemDto savedItem;
-            if (currentItemId == null || currentItemId.isBlank()) {
-                savedItem = inventoryClientService.createItem(
-                    productNameField.getText().trim(),
-                    descriptionArea.getText().trim(),
-                    categoryComboBox.getValue(),
-                    productTypeComboBox.getValue(),
-                    encodedImages
-                );
-                NotificationUtil.success("Item created successfully.");
-                statusFooterLabel.setText("Created item: " + savedItem.getId());
-            }
-            else {
-                savedItem = inventoryClientService.updateItem(
-                    currentItemId,
-                    productNameField.getText().trim(),
-                    descriptionArea.getText().trim(),
-                    categoryComboBox.getValue(),
-                    productTypeComboBox.getValue(),
-                    encodedImages
-                );
-                NotificationUtil.success("Item updated successfully.");
-                statusFooterLabel.setText("Updated item: " + savedItem.getId());
-            }
-
-            clearEditingState();
-            SceneManager.clearCache("inventory.fxml");
-            SceneManager.switchScene("inventory.fxml", false, true);
-        }
-        catch (IOException e) {
-            NotificationUtil.error("Cannot connect to server.");
         }
         catch (ValidationException e) {
             NotificationUtil.error(e.getMessage());
+            return;
         }
+
+        String itemId = currentItemId;
+        String name = productNameField.getText().trim();
+        String description = descriptionArea.getText().trim();
+        String category = categoryComboBox.getValue();
+        String productType = productTypeComboBox.getValue();
+        List<GalleryImageEntry> entriesToSave = new ArrayList<>(galleryEntries);
+
+        setSavingState(true);
+
+        Thread saver = new Thread(() -> {
+            try {
+                Platform.runLater(() -> setSavingMessage("Compressing item media..."));
+                List<String> encodedImages = encodeGalleryImages(entriesToSave);
+                Platform.runLater(() -> setSavingMessage("Uploading item media..."));
+                ItemDto savedItem = saveItem(itemId, name, description, category, productType, encodedImages);
+                Platform.runLater(() -> handleSaveSuccess(savedItem, itemId));
+            }
+            catch (IOException e) {
+                Platform.runLater(() -> {
+                    setSavingState(false);
+                    NotificationUtil.error("Cannot connect to server.");
+                });
+            }
+            catch (ValidationException e) {
+                Platform.runLater(() -> {
+                    setSavingState(false);
+                    NotificationUtil.error(e.getMessage());
+                });
+            }
+        });
+        saver.setDaemon(true);
+        saver.start();
     }
 
     private void loadItemForEdit(String itemId) {
@@ -182,7 +188,7 @@ public class ItemDetailController {
         FileChooser chooser = new FileChooser();
         chooser.setTitle("Select Item Images");
         chooser.getExtensionFilters().add(
-            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif")
+            new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg")
         );
 
         List<File> files = chooser.showOpenMultipleDialog(
@@ -194,6 +200,10 @@ public class ItemDetailController {
             if (galleryEntries.size() >= MAX_IMAGES) {
                 NotificationUtil.error("Maximum " + MAX_IMAGES + " images allowed.");
                 break;
+            }
+            if (file.length() > MAX_IMAGE_BYTES) {
+                NotificationUtil.error("Image files must be 10 MB or smaller.");
+                continue;
             }
             if (!containsFile(file))
                 galleryEntries.add(fromFile(file));
@@ -264,9 +274,52 @@ public class ItemDetailController {
         return tile;
     }
 
-    private List<String> encodeGalleryImages() throws IOException {
+    private ItemDto saveItem(String itemId, String name, String description, String category, String productType,
+            List<String> encodedImages) throws IOException {
+        if (itemId == null || itemId.isBlank()) {
+            return inventoryClientService.createItem(
+                name,
+                description,
+                category,
+                productType,
+                encodedImages
+            );
+        }
+
+        return inventoryClientService.updateItem(
+            itemId,
+            name,
+            description,
+            category,
+            productType,
+            encodedImages
+        );
+    }
+
+    private void handleSaveSuccess(ItemDto savedItem, String savedItemId) {
+        NotificationUtil.success(savedItemId == null || savedItemId.isBlank()
+            ? "Item created successfully."
+            : "Item updated successfully.");
+        statusFooterLabel.setText((savedItemId == null || savedItemId.isBlank() ? "Created item: " : "Updated item: ")
+            + savedItem.getId());
+        setSavingState(false);
+        clearEditingState();
+        SceneManager.goInventory();
+    }
+
+    private void setSavingState(boolean saving) {
+        if (saveButton != null)
+            saveButton.setDisable(saving);
+        statusFooterLabel.setText(saving ? "Saving item media..." : "New item draft");
+    }
+
+    private void setSavingMessage(String message) {
+        statusFooterLabel.setText(message);
+    }
+
+    private List<String> encodeGalleryImages(List<GalleryImageEntry> entries) throws IOException {
         List<String> imagesBase64 = new ArrayList<>();
-        for (GalleryImageEntry entry : galleryEntries)
+        for (GalleryImageEntry entry : entries)
             imagesBase64.add(entry.toBase64());
         return imagesBase64;
     }
@@ -301,6 +354,7 @@ public class ItemDetailController {
     private final class GalleryImageEntry {
         private final File file;
         private final String base64;
+        private Image cachedImage;
 
         private GalleryImageEntry(File file, String base64) {
             this.file = file;
@@ -311,7 +365,9 @@ public class ItemDetailController {
             try {
                 Image img = null;
                 if (file != null) {
-                    img = new Image(file.toURI().toString());
+                    if (cachedImage == null)
+                        cachedImage = new Image(file.toURI().toString(), 360, 360, true, true, true);
+                    img = cachedImage;
                 } else {
                     img = ImageCache.decode(base64);
                 }
@@ -329,7 +385,7 @@ public class ItemDetailController {
                 return base64;
 
             byte[] fileContent = Files.readAllBytes(file.toPath());
-            byte[] resizedContent = ImageUtil.resizeImage(fileContent, 800);
+            byte[] resizedContent = ImageUtil.resizeImage(fileContent, MAX_IMAGE_DIMENSION);
             return Base64.getEncoder().encodeToString(resizedContent);
         }
     }

@@ -1,6 +1,7 @@
-package com.bidify.utility;
+package com.bidify.navigation;
 
 import com.bidify.controller.MissionBarController;
+import com.bidify.ui.ButtonHoverUtil;
 
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;

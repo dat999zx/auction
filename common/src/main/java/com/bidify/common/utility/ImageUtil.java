@@ -10,6 +10,23 @@ import java.io.IOException;
 public final class ImageUtil {
     private ImageUtil() {}
 
+    public static String extensionFor(byte[] imageData) {
+        if (imageData != null
+            && imageData.length >= 8
+            && (imageData[0] & 0xFF) == 0x89
+            && imageData[1] == 'P'
+            && imageData[2] == 'N'
+            && imageData[3] == 'G')
+            return "png";
+        if (imageData != null
+            && imageData.length >= 3
+            && (imageData[0] & 0xFF) == 0xFF
+            && (imageData[1] & 0xFF) == 0xD8
+            && (imageData[2] & 0xFF) == 0xFF)
+            return "jpg";
+        return "png";
+    }
+
     // Tự động resize ảnh nếu kích thước vượt quá giới hạn tối đa.
     public static byte[] resizeImage(byte[] imageData, int maxDimension) throws IOException {
         if (imageData == null || imageData.length == 0) return imageData;

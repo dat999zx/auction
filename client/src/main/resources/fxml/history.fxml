@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -9,11 +8,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane fx:id="historyRoot"
-            xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.bidify.controller.HistoryController"
-            stylesheets="@../css/history.css">
+<BorderPane fx:id="historyRoot" stylesheets="@../css/history.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.HistoryController">
 
     <center>
         <ScrollPane fx:id="historyScrollPane" fitToWidth="true" styleClass="scroll-pane">
@@ -21,9 +16,8 @@
 
                 <!-- Page Header -->
                 <VBox spacing="8">
-                    <Label text="History &amp; Archives" styleClass="page-title"/>
-                    <Label wrapText="true" styleClass="text-on-surface-variant"
-                           text="Review your bidding activity and transaction history."/>
+                    <Label styleClass="page-title" text="History" />
+                    <Label styleClass="text-on-surface-variant" text="Review your bidding activity and transaction history." wrapText="true" />
                 </VBox>
 
                 <!-- Bidding Activity Section -->
@@ -31,15 +25,12 @@
                     <BorderPane>
                         <left>
                             <VBox spacing="4">
-                                <Label text="Bidding Activity" styleClass="section-title"/>
-                                <Pane styleClass="title-underline"/>
+                                <Label styleClass="section-title" text="Bidding Activity" />
+                                <Pane styleClass="title-underline" />
                             </VBox>
                         </left>
                         <right>
-                            <HBox spacing="8">
-                                <Button text="ALL BIDS" styleClass="btn-primary"/>
-                                <Button text="ACTIVE" styleClass="btn-secondary"/>
-                            </HBox>
+                            <HBox spacing="8" />
                         </right>
                     </BorderPane>
 
@@ -47,37 +38,37 @@
                         <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
-                                    <Label text="MONEY FLOW" styleClass="table-header-text"/>
-                                    <Label fx:id="moneyFlowMetricLabel" text="\$0.00" styleClass="analytics-value" wrapText="true"/>
-                                    <Label fx:id="moneyFlowTrendLabel" text="No movement yet" styleClass="analytics-trend-neutral" wrapText="true"/>
+                                    <Label styleClass="table-header-text" text="MONEY FLOW" />
+                                    <Label fx:id="moneyFlowMetricLabel" styleClass="analytics-value" text="\$0.00" wrapText="true" />
+                                    <Label fx:id="moneyFlowTrendLabel" styleClass="analytics-trend-neutral" text="No movement yet" wrapText="true" />
                                 </VBox>
-                                <Label text="\$" styleClass="analytics-symbol analytics-symbol-blue"/>
+                                <Label styleClass="analytics-symbol analytics-symbol-blue" text="\$" />
                             </HBox>
-                            <StackPane fx:id="moneyFlowChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
-                            <Label fx:id="moneyFlowChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No transaction history yet." visible="false" wrapText="true"/>
+                            <StackPane fx:id="moneyFlowChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host" />
+                            <Label fx:id="moneyFlowChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No transaction history yet." visible="false" wrapText="true" />
                         </VBox>
 
                         <VBox spacing="12" styleClass="analytics-card" HBox.hgrow="ALWAYS">
                             <HBox alignment="CENTER_LEFT" spacing="12">
                                 <VBox spacing="3" HBox.hgrow="ALWAYS">
-                                    <Label text="BIDDING ACTIVITY" styleClass="table-header-text"/>
-                                    <Label fx:id="biddingActivityMetricLabel" text="0 bids" styleClass="analytics-value" wrapText="true"/>
-                                    <Label fx:id="biddingActivityTrendLabel" text="No activity yet" styleClass="analytics-trend-neutral" wrapText="true"/>
+                                    <Label styleClass="table-header-text" text="BIDDING ACTIVITY" />
+                                    <Label fx:id="biddingActivityMetricLabel" styleClass="analytics-value" text="0 bids" wrapText="true" />
+                                    <Label fx:id="biddingActivityTrendLabel" styleClass="analytics-trend-neutral" text="No activity yet" wrapText="true" />
                                 </VBox>
-                                <Label text="&#8599;" styleClass="analytics-symbol analytics-symbol-green"/>
+                                <Label styleClass="analytics-symbol analytics-symbol-green" text="↗" />
                             </HBox>
-                            <StackPane fx:id="biddingActivityChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host"/>
-                            <Label fx:id="biddingActivityChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true"/>
+                            <StackPane fx:id="biddingActivityChartHost" minHeight="220.0" prefHeight="220.0" styleClass="analytics-chart-host" />
+                            <Label fx:id="biddingActivityChartStateLabel" managed="false" styleClass="analytics-empty-text" text="No bid history yet." visible="false" wrapText="true" />
                         </VBox>
                     </HBox>
 
                     <VBox fx:id="biddingActivityContainer" styleClass="table-container">
                         <!-- Table Header -->
                         <HBox styleClass="table-header">
-                            <Label text="AUCTION ITEM" minWidth="260.0" styleClass="table-header-text" HBox.hgrow="ALWAYS"/>
-                            <Label text="BID AMOUNT" minWidth="150.0" styleClass="table-header-text"/>
-                            <Label text="DATE &amp; TIME" minWidth="180.0" styleClass="table-header-text"/>
-                            <Label text="STATUS" minWidth="120.0" styleClass="table-header-text"/>
+                            <Label minWidth="260.0" styleClass="table-header-text" text="AUCTION ITEM" HBox.hgrow="ALWAYS" />
+                            <Label minWidth="150.0" styleClass="table-header-text" text="BID AMOUNT" />
+                            <Label minWidth="180.0" styleClass="table-header-text" text="DATE &amp; TIME" />
+                            <Label minWidth="120.0" styleClass="table-header-text" text="STATUS" />
                         </HBox>
 
                     </VBox>
@@ -88,16 +79,10 @@
                     <BorderPane>
                         <left>
                             <VBox spacing="4">
-                                <Label text="Transaction Records" styleClass="section-title"/>
-                                <Pane styleClass="title-underline"/>
+                                <Label styleClass="section-title" text="Transaction Records" />
+                                <Pane styleClass="title-underline" />
                             </VBox>
                         </left>
-                        <right>
-                            <HBox alignment="CENTER_RIGHT" spacing="8">
-                                <Label text="download" styleClass="icon text-secondary"/>
-                                <Label text="EXPORT STATEMENT" styleClass="text-secondary transaction-export-btn"/>
-                            </HBox>
-                        </right>
                     </BorderPane>
 
                     <VBox fx:id="transactionRecordsContainer" spacing="16">

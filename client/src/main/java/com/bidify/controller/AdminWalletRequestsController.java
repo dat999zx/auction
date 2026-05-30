@@ -12,10 +12,11 @@ import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AdminClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.CleanableController;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -27,7 +28,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class AdminWalletRequestsController {
+public class AdminWalletRequestsController implements CleanableController {
     private final AdminClientService adminClientService = new AdminClientService();
 
     // Stored reference so unsubscribe removes the exact same listener.
@@ -46,7 +47,7 @@ public class AdminWalletRequestsController {
         Platform.runLater(() -> {
             if (!ClientSession.getInstance().isAdmin()) {
                 NotificationUtil.error("Only admins can access this page.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                SceneManager.goHome();
                 return;
             }
 
@@ -57,7 +58,7 @@ public class AdminWalletRequestsController {
     }
 
     // Hủy đăng ký listener khi rời màn hình để tránh leak bộ nhớ.
-    private void cleanup() {
+    public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 

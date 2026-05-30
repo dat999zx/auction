@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.media;
 
 import javafx.scene.media.AudioClip;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;

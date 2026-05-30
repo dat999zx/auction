@@ -2,6 +2,7 @@ package com.bidify.controller.history;
 
 import com.bidify.common.dto.TransactionDto;
 import com.bidify.common.utility.DisplayUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -40,9 +41,7 @@ public class TransactionCardController {
         if (auctionId != null && !auctionId.isBlank()) {
             card.getStyleClass().add("transaction-card-clickable");
             card.setOnMouseClicked(event -> {
-                com.bidify.controller.AuctionDetailsController.setAuctionId(auctionId);
-                com.bidify.utility.SceneManager.clearCache("auctiondetail.fxml");
-                com.bidify.utility.SceneManager.switchScene("auctiondetail.fxml", false, false);
+                SceneManager.goAuctionDetail(auctionId);
             });
         } else {
             card.getStyleClass().remove("transaction-card-clickable");

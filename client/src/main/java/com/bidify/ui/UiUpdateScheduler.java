@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.ui;
 
 import java.util.Map;
 import java.util.UUID;

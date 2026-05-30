@@ -4,9 +4,9 @@ import com.bidify.common.dto.AuctionDto;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.model.ClientSession;
 
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.SceneManager;
-import com.bidify.utility.UiUpdateScheduler;
+import com.bidify.media.ImageCache;
+import com.bidify.navigation.SceneManager;
+import com.bidify.ui.UiUpdateScheduler;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -126,13 +126,9 @@ public class AuctionCardController {
             && ((sellerUsername != null && sellerUsername.equals(currentUsername)) || ClientSession.getInstance().isAdmin());
 
         if (canModifyUpcoming) {
-            ModifyAuctionController.setAuctionId(auctionId);
-            SceneManager.clearCache("modifyauction.fxml");
-            SceneManager.switchScene("modifyauction.fxml", false, false);
+            SceneManager.goModifyAuction(auctionId);
         } else {
-            AuctionDetailsController.setAuctionId(auctionId);
-            SceneManager.clearCache("auctiondetail.fxml");
-            SceneManager.switchScene("auctiondetail.fxml", false, false);
+            SceneManager.goAuctionDetail(auctionId);
         }
     }
 }

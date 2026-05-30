@@ -1,4 +1,7 @@
-package com.bidify.utility;
+package com.bidify.ui;
+
+import com.bidify.media.SoundUtil;
+import com.bidify.navigation.SceneManager;
 
 import java.io.IOException;
 import java.util.LinkedList;

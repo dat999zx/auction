@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.ui;
 
 /**
  * Pure record representing visibility of settlement controls in the auction detail view.

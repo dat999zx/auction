@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.navigation;
 
 import javafx.animation.FadeTransition;
 import javafx.animation.Interpolator;

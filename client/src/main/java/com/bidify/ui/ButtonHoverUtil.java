@@ -1,4 +1,4 @@
-package com.bidify.utility;
+package com.bidify.ui;
 
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
