@@ -21,15 +21,16 @@ import com.bidify.common.dto.PublicProfileDto;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.AuthClientService;
 import com.bidify.service.PublicProfileClientService;
-import com.bidify.utility.AuctionActivityRenderer;
-import com.bidify.utility.AuctionBiddingChartRenderer;
-import com.bidify.utility.AuctionImageCarousel;
-import com.bidify.utility.AuctionSettlementViewState;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
-import com.bidify.utility.SoundUtil;
-import com.bidify.utility.UiUpdateScheduler;
+import com.bidify.ui.AuctionActivityRenderer;
+import com.bidify.ui.AuctionBiddingChartRenderer;
+import com.bidify.ui.AuctionImageCarousel;
+import com.bidify.ui.AuctionSettlementViewState;
+import com.bidify.navigation.CleanableController;
+import com.bidify.media.ImageCache;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
+import com.bidify.media.SoundUtil;
+import com.bidify.ui.UiUpdateScheduler;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -43,7 +44,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-public class AuctionDetailsController {
+public class AuctionDetailsController implements CleanableController {
     private static final Logger logger = LoggerFactory.getLogger(AuctionDetailsController.class);
     private static final String DEFAULT_PREVIEW_IMAGE = "/images/bidify-logo.png";
 
@@ -155,6 +156,7 @@ public class AuctionDetailsController {
     private String timerSubscriptionId;
     private boolean currentUserAutoBidActive;
     private Double currentUserAutoBidMax;
+    private boolean cleanedUp;
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private final AuthClientService authClientService = new AuthClientService();
     private final PublicProfileClientService publicProfileClientService = new PublicProfileClientService();
@@ -181,9 +183,7 @@ public class AuctionDetailsController {
         if (openingBidderLabel != null) {
             openingBidderLabel.setOnMouseClicked(event -> {
                 if (currentAuction != null && currentAuction.getSellerUsername() != null && !currentAuction.getSellerUsername().isBlank()) {
-                    PublicProfileController.setTargetUsername(currentAuction.getSellerUsername());
-                    SceneManager.clearCache("public-profile.fxml");
-                    SceneManager.switchScene("public-profile.fxml", false, true);
+                    SceneManager.goPublicProfile(currentAuction.getSellerUsername());
                 }
             });
         }
@@ -253,6 +253,8 @@ public class AuctionDetailsController {
     }
 
     public void cleanup() {
+        if (cleanedUp) return;
+        cleanedUp = true;
         stopTimer();
         if (selectedAuctionId != null) {
             try {
@@ -383,7 +385,7 @@ public class AuctionDetailsController {
         if (selectedButton == createAuctionButton) {
             missionBarController.setActiveNavigation(createAuctionButton);
             cleanup();
-            SceneManager.switchScene("create-auction.fxml", false, true);
+            SceneManager.goCreateAuction();
             return;
         }
 
@@ -667,10 +669,7 @@ public class AuctionDetailsController {
 
         if (currentUsername == null || currentUsername.isBlank()) {
             cleanup();
-            SceneManager.clearAllCache();
-            SceneManager.resetMissionBar();
-            SceneManager.preloadAuthScenes();
-            SceneManager.switchScene("login.fxml", true, false);
+            SceneManager.goLoginAfterLogout();
             return;
         }
 
@@ -679,10 +678,7 @@ public class AuctionDetailsController {
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Logged out successfully.");
                 cleanup();
-                SceneManager.clearAllCache();
-                SceneManager.resetMissionBar();
-                SceneManager.preloadAuthScenes();
-                SceneManager.switchScene("login.fxml", true, false);
+                SceneManager.goLoginAfterLogout();
                 return;
             }
             NotificationUtil.error(response.getMessage() == null ? "Logout failed." : response.getMessage());
@@ -697,7 +693,7 @@ public class AuctionDetailsController {
     @FXML
     private void tomenu() {
         cleanup();
-        SceneManager.switchScene("hub.fxml", false, true);
+        SceneManager.goHome();
     }
 
     @FXML

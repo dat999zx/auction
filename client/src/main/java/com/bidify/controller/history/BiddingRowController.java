@@ -1,5 +1,7 @@
 package com.bidify.controller.history;
 
+import com.bidify.navigation.SceneManager;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -40,9 +42,7 @@ public class BiddingRowController {
         if (auctionId != null && !auctionId.isBlank()) {
             row.setStyle("-fx-cursor: hand;");
             row.setOnMouseClicked(event -> {
-                com.bidify.controller.AuctionDetailsController.setAuctionId(auctionId);
-                com.bidify.utility.SceneManager.clearCache("auctiondetail.fxml");
-                com.bidify.utility.SceneManager.switchScene("auctiondetail.fxml", false, false);
+                SceneManager.goAuctionDetail(auctionId);
             });
         } else {
             row.setStyle("");

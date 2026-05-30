@@ -9,11 +9,11 @@ import com.bidify.common.enums.ItemStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.model.ClientSession;
 import com.bidify.service.InventoryClientService;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.media.ImageCache;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -73,9 +73,7 @@ public class InventoryController {
             NotificationUtil.info("Admin accounts cannot create items.");
             return;
         }
-        ItemDetailController.setItemId(null);
-        SceneManager.clearCache("item-detail.fxml");
-        SceneManager.switchScene("item-detail.fxml", false, false);
+        SceneManager.goItemEditor(null);
     }
 
     @FXML
@@ -229,9 +227,7 @@ public class InventoryController {
     }
 
     private void openItemEditor(String itemId) {
-        ItemDetailController.setItemId(itemId);
-        SceneManager.clearCache("item-detail.fxml");
-        SceneManager.switchScene("item-detail.fxml", false, false);
+        SceneManager.goItemEditor(itemId);
     }
 
     private void handleDeleteItem(ItemDto item, boolean editable) {

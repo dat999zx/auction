@@ -12,11 +12,11 @@ import com.bidify.common.utility.DisplayUtil;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AdminClientService;
 import com.bidify.service.AuctionClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
-import com.bidify.utility.SoundUtil;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
+import com.bidify.media.SoundUtil;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -45,7 +45,7 @@ public class AdminAuctionsController {
         Platform.runLater(() -> {
             if (!ClientSession.getInstance().isAdmin()) {
                 NotificationUtil.error("Only admins can access this page.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                SceneManager.goHome();
                 return;
             }
 
@@ -216,9 +216,7 @@ public class AdminAuctionsController {
     }
 
     private void openAuctionDetail(AuctionDto auction) {
-        AuctionDetailsController.setAuctionId(auction.getId());
-        SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false, true);
+        SceneManager.goAuctionDetail(auction.getId(), true);
     }
 
     private String buildSubtitle(AuctionDto auction) {

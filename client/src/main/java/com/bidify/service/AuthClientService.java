@@ -14,7 +14,7 @@ import com.bidify.common.model.Response;
 import com.bidify.common.utility.JsonUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.network.SocketClient;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.SceneManager;
 
 import com.bidify.model.ClientSession;
 

@@ -11,10 +11,10 @@ import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AuctionClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -155,9 +155,7 @@ public class SettlementsController {
 
         // Click để chuyển đến trang chi tiết phiên đấu giá
         row.setOnMouseClicked(event -> {
-            AuctionDetailsController.setAuctionId(auction.getId());
-            SceneManager.clearCache("auctiondetail.fxml");
-            SceneManager.switchScene("auctiondetail.fxml", false, false);
+            SceneManager.goAuctionDetail(auction.getId());
         });
 
         // 1. Chi tiết sản phẩm (Hộp chứa ảnh thu nhỏ và Tên/Mô tả)

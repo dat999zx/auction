@@ -12,9 +12,9 @@ import com.bidify.common.exception.ValidationException;
 import com.bidify.common.utility.ImageUtil;
 import com.bidify.common.utility.ValidationUtil;
 import com.bidify.service.InventoryClientService;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.media.ImageCache;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -86,13 +86,13 @@ public class ItemDetailController {
     @FXML
     private void handleBack() {
         clearEditingState();
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goInventory();
     }
 
     @FXML
     private void handleCancel() {
         clearEditingState();
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goInventory();
     }
 
     @FXML
@@ -302,8 +302,7 @@ public class ItemDetailController {
             + savedItem.getId());
         setSavingState(false);
         clearEditingState();
-        SceneManager.clearCache("inventory.fxml");
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goInventory();
     }
 
     private void setSavingState(boolean saving) {

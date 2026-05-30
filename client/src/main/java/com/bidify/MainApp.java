@@ -3,8 +3,8 @@ package com.bidify;
 import com.bidify.common.enums.EventType;
 import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SoundUtil;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.media.SoundUtil;
 import javafx.application.Application;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
@@ -14,7 +14,7 @@ import javafx.stage.Stage;
 import java.net.URL;
 
 import com.bidify.network.SocketClient;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.SceneManager;
 import com.bidify.model.ClientSession;
 
 import org.slf4j.Logger;
@@ -147,11 +147,8 @@ public class MainApp extends Application {
     private static void handleForcedLogout(Event event) {
         SoundUtil.error();
         ClientSession.getInstance().clear();
-        SceneManager.clearAllCache();
-        SceneManager.resetMissionBar();
         if (event != null && event.getMessage() != null && !event.getMessage().isBlank())
             NotificationUtil.info(event.getMessage());
-        SceneManager.switchScene("login.fxml", true, false);
-        SceneManager.preloadScenes("register.fxml");
+        SceneManager.goLoginAfterLogout();
     }
 }

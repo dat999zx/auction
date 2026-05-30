@@ -9,10 +9,10 @@ import com.bidify.common.enums.UserStatus;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AdminClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -39,7 +39,7 @@ public class AdminUsersController {
         Platform.runLater(() -> {
             if (!ClientSession.getInstance().isAdmin()) {
                 NotificationUtil.error("Only admins can access this page.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                SceneManager.goHome();
                 return;
             }
 
@@ -212,8 +212,6 @@ public class AdminUsersController {
     }
 
     private void openInventory(String username) {
-        InventoryController.setManagedOwnerUsername(username);
-        SceneManager.clearCache("inventory.fxml");
-        SceneManager.switchScene("inventory.fxml", false, true);
+        SceneManager.goManagedInventory(username);
     }
 }

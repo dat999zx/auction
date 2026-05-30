@@ -15,10 +15,11 @@ import com.bidify.controller.history.TransactionCardController;
 import com.bidify.event.EventManager;
 import com.bidify.service.BidClientService;
 import com.bidify.service.TransactionClientService;
-import com.bidify.utility.HistoryChartRenderer;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
+import com.bidify.navigation.CleanableController;
+import com.bidify.ui.HistoryChartRenderer;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,7 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-public class HistoryController {
+public class HistoryController implements CleanableController {
     private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 
     @FXML
