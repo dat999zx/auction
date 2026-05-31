@@ -254,7 +254,7 @@ java -Dserver.host=192.168.1.10 -Dserver.port=5001 -jar client/target/client-1.0
 
 ## Tài nguyên Dự án
 
-- [Tài liệu chi tiết](https://docs.google.com/document/d/1Sj1TxuoD_zeq0wu-CCMGqSefZQMXZrzrDEWELx7WQUA/edit?tab=t.0)
+- [Báo cáo + Video](https://drive.google.com/drive/folders/1GvHM5FN2qlcXY7qHNMp9OoFgLu0qooCq?usp=sharing)
 - [Sơ đồ codebase](https://mermaid.ai/d/8b65df02-73ad-478f-b330-718d6eb72ca5)
 
 ## Người tham giatest
