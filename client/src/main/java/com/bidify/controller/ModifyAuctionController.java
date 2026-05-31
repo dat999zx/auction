@@ -17,11 +17,11 @@ import com.bidify.common.model.Response;
 import com.bidify.common.model.UpdateAuctionRequest;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.service.AuctionClientService;
-import com.bidify.utility.AuctionAntiSnipingFormState;
-import com.bidify.utility.AuctionFormParser;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.ui.AuctionAntiSnipingFormState;
+import com.bidify.ui.AuctionFormParser;
+import com.bidify.media.ImageCache;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -254,9 +254,7 @@ public class ModifyAuctionController {
 
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction updated successfully.");
-                AuctionDetailsController.setAuctionId(currentAuctionId);
-                SceneManager.clearCache("auctiondetail.fxml");
-                SceneManager.switchScene("auctiondetail.fxml", false, false);
+                SceneManager.goAuctionDetail(currentAuctionId);
             } else {
                 NotificationUtil.error(response.getMessage());
             }
@@ -276,7 +274,7 @@ public class ModifyAuctionController {
 
     @FXML
     private void handleCancel() {
-        SceneManager.switchScene("hub.fxml", false, true);
+        SceneManager.goHome();
     }
 
     @FXML
@@ -290,7 +288,7 @@ public class ModifyAuctionController {
             Response response = auctionClientService.deleteAuction(currentAuctionId);
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction deleted successfully.");
-                SceneManager.switchScene("hub.fxml", false, true);
+                SceneManager.goHome();
                 return;
             }
             NotificationUtil.error(response.getMessage());

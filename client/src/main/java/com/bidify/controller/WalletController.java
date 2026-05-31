@@ -15,9 +15,10 @@ import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
 import com.bidify.service.UserProfileClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
+import com.bidify.navigation.CleanableController;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -28,7 +29,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class WalletController {
+public class WalletController implements CleanableController {
     private final ClientSession clientSession = ClientSession.getInstance();
     private final UserProfileClientService userProfileClientService = new UserProfileClientService();
 
@@ -76,7 +77,7 @@ public class WalletController {
         EventManager.getInstance().subscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);
     }
 
-    private void cleanup() {
+    public void cleanup() {
         EventManager.getInstance().unsubscribe(EventType.WALLET_CHANGED, onWalletChanged);
         EventManager.getInstance().unsubscribe(EventType.LOCKED_BALANCE_CHANGED, onLockedBalanceChanged);
         EventManager.getInstance().unsubscribe(EventType.WALLET_REQUESTS_CHANGED, onWalletRequestsChanged);

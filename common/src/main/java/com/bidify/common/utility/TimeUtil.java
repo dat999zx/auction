@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 
+// Lấy giờ hiện tại theo múi giờ Việt Nam và chuyển đổi định dạng thời gian
 public class TimeUtil {
     public static Duration parseHHMM(String hhmm) {
         if (hhmm == null || !hhmm.contains(":")) return Duration.ZERO;

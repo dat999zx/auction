@@ -18,6 +18,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.SecureRandom;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.*;
 
@@ -27,6 +29,7 @@ import org.slf4j.LoggerFactory;
 public class ServerApp {
     private static final Logger logger = LoggerFactory.getLogger(ServerApp.class);
     private static final int DEFAULT_PORT = 5000;
+    private static final int MAX_CLIENT_THREADS = 32;
     private static final String KEYSTORE_PATH = "/keystore/server.jks";
     private static final char[] KEYSTORE_PASSWORD = "blablablabidifyserver".toCharArray();
 
@@ -37,9 +40,10 @@ public class ServerApp {
             SQLiteHelper.init();
         }
         catch (DatabaseException e) {
-            logger.error("Exception occurred", e);
+            logger.error("Database initialization failed", e);
             System.exit(1);
         }
+
         AuctionService auctionService = AuctionService.getInstance();
         AuctionSchedulerService auctionSchedulerService = AuctionSchedulerService.getInstance();
         
@@ -54,28 +58,32 @@ public class ServerApp {
         
         auctionService.loadToRuntime();
         auctionSchedulerService.start();
- 
+
+        // chứa các thread client handler
+        ExecutorService clientThreadPool = Executors.newFixedThreadPool(MAX_CLIENT_THREADS);
+        
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             logger.info("Server is shutting down, saving all data...");
             AuthService.getInstance().saveAllUsers();
             auctionSchedulerService.stop();
+            clientThreadPool.shutdownNow();
             auctionService.saveAllRuntimeAuctions();
             RealtimeDatabase.clearAll();
         }));
- 
+
         try {
             SSLContext sslContext = createServerSslContext();
             SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
             int port = resolvePort();
  
             try (SSLServerSocket serverSocket = (SSLServerSocket) factory.createServerSocket(port)) {
-                logger.info("Server running on port: " + port);
+                logger.info("Server running on port: {}", port);
  
                 while (!serverSocket.isClosed()) {
                     SSLSocket socket = (SSLSocket) serverSocket.accept();
                     logger.info("Client connected: {}", socket.getInetAddress());
  
-                    new Thread(new ClientHandler(socket), socket.getInetAddress().toString()).start();
+                    clientThreadPool.execute(new ClientHandler(socket));
                 }
             }
         }
@@ -84,7 +92,7 @@ public class ServerApp {
             System.exit(1);
         }
     }
- 
+    
     // Khởi tạo SSLContext sử dụng Keystore cấu hình sẵn cho kết nối bảo mật SSL/TLS.
     private static SSLContext createServerSslContext() throws Exception {
         KeyStore keyStore = KeyStore.getInstance("JKS");

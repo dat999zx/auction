@@ -19,11 +19,12 @@ import com.bidify.common.model.Event;
 import com.bidify.event.EventManager;
 import com.bidify.service.AuctionClientService;
 import com.bidify.common.utility.JsonUtil;
-import com.bidify.utility.HubAuctionPatcher;
-import com.bidify.utility.HubAuctionSectionRenderer;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.CleanableController;
+import com.bidify.ui.HubAuctionPatcher;
+import com.bidify.ui.HubAuctionSectionRenderer;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.navigation.SceneManager;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -39,7 +40,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-public class HubController {
+public class HubController implements CleanableController {
     private static final Logger logger = LoggerFactory.getLogger(HubController.class);
     private static final double AUCTION_CARD_WIDTH = 460.0;
     private static final double AUCTION_ROW_SPACING = 24.0;

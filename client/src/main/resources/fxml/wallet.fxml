@@ -13,14 +13,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane xmlns="http://javafx.com/javafx/21"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.bidify.controller.WalletController"
-            fitToWidth="true"
-            hbarPolicy="NEVER"
-            styleClass="wallet-scroll"
-            stylesheets="@../css/wallet.css"
-            vbarPolicy="AS_NEEDED">
+<ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="wallet-scroll" stylesheets="@../css/wallet.css" vbarPolicy="AS_NEEDED" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.bidify.controller.WalletController">
     <content>
         <VBox spacing="24.0" styleClass="wallet-root">
             <padding>
@@ -34,12 +27,8 @@
                         <Label styleClass="eyebrow-muted" text="WALLET" />
                     </HBox>
                     <Label styleClass="page-title" text="Wallet" />
-                    <Label maxWidth="860.0"
-                           styleClass="page-subtitle"
-                           text="Manage your balance requests and review deposit or withdraw history."
-                           wrapText="true" />
+                    <Label maxWidth="860.0" styleClass="page-subtitle" text="Manage your balance requests and review deposit or withdraw history." wrapText="true" />
                 </VBox>
-                <Button onAction="#handleRefresh" styleClass="secondary-action-button" text="Refresh" />
             </HBox>
 
             <GridPane hgap="18.0" vgap="18.0">
@@ -64,7 +53,7 @@
                     <padding>
                         <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
                     </padding>
-                    <Label styleClass="meta-label" text="LOCKED BALANCE" />
+                    <Label styleClass="meta-label" text="LOCKED BALANCE - USED FOR BIDDING" />
                     <Label fx:id="lockedBalanceLabel" styleClass="wallet-figure" text="\$0.00" />
                     <Label fx:id="fullLockedBalance" maxWidth="300.0" styleClass="meta-label" text="\$0.00" />
                 </VBox>
@@ -74,7 +63,7 @@
                 <padding>
                     <Insets bottom="22.0" left="22.0" right="22.0" top="22.0" />
                 </padding>
-                <Label styleClass="section-title" text="Wallet Testing" />
+                <Label styleClass="section-title" text="Wallet Request" />
                 <Label styleClass="section-copy" text="Submit deposit and withdraw requests for admin review." wrapText="true" />
 
                 <GridPane hgap="18.0" vgap="14.0">
@@ -87,11 +76,11 @@
                     </rowConstraints>
 
                     <VBox spacing="6.0" GridPane.columnIndex="0">
-                        <Label styleClass="field-label" text="ADD BALANCE" />
+                        <Label styleClass="field-label" text="DEPOSIT BALANCE" />
                         <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="inline-input-shell">
                             <Label styleClass="currency-chip" text="\$" />
                             <TextField fx:id="topUpAmountField" promptText="100.00" styleClass="inline-input" HBox.hgrow="ALWAYS" />
-                            <Button onAction="#handleTopUp" prefHeight="40.0" prefWidth="98.0" text="Add">
+                            <Button onAction="#handleTopUp" prefHeight="40.0" prefWidth="98.0" text="Deposit">
                                 <styleClass>
                                     <String fx:value="compact-button" />
                                     <String fx:value="secondary-action-button" />

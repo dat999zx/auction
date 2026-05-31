@@ -13,11 +13,11 @@ import com.bidify.common.enums.AuctionStatus;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.model.ClientSession;
 import com.bidify.service.PublicProfileClientService;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.media.ImageCache;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -90,7 +90,7 @@ public class PublicProfileController {
 
         if (usernameToLoad == null || usernameToLoad.isBlank()) {
             NotificationUtil.error("No user specified and no session found.");
-            SceneManager.switchScene("hub.fxml", false, true);
+            SceneManager.goHome();
             return;
         }
 
@@ -99,10 +99,10 @@ public class PublicProfileController {
             renderProfile(profile);
         } catch (IOException e) {
             NotificationUtil.error("Cannot connect to server.");
-            SceneManager.switchScene("hub.fxml", false, true);
+            SceneManager.goHome();
         } catch (Exception e) {
             NotificationUtil.error("Failed to load public profile: " + e.getMessage());
-            SceneManager.switchScene("hub.fxml", false, true);
+            SceneManager.goHome();
         }
     }
 
@@ -205,9 +205,7 @@ public class PublicProfileController {
         row.setStyle("-fx-cursor: hand;");
 
         row.setOnMouseClicked(event -> {
-            AuctionDetailsController.setAuctionId(auction.getId());
-            SceneManager.clearCache("auctiondetail.fxml");
-            SceneManager.switchScene("auctiondetail.fxml", false, false);
+            SceneManager.goAuctionDetail(auction.getId());
         });
 
         // 1. Title and details
@@ -343,7 +341,7 @@ public class PublicProfileController {
 
     @FXML
     private void handleBack() {
-        SceneManager.switchScene("hub.fxml", false, true);
+        SceneManager.goHome();
     }
 
     private String resolveInitial(String value) {

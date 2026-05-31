@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.bidify.common.enums.UserRole;
 import com.bidify.common.enums.UserStatus;
 
+// Tài khoản admin — kế thừa User nhưng có toàn quyền quản trị hệ thống
 public class Admin extends User {
     public Admin(String username, String nickname, String password) {
         super(username, nickname, password);

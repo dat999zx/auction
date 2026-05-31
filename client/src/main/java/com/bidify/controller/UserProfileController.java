@@ -11,14 +11,14 @@ import com.bidify.common.enums.EventType;
 import com.bidify.common.exception.ValidationException;
 import com.bidify.common.model.Event;
 import com.bidify.common.utility.DisplayUtil;
-import com.bidify.common.utility.JsonUtil;
 import com.bidify.event.EventManager;
 import com.bidify.model.ClientSession;
 import com.bidify.service.UserProfileClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.navigation.CleanableController;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -26,7 +26,7 @@ import java.util.Base64;
 import javafx.stage.FileChooser;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import com.bidify.utility.ImageCache;
+import com.bidify.media.ImageCache;
 import javafx.scene.shape.Circle;
 
 import javafx.application.Platform;
@@ -35,7 +35,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
-public class UserProfileController {
+public class UserProfileController implements CleanableController {
     private static final Logger logger = LoggerFactory.getLogger(UserProfileController.class);
     private final ClientSession clientSession = ClientSession.getInstance();
 

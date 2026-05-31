@@ -2,6 +2,7 @@ package com.bidify.common.utility;
 
 import java.util.UUID;
 
+// Tạo ID ngẫu nhiên duy nhất cho auction, bid, item, transaction, ảnh...
 public class IdGenerator {
     private IdGenerator(){}
 

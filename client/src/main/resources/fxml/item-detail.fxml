@@ -23,7 +23,7 @@
             <Button onAction="#handleBack" styleClass="icon-button" text="&lt;" />
             <Label styleClass="detail-title" text="Item Editor" HBox.hgrow="ALWAYS" />
             <Button onAction="#handleCancel" styleClass="cancel-button" text="Cancel" />
-            <Button onAction="#handleSave" styleClass="save-button" text="Save Item" />
+            <Button fx:id="saveButton" onAction="#handleSave" styleClass="save-button" text="Save Item" />
             <padding><Insets bottom="0" left="40" right="40" top="0" /></padding>
         </HBox>
     </top>
@@ -68,7 +68,7 @@
 
                 <FlowPane fx:id="galleryPreviewPane" hgap="12" prefWrapLength="360" vgap="12" />
 
-                <Label styleClass="helper-text" text="Use at least one clear image if possible. Supported formats: PNG, JPG, JPEG, GIF." wrapText="true" />
+                <Label styleClass="helper-text" text="Use at least one clear image if possible. Supported formats: PNG, JPG, JPEG." wrapText="true" />
             </VBox>
             <padding><Insets bottom="40" left="40" right="40" top="40" /></padding>
         </HBox>

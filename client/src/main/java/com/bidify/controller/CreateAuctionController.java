@@ -22,13 +22,13 @@ import com.bidify.common.utility.TimeUtil;
 import com.bidify.model.ClientSession;
 import com.bidify.service.AuctionClientService;
 import com.bidify.service.InventoryClientService;
-import com.bidify.utility.AuctionAntiSnipingFormState;
-import com.bidify.utility.AuctionFormParser;
-import com.bidify.utility.ImageCache;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
+import com.bidify.ui.AuctionAntiSnipingFormState;
+import com.bidify.ui.AuctionFormParser;
+import com.bidify.media.ImageCache;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -238,9 +238,8 @@ public class CreateAuctionController {
             Response response = auctionClientService.createAuction(data);
             if (response.getStatus() == RequestStatus.SUCCESS) {
                 NotificationUtil.success("Auction created successfully");
-                SceneManager.clearCache("create-auction.fxml");
                 SceneManager.clearCache("inventory.fxml");
-                SceneManager.switchScene("hub.fxml", false, true);
+                SceneManager.goHome();
             }
             else {
                 NotificationUtil.error(response.getMessage());

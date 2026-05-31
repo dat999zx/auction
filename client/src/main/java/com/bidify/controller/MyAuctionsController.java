@@ -15,11 +15,12 @@ import com.bidify.common.exception.AuctionException;
 import com.bidify.common.utility.DisplayUtil;
 import com.bidify.common.utility.TimeUtil;
 import com.bidify.service.AuctionClientService;
-import com.bidify.utility.MissionBarUtil;
-import com.bidify.utility.NavPage;
-import com.bidify.utility.NotificationUtil;
-import com.bidify.utility.SceneManager;
-import com.bidify.utility.UiUpdateScheduler;
+import com.bidify.navigation.CleanableController;
+import com.bidify.navigation.MissionBarUtil;
+import com.bidify.navigation.NavPage;
+import com.bidify.ui.NotificationUtil;
+import com.bidify.navigation.SceneManager;
+import com.bidify.ui.UiUpdateScheduler;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -36,7 +37,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-public class MyAuctionsController {
+public class MyAuctionsController implements CleanableController {
     private final AuctionClientService auctionClientService = new AuctionClientService();
     private AuctionDto[] allAuctions = new AuctionDto[0];
     private final List<String> timerSubscriptionIds = new ArrayList<>();
@@ -55,7 +56,7 @@ public class MyAuctionsController {
         });
     }
 
-    private void cleanup() {
+    public void cleanup() {
         for (String id : timerSubscriptionIds)
             UiUpdateScheduler.getInstance().unsubscribe(id);
         timerSubscriptionIds.clear();
@@ -363,15 +364,11 @@ public class MyAuctionsController {
     }
 
     private void openModifyAuction(AuctionDto auction) {
-        ModifyAuctionController.setAuctionId(auction.getId());
-        SceneManager.clearCache("modifyauction.fxml");
-        SceneManager.switchScene("modifyauction.fxml", false, false);
+        SceneManager.goModifyAuction(auction.getId());
     }
 
     private void openAuctionDetail(AuctionDto auction) {
-        AuctionDetailsController.setAuctionId(auction.getId());
-        SceneManager.clearCache("auctiondetail.fxml");
-        SceneManager.switchScene("auctiondetail.fxml", false, false);
+        SceneManager.goAuctionDetail(auction.getId());
     }
 
     private String resolveInitial(String value) {

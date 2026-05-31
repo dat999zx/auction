@@ -17,7 +17,6 @@ import java.net.SocketException;
 
 import javax.net.ssl.SSLSocket;
 
-// lắng nghe client
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

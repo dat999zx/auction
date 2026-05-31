@@ -9,6 +9,7 @@ import com.bidify.server.exception.DatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// Chuyển đổi object User (server) → UserDto (gửi cho client), lọc bỏ dữ liệu nhạy cảm
 public class UserMapper {
     private static final Logger logger = LoggerFactory.getLogger(UserMapper.class);
 
