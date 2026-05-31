@@ -129,6 +129,4 @@
             </ScrollPane>
         </center>
     </BorderPane>
-
-    <Button styleClass="fab" text="💬" AnchorPane.bottomAnchor="32.0" AnchorPane.rightAnchor="32.0" />
 </AnchorPane>
